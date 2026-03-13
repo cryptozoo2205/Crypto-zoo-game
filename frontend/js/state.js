@@ -1,7 +1,12 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
+const savedTelegramId = localStorage.getItem("telegramId");
+const telegramId = savedTelegramId || String(Date.now());
+
+localStorage.setItem("telegramId", telegramId);
+
 window.CryptoZoo.state = {
-    telegramId: localStorage.getItem("telegramId") || String(Date.now()),
+    telegramId: telegramId,
     coins: 0,
     level: 1,
     coinsPerClick: 1,
@@ -13,5 +18,3 @@ window.CryptoZoo.state = {
         lion: { count: 0, level: 1 }
     }
 };
-
-localStorage.setItem("telegramId", window.CryptoZoo.state.telegramId);
