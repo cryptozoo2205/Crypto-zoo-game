@@ -23,6 +23,30 @@ mongoose
         console.error("MongoDB connection error:", error);
     });
 
+function normalizeAnimals(animals) {
+    const raw = animals || {};
+
+    function normalizeAnimal(animalValue) {
+        if (typeof animalValue === "number") {
+            return {
+                count: animalValue,
+                level: 1
+            };
+        }
+
+        return {
+            count: Number(animalValue?.count) || 0,
+            level: Number(animalValue?.level) || 1
+        };
+    }
+
+    return {
+        monkey: normalizeAnimal(raw.monkey),
+        panda: normalizeAnimal(raw.panda),
+        lion: normalizeAnimal(raw.lion)
+    };
+}
+
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "../frontend/index.html"));
 });
@@ -39,6 +63,10 @@ app.get("/player/:telegramId", async (req, res) => {
                 username: `Gracz_${telegramId}`,
                 lastLogin: new Date()
             });
+        } else {
+            const normalizedAnimals = normalizeAnimals(user.animals);
+            user.animals = normalizedAnimals;
+            await user.save();
         }
 
         res.json(user);
@@ -65,6 +93,8 @@ app.post("/player/update", async (req, res) => {
             return res.status(400).json({ error: "Brak telegramId" });
         }
 
+        const normalizedAnimals = normalizeAnimals(animals);
+
         const updatedUser = await User.findOneAndUpdate(
             { telegramId },
             {
@@ -74,43 +104,5 @@ app.post("/player/update", async (req, res) => {
                 level: Number(level) || 1,
                 coinsPerClick: Number(coinsPerClick) || 1,
                 upgradeCost: Number(upgradeCost) || 50,
-                animals: {
-                    monkey: Number(animals?.monkey) || 0,
-                    panda: Number(animals?.panda) || 0,
-                    lion: Number(animals?.lion) || 0
-                },
-                lastLogin: lastLogin ? new Date(lastLogin) : new Date()
-            },
-            {
-                new: true,
-                upsert: true
-            }
-        );
-
-        res.json({
-            success: true,
-            user: updatedUser
-        });
-    } catch (error) {
-        console.error("POST /player/update error:", error);
-        res.status(500).json({ error: "Błąd zapisu gracza" });
-    }
-});
-
-app.get("/ranking", async (req, res) => {
-    try {
-        const ranking = await User.find({})
-            .sort({ coins: -1 })
-            .limit(10)
-            .select("username coins");
-
-        res.json(ranking);
-    } catch (error) {
-        console.error("GET /ranking error:", error);
-        res.status(500).json({ error: "Błąd pobierania rankingu" });
-    }
-});
-
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+                animals: normalizedAnimals,
+                lastLogin: lastLogin ? new Date(lastLogin) :
