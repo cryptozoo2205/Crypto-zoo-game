@@ -29,7 +29,7 @@
 
         <section id="zoo" class="screen">
             <div class="screen-card">
-                <h3 class="section-title">🐾 Zoo Builder v2</h3>
+                <h3 class="section-title">🐾 Zoo Builder + Rarity</h3>
 
                 <div class="summary-box">
                     <div class="summary-item">
@@ -42,12 +42,21 @@
                     </div>
                 </div>
 
+                <div class="rarity-legend">
+                    <div class="legend-item"><span class="rarity-badge rarity-common">Common</span><span>x1.0</span></div>
+                    <div class="legend-item"><span class="rarity-badge rarity-rare">Rare</span><span>x1.5</span></div>
+                    <div class="legend-item"><span class="rarity-badge rarity-epic">Epic</span><span>x2.5</span></div>
+                </div>
+
                 <div class="animal-row">
                     <div class="animal-left">
                         <div class="animal-icon">🐵</div>
                         <div class="animal-text">
-                            <div class="animal-name">Małpa</div>
-                            <div class="animal-desc">Bazowy dochód: 1 / sek • Koszt: 100</div>
+                            <div class="animal-topline">
+                                <div class="animal-name">Małpa</div>
+                                <span class="rarity-badge rarity-common">Common</span>
+                            </div>
+                            <div class="animal-desc">Bazowy dochód: 1 / sek • Rarity bonus: x1.0 • Koszt: 100</div>
                             <div class="animal-owned">
                                 Posiadasz: <span id="monkey-count">0</span> • Poziom: <span id="monkey-level">1</span>
                             </div>
@@ -63,8 +72,11 @@
                     <div class="animal-left">
                         <div class="animal-icon">🐼</div>
                         <div class="animal-text">
-                            <div class="animal-name">Panda</div>
-                            <div class="animal-desc">Bazowy dochód: 3 / sek • Koszt: 400</div>
+                            <div class="animal-topline">
+                                <div class="animal-name">Panda</div>
+                                <span class="rarity-badge rarity-rare">Rare</span>
+                            </div>
+                            <div class="animal-desc">Bazowy dochód: 3 / sek • Rarity bonus: x1.5 • Koszt: 400</div>
                             <div class="animal-owned">
                                 Posiadasz: <span id="panda-count">0</span> • Poziom: <span id="panda-level">1</span>
                             </div>
@@ -80,8 +92,11 @@
                     <div class="animal-left">
                         <div class="animal-icon">🦁</div>
                         <div class="animal-text">
-                            <div class="animal-name">Lew</div>
-                            <div class="animal-desc">Bazowy dochód: 8 / sek • Koszt: 1200</div>
+                            <div class="animal-topline">
+                                <div class="animal-name">Lew</div>
+                                <span class="rarity-badge rarity-epic">Epic</span>
+                            </div>
+                            <div class="animal-desc">Bazowy dochód: 8 / sek • Rarity bonus: x2.5 • Koszt: 1200</div>
                             <div class="animal-owned">
                                 Posiadasz: <span id="lion-count">0</span> • Poziom: <span id="lion-level">1</span>
                             </div>
