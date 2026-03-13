@@ -55,11 +55,12 @@ window.CryptoZoo.app = {
         const ui = window.CryptoZoo.ui;
         const zoo = window.CryptoZoo.zoo;
         const api = window.CryptoZoo.api;
+        const app = this;
 
         if (ui.els.tapBtn) {
             ui.els.tapBtn.addEventListener("click", async function () {
                 state.coins += state.coinsPerClick;
-                window.CryptoZoo.app.updateLevel();
+                app.updateLevel();
                 ui.render();
                 ui.animateCoinsBurst();
                 await api.savePlayer();
@@ -77,7 +78,7 @@ window.CryptoZoo.app = {
                 state.coinsPerClick += 1;
                 state.upgradeCost = Math.floor(state.upgradeCost * 1.8);
 
-                window.CryptoZoo.app.updateLevel();
+                app.updateLevel();
                 ui.render();
                 await api.savePlayer();
                 ui.showToast("Kupiono ulepszenie kliknięcia.");
@@ -126,11 +127,12 @@ window.CryptoZoo.app = {
         const ui = window.CryptoZoo.ui;
         const api = window.CryptoZoo.api;
         const zoo = window.CryptoZoo.zoo;
+        const app = this;
 
         setInterval(async function () {
             if (state.zooIncome > 0) {
                 state.coins += state.zooIncome;
-                window.CryptoZoo.app.updateLevel();
+                app.updateLevel();
                 zoo.updateZooIncome();
                 ui.render();
                 await api.savePlayer();
