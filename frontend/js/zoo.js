@@ -13,20 +13,30 @@ window.CryptoZoo.zoo = {
             }
 
             return {
-                count: Number(value?.count) || 0,
-                level: Number(value?.level) || 1
+                count: Number(value && value.count) || 0,
+                level: Number(value && value.level) || 1
             };
         }
 
         state.animals = {
-            monkey: normalizeAnimal(state.animals?.monkey),
-            panda: normalizeAnimal(state.animals?.panda),
-            lion: normalizeAnimal(state.animals?.lion)
+            monkey: normalizeAnimal(state.animals.monkey),
+            panda: normalizeAnimal(state.animals.panda),
+            lion: normalizeAnimal(state.animals.lion)
         };
     },
 
     isDiscovered(animalKey) {
-        return (window.CryptoZoo.state.animals[animalKey]?.count || 0) > 0;
+        return this.getAnimalCount(animalKey) > 0;
+    },
+
+    getAnimalCount(animalKey) {
+        const animal = window.CryptoZoo.state.animals[animalKey];
+        return animal ? animal.count : 0;
+    },
+
+    getAnimalLevel(animalKey) {
+        const animal = window.CryptoZoo.state.animals[animalKey];
+        return animal ? animal.level : 1;
     },
 
     getAnimalIncome(animalKey) {
@@ -49,8 +59,7 @@ window.CryptoZoo.zoo = {
     },
 
     getAnimalsTotal() {
-        const animals = window.CryptoZoo.state.animals;
-        return animals.monkey.count + animals.panda.count + animals.lion.count;
+        return this.getAnimalCount("monkey") + this.getAnimalCount("panda") + this.getAnimalCount("lion");
     },
 
     getCollectionFoundCount() {
@@ -62,9 +71,8 @@ window.CryptoZoo.zoo = {
     },
 
     getAnimalUpgradeCost(animalKey) {
-        const state = window.CryptoZoo.state;
         const config = window.CryptoZoo.config.animals[animalKey];
-        return config.upgradeBaseCost * state.animals[animalKey].level;
+        return config.upgradeBaseCost * this.getAnimalLevel(animalKey);
     },
 
     async buyAnimal(animalKey) {
@@ -75,7 +83,7 @@ window.CryptoZoo.zoo = {
         const app = window.CryptoZoo.app;
 
         if (!config) {
-            console.error("Brak configu dla zwierzęcia:", animalKey);
+            console.error("Brak configu dla:", animalKey);
             return;
         }
 
@@ -90,7 +98,6 @@ window.CryptoZoo.zoo = {
         this.updateZooIncome();
         app.updateLevel();
         ui.render();
-
         await api.savePlayer();
         ui.showToast(`Kupiono ${config.buyName}.`);
     },
@@ -100,11 +107,9 @@ window.CryptoZoo.zoo = {
         const ui = window.CryptoZoo.ui;
         const api = window.CryptoZoo.api;
         const app = window.CryptoZoo.app;
-
-        const animal = state.animals[animalKey];
         const cost = this.getAnimalUpgradeCost(animalKey);
 
-        if (!animal || animal.count <= 0) {
+        if (this.getAnimalCount(animalKey) <= 0) {
             ui.showToast("Najpierw musisz kupić to zwierzę.");
             return;
         }
@@ -115,12 +120,11 @@ window.CryptoZoo.zoo = {
         }
 
         state.coins -= cost;
-        animal.level += 1;
+        state.animals[animalKey].level += 1;
 
         this.updateZooIncome();
         app.updateLevel();
         ui.render();
-
         await api.savePlayer();
         ui.showToast("Ulepszono zwierzę.");
     }
