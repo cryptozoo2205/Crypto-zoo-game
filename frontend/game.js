@@ -12,6 +12,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let zooIncome = 0;
 
+    const telegramId = localStorage.getItem("telegramId") || String(Date.now());
+    localStorage.setItem("telegramId", telegramId);
+
     const coinsCount = document.getElementById("coins-count");
     const levelSpan = document.getElementById("level");
     const coinsPerClickSpan = document.getElementById("coins-per-click");
@@ -32,6 +35,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function showToast(message) {
         if (!toast) return;
+
         toast.textContent = message;
         toast.style.display = "block";
 
@@ -91,24 +95,88 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    async function savePlayer() {
+        try {
+            await fetch("/player/update", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    telegramId,
+                    username: `Gracz_${telegramId}`,
+                    coins,
+                    level,
+                    coinsPerClick,
+                    upgradeCost,
+                    animals
+                })
+            });
+        } catch (error) {
+            console.error("Błąd zapisu gracza:", error);
+        }
+    }
+
+    async function loadPlayer() {
+        try {
+            const response = await fetch(`/player/${telegramId}`);
+            const user = await response.json();
+
+            coins = user.coins || 0;
+            level = user.level || 1;
+            coinsPerClick = user.coinsPerClick || 1;
+            upgradeCost = user.upgradeCost || 50;
+            animals = user.animals || { monkey: 0, panda: 0, lion: 0 };
+
+            updateZooIncome();
+            updateUI();
+        } catch (error) {
+            console.error("Błąd pobierania gracza:", error);
+        }
+    }
+
+    async function loadRanking() {
+        try {
+            const response = await fetch("/ranking");
+            const ranking = await response.json();
+
+            if (!rankingList) return;
+
+            rankingList.innerHTML = "";
+
+            ranking.forEach(function (player, index) {
+                const li = document.createElement("li");
+                li.textContent = `${index + 1}. ${player.username} — ${player.coins} monet`;
+                rankingList.appendChild(li);
+            });
+        } catch (error) {
+            console.error("Błąd pobierania rankingu:", error);
+        }
+    }
+
     navButtons.forEach(function (btn) {
         btn.addEventListener("click", function () {
             const screenId = btn.dataset.screen;
             showScreen(screenId);
+
+            if (screenId === "ranking") {
+                loadRanking();
+            }
         });
     });
 
     if (tapBtn) {
-        tapBtn.addEventListener("click", function () {
+        tapBtn.addEventListener("click", async function () {
             coins += coinsPerClick;
             updateLevel();
             updateUI();
             animateCoinsBurst();
+            await savePlayer();
         });
     }
 
     if (buyUpgradeBtn) {
-        buyUpgradeBtn.addEventListener("click", function () {
+        buyUpgradeBtn.addEventListener("click", async function () {
             if (coins < upgradeCost) {
                 showToast("Za mało monet na ulepszenie.");
                 return;
@@ -120,12 +188,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
             updateLevel();
             updateUI();
+            await savePlayer();
             showToast("Kupiono ulepszenie kliknięcia.");
         });
     }
 
     if (buyMonkeyBtn) {
-        buyMonkeyBtn.addEventListener("click", function () {
+        buyMonkeyBtn.addEventListener("click", async function () {
             if (coins < 100) {
                 showToast("Za mało monet na małpę.");
                 return;
@@ -136,12 +205,13 @@ document.addEventListener("DOMContentLoaded", function () {
             updateZooIncome();
             updateLevel();
             updateUI();
+            await savePlayer();
             showToast("Kupiono małpę.");
         });
     }
 
     if (buyPandaBtn) {
-        buyPandaBtn.addEventListener("click", function () {
+        buyPandaBtn.addEventListener("click", async function () {
             if (coins < 400) {
                 showToast("Za mało monet na pandę.");
                 return;
@@ -152,12 +222,13 @@ document.addEventListener("DOMContentLoaded", function () {
             updateZooIncome();
             updateLevel();
             updateUI();
+            await savePlayer();
             showToast("Kupiono pandę.");
         });
     }
 
     if (buyLionBtn) {
-        buyLionBtn.addEventListener("click", function () {
+        buyLionBtn.addEventListener("click", async function () {
             if (coins < 1200) {
                 showToast("Za mało monet na lwa.");
                 return;
@@ -168,30 +239,25 @@ document.addEventListener("DOMContentLoaded", function () {
             updateZooIncome();
             updateLevel();
             updateUI();
+            await savePlayer();
             showToast("Kupiono lwa.");
         });
     }
 
-    setInterval(function () {
+    setInterval(async function () {
         if (zooIncome > 0) {
             coins += zooIncome;
             updateLevel();
             updateUI();
+            await savePlayer();
         }
     }, 1000);
 
-    function updateRanking() {
-        if (!rankingList) return;
-
-        rankingList.innerHTML =
-            "<li>🥇 Gracz 1 — 500 monet</li>" +
-            "<li>🥈 Gracz 2 — 350 monet</li>" +
-            "<li>🥉 Gracz 3 — 200 monet</li>";
+    async function initGame() {
+        await loadPlayer();
+        await loadRanking();
+        showScreen("game");
     }
 
-    updateZooIncome();
-    updateLevel();
-    updateUI();
-    updateRanking();
-    showScreen("game");
+    initGame();
 });
