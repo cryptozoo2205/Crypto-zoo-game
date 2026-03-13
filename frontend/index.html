@@ -4,13 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Crypto Zoo</title>
-
-    <link rel="stylesheet" href="css/base.css" />
-    <link rel="stylesheet" href="css/game.css" />
-    <link rel="stylesheet" href="css/zoo.css" />
-    <link rel="stylesheet" href="css/shop.css" />
-    <link rel="stylesheet" href="css/ranking.css" />
-    <link rel="stylesheet" href="css/menu.css" />
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
     <div class="app-shell">
@@ -37,7 +31,7 @@
             <div class="screen-card zoo-screen-card">
                 <h3 class="section-title">🐾 Zoo Collection</h3>
 
-                <div class="summary-box compact-summary">
+                <div class="summary-box">
                     <div class="summary-item">
                         <span>Dochód zoo / sek</span>
                         <strong id="zoo-income">0</strong>
@@ -48,7 +42,7 @@
                     </div>
                 </div>
 
-                <div class="rarity-legend compact-legend">
+                <div class="rarity-legend">
                     <div class="legend-item">
                         <span class="rarity-badge rarity-common">Common</span>
                         <span>x1.0</span>
@@ -63,7 +57,7 @@
                     </div>
                 </div>
 
-                <div class="animal-row compact-animal-row">
+                <div class="animal-row">
                     <div class="animal-left">
                         <div class="animal-icon">🐵</div>
                         <div class="animal-text">
@@ -83,7 +77,7 @@
                     </div>
                 </div>
 
-                <div class="animal-row compact-animal-row">
+                <div class="animal-row">
                     <div class="animal-left">
                         <div class="animal-icon">🐼</div>
                         <div class="animal-text">
@@ -103,7 +97,7 @@
                     </div>
                 </div>
 
-                <div class="animal-row compact-animal-row">
+                <div class="animal-row">
                     <div class="animal-left">
                         <div class="animal-icon">🦁</div>
                         <div class="animal-text">
@@ -123,15 +117,15 @@
                     </div>
                 </div>
 
-                <div class="collection-block compact-collection-block">
-                    <div class="collection-header compact-collection-header">
+                <div class="collection-block">
+                    <div class="collection-header">
                         <h4>📚 Kolekcja</h4>
                         <div class="collection-progress">
                             Odkryte: <span id="collection-found">0</span> / <span id="collection-total">3</span>
                         </div>
                     </div>
 
-                    <div class="collection-grid compact-collection-grid">
+                    <div class="collection-grid">
                         <div class="collection-card" id="collection-monkey">
                             <div class="collection-icon">🐵</div>
                             <div class="collection-name">Małpa</div>
@@ -154,7 +148,7 @@
                         </div>
                     </div>
 
-                    <div class="collection-rarity-summary compact-rarity-summary">
+                    <div class="collection-rarity-summary">
                         <div class="rarity-summary-item">
                             <span class="rarity-badge rarity-common">Common</span>
                             <strong id="common-found">0/1</strong>
@@ -220,12 +214,6 @@
         </button>
     </nav>
 
-    <script src="js/config.js"></script>
-    <script src="js/state.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/zoo.js"></script>
-    <script src="js/ranking.js"></script>
-    <script src="js/app.js"></script>
+    <script src="game.js"></script>
 </body>
 </html>
