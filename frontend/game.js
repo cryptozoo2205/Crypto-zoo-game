@@ -47,7 +47,7 @@ document.addEventListener("DOMContentLoaded", function () {
         clearTimeout(window.toastTimeout);
         window.toastTimeout = setTimeout(function () {
             toast.style.display = "none";
-        }, 1800);
+        }, 2200);
     }
 
     function updateZooIncome() {
@@ -123,7 +123,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     level,
                     coinsPerClick,
                     upgradeCost,
-                    animals
+                    animals,
+                    lastLogin: new Date().toISOString()
                 })
             });
         } catch (error) {
@@ -143,7 +144,29 @@ document.addEventListener("DOMContentLoaded", function () {
             animals = user.animals || { monkey: 0, panda: 0, lion: 0 };
 
             updateZooIncome();
+
+            if (user.lastLogin) {
+                const last = new Date(user.lastLogin).getTime();
+                const now = Date.now();
+
+                let secondsOffline = Math.floor((now - last) / 1000);
+                const maxOfflineSeconds = 86400; // 24h
+
+                if (secondsOffline > maxOfflineSeconds) {
+                    secondsOffline = maxOfflineSeconds;
+                }
+
+                const offlineCoins = secondsOffline * zooIncome;
+
+                if (offlineCoins > 0) {
+                    coins += offlineCoins;
+                    showToast(`Zarobiłeś offline: ${offlineCoins} monet`);
+                }
+            }
+
+            updateLevel();
             updateUI();
+            await savePlayer();
         } catch (error) {
             console.error("Błąd pobierania gracza:", error);
         }
