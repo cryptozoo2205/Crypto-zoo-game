@@ -8,7 +8,7 @@ window.CryptoZoo.config = {
             displayName: "Małpa",
             buyName: "małpę",
             buyCost: 100,
-            baseIncome: 1,
+           baseIncome: 1,
             upgradeBaseCost: 150,
             rarity: "Common",
             rarityMultiplier: 1.0
