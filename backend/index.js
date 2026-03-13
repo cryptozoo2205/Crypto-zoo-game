@@ -105,4 +105,38 @@ app.post("/player/update", async (req, res) => {
                 coinsPerClick: Number(coinsPerClick) || 1,
                 upgradeCost: Number(upgradeCost) || 50,
                 animals: normalizedAnimals,
-                lastLogin: lastLogin ? new Date(lastLogin) :
+                lastLogin: lastLogin ? new Date(lastLogin) : new Date()
+            },
+            {
+                new: true,
+                upsert: true
+            }
+        );
+
+        res.json({
+            success: true,
+            user: updatedUser
+        });
+    } catch (error) {
+        console.error("POST /player/update error:", error);
+        res.status(500).json({ error: "Błąd zapisu gracza" });
+    }
+});
+
+app.get("/ranking", async (req, res) => {
+    try {
+        const ranking = await User.find({})
+            .sort({ coins: -1 })
+            .limit(10)
+            .select("username coins");
+
+        res.json(ranking);
+    } catch (error) {
+        console.error("GET /ranking error:", error);
+        res.status(500).json({ error: "Błąd pobierania rankingu" });
+    }
+});
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
