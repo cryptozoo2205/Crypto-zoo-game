@@ -271,6 +271,18 @@ h1{
     color:#3b0764;
 }
 
+.rarity-common-text{
+    color:#d1d5db;
+}
+
+.rarity-rare-text{
+    color:#93c5fd;
+}
+
+.rarity-epic-text{
+    color:#d8b4fe;
+}
+
 .animal-actions{
     display:flex;
     flex-direction:column;
@@ -285,6 +297,103 @@ h1{
     background:rgba(255,255,255,0.16);
     font-weight:bold;
     text-align:center;
+}
+
+.collection-block{
+    margin-top:18px;
+    padding-top:6px;
+}
+
+.collection-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin-bottom:12px;
+    flex-wrap:wrap;
+}
+
+.collection-header h4{
+    margin:0;
+    font-size:20px;
+}
+
+.collection-progress{
+    font-size:14px;
+    font-weight:bold;
+    color:#ffd700;
+}
+
+.collection-grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:12px;
+}
+
+.collection-card{
+    background:rgba(255,255,255,0.12);
+    border:1px solid rgba(255,255,255,0.10);
+    border-radius:14px;
+    padding:14px;
+    text-align:center;
+    transition:0.2s;
+}
+
+.collection-card.locked{
+    opacity:0.55;
+    filter:grayscale(0.35);
+}
+
+.collection-card.discovered{
+    box-shadow:0 0 0 1px rgba(255,215,0,0.2), 0 8px 18px rgba(0,0,0,0.18);
+}
+
+.collection-icon{
+    font-size:38px;
+    margin-bottom:8px;
+}
+
+.collection-name{
+    font-size:18px;
+    font-weight:bold;
+    margin-bottom:4px;
+}
+
+.collection-rarity{
+    font-size:14px;
+    margin-bottom:8px;
+    font-weight:bold;
+}
+
+.collection-status{
+    font-size:14px;
+    font-weight:bold;
+}
+
+.collection-status.discovered-status{
+    color:#4ade80;
+}
+
+.collection-status.locked-status{
+    color:#fca5a5;
+}
+
+.collection-rarity-summary{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:10px;
+    margin-top:14px;
+}
+
+.rarity-summary-item{
+    background:rgba(255,255,255,0.10);
+    border-radius:12px;
+    padding:10px;
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    align-items:center;
 }
 
 .screen button{
