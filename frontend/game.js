@@ -5,9 +5,30 @@ document.addEventListener("DOMContentLoaded", function () {
     let upgradeCost = 50;
 
     let animals = {
-        monkey: 0,
-        panda: 0,
-        lion: 0
+        monkey: { count: 0, level: 1 },
+        panda: { count: 0, level: 1 },
+        lion: { count: 0, level: 1 }
+    };
+
+    const ANIMAL_CONFIG = {
+        monkey: {
+            name: "małpę",
+            buyCost: 100,
+            baseIncome: 1,
+            upgradeBaseCost: 150
+        },
+        panda: {
+            name: "pandę",
+            buyCost: 400,
+            baseIncome: 3,
+            upgradeBaseCost: 600
+        },
+        lion: {
+            name: "lwa",
+            buyCost: 1200,
+            baseIncome: 8,
+            upgradeBaseCost: 1800
+        }
     };
 
     let zooIncome = 0;
@@ -26,17 +47,47 @@ document.addEventListener("DOMContentLoaded", function () {
     const pandaCountSpan = document.getElementById("panda-count");
     const lionCountSpan = document.getElementById("lion-count");
 
+    const monkeyLevelSpan = document.getElementById("monkey-level");
+    const pandaLevelSpan = document.getElementById("panda-level");
+    const lionLevelSpan = document.getElementById("lion-level");
+
     const tapBtn = document.getElementById("tap-btn");
     const buyUpgradeBtn = document.getElementById("buy-upgrade-btn");
     const buyMonkeyBtn = document.getElementById("buy-monkey-btn");
     const buyPandaBtn = document.getElementById("buy-panda-btn");
     const buyLionBtn = document.getElementById("buy-lion-btn");
 
+    const upgradeMonkeyBtn = document.getElementById("upgrade-monkey-btn");
+    const upgradePandaBtn = document.getElementById("upgrade-panda-btn");
+    const upgradeLionBtn = document.getElementById("upgrade-lion-btn");
+
     const navButtons = document.querySelectorAll(".nav-btn");
     const screens = document.querySelectorAll(".screen");
     const rankingList = document.getElementById("ranking-list");
     const coinAnimationContainer = document.getElementById("coin-animation-container");
     const toast = document.getElementById("toast");
+
+    function normalizeAnimals() {
+        function normalizeAnimal(value) {
+            if (typeof value === "number") {
+                return {
+                    count: value,
+                    level: 1
+                };
+            }
+
+            return {
+                count: Number(value?.count) || 0,
+                level: Number(value?.level) || 1
+            };
+        }
+
+        animals = {
+            monkey: normalizeAnimal(animals.monkey),
+            panda: normalizeAnimal(animals.panda),
+            lion: normalizeAnimal(animals.lion)
+        };
+    }
 
     function showToast(message) {
         if (!toast) return;
@@ -50,16 +101,31 @@ document.addEventListener("DOMContentLoaded", function () {
         }, 2200);
     }
 
+    function getAnimalIncome(animalKey) {
+        const config = ANIMAL_CONFIG[animalKey];
+        const animal = animals[animalKey];
+        return animal.count * config.baseIncome * animal.level;
+    }
+
     function updateZooIncome() {
-        zooIncome = (animals.monkey * 1) + (animals.panda * 3) + (animals.lion * 8);
+        zooIncome =
+            getAnimalIncome("monkey") +
+            getAnimalIncome("panda") +
+            getAnimalIncome("lion");
     }
 
     function getAnimalsTotal() {
-        return (animals.monkey || 0) + (animals.panda || 0) + (animals.lion || 0);
+        return animals.monkey.count + animals.panda.count + animals.lion.count;
     }
 
     function updateLevel() {
         level = Math.floor(coins / 25) + 1;
+    }
+
+    function getAnimalUpgradeCost(animalKey) {
+        const config = ANIMAL_CONFIG[animalKey];
+        const animal = animals[animalKey];
+        return config.upgradeBaseCost * animal.level;
     }
 
     function updateUI() {
@@ -70,9 +136,23 @@ document.addEventListener("DOMContentLoaded", function () {
         if (zooIncomeSpan) zooIncomeSpan.textContent = zooIncome;
         if (animalsTotalSpan) animalsTotalSpan.textContent = getAnimalsTotal();
 
-        if (monkeyCountSpan) monkeyCountSpan.textContent = animals.monkey || 0;
-        if (pandaCountSpan) pandaCountSpan.textContent = animals.panda || 0;
-        if (lionCountSpan) lionCountSpan.textContent = animals.lion || 0;
+        if (monkeyCountSpan) monkeyCountSpan.textContent = animals.monkey.count;
+        if (pandaCountSpan) pandaCountSpan.textContent = animals.panda.count;
+        if (lionCountSpan) lionCountSpan.textContent = animals.lion.count;
+
+        if (monkeyLevelSpan) monkeyLevelSpan.textContent = animals.monkey.level;
+        if (pandaLevelSpan) pandaLevelSpan.textContent = animals.panda.level;
+        if (lionLevelSpan) lionLevelSpan.textContent = animals.lion.level;
+
+        if (upgradeMonkeyBtn) {
+            upgradeMonkeyBtn.textContent = `Lvl Up (${getAnimalUpgradeCost("monkey")})`;
+        }
+        if (upgradePandaBtn) {
+            upgradePandaBtn.textContent = `Lvl Up (${getAnimalUpgradeCost("panda")})`;
+        }
+        if (upgradeLionBtn) {
+            upgradeLionBtn.textContent = `Lvl Up (${getAnimalUpgradeCost("lion")})`;
+        }
     }
 
     function showScreen(screenId) {
@@ -141,8 +221,13 @@ document.addEventListener("DOMContentLoaded", function () {
             level = user.level || 1;
             coinsPerClick = user.coinsPerClick || 1;
             upgradeCost = user.upgradeCost || 50;
-            animals = user.animals || { monkey: 0, panda: 0, lion: 0 };
+            animals = user.animals || {
+                monkey: { count: 0, level: 1 },
+                panda: { count: 0, level: 1 },
+                lion: { count: 0, level: 1 }
+            };
 
+            normalizeAnimals();
             updateZooIncome();
 
             if (user.lastLogin) {
@@ -191,6 +276,48 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    async function buyAnimal(animalKey) {
+        const config = ANIMAL_CONFIG[animalKey];
+
+        if (coins < config.buyCost) {
+            showToast(`Za mało monet na ${config.name}.`);
+            return;
+        }
+
+        coins -= config.buyCost;
+        animals[animalKey].count += 1;
+
+        updateZooIncome();
+        updateLevel();
+        updateUI();
+        await savePlayer();
+        showToast(`Kupiono ${config.name}.`);
+    }
+
+    async function upgradeAnimal(animalKey) {
+        const animal = animals[animalKey];
+        const cost = getAnimalUpgradeCost(animalKey);
+
+        if (animal.count <= 0) {
+            showToast("Najpierw musisz kupić to zwierzę.");
+            return;
+        }
+
+        if (coins < cost) {
+            showToast("Za mało monet na ulepszenie zwierzęcia.");
+            return;
+        }
+
+        coins -= cost;
+        animal.level += 1;
+
+        updateZooIncome();
+        updateLevel();
+        updateUI();
+        await savePlayer();
+        showToast("Ulepszono zwierzę.");
+    }
+
     navButtons.forEach(function (btn) {
         btn.addEventListener("click", function () {
             const screenId = btn.dataset.screen;
@@ -232,52 +359,37 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (buyMonkeyBtn) {
         buyMonkeyBtn.addEventListener("click", async function () {
-            if (coins < 100) {
-                showToast("Za mało monet na małpę.");
-                return;
-            }
-
-            coins -= 100;
-            animals.monkey += 1;
-            updateZooIncome();
-            updateLevel();
-            updateUI();
-            await savePlayer();
-            showToast("Kupiono małpę.");
+            await buyAnimal("monkey");
         });
     }
 
     if (buyPandaBtn) {
         buyPandaBtn.addEventListener("click", async function () {
-            if (coins < 400) {
-                showToast("Za mało monet na pandę.");
-                return;
-            }
-
-            coins -= 400;
-            animals.panda += 1;
-            updateZooIncome();
-            updateLevel();
-            updateUI();
-            await savePlayer();
-            showToast("Kupiono pandę.");
+            await buyAnimal("panda");
         });
     }
 
     if (buyLionBtn) {
         buyLionBtn.addEventListener("click", async function () {
-            if (coins < 1200) {
-                showToast("Za mało monet na lwa.");
-                return;
-            }
+            await buyAnimal("lion");
+        });
+    }
 
-            coins -= 1200;
-            animals.lion += 1;
-            updateZooIncome();
-            updateLevel();
-            updateUI();
-            await savePlayer();
-            showToast("Kupiono lwa.");
+    if (upgradeMonkeyBtn) {
+        upgradeMonkeyBtn.addEventListener("click", async function () {
+            await upgradeAnimal("monkey");
+        });
+    }
+
+    if (upgradePandaBtn) {
+        upgradePandaBtn.addEventListener("click", async function () {
+            await upgradeAnimal("panda");
+        });
+    }
+
+    if (upgradeLionBtn) {
+        upgradeLionBtn.addEventListener("click", async function () {
+            await upgradeAnimal("lion");
         });
     }
 
