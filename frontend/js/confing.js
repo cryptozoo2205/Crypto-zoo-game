@@ -1,6 +1,7 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.config = {
+    maxOfflineSeconds: 86400,
     animals: {
         monkey: {
             key: "monkey",
@@ -32,6 +33,5 @@ window.CryptoZoo.config = {
             rarity: "Epic",
             rarityMultiplier: 2.5
         }
-    },
-    maxOfflineSeconds: 86400
+    }
 };
