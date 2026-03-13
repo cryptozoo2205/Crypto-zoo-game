@@ -29,7 +29,7 @@
 
         <section id="zoo" class="screen">
             <div class="screen-card">
-                <h3 class="section-title">🐾 Zoo Builder + Rarity</h3>
+                <h3 class="section-title">🐾 Zoo Collection</h3>
 
                 <div class="summary-box">
                     <div class="summary-item">
@@ -105,6 +105,53 @@
                     <div class="animal-actions">
                         <button id="buy-lion-btn" type="button">Kup</button>
                         <button id="upgrade-lion-btn" type="button">Lvl Up</button>
+                    </div>
+                </div>
+
+                <div class="collection-block">
+                    <div class="collection-header">
+                        <h4>📚 Kolekcja zwierząt</h4>
+                        <div class="collection-progress">
+                            Odkryte: <span id="collection-found">0</span> / <span id="collection-total">3</span>
+                        </div>
+                    </div>
+
+                    <div class="collection-grid">
+                        <div class="collection-card" id="collection-monkey">
+                            <div class="collection-icon">🐵</div>
+                            <div class="collection-name">Małpa</div>
+                            <div class="collection-rarity rarity-common-text">Common</div>
+                            <div class="collection-status" id="collection-monkey-status">Nieodkryte</div>
+                        </div>
+
+                        <div class="collection-card" id="collection-panda">
+                            <div class="collection-icon">🐼</div>
+                            <div class="collection-name">Panda</div>
+                            <div class="collection-rarity rarity-rare-text">Rare</div>
+                            <div class="collection-status" id="collection-panda-status">Nieodkryte</div>
+                        </div>
+
+                        <div class="collection-card" id="collection-lion">
+                            <div class="collection-icon">🦁</div>
+                            <div class="collection-name">Lew</div>
+                            <div class="collection-rarity rarity-epic-text">Epic</div>
+                            <div class="collection-status" id="collection-lion-status">Nieodkryte</div>
+                        </div>
+                    </div>
+
+                    <div class="collection-rarity-summary">
+                        <div class="rarity-summary-item">
+                            <span class="rarity-badge rarity-common">Common</span>
+                            <strong id="common-found">0/1</strong>
+                        </div>
+                        <div class="rarity-summary-item">
+                            <span class="rarity-badge rarity-rare">Rare</span>
+                            <strong id="rare-found">0/1</strong>
+                        </div>
+                        <div class="rarity-summary-item">
+                            <span class="rarity-badge rarity-epic">Epic</span>
+                            <strong id="epic-found">0/1</strong>
+                        </div>
                     </div>
                 </div>
             </div>
