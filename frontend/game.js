@@ -20,6 +20,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const coinsPerClickSpan = document.getElementById("coins-per-click");
     const upgradeCostSpan = document.getElementById("upgrade-cost");
     const zooIncomeSpan = document.getElementById("zoo-income");
+    const animalsTotalSpan = document.getElementById("animals-total");
+
+    const monkeyCountSpan = document.getElementById("monkey-count");
+    const pandaCountSpan = document.getElementById("panda-count");
+    const lionCountSpan = document.getElementById("lion-count");
 
     const tapBtn = document.getElementById("tap-btn");
     const buyUpgradeBtn = document.getElementById("buy-upgrade-btn");
@@ -49,6 +54,10 @@ document.addEventListener("DOMContentLoaded", function () {
         zooIncome = (animals.monkey * 1) + (animals.panda * 3) + (animals.lion * 8);
     }
 
+    function getAnimalsTotal() {
+        return (animals.monkey || 0) + (animals.panda || 0) + (animals.lion || 0);
+    }
+
     function updateLevel() {
         level = Math.floor(coins / 25) + 1;
     }
@@ -59,6 +68,11 @@ document.addEventListener("DOMContentLoaded", function () {
         if (coinsPerClickSpan) coinsPerClickSpan.textContent = coinsPerClick;
         if (upgradeCostSpan) upgradeCostSpan.textContent = upgradeCost;
         if (zooIncomeSpan) zooIncomeSpan.textContent = zooIncome;
+        if (animalsTotalSpan) animalsTotalSpan.textContent = getAnimalsTotal();
+
+        if (monkeyCountSpan) monkeyCountSpan.textContent = animals.monkey || 0;
+        if (pandaCountSpan) pandaCountSpan.textContent = animals.panda || 0;
+        if (lionCountSpan) lionCountSpan.textContent = animals.lion || 0;
     }
 
     function showScreen(screenId) {
