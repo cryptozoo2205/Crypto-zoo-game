@@ -55,11 +55,12 @@ window.CryptoZoo.app = {
         const ui = window.CryptoZoo.ui;
         const zoo = window.CryptoZoo.zoo;
         const api = window.CryptoZoo.api;
+        const app = window.CryptoZoo.app;
 
         if (ui.els.tapBtn) {
             ui.els.tapBtn.addEventListener("click", async function () {
                 state.coins += state.coinsPerClick;
-                window.CryptoZoo.app.updateLevel();
+                app.updateLevel();
                 ui.render();
                 ui.animateCoinsBurst();
                 await api.savePlayer();
@@ -77,7 +78,7 @@ window.CryptoZoo.app = {
                 state.coinsPerClick += 1;
                 state.upgradeCost = Math.floor(state.upgradeCost * 1.8);
 
-                window.CryptoZoo.app.updateLevel();
+                app.updateLevel();
                 ui.render();
                 await api.savePlayer();
                 ui.showToast("Kupiono ulepszenie kliknięcia.");
@@ -85,39 +86,39 @@ window.CryptoZoo.app = {
         }
 
         if (ui.els.buyMonkeyBtn) {
-            ui.els.buyMonkeyBtn.addEventListener("click", async function () {
+            ui.els.buyMonkeyBtn.onclick = async function () {
                 await zoo.buyAnimal("monkey");
-            });
+            };
         }
 
         if (ui.els.buyPandaBtn) {
-            ui.els.buyPandaBtn.addEventListener("click", async function () {
+            ui.els.buyPandaBtn.onclick = async function () {
                 await zoo.buyAnimal("panda");
-            });
+            };
         }
 
         if (ui.els.buyLionBtn) {
-            ui.els.buyLionBtn.addEventListener("click", async function () {
+            ui.els.buyLionBtn.onclick = async function () {
                 await zoo.buyAnimal("lion");
-            });
+            };
         }
 
         if (ui.els.upgradeMonkeyBtn) {
-            ui.els.upgradeMonkeyBtn.addEventListener("click", async function () {
+            ui.els.upgradeMonkeyBtn.onclick = async function () {
                 await zoo.upgradeAnimal("monkey");
-            });
+            };
         }
 
         if (ui.els.upgradePandaBtn) {
-            ui.els.upgradePandaBtn.addEventListener("click", async function () {
+            ui.els.upgradePandaBtn.onclick = async function () {
                 await zoo.upgradeAnimal("panda");
-            });
+            };
         }
 
         if (ui.els.upgradeLionBtn) {
-            ui.els.upgradeLionBtn.addEventListener("click", async function () {
+            ui.els.upgradeLionBtn.onclick = async function () {
                 await zoo.upgradeAnimal("lion");
-            });
+            };
         }
     },
 
@@ -126,11 +127,12 @@ window.CryptoZoo.app = {
         const ui = window.CryptoZoo.ui;
         const api = window.CryptoZoo.api;
         const zoo = window.CryptoZoo.zoo;
+        const app = window.CryptoZoo.app;
 
         setInterval(async function () {
             if (state.zooIncome > 0) {
                 state.coins += state.zooIncome;
-                window.CryptoZoo.app.updateLevel();
+                app.updateLevel();
                 zoo.updateZooIncome();
                 ui.render();
                 await api.savePlayer();
@@ -165,11 +167,14 @@ window.CryptoZoo.app = {
 
         zoo.normalizeAnimals();
         zoo.updateZooIncome();
+
         await this.applyOfflineIncome(user);
         this.updateLevel();
         ui.render();
+
         await api.savePlayer();
         await ranking.renderRanking();
+
         ui.showScreen("game");
         this.startPassiveIncome();
     }
