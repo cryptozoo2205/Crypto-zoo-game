@@ -35,7 +35,42 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-    const telegramId = localStorage.getItem("telegramId") || String(Date.now());
+    function getTelegramUser() {
+        if (!window.Telegram || !window.Telegram.WebApp) {
+            return null;
+        }
+
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        const unsafeUser = tg.initDataUnsafe && tg.initDataUnsafe.user
+            ? tg.initDataUnsafe.user
+            : null;
+
+        if (!unsafeUser || !unsafeUser.id) {
+            return null;
+        }
+
+        return {
+            id: String(unsafeUser.id),
+            username:
+                unsafeUser.username ||
+                unsafeUser.first_name ||
+                "TelegramUser"
+        };
+    }
+
+    const telegramUser = getTelegramUser();
+
+    const telegramId = telegramUser
+        ? telegramUser.id
+        : (localStorage.getItem("telegramId") || String(Date.now()));
+
+    const playerUsername = telegramUser
+        ? telegramUser.username
+        : `Gracz_${telegramId}`;
+
     localStorage.setItem("telegramId", telegramId);
 
     const coinsCount = document.getElementById("coins-count");
@@ -255,7 +290,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 },
                 body: JSON.stringify({
                     telegramId: telegramId,
-                    username: `Gracz_${telegramId}`,
+                    username: playerUsername,
                     coins: coins,
                     level: level,
                     coinsPerClick: coinsPerClick,
