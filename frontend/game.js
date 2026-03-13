@@ -57,6 +57,20 @@ document.addEventListener("DOMContentLoaded", function () {
     const pandaLevelSpan = document.getElementById("panda-level");
     const lionLevelSpan = document.getElementById("lion-level");
 
+    const collectionFoundSpan = document.getElementById("collection-found");
+    const collectionTotalSpan = document.getElementById("collection-total");
+    const commonFoundSpan = document.getElementById("common-found");
+    const rareFoundSpan = document.getElementById("rare-found");
+    const epicFoundSpan = document.getElementById("epic-found");
+
+    const collectionMonkeyCard = document.getElementById("collection-monkey");
+    const collectionPandaCard = document.getElementById("collection-panda");
+    const collectionLionCard = document.getElementById("collection-lion");
+
+    const collectionMonkeyStatus = document.getElementById("collection-monkey-status");
+    const collectionPandaStatus = document.getElementById("collection-panda-status");
+    const collectionLionStatus = document.getElementById("collection-lion-status");
+
     const tapBtn = document.getElementById("tap-btn");
     const buyUpgradeBtn = document.getElementById("buy-upgrade-btn");
     const buyMonkeyBtn = document.getElementById("buy-monkey-btn");
@@ -107,6 +121,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }, 2200);
     }
 
+    function isDiscovered(animalKey) {
+        return animals[animalKey].count > 0;
+    }
+
     function getAnimalIncome(animalKey) {
         const config = ANIMAL_CONFIG[animalKey];
         const animal = animals[animalKey];
@@ -125,6 +143,49 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function getAnimalsTotal() {
         return animals.monkey.count + animals.panda.count + animals.lion.count;
+    }
+
+    function getCollectionFoundCount() {
+        let found = 0;
+        if (isDiscovered("monkey")) found += 1;
+        if (isDiscovered("panda")) found += 1;
+        if (isDiscovered("lion")) found += 1;
+        return found;
+    }
+
+    function updateCollectionCard(card, statusEl, discovered) {
+        if (!card || !statusEl) return;
+
+        if (discovered) {
+            card.classList.remove("locked");
+            card.classList.add("discovered");
+            statusEl.textContent = "Odkryte";
+            statusEl.classList.remove("locked-status");
+            statusEl.classList.add("discovered-status");
+        } else {
+            card.classList.remove("discovered");
+            card.classList.add("locked");
+            statusEl.textContent = "Nieodkryte";
+            statusEl.classList.remove("discovered-status");
+            statusEl.classList.add("locked-status");
+        }
+    }
+
+    function updateCollectionUI() {
+        const monkeyDiscovered = isDiscovered("monkey");
+        const pandaDiscovered = isDiscovered("panda");
+        const lionDiscovered = isDiscovered("lion");
+
+        if (collectionFoundSpan) collectionFoundSpan.textContent = getCollectionFoundCount();
+        if (collectionTotalSpan) collectionTotalSpan.textContent = 3;
+
+        if (commonFoundSpan) commonFoundSpan.textContent = `${monkeyDiscovered ? 1 : 0}/1`;
+        if (rareFoundSpan) rareFoundSpan.textContent = `${pandaDiscovered ? 1 : 0}/1`;
+        if (epicFoundSpan) epicFoundSpan.textContent = `${lionDiscovered ? 1 : 0}/1`;
+
+        updateCollectionCard(collectionMonkeyCard, collectionMonkeyStatus, monkeyDiscovered);
+        updateCollectionCard(collectionPandaCard, collectionPandaStatus, pandaDiscovered);
+        updateCollectionCard(collectionLionCard, collectionLionStatus, lionDiscovered);
     }
 
     function updateLevel() {
@@ -162,6 +223,8 @@ document.addEventListener("DOMContentLoaded", function () {
         if (upgradeLionBtn) {
             upgradeLionBtn.textContent = `Lvl Up (${getAnimalUpgradeCost("lion")})`;
         }
+
+        updateCollectionUI();
     }
 
     function showScreen(screenId) {
