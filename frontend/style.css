@@ -9,7 +9,7 @@ body{
 
 .app-shell{
     min-height:100vh;
-    padding:20px 16px 110px;
+    padding:18px 14px 100px;
     box-sizing:border-box;
     display:flex;
     flex-direction:column;
@@ -20,17 +20,19 @@ body{
 }
 
 h1{
-    margin:10px 0 12px;
+    margin:8px 0 10px;
     text-shadow:0 2px 8px rgba(0,0,0,0.45);
+    font-size:42px;
 }
 
 .stats{
     text-align:center;
     background:rgba(0,0,0,0.60);
-    padding:12px 18px;
+    padding:10px 16px;
     border-radius:12px;
-    margin-bottom:20px;
+    margin-bottom:16px;
     box-shadow:0 6px 16px rgba(0,0,0,0.2);
+    font-size:16px;
 }
 
 .toast{
@@ -60,10 +62,25 @@ h1{
 
 .screen-card{
     background:rgba(0,0,0,0.72);
-    border-radius:16px;
-    padding:18px;
+    border-radius:18px;
+    padding:16px;
     box-shadow:0 8px 20px rgba(0,0,0,0.30);
     backdrop-filter:blur(4px);
+}
+
+.zoo-screen-card{
+    max-height:calc(100vh - 190px);
+    overflow-y:auto;
+    padding-right:12px;
+}
+
+.zoo-screen-card::-webkit-scrollbar{
+    width:6px;
+}
+
+.zoo-screen-card::-webkit-scrollbar-thumb{
+    background:rgba(255,255,255,0.25);
+    border-radius:10px;
 }
 
 #game .screen-card{
@@ -74,7 +91,7 @@ h1{
 }
 
 .center-card{
-    min-height:220px;
+    min-height:210px;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -83,19 +100,19 @@ h1{
 .tap-wrapper{
     position:relative;
     width:280px;
-    height:180px;
+    height:160px;
     display:flex;
     justify-content:center;
     align-items:center;
 }
 
 #tap-btn{
-    padding:16px 28px;
+    padding:15px 26px;
     border:none;
     border-radius:14px;
     background:#ffd700;
     color:#111;
-    font-size:22px;
+    font-size:21px;
     font-weight:bold;
     cursor:pointer;
     box-shadow:0 8px 18px rgba(0,0,0,0.35);
@@ -135,53 +152,53 @@ h1{
 
 .section-title{
     margin-top:0;
-    margin-bottom:16px;
-    font-size:24px;
+    margin-bottom:12px;
+    font-size:22px;
     text-align:center;
 }
 
 .summary-box{
     display:grid;
     grid-template-columns:1fr 1fr;
-    gap:12px;
-    margin-bottom:16px;
+    gap:10px;
+    margin-bottom:12px;
 }
 
 .summary-item{
     background:rgba(255,255,255,0.14);
     border:1px solid rgba(255,255,255,0.10);
     border-radius:12px;
-    padding:12px;
+    padding:10px;
     text-align:center;
 }
 
 .summary-item span{
     display:block;
-    font-size:13px;
+    font-size:12px;
     opacity:0.9;
-    margin-bottom:6px;
+    margin-bottom:5px;
 }
 
 .summary-item strong{
-    font-size:20px;
+    font-size:18px;
 }
 
 .rarity-legend{
     display:flex;
     justify-content:space-between;
     gap:8px;
-    margin-bottom:16px;
+    margin-bottom:12px;
     flex-wrap:wrap;
 }
 
 .legend-item{
     display:flex;
     align-items:center;
-    gap:8px;
+    gap:7px;
     background:rgba(255,255,255,0.10);
     border-radius:10px;
-    padding:8px 10px;
-    font-size:13px;
+    padding:7px 9px;
+    font-size:12px;
 }
 
 .animal-row,
@@ -189,25 +206,30 @@ h1{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    gap:12px;
-    margin:14px 0;
-    padding:14px;
+    gap:10px;
+    margin:10px 0;
+    padding:12px;
     border-radius:14px;
     background:rgba(255,255,255,0.14);
     border:1px solid rgba(255,255,255,0.10);
 }
 
+.compact-animal-row{
+    padding:10px 12px;
+}
+
 .animal-left{
     display:flex;
     align-items:center;
-    gap:12px;
+    gap:10px;
     min-width:0;
+    flex:1;
 }
 
 .animal-icon{
-    font-size:34px;
+    font-size:30px;
     line-height:1;
-    width:44px;
+    width:38px;
     text-align:center;
 }
 
@@ -215,32 +237,33 @@ h1{
 .shop-text{
     display:flex;
     flex-direction:column;
-    gap:4px;
+    gap:3px;
     min-width:0;
 }
 
 .animal-topline{
     display:flex;
     align-items:center;
-    gap:8px;
+    gap:6px;
     flex-wrap:wrap;
 }
 
 .animal-name,
 .shop-title{
-    font-size:20px;
+    font-size:17px;
     font-weight:bold;
     color:#ffffff;
 }
 
 .animal-desc,
 .shop-desc{
-    font-size:14px;
+    font-size:12px;
     color:rgba(255,255,255,0.92);
+    line-height:1.25;
 }
 
 .animal-owned{
-    font-size:14px;
+    font-size:13px;
     font-weight:bold;
     color:#ffd700;
 }
@@ -249,9 +272,9 @@ h1{
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    padding:4px 8px;
+    padding:3px 8px;
     border-radius:999px;
-    font-size:12px;
+    font-size:11px;
     font-weight:bold;
     letter-spacing:0.2px;
 }
@@ -286,8 +309,12 @@ h1{
 .animal-actions{
     display:flex;
     flex-direction:column;
-    gap:8px;
+    gap:6px;
     flex-shrink:0;
+}
+
+.animal-actions button{
+    min-width:88px;
 }
 
 .info-box{
@@ -300,8 +327,8 @@ h1{
 }
 
 .collection-block{
-    margin-top:18px;
-    padding-top:6px;
+    margin-top:14px;
+    padding-top:4px;
 }
 
 .collection-header{
@@ -309,34 +336,39 @@ h1{
     justify-content:space-between;
     align-items:center;
     gap:10px;
-    margin-bottom:12px;
+    margin-bottom:10px;
     flex-wrap:wrap;
 }
 
 .collection-header h4{
     margin:0;
-    font-size:20px;
+    font-size:18px;
 }
 
 .collection-progress{
-    font-size:14px;
+    font-size:13px;
     font-weight:bold;
     color:#ffd700;
 }
 
 .collection-grid{
     display:grid;
-    grid-template-columns:1fr;
-    gap:12px;
+    grid-template-columns:repeat(3, 1fr);
+    gap:10px;
 }
 
 .collection-card{
     background:rgba(255,255,255,0.12);
     border:1px solid rgba(255,255,255,0.10);
     border-radius:14px;
-    padding:14px;
+    padding:10px 8px;
     text-align:center;
     transition:0.2s;
+    min-height:120px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
 }
 
 .collection-card.locked{
@@ -349,24 +381,24 @@ h1{
 }
 
 .collection-icon{
-    font-size:38px;
-    margin-bottom:8px;
+    font-size:30px;
+    margin-bottom:6px;
 }
 
 .collection-name{
-    font-size:18px;
+    font-size:16px;
     font-weight:bold;
     margin-bottom:4px;
 }
 
 .collection-rarity{
-    font-size:14px;
-    margin-bottom:8px;
+    font-size:13px;
+    margin-bottom:6px;
     font-weight:bold;
 }
 
 .collection-status{
-    font-size:14px;
+    font-size:13px;
     font-weight:bold;
 }
 
@@ -381,23 +413,27 @@ h1{
 .collection-rarity-summary{
     display:grid;
     grid-template-columns:1fr 1fr 1fr;
-    gap:10px;
-    margin-top:14px;
+    gap:8px;
+    margin-top:10px;
 }
 
 .rarity-summary-item{
     background:rgba(255,255,255,0.10);
     border-radius:12px;
-    padding:10px;
+    padding:8px;
     text-align:center;
     display:flex;
     flex-direction:column;
-    gap:8px;
+    gap:6px;
     align-items:center;
 }
 
+.rarity-summary-item strong{
+    font-size:13px;
+}
+
 .screen button{
-    padding:8px 14px;
+    padding:8px 12px;
     border:none;
     border-radius:8px;
     background:#4ade80;
@@ -405,6 +441,7 @@ h1{
     font-weight:bold;
     cursor:pointer;
     flex-shrink:0;
+    font-size:13px;
 }
 
 .ranking-list{
@@ -454,4 +491,28 @@ h1{
 
 .nav-text{
     font-size:13px;
+}
+
+@media (max-width: 420px){
+    .collection-grid{
+        grid-template-columns:1fr;
+    }
+
+    .collection-rarity-summary{
+        grid-template-columns:1fr;
+    }
+
+    .animal-row,
+    .shop-row{
+        flex-direction:column;
+        align-items:stretch;
+    }
+
+    .animal-actions{
+        flex-direction:row;
+    }
+
+    .animal-actions button{
+        flex:1;
+    }
 }
