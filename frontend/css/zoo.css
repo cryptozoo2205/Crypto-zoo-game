@@ -1,0 +1,299 @@
+.zoo-screen-card{
+    max-height:calc(100vh - 190px);
+    overflow-y:auto;
+    padding-right:12px;
+}
+
+.zoo-screen-card::-webkit-scrollbar{
+    width:6px;
+}
+
+.zoo-screen-card::-webkit-scrollbar-thumb{
+    background:rgba(255,255,255,0.25);
+    border-radius:10px;
+}
+
+.summary-box{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:12px;
+}
+
+.summary-item{
+    background:rgba(255,255,255,0.14);
+    border:1px solid rgba(255,255,255,0.10);
+    border-radius:12px;
+    padding:10px;
+    text-align:center;
+}
+
+.summary-item span{
+    display:block;
+    font-size:12px;
+    opacity:0.9;
+    margin-bottom:5px;
+}
+
+.summary-item strong{
+    font-size:18px;
+}
+
+.rarity-legend{
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:12px;
+    flex-wrap:wrap;
+}
+
+.legend-item{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    background:rgba(255,255,255,0.10);
+    border-radius:10px;
+    padding:7px 9px;
+    font-size:12px;
+}
+
+.animal-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin:10px 0;
+    padding:12px;
+    border-radius:14px;
+    background:rgba(255,255,255,0.14);
+    border:1px solid rgba(255,255,255,0.10);
+}
+
+.compact-animal-row{
+    padding:10px 12px;
+}
+
+.animal-left{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width:0;
+    flex:1;
+}
+
+.animal-icon{
+    font-size:30px;
+    line-height:1;
+    width:38px;
+    text-align:center;
+}
+
+.animal-text{
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+    min-width:0;
+}
+
+.animal-topline{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex-wrap:wrap;
+}
+
+.animal-name{
+    font-size:17px;
+    font-weight:bold;
+    color:#ffffff;
+}
+
+.animal-desc{
+    font-size:12px;
+    color:rgba(255,255,255,0.92);
+    line-height:1.25;
+}
+
+.animal-owned{
+    font-size:13px;
+    font-weight:bold;
+    color:#ffd700;
+}
+
+.rarity-badge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:3px 8px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:bold;
+    letter-spacing:0.2px;
+}
+
+.rarity-common{
+    background:#9ca3af;
+    color:#111827;
+}
+
+.rarity-rare{
+    background:#60a5fa;
+    color:#082f49;
+}
+
+.rarity-epic{
+    background:#c084fc;
+    color:#3b0764;
+}
+
+.rarity-common-text{
+    color:#d1d5db;
+}
+
+.rarity-rare-text{
+    color:#93c5fd;
+}
+
+.rarity-epic-text{
+    color:#d8b4fe;
+}
+
+.animal-actions{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    flex-shrink:0;
+}
+
+.animal-actions button{
+    min-width:88px;
+}
+
+.collection-block{
+    margin-top:14px;
+    padding-top:4px;
+}
+
+.collection-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
+    flex-wrap:wrap;
+}
+
+.collection-header h4{
+    margin:0;
+    font-size:18px;
+}
+
+.collection-progress{
+    font-size:13px;
+    font-weight:bold;
+    color:#ffd700;
+}
+
+.collection-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:10px;
+}
+
+.collection-card{
+    background:rgba(255,255,255,0.12);
+    border:1px solid rgba(255,255,255,0.10);
+    border-radius:14px;
+    padding:10px 8px;
+    text-align:center;
+    transition:0.2s;
+    min-height:120px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+}
+
+.collection-card.locked{
+    opacity:0.55;
+    filter:grayscale(0.35);
+}
+
+.collection-card.discovered{
+    box-shadow:0 0 0 1px rgba(255,215,0,0.2), 0 8px 18px rgba(0,0,0,0.18);
+}
+
+.collection-icon{
+    font-size:30px;
+    margin-bottom:6px;
+}
+
+.collection-name{
+    font-size:16px;
+    font-weight:bold;
+    margin-bottom:4px;
+}
+
+.collection-rarity{
+    font-size:13px;
+    margin-bottom:6px;
+    font-weight:bold;
+}
+
+.collection-status{
+    font-size:13px;
+    font-weight:bold;
+}
+
+.collection-status.discovered-status{
+    color:#4ade80;
+}
+
+.collection-status.locked-status{
+    color:#fca5a5;
+}
+
+.collection-rarity-summary{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:8px;
+    margin-top:10px;
+}
+
+.rarity-summary-item{
+    background:rgba(255,255,255,0.10);
+    border-radius:12px;
+    padding:8px;
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    align-items:center;
+}
+
+.rarity-summary-item strong{
+    font-size:13px;
+}
+
+@media (max-width: 420px){
+    .collection-grid{
+        grid-template-columns:1fr;
+    }
+
+    .collection-rarity-summary{
+        grid-template-columns:1fr;
+    }
+
+    .animal-row{
+        flex-direction:column;
+        align-items:stretch;
+    }
+
+    .animal-actions{
+        flex-direction:row;
+    }
+
+    .animal-actions button{
+        flex:1;
+    }
+}
