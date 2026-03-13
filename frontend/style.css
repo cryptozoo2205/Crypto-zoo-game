@@ -66,7 +66,6 @@ h1{
     backdrop-filter:blur(4px);
 }
 
-/* TYLKO EKRAN GRA - bez ramki */
 #game .screen-card{
     background:transparent;
     box-shadow:none;
@@ -84,19 +83,19 @@ h1{
 .tap-wrapper{
     position:relative;
     width:280px;
-    height:140px;
+    height:180px;
     display:flex;
     justify-content:center;
     align-items:center;
 }
 
 #tap-btn{
-    padding:12px 22px;
+    padding:16px 28px;
     border:none;
-    border-radius:12px;
+    border-radius:14px;
     background:#ffd700;
     color:#111;
-    font-size:18px;
+    font-size:22px;
     font-weight:bold;
     cursor:pointer;
     box-shadow:0 8px 18px rgba(0,0,0,0.35);
@@ -136,9 +135,35 @@ h1{
 
 .section-title{
     margin-top:0;
-    margin-bottom:14px;
+    margin-bottom:16px;
     font-size:24px;
     text-align:center;
+}
+
+.summary-box{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-bottom:16px;
+}
+
+.summary-item{
+    background:rgba(255,255,255,0.14);
+    border:1px solid rgba(255,255,255,0.10);
+    border-radius:12px;
+    padding:12px;
+    text-align:center;
+}
+
+.summary-item span{
+    display:block;
+    font-size:13px;
+    opacity:0.9;
+    margin-bottom:6px;
+}
+
+.summary-item strong{
+    font-size:20px;
 }
 
 .animal-row,
@@ -186,6 +211,12 @@ h1{
 .shop-desc{
     font-size:14px;
     color:rgba(255,255,255,0.92);
+}
+
+.animal-owned{
+    font-size:14px;
+    font-weight:bold;
+    color:#ffd700;
 }
 
 .info-box{
