@@ -138,4 +138,27 @@ window.CryptoZoo.ui = {
         if (els.lionLevel) els.lionLevel.textContent = state.animals.lion.level;
 
         if (els.upgradeMonkeyBtn) {
-            els.upgradeMonkeyBtn.textContent = `Lvl Up (${zoo.getAnimalUpgradeCost("
+            els.upgradeMonkeyBtn.textContent = `Lvl Up (${zoo.getAnimalUpgradeCost("monkey")})`;
+        }
+        if (els.upgradePandaBtn) {
+            els.upgradePandaBtn.textContent = `Lvl Up (${zoo.getAnimalUpgradeCost("panda")})`;
+        }
+        if (els.upgradeLionBtn) {
+            els.upgradeLionBtn.textContent = `Lvl Up (${zoo.getAnimalUpgradeCost("lion")})`;
+        }
+
+        const monkeyDiscovered = zoo.isDiscovered("monkey");
+        const pandaDiscovered = zoo.isDiscovered("panda");
+        const lionDiscovered = zoo.isDiscovered("lion");
+
+        if (els.collectionFound) els.collectionFound.textContent = zoo.getCollectionFoundCount();
+        if (els.collectionTotal) els.collectionTotal.textContent = 3;
+        if (els.commonFound) els.commonFound.textContent = `${monkeyDiscovered ? 1 : 0}/1`;
+        if (els.rareFound) els.rareFound.textContent = `${pandaDiscovered ? 1 : 0}/1`;
+        if (els.epicFound) els.epicFound.textContent = `${lionDiscovered ? 1 : 0}/1`;
+
+        this.updateCollectionCard(els.collectionMonkeyCard, els.collectionMonkeyStatus, monkeyDiscovered);
+        this.updateCollectionCard(els.collectionPandaCard, els.collectionPandaStatus, pandaDiscovered);
+        this.updateCollectionCard(els.collectionLionCard, els.collectionLionStatus, lionDiscovered);
+    }
+};
