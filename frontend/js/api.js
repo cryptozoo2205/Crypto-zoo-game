@@ -38,7 +38,7 @@ window.CryptoZoo.api = {
         }
     },
 
-    async loadRanking() {
+   async loadRanking() {
         try {
             const response = await fetch("/ranking");
             return await response.json();
