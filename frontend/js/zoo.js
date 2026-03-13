@@ -19,14 +19,14 @@ window.CryptoZoo.zoo = {
         }
 
         state.animals = {
-            monkey: normalizeAnimal(state.animals.monkey),
-            panda: normalizeAnimal(state.animals.panda),
-            lion: normalizeAnimal(state.animals.lion)
+            monkey: normalizeAnimal(state.animals?.monkey),
+            panda: normalizeAnimal(state.animals?.panda),
+            lion: normalizeAnimal(state.animals?.lion)
         };
     },
 
     isDiscovered(animalKey) {
-        return window.CryptoZoo.state.animals[animalKey].count > 0;
+        return (window.CryptoZoo.state.animals[animalKey]?.count || 0) > 0;
     },
 
     getAnimalIncome(animalKey) {
@@ -74,6 +74,11 @@ window.CryptoZoo.zoo = {
         const api = window.CryptoZoo.api;
         const app = window.CryptoZoo.app;
 
+        if (!config) {
+            console.error("Brak configu dla zwierzęcia:", animalKey);
+            return;
+        }
+
         if (state.coins < config.buyCost) {
             ui.showToast(`Za mało monet na ${config.buyName}.`);
             return;
@@ -85,6 +90,7 @@ window.CryptoZoo.zoo = {
         this.updateZooIncome();
         app.updateLevel();
         ui.render();
+
         await api.savePlayer();
         ui.showToast(`Kupiono ${config.buyName}.`);
     },
@@ -97,7 +103,7 @@ window.CryptoZoo.zoo = {
         const api = window.CryptoZoo.api;
         const app = window.CryptoZoo.app;
 
-        if (animal.count <= 0) {
+        if (!animal || animal.count <= 0) {
             ui.showToast("Najpierw musisz kupić to zwierzę.");
             return;
         }
@@ -113,6 +119,7 @@ window.CryptoZoo.zoo = {
         this.updateZooIncome();
         app.updateLevel();
         ui.render();
+
         await api.savePlayer();
         ui.showToast("Ulepszono zwierzę.");
     }
