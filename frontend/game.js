@@ -150,7 +150,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const now = Date.now();
 
                 let secondsOffline = Math.floor((now - last) / 1000);
-                const maxOfflineSeconds = 86400; // 24h
+                const maxOfflineSeconds = 86400;
 
                 if (secondsOffline > maxOfflineSeconds) {
                     secondsOffline = maxOfflineSeconds;
