@@ -16,4 +16,4 @@ window.CryptoZoo.ranking = {
             ui.els.rankingList.appendChild(li);
         });
     }
-}
+};
