@@ -15,19 +15,25 @@ document.addEventListener("DOMContentLoaded", function () {
             name: "małpę",
             buyCost: 100,
             baseIncome: 1,
-            upgradeBaseCost: 150
+            upgradeBaseCost: 150,
+            rarity: "Common",
+            rarityMultiplier: 1.0
         },
         panda: {
             name: "pandę",
             buyCost: 400,
             baseIncome: 3,
-            upgradeBaseCost: 600
+            upgradeBaseCost: 600,
+            rarity: "Rare",
+            rarityMultiplier: 1.5
         },
         lion: {
             name: "lwa",
             buyCost: 1200,
             baseIncome: 8,
-            upgradeBaseCost: 1800
+            upgradeBaseCost: 1800,
+            rarity: "Epic",
+            rarityMultiplier: 2.5
         }
     };
 
@@ -104,7 +110,8 @@ document.addEventListener("DOMContentLoaded", function () {
     function getAnimalIncome(animalKey) {
         const config = ANIMAL_CONFIG[animalKey];
         const animal = animals[animalKey];
-        return animal.count * config.baseIncome * animal.level;
+
+        return animal.count * config.baseIncome * animal.level * config.rarityMultiplier;
     }
 
     function updateZooIncome() {
@@ -112,6 +119,8 @@ document.addEventListener("DOMContentLoaded", function () {
             getAnimalIncome("monkey") +
             getAnimalIncome("panda") +
             getAnimalIncome("lion");
+
+        zooIncome = Math.floor(zooIncome);
     }
 
     function getAnimalsTotal() {
