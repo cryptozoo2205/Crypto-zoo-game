@@ -1,6 +1,18 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.api = {
+    async loadPlayer() {
+        const state = window.CryptoZoo.state;
+
+        try {
+            const response = await fetch(`/player/${state.telegramId}`);
+            return await response.json();
+        } catch (error) {
+            console.error("Błąd pobierania gracza:", error);
+            return null;
+        }
+    },
+
     async savePlayer() {
         const state = window.CryptoZoo.state;
 
@@ -23,18 +35,6 @@ window.CryptoZoo.api = {
             });
         } catch (error) {
             console.error("Błąd zapisu gracza:", error);
-        }
-    },
-
-    async loadPlayer() {
-        const state = window.CryptoZoo.state;
-
-        try {
-            const response = await fetch(`/player/${state.telegramId}`);
-            return await response.json();
-        } catch (error) {
-            console.error("Błąd pobierania gracza:", error);
-            return null;
         }
     },
 
