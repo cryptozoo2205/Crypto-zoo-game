@@ -36,7 +36,8 @@ app.get("/player/:telegramId", async (req, res) => {
         if (!user) {
             user = await User.create({
                 telegramId,
-                username: `Gracz_${telegramId}`
+                username: `Gracz_${telegramId}`,
+                lastLogin: new Date()
             });
         }
 
@@ -56,7 +57,8 @@ app.post("/player/update", async (req, res) => {
             level,
             coinsPerClick,
             upgradeCost,
-            animals
+            animals,
+            lastLogin
         } = req.body;
 
         if (!telegramId) {
@@ -76,7 +78,8 @@ app.post("/player/update", async (req, res) => {
                     monkey: Number(animals?.monkey) || 0,
                     panda: Number(animals?.panda) || 0,
                     lion: Number(animals?.lion) || 0
-                }
+                },
+                lastLogin: lastLogin ? new Date(lastLogin) : new Date()
             },
             {
                 new: true,
