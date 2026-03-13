@@ -1,0 +1,66 @@
+#game .screen-card{
+    background:transparent;
+    box-shadow:none;
+    backdrop-filter:none;
+    padding:0;
+}
+
+.center-card{
+    min-height:210px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.tap-wrapper{
+    position:relative;
+    width:280px;
+    height:160px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+#tap-btn{
+    padding:15px 26px;
+    border:none;
+    border-radius:14px;
+    background:#ffd700;
+    color:#111;
+    font-size:21px;
+    font-weight:bold;
+    cursor:pointer;
+    box-shadow:0 8px 18px rgba(0,0,0,0.35);
+}
+
+#tap-btn:active{
+    transform:scale(0.97);
+}
+
+#coin-animation-container{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    overflow:visible;
+}
+
+.flying-coin{
+    position:absolute;
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    background:radial-gradient(circle,#fff3a0,#ffd700);
+    animation:flyCoin 0.8s forwards;
+    box-shadow:0 3px 8px rgba(0,0,0,0.2);
+}
+
+@keyframes flyCoin{
+    0%{
+        opacity:1;
+        transform:translate(0,0);
+    }
+    100%{
+        opacity:0;
+        transform:translate(var(--moveX),var(--moveY));
+    }
+}
