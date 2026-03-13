@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let level = 1;
     let coinsPerClick = 1;
     let upgradeCost = 50;
+    let zooIncome = 0;
 
     let animals = {
         monkey: { count: 0, level: 1 },
@@ -12,32 +13,27 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const ANIMAL_CONFIG = {
         monkey: {
-            name: "małpę",
+            buyName: "małpę",
             buyCost: 100,
             baseIncome: 1,
             upgradeBaseCost: 150,
-            rarity: "Common",
             rarityMultiplier: 1.0
         },
         panda: {
-            name: "pandę",
+            buyName: "pandę",
             buyCost: 400,
             baseIncome: 3,
             upgradeBaseCost: 600,
-            rarity: "Rare",
             rarityMultiplier: 1.5
         },
         lion: {
-            name: "lwa",
+            buyName: "lwa",
             buyCost: 1200,
             baseIncome: 8,
             upgradeBaseCost: 1800,
-            rarity: "Epic",
             rarityMultiplier: 2.5
         }
     };
-
-    let zooIncome = 0;
 
     const telegramId = localStorage.getItem("telegramId") || String(Date.now());
     localStorage.setItem("telegramId", telegramId);
@@ -87,21 +83,18 @@ document.addEventListener("DOMContentLoaded", function () {
     const coinAnimationContainer = document.getElementById("coin-animation-container");
     const toast = document.getElementById("toast");
 
-    function normalizeAnimals() {
-        function normalizeAnimal(value) {
-            if (typeof value === "number") {
-                return {
-                    count: value,
-                    level: 1
-                };
-            }
-
-            return {
-                count: Number(value?.count) || 0,
-                level: Number(value?.level) || 1
-            };
+    function normalizeAnimal(value) {
+        if (typeof value === "number") {
+            return { count: value, level: 1 };
         }
 
+        return {
+            count: Number(value && value.count) || 0,
+            level: Number(value && value.level) || 1
+        };
+    }
+
+    function normalizeAnimals() {
         animals = {
             monkey: normalizeAnimal(animals.monkey),
             panda: normalizeAnimal(animals.panda),
@@ -119,112 +112,6 @@ document.addEventListener("DOMContentLoaded", function () {
         window.toastTimeout = setTimeout(function () {
             toast.style.display = "none";
         }, 2200);
-    }
-
-    function isDiscovered(animalKey) {
-        return animals[animalKey].count > 0;
-    }
-
-    function getAnimalIncome(animalKey) {
-        const config = ANIMAL_CONFIG[animalKey];
-        const animal = animals[animalKey];
-
-        return animal.count * config.baseIncome * animal.level * config.rarityMultiplier;
-    }
-
-    function updateZooIncome() {
-        zooIncome =
-            getAnimalIncome("monkey") +
-            getAnimalIncome("panda") +
-            getAnimalIncome("lion");
-
-        zooIncome = Math.floor(zooIncome);
-    }
-
-    function getAnimalsTotal() {
-        return animals.monkey.count + animals.panda.count + animals.lion.count;
-    }
-
-    function getCollectionFoundCount() {
-        let found = 0;
-        if (isDiscovered("monkey")) found += 1;
-        if (isDiscovered("panda")) found += 1;
-        if (isDiscovered("lion")) found += 1;
-        return found;
-    }
-
-    function updateCollectionCard(card, statusEl, discovered) {
-        if (!card || !statusEl) return;
-
-        if (discovered) {
-            card.classList.remove("locked");
-            card.classList.add("discovered");
-            statusEl.textContent = "Odkryte";
-            statusEl.classList.remove("locked-status");
-            statusEl.classList.add("discovered-status");
-        } else {
-            card.classList.remove("discovered");
-            card.classList.add("locked");
-            statusEl.textContent = "Nieodkryte";
-            statusEl.classList.remove("discovered-status");
-            statusEl.classList.add("locked-status");
-        }
-    }
-
-    function updateCollectionUI() {
-        const monkeyDiscovered = isDiscovered("monkey");
-        const pandaDiscovered = isDiscovered("panda");
-        const lionDiscovered = isDiscovered("lion");
-
-        if (collectionFoundSpan) collectionFoundSpan.textContent = getCollectionFoundCount();
-        if (collectionTotalSpan) collectionTotalSpan.textContent = 3;
-
-        if (commonFoundSpan) commonFoundSpan.textContent = `${monkeyDiscovered ? 1 : 0}/1`;
-        if (rareFoundSpan) rareFoundSpan.textContent = `${pandaDiscovered ? 1 : 0}/1`;
-        if (epicFoundSpan) epicFoundSpan.textContent = `${lionDiscovered ? 1 : 0}/1`;
-
-        updateCollectionCard(collectionMonkeyCard, collectionMonkeyStatus, monkeyDiscovered);
-        updateCollectionCard(collectionPandaCard, collectionPandaStatus, pandaDiscovered);
-        updateCollectionCard(collectionLionCard, collectionLionStatus, lionDiscovered);
-    }
-
-    function updateLevel() {
-        level = Math.floor(coins / 25) + 1;
-    }
-
-    function getAnimalUpgradeCost(animalKey) {
-        const config = ANIMAL_CONFIG[animalKey];
-        const animal = animals[animalKey];
-        return config.upgradeBaseCost * animal.level;
-    }
-
-    function updateUI() {
-        if (coinsCount) coinsCount.textContent = coins;
-        if (levelSpan) levelSpan.textContent = level;
-        if (coinsPerClickSpan) coinsPerClickSpan.textContent = coinsPerClick;
-        if (upgradeCostSpan) upgradeCostSpan.textContent = upgradeCost;
-        if (zooIncomeSpan) zooIncomeSpan.textContent = zooIncome;
-        if (animalsTotalSpan) animalsTotalSpan.textContent = getAnimalsTotal();
-
-        if (monkeyCountSpan) monkeyCountSpan.textContent = animals.monkey.count;
-        if (pandaCountSpan) pandaCountSpan.textContent = animals.panda.count;
-        if (lionCountSpan) lionCountSpan.textContent = animals.lion.count;
-
-        if (monkeyLevelSpan) monkeyLevelSpan.textContent = animals.monkey.level;
-        if (pandaLevelSpan) pandaLevelSpan.textContent = animals.panda.level;
-        if (lionLevelSpan) lionLevelSpan.textContent = animals.lion.level;
-
-        if (upgradeMonkeyBtn) {
-            upgradeMonkeyBtn.textContent = `Lvl Up (${getAnimalUpgradeCost("monkey")})`;
-        }
-        if (upgradePandaBtn) {
-            upgradePandaBtn.textContent = `Lvl Up (${getAnimalUpgradeCost("panda")})`;
-        }
-        if (upgradeLionBtn) {
-            upgradeLionBtn.textContent = `Lvl Up (${getAnimalUpgradeCost("lion")})`;
-        }
-
-        updateCollectionUI();
     }
 
     function showScreen(screenId) {
@@ -261,6 +148,104 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function updateLevel() {
+        level = Math.floor(coins / 25) + 1;
+    }
+
+    function getAnimalIncome(animalKey) {
+        const animal = animals[animalKey];
+        const config = ANIMAL_CONFIG[animalKey];
+        return animal.count * animal.level * config.baseIncome * config.rarityMultiplier;
+    }
+
+    function updateZooIncome() {
+        zooIncome =
+            getAnimalIncome("monkey") +
+            getAnimalIncome("panda") +
+            getAnimalIncome("lion");
+
+        zooIncome = Math.floor(zooIncome);
+    }
+
+    function getAnimalsTotal() {
+        return animals.monkey.count + animals.panda.count + animals.lion.count;
+    }
+
+    function getCollectionFoundCount() {
+        let found = 0;
+        if (animals.monkey.count > 0) found += 1;
+        if (animals.panda.count > 0) found += 1;
+        if (animals.lion.count > 0) found += 1;
+        return found;
+    }
+
+    function getAnimalUpgradeCost(animalKey) {
+        return ANIMAL_CONFIG[animalKey].upgradeBaseCost * animals[animalKey].level;
+    }
+
+    function updateCollectionCard(card, statusEl, discovered) {
+        if (!card || !statusEl) return;
+
+        if (discovered) {
+            card.classList.remove("locked");
+            card.classList.add("discovered");
+            statusEl.textContent = "Odkryte";
+            statusEl.classList.remove("locked-status");
+            statusEl.classList.add("discovered-status");
+        } else {
+            card.classList.remove("discovered");
+            card.classList.add("locked");
+            statusEl.textContent = "Nieodkryte";
+            statusEl.classList.remove("discovered-status");
+            statusEl.classList.add("locked-status");
+        }
+    }
+
+    function updateCollectionUI() {
+        const monkeyDiscovered = animals.monkey.count > 0;
+        const pandaDiscovered = animals.panda.count > 0;
+        const lionDiscovered = animals.lion.count > 0;
+
+        if (collectionFoundSpan) collectionFoundSpan.textContent = getCollectionFoundCount();
+        if (collectionTotalSpan) collectionTotalSpan.textContent = 3;
+        if (commonFoundSpan) commonFoundSpan.textContent = `${monkeyDiscovered ? 1 : 0}/1`;
+        if (rareFoundSpan) rareFoundSpan.textContent = `${pandaDiscovered ? 1 : 0}/1`;
+        if (epicFoundSpan) epicFoundSpan.textContent = `${lionDiscovered ? 1 : 0}/1`;
+
+        updateCollectionCard(collectionMonkeyCard, collectionMonkeyStatus, monkeyDiscovered);
+        updateCollectionCard(collectionPandaCard, collectionPandaStatus, pandaDiscovered);
+        updateCollectionCard(collectionLionCard, collectionLionStatus, lionDiscovered);
+    }
+
+    function updateUI() {
+        if (coinsCount) coinsCount.textContent = coins;
+        if (levelSpan) levelSpan.textContent = level;
+        if (coinsPerClickSpan) coinsPerClickSpan.textContent = coinsPerClick;
+        if (upgradeCostSpan) upgradeCostSpan.textContent = upgradeCost;
+        if (zooIncomeSpan) zooIncomeSpan.textContent = zooIncome;
+        if (animalsTotalSpan) animalsTotalSpan.textContent = getAnimalsTotal();
+
+        if (monkeyCountSpan) monkeyCountSpan.textContent = animals.monkey.count;
+        if (pandaCountSpan) pandaCountSpan.textContent = animals.panda.count;
+        if (lionCountSpan) lionCountSpan.textContent = animals.lion.count;
+
+        if (monkeyLevelSpan) monkeyLevelSpan.textContent = animals.monkey.level;
+        if (pandaLevelSpan) pandaLevelSpan.textContent = animals.panda.level;
+        if (lionLevelSpan) lionLevelSpan.textContent = animals.lion.level;
+
+        if (upgradeMonkeyBtn) {
+            upgradeMonkeyBtn.textContent = `Lvl Up (${getAnimalUpgradeCost("monkey")})`;
+        }
+        if (upgradePandaBtn) {
+            upgradePandaBtn.textContent = `Lvl Up (${getAnimalUpgradeCost("panda")})`;
+        }
+        if (upgradeLionBtn) {
+            upgradeLionBtn.textContent = `Lvl Up (${getAnimalUpgradeCost("lion")})`;
+        }
+
+        updateCollectionUI();
+    }
+
     async function savePlayer() {
         try {
             await fetch("/player/update", {
@@ -269,13 +254,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    telegramId,
+                    telegramId: telegramId,
                     username: `Gracz_${telegramId}`,
-                    coins,
-                    level,
-                    coinsPerClick,
-                    upgradeCost,
-                    animals,
+                    coins: coins,
+                    level: level,
+                    coinsPerClick: coinsPerClick,
+                    upgradeCost: upgradeCost,
+                    animals: animals,
                     lastLogin: new Date().toISOString()
                 })
             });
@@ -289,10 +274,10 @@ document.addEventListener("DOMContentLoaded", function () {
             const response = await fetch(`/player/${telegramId}`);
             const user = await response.json();
 
-            coins = user.coins || 0;
-            level = user.level || 1;
-            coinsPerClick = user.coinsPerClick || 1;
-            upgradeCost = user.upgradeCost || 50;
+            coins = Number(user.coins) || 0;
+            level = Number(user.level) || 1;
+            coinsPerClick = Number(user.coinsPerClick) || 1;
+            upgradeCost = Number(user.upgradeCost) || 50;
             animals = user.animals || {
                 monkey: { count: 0, level: 1 },
                 panda: { count: 0, level: 1 },
@@ -352,7 +337,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const config = ANIMAL_CONFIG[animalKey];
 
         if (coins < config.buyCost) {
-            showToast(`Za mało monet na ${config.name}.`);
+            showToast(`Za mało monet na ${config.buyName}.`);
             return;
         }
 
@@ -363,14 +348,13 @@ document.addEventListener("DOMContentLoaded", function () {
         updateLevel();
         updateUI();
         await savePlayer();
-        showToast(`Kupiono ${config.name}.`);
+        showToast(`Kupiono ${config.buyName}.`);
     }
 
     async function upgradeAnimal(animalKey) {
-        const animal = animals[animalKey];
         const cost = getAnimalUpgradeCost(animalKey);
 
-        if (animal.count <= 0) {
+        if (animals[animalKey].count <= 0) {
             showToast("Najpierw musisz kupić to zwierzę.");
             return;
         }
@@ -381,7 +365,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         coins -= cost;
-        animal.level += 1;
+        animals[animalKey].level += 1;
 
         updateZooIncome();
         updateLevel();
