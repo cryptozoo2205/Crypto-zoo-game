@@ -1,4 +1,4 @@
-lwindow.CryptoZoo = window.CryptoZoo || {};
+window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.ui = {
     getEl(id) {
@@ -109,15 +109,15 @@ window.CryptoZoo.ui = {
         const pandaUpgradeBtn = document.getElementById("upgrade-panda-btn");
         const lionUpgradeBtn = document.getElementById("upgrade-lion-btn");
 
-        if (monkeyUpgradeBtn) {
+        if (monkeyUpgradeBtn && CryptoZoo.gameplay) {
             monkeyUpgradeBtn.textContent = `Lvl Up (${CryptoZoo.formatNumber(CryptoZoo.gameplay.getAnimalUpgradeCost("monkey"))})`;
         }
 
-        if (pandaUpgradeBtn) {
+        if (pandaUpgradeBtn && CryptoZoo.gameplay) {
             pandaUpgradeBtn.textContent = `Lvl Up (${CryptoZoo.formatNumber(CryptoZoo.gameplay.getAnimalUpgradeCost("panda"))})`;
         }
 
-        if (lionUpgradeBtn) {
+        if (lionUpgradeBtn && CryptoZoo.gameplay) {
             lionUpgradeBtn.textContent = `Lvl Up (${CryptoZoo.formatNumber(CryptoZoo.gameplay.getAnimalUpgradeCost("lion"))})`;
         }
     }
