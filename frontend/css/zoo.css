@@ -1,5 +1,5 @@
 .zoo-screen-card{
-    max-height:calc(100vh - 190px);
+    max-height:calc(100vh - 235px);
     overflow-y:auto;
     padding-right:12px;
 }
@@ -9,41 +9,15 @@
 }
 
 .zoo-screen-card::-webkit-scrollbar-thumb{
-    background:rgba(255,255,255,0.25);
+    background:rgba(255,255,255,0.20);
     border-radius:10px;
-}
-
-.summary-box{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px;
-    margin-bottom:12px;
-}
-
-.summary-item{
-    background:rgba(255,255,255,0.14);
-    border:1px solid rgba(255,255,255,0.10);
-    border-radius:12px;
-    padding:10px;
-    text-align:center;
-}
-
-.summary-item span{
-    display:block;
-    font-size:12px;
-    opacity:0.9;
-    margin-bottom:5px;
-}
-
-.summary-item strong{
-    font-size:18px;
 }
 
 .rarity-legend{
     display:flex;
     justify-content:space-between;
     gap:8px;
-    margin-bottom:12px;
+    margin-bottom:14px;
     flex-wrap:wrap;
 }
 
@@ -51,122 +25,138 @@
     display:flex;
     align-items:center;
     gap:7px;
-    background:rgba(255,255,255,0.10);
-    border-radius:10px;
-    padding:7px 9px;
+    background:rgba(255,255,255,0.07);
+    border-radius:999px;
+    padding:8px 11px;
     font-size:12px;
+    color:#dfe7ef;
 }
 
 .animal-row{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    gap:10px;
-    margin:10px 0;
-    padding:12px;
-    border-radius:14px;
-    background:rgba(255,255,255,0.14);
-    border:1px solid rgba(255,255,255,0.10);
+    gap:12px;
+    margin:12px 0;
+    padding:14px;
+    border-radius:20px;
+    background:linear-gradient(180deg, rgba(19,28,40,0.90) 0%, rgba(10,16,27,0.95) 100%);
+    border:1px solid rgba(255,255,255,0.06);
+    box-shadow:0 10px 22px rgba(0,0,0,0.22);
 }
 
 .animal-left{
     display:flex;
     align-items:center;
-    gap:10px;
+    gap:12px;
     min-width:0;
     flex:1;
 }
 
 .animal-icon{
+    width:54px;
+    height:54px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:16px;
+    background:rgba(255,255,255,0.08);
     font-size:30px;
-    line-height:1;
-    width:38px;
-    text-align:center;
+    flex-shrink:0;
 }
 
 .animal-text{
     display:flex;
     flex-direction:column;
-    gap:3px;
+    gap:4px;
     min-width:0;
 }
 
 .animal-topline{
     display:flex;
     align-items:center;
-    gap:6px;
+    gap:8px;
     flex-wrap:wrap;
 }
 
 .animal-name{
-    font-size:17px;
-    font-weight:bold;
+    font-size:22px;
+    font-weight:800;
     color:#ffffff;
 }
 
 .animal-desc{
-    font-size:12px;
-    color:rgba(255,255,255,0.92);
+    font-size:13px;
+    color:rgba(255,255,255,0.78);
     line-height:1.25;
 }
 
 .animal-owned{
-    font-size:13px;
-    font-weight:bold;
-    color:#ffd700;
+    font-size:14px;
+    font-weight:700;
+    color:#f8d96c;
 }
 
 .rarity-badge{
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    padding:3px 8px;
+    padding:4px 10px;
     border-radius:999px;
     font-size:11px;
-    font-weight:bold;
+    font-weight:800;
     letter-spacing:0.2px;
 }
 
 .rarity-common{
-    background:#9ca3af;
-    color:#111827;
+    background:#cfd4da;
+    color:#1a1d24;
 }
 
 .rarity-rare{
-    background:#60a5fa;
-    color:#082f49;
+    background:#9cf1ff;
+    color:#093343;
 }
 
 .rarity-epic{
-    background:#c084fc;
-    color:#3b0764;
+    background:#f1c0ff;
+    color:#4d1866;
 }
 
 .rarity-common-text{
-    color:#d1d5db;
+    color:#d8dce2;
 }
 
 .rarity-rare-text{
-    color:#93c5fd;
+    color:#9ce9ff;
 }
 
 .rarity-epic-text{
-    color:#d8b4fe;
+    color:#ebb4ff;
 }
 
 .animal-actions{
     display:flex;
     flex-direction:column;
-    gap:6px;
+    gap:8px;
     flex-shrink:0;
 }
 
 .animal-actions button{
-    min-width:88px;
+    min-width:110px;
+    padding:11px 14px;
+    border:none;
+    border-radius:16px;
+    background:linear-gradient(180deg, #7cff98 0%, #43c56c 100%);
+    color:#10311d;
+    font-weight:800;
+    cursor:pointer;
+    font-size:14px;
+    box-shadow:0 8px 18px rgba(0,0,0,0.18);
 }
 
 .collection-block{
-    margin-top:14px;
+    margin-top:18px;
     padding-top:4px;
 }
 
@@ -175,35 +165,36 @@
     justify-content:space-between;
     align-items:center;
     gap:10px;
-    margin-bottom:10px;
+    margin-bottom:12px;
     flex-wrap:wrap;
 }
 
 .collection-header h4{
     margin:0;
-    font-size:18px;
+    font-size:22px;
+    color:#ffffff;
 }
 
 .collection-progress{
-    font-size:13px;
+    font-size:14px;
     font-weight:bold;
-    color:#ffd700;
+    color:#ffd86b;
 }
 
 .collection-grid{
     display:grid;
     grid-template-columns:repeat(3, 1fr);
-    gap:10px;
+    gap:12px;
 }
 
 .collection-card{
-    background:rgba(255,255,255,0.12);
-    border:1px solid rgba(255,255,255,0.10);
-    border-radius:14px;
-    padding:10px 8px;
+    background:linear-gradient(180deg, rgba(19,27,38,0.88) 0%, rgba(10,15,25,0.92) 100%);
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:18px;
+    padding:14px 10px;
     text-align:center;
     transition:0.2s;
-    min-height:120px;
+    min-height:132px;
     display:flex;
     flex-direction:column;
     justify-content:center;
@@ -216,50 +207,51 @@
 }
 
 .collection-card.discovered{
-    box-shadow:0 0 0 1px rgba(255,215,0,0.2), 0 8px 18px rgba(0,0,0,0.18);
+    box-shadow:0 0 0 1px rgba(255,215,0,0.16), 0 10px 22px rgba(0,0,0,0.20);
 }
 
 .collection-icon{
-    font-size:30px;
-    margin-bottom:6px;
+    font-size:34px;
+    margin-bottom:8px;
 }
 
 .collection-name{
-    font-size:16px;
-    font-weight:bold;
+    font-size:18px;
+    font-weight:800;
     margin-bottom:4px;
+    color:#ffffff;
 }
 
 .collection-rarity{
     font-size:13px;
     margin-bottom:6px;
-    font-weight:bold;
+    font-weight:700;
 }
 
 .collection-status{
     font-size:13px;
-    font-weight:bold;
+    font-weight:800;
 }
 
 .collection-status.discovered-status{
-    color:#4ade80;
+    color:#79f08a;
 }
 
 .collection-status.locked-status{
-    color:#fca5a5;
+    color:#ffb0b0;
 }
 
 .collection-rarity-summary{
     display:grid;
     grid-template-columns:1fr 1fr 1fr;
-    gap:8px;
-    margin-top:10px;
+    gap:10px;
+    margin-top:12px;
 }
 
 .rarity-summary-item{
-    background:rgba(255,255,255,0.10);
-    border-radius:12px;
-    padding:8px;
+    background:rgba(255,255,255,0.06);
+    border-radius:16px;
+    padding:10px;
     text-align:center;
     display:flex;
     flex-direction:column;
@@ -269,16 +261,5 @@
 
 .rarity-summary-item strong{
     font-size:13px;
-}
-
-.screen button{
-    padding:8px 12px;
-    border:none;
-    border-radius:8px;
-    background:#4ade80;
-    color:#123;
-    font-weight:bold;
-    cursor:pointer;
-    flex-shrink:0;
-    font-size:13px;
+    color:#ffffff;
 }
