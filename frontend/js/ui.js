@@ -1,129 +1,124 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.ui = {
+    getEl(id) {
+        return document.getElementById(id);
+    },
 
-getEl(id){
-return document.getElementById(id);
-},
+    showToast(message) {
+        const toast = this.getEl("toast");
+        if (!toast) return;
 
-showToast(message){
+        toast.textContent = message;
+        toast.style.display = "block";
 
-const toast=this.getEl("toast");
-if(!toast)return;
+        clearTimeout(window.cryptoZooToastTimeout);
 
-toast.textContent=message;
-toast.style.display="block";
+        window.cryptoZooToastTimeout = setTimeout(function () {
+            toast.style.display = "none";
+        }, 2000);
+    },
 
-clearTimeout(window.toastTimeout);
+    showScreen(screenId) {
+        const screens = document.querySelectorAll(".screen");
+        const navButtons = document.querySelectorAll(".nav-btn");
 
-window.toastTimeout=setTimeout(()=>{
-toast.style.display="none";
-},2000);
+        screens.forEach(function (screen) {
+            screen.classList.remove("active-screen");
+        });
 
-},
+        navButtons.forEach(function (btn) {
+            btn.classList.remove("active-nav");
+        });
 
-showScreen(screenId){
+        const target = document.getElementById(screenId);
+        if (target) {
+            target.classList.add("active-screen");
+        }
 
-const screens=document.querySelectorAll(".screen");
-const navButtons=document.querySelectorAll(".nav-btn");
+        navButtons.forEach(function (btn) {
+            if (btn.getAttribute("data-screen") === screenId) {
+                btn.classList.add("active-nav");
+            }
+        });
+    },
 
-screens.forEach(s=>{
-s.classList.remove("active-screen");
-});
+    animateCoinsBurst() {
+        const container = document.getElementById("coin-animation-container");
+        if (!container) return;
 
-navButtons.forEach(b=>{
-b.classList.remove("active-nav");
-});
+        for (let i = 0; i < 8; i++) {
+            const coin = document.createElement("div");
+            coin.className = "flying-coin";
 
-const target=document.getElementById(screenId);
+            const moveX = (Math.floor(Math.random() * 220) - 110) + "px";
+            const moveY = (-70 - Math.floor(Math.random() * 140)) + "px";
 
-if(target){
-target.classList.add("active-screen");
-}
+            coin.style.left = "114px";
+            coin.style.top = "114px";
+            coin.style.setProperty("--moveX", moveX);
+            coin.style.setProperty("--moveY", moveY);
 
-navButtons.forEach(btn=>{
-if(btn.dataset.screen===screenId){
-btn.classList.add("active-nav");
-}
-});
+            container.appendChild(coin);
 
-},
+            setTimeout(function () {
+                coin.remove();
+            }, 900);
+        }
+    },
 
-renderZoo(){
+    updateText(id, value) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.textContent = value;
+        }
+    },
 
-const zooContainer=document.getElementById("zoo-list");
+    render() {
+        const state = CryptoZoo.state || {};
+        const animals = state.animals || {};
 
-if(!zooContainer)return;
+        const monkey = animals.monkey || { count: 0, level: 1 };
+        const panda = animals.panda || { count: 0, level: 1 };
+        const lion = animals.lion || { count: 0, level: 1 };
 
-zooContainer.innerHTML="";
+        this.updateText("coins-count", CryptoZoo.formatNumber(state.coins || 0));
+        this.updateText("gems-count", CryptoZoo.formatNumber(state.gems || 0));
+        this.updateText("level", CryptoZoo.formatNumber(state.level || 1));
+        this.updateText("coins-per-click", CryptoZoo.formatNumber(state.coinsPerClick || 1));
+        this.updateText("upgrade-cost", CryptoZoo.formatNumber(state.upgradeCost || 50));
+        this.updateText("zoo-income", CryptoZoo.formatNumber(state.zooIncome || 0));
 
-const animals=CryptoZoo.config.animals;
+        this.updateText("monkey-count", CryptoZoo.formatNumber(monkey.count));
+        this.updateText("monkey-level", CryptoZoo.formatNumber(monkey.level));
 
-Object.keys(animals).forEach(key=>{
+        this.updateText("panda-count", CryptoZoo.formatNumber(panda.count));
+        this.updateText("panda-level", CryptoZoo.formatNumber(panda.level));
 
-const a=animals[key];
+        this.updateText("lion-count", CryptoZoo.formatNumber(lion.count));
+        this.updateText("lion-level", CryptoZoo.formatNumber(lion.level));
 
-const row=document.createElement("div");
-row.className="animal-row";
+        const totalAnimals =
+            (Number(monkey.count) || 0) +
+            (Number(panda.count) || 0) +
+            (Number(lion.count) || 0);
 
-row.innerHTML=`
+        this.updateText("animals-total", CryptoZoo.formatNumber(totalAnimals));
 
-<div class="animal-left">
+        const monkeyUpgradeBtn = document.getElementById("upgrade-monkey-btn");
+        const pandaUpgradeBtn = document.getElementById("upgrade-panda-btn");
+        const lionUpgradeBtn = document.getElementById("upgrade-lion-btn");
 
-<div class="animal-icon">🐾</div>
+        if (monkeyUpgradeBtn && CryptoZoo.gameplay) {
+            monkeyUpgradeBtn.textContent = `Lvl Up (${CryptoZoo.formatNumber(CryptoZoo.gameplay.getAnimalUpgradeCost("monkey"))})`;
+        }
 
-<div class="animal-text">
+        if (pandaUpgradeBtn && CryptoZoo.gameplay) {
+            pandaUpgradeBtn.textContent = `Lvl Up (${CryptoZoo.formatNumber(CryptoZoo.gameplay.getAnimalUpgradeCost("panda"))})`;
+        }
 
-<div class="animal-name">${a.name}</div>
-
-<div class="animal-desc">
-Dochód ${a.baseIncome}/sek • Koszt ${CryptoZoo.formatNumber(a.buyCost)}
-</div>
-
-<div class="animal-owned">
-Posiadasz: <span id="${key}-count">0</span>
-</div>
-
-</div>
-
-</div>
-
-<div class="animal-actions">
-
-<button id="buy-${key}">
-Kup
-</button>
-
-<button id="upgrade-${key}">
-Lvl Up
-</button>
-
-</div>
-
-`;
-
-zooContainer.appendChild(row);
-
-});
-
-},
-
-render(){
-
-const state=CryptoZoo.state;
-
-this.getEl("coins-count").textContent=
-CryptoZoo.formatNumber(state.coins);
-
-this.getEl("level").textContent=
-CryptoZoo.formatNumber(state.level);
-
-this.getEl("coins-per-click").textContent=
-CryptoZoo.formatNumber(state.coinsPerClick);
-
-this.getEl("zoo-income").textContent=
-CryptoZoo.formatNumber(state.zooIncome);
-
-}
-
+        if (lionUpgradeBtn && CryptoZoo.gameplay) {
+            lionUpgradeBtn.textContent = `Lvl Up (${CryptoZoo.formatNumber(CryptoZoo.gameplay.getAnimalUpgradeCost("lion"))})`;
+        }
+    }
 };
