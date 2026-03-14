@@ -116,7 +116,7 @@ app.get("/api/ranking", async (req, res) => {
     }
 });
 
-app.get("*", (req, res) => {
+app.use((req, res) => {
     res.sendFile(path.join(__dirname, "../frontend/index.html"));
 });
 
