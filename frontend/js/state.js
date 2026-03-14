@@ -9,7 +9,14 @@ window.CryptoZoo.state = {
     zooIncome: 0,
     animals: {
         monkey: { count: 0, level: 1 },
+        rabbit: { count: 0, level: 1 },
+        fox: { count: 0, level: 1 },
+        wolf: { count: 0, level: 1 },
         panda: { count: 0, level: 1 },
-        lion: { count: 0, level: 1 }
+        tiger: { count: 0, level: 1 },
+        gorilla: { count: 0, level: 1 },
+        lion: { count: 0, level: 1 },
+        elephant: { count: 0, level: 1 },
+        giraffe: { count: 0, level: 1 }
     }
 };
