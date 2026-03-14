@@ -1,4 +1,4 @@
-lwindow.CryptoZoo = window.CryptoZoo || {};
+window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.state = {
     coins: 0,
@@ -7,7 +7,6 @@ window.CryptoZoo.state = {
     coinsPerClick: 1,
     upgradeCost: 50,
     zooIncome: 0,
-
     animals: {
         monkey: { count: 0, level: 1 },
         rabbit: { count: 0, level: 1 },
