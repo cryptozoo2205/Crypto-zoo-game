@@ -4,7 +4,7 @@ window.CryptoZoo.gameplay = {
     passiveIncomeStarted: false,
 
     getLevelFromCoins(coins) {
-        return Math.floor(Math.sqrt(Math.max(0, coins) / 100)) + 1;
+        return Math.floor(Math.sqrt(Math.max(0, coins) / 5000)) + 1;
     },
 
     normalizeAnimals() {
@@ -31,13 +31,13 @@ window.CryptoZoo.gameplay = {
     getAnimalUpgradeCost(type) {
         const animal = CryptoZoo.state.animals[type];
         const config = CryptoZoo.config.animalConfig[type];
-        return Math.floor(config.upgradeBaseCost * (animal.level * 1.8));
+        return Math.floor(config.upgradeBaseCost * Math.pow(animal.level, 2));
     },
 
     getAnimalIncome(type) {
         const animal = CryptoZoo.state.animals[type];
         const config = CryptoZoo.config.animalConfig[type];
-        return (config.baseIncome * animal.level * animal.count);
+        return config.baseIncome * animal.level * animal.count;
     },
 
     updateZooIncome() {
@@ -80,8 +80,9 @@ window.CryptoZoo.gameplay = {
 
             state.coins = Number(user.coins) || 0;
             state.coinsPerClick = Number(user.coinsPerClick) || 1;
-            state.upgradeCost = Number(user.upgradeCost) || CryptoZoo.config.clickUpgradeBaseCost || 50;
+            state.upgradeCost = Number(user.upgradeCost) || 50;
             state.animals = user.animals || state.animals || {};
+
             this.normalizeAnimals();
             this.updateZooIncome();
             state.level = this.getLevelFromCoins(state.coins);
@@ -113,7 +114,7 @@ window.CryptoZoo.gameplay = {
 
         state.coins -= state.upgradeCost;
         state.coinsPerClick += 1;
-        state.upgradeCost = state.upgradeCost * 2;
+        state.upgradeCost = Math.floor(state.upgradeCost * 2.4);
         state.level = this.getLevelFromCoins(state.coins);
 
         CryptoZoo.ui.render();
@@ -218,37 +219,16 @@ window.CryptoZoo.gameplay = {
         const upgradePandaBtn = document.getElementById("upgrade-panda-btn");
         const upgradeLionBtn = document.getElementById("upgrade-lion-btn");
 
-        if (tapBtn) {
-            tapBtn.onclick = () => this.click();
-        }
+        if (tapBtn) tapBtn.onclick = () => this.click();
+        if (buyUpgradeBtn) buyUpgradeBtn.onclick = () => this.buyClickUpgrade();
 
-        if (buyUpgradeBtn) {
-            buyUpgradeBtn.onclick = () => this.buyClickUpgrade();
-        }
+        if (buyMonkeyBtn) buyMonkeyBtn.onclick = () => this.buyAnimal("monkey");
+        if (buyPandaBtn) buyPandaBtn.onclick = () => this.buyAnimal("panda");
+        if (buyLionBtn) buyLionBtn.onclick = () => this.buyAnimal("lion");
 
-        if (buyMonkeyBtn) {
-            buyMonkeyBtn.onclick = () => this.buyAnimal("monkey");
-        }
-
-        if (buyPandaBtn) {
-            buyPandaBtn.onclick = () => this.buyAnimal("panda");
-        }
-
-        if (buyLionBtn) {
-            buyLionBtn.onclick = () => this.buyAnimal("lion");
-        }
-
-        if (upgradeMonkeyBtn) {
-            upgradeMonkeyBtn.onclick = () => this.upgradeAnimal("monkey");
-        }
-
-        if (upgradePandaBtn) {
-            upgradePandaBtn.onclick = () => this.upgradeAnimal("panda");
-        }
-
-        if (upgradeLionBtn) {
-            upgradeLionBtn.onclick = () => this.upgradeAnimal("lion");
-        }
+        if (upgradeMonkeyBtn) upgradeMonkeyBtn.onclick = () => this.upgradeAnimal("monkey");
+        if (upgradePandaBtn) upgradePandaBtn.onclick = () => this.upgradeAnimal("panda");
+        if (upgradeLionBtn) upgradeLionBtn.onclick = () => this.upgradeAnimal("lion");
     },
 
     startPassiveIncome() {
