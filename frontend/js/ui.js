@@ -1,56 +1,59 @@
-
 window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.ui = {
+    getEl(id) {
+        return document.getElementById(id);
+    },
+
     showLoading() {
-        const loadingScreen = CryptoZoo.state.els.loadingScreen;
+        const loadingScreen = this.getEl("loading-screen");
         if (!loadingScreen) return;
 
         loadingScreen.style.display = "flex";
         loadingScreen.classList.remove("hide-loading");
-        CryptoZoo.state.loadingVisible = true;
     },
 
     hideLoading() {
-        const loadingScreen = CryptoZoo.state.els.loadingScreen;
+        const loadingScreen = this.getEl("loading-screen");
         if (!loadingScreen) return;
 
         setTimeout(function () {
             loadingScreen.classList.add("hide-loading");
-        }, CryptoZoo.config.loadingFadeStartMs);
+        }, 1200);
 
         setTimeout(function () {
             loadingScreen.style.display = "none";
-            CryptoZoo.state.loadingVisible = false;
-        }, CryptoZoo.config.loadingHideMs);
+        }, 2000);
     },
 
     showToast(message) {
-        const toast = CryptoZoo.state.els.toast;
+        const toast = this.getEl("toast");
         if (!toast) return;
 
         toast.textContent = message;
         toast.style.display = "block";
 
-        clearTimeout(window.toastTimeout);
-        window.toastTimeout = setTimeout(function () {
+        clearTimeout(window.cryptoZooToastTimeout);
+
+        window.cryptoZooToastTimeout = setTimeout(function () {
             toast.style.display = "none";
-        }, 2200);
+        }, 2000);
     },
 
     showScreen(screenId) {
-        CryptoZoo.state.els.screens.forEach(function (screen) {
+        const screens = document.querySelectorAll(".screen");
+        screens.forEach(function (screen) {
             screen.classList.remove("active-screen");
         });
 
-        const target = document.getElementById(screenId);
+        const target = this.getEl(screenId);
         if (target) {
             target.classList.add("active-screen");
         }
     },
 
     animateCoinsBurst() {
-        const container = CryptoZoo.state.els.coinAnimationContainer;
+        const container = this.getEl("coin-animation-container");
         if (!container) return;
 
         for (let i = 0; i < 8; i++) {
@@ -73,7 +76,17 @@ window.CryptoZoo.ui = {
         }
     },
 
-    updateCollectionCard(card, statusEl, discovered) {
+    updateText(id, value) {
+        const el = this.getEl(id);
+        if (el) {
+            el.textContent = value;
+        }
+    },
+
+    updateCollectionCard(cardId, statusId, discovered) {
+        const card = this.getEl(cardId);
+        const statusEl = this.getEl(statusId);
+
         if (!card || !statusEl) return;
 
         if (discovered) {
@@ -92,41 +105,71 @@ window.CryptoZoo.ui = {
     },
 
     render() {
-        const state = CryptoZoo.state;
-        const els = state.els;
-        const gameplay = CryptoZoo.gameplay;
+        const state = CryptoZoo.state || {};
+        const animals = state.animals || {
+            monkey: { count: 0, level: 1 },
+            panda: { count: 0, level: 1 },
+            lion: { count: 0, level: 1 }
+        };
 
-        els.coinsCount.textContent = state.coins;
-        els.level.textContent = state.level;
-        els.coinsPerClick.textContent = state.coinsPerClick;
-        els.upgradeCost.textContent = state.upgradeCost;
-        els.zooIncome.textContent = state.zooIncome;
-        els.animalsTotal.textContent = gameplay.getAnimalsTotal();
+        const monkeyCount = animals.monkey?.count || 0;
+        const pandaCount = animals.panda?.count || 0;
+        const lionCount = animals.lion?.count || 0;
 
-        els.monkeyCount.textContent = state.animals.monkey.count;
-        els.pandaCount.textContent = state.animals.panda.count;
-        els.lionCount.textContent = state.animals.lion.count;
+        const monkeyLevel = animals.monkey?.level || 1;
+        const pandaLevel = animals.panda?.level || 1;
+        const lionLevel = animals.lion?.level || 1;
 
-        els.monkeyLevel.textContent = state.animals.monkey.level;
-        els.pandaLevel.textContent = state.animals.panda.level;
-        els.lionLevel.textContent = state.animals.lion.level;
+        this.updateText("coins-count", state.coins ?? 0);
+        this.updateText("level", state.level ?? 1);
+        this.updateText("coins-per-click", state.coinsPerClick ?? 1);
+        this.updateText("upgrade-cost", state.upgradeCost ?? 50);
+        this.updateText("zoo-income", state.zooIncome ?? 0);
 
-        els.upgradeMonkeyBtn.textContent = `Lvl Up (${gameplay.getAnimalUpgradeCost("monkey")})`;
-        els.upgradePandaBtn.textContent = `Lvl Up (${gameplay.getAnimalUpgradeCost("panda")})`;
-        els.upgradeLionBtn.textContent = `Lvl Up (${gameplay.getAnimalUpgradeCost("lion")})`;
+        const animalsTotal = monkeyCount + pandaCount + lionCount;
+        this.updateText("animals-total", animalsTotal);
 
-        const monkeyDiscovered = state.animals.monkey.count > 0;
-        const pandaDiscovered = state.animals.panda.count > 0;
-        const lionDiscovered = state.animals.lion.count > 0;
+        this.updateText("monkey-count", monkeyCount);
+        this.updateText("panda-count", pandaCount);
+        this.updateText("lion-count", lionCount);
 
-        els.collectionFound.textContent = gameplay.getCollectionFoundCount();
-        els.collectionTotal.textContent = 3;
-        els.commonFound.textContent = `${monkeyDiscovered ? 1 : 0}/1`;
-        els.rareFound.textContent = `${pandaDiscovered ? 1 : 0}/1`;
-        els.epicFound.textContent = `${lionDiscovered ? 1 : 0}/1`;
+        this.updateText("monkey-level", monkeyLevel);
+        this.updateText("panda-level", pandaLevel);
+        this.updateText("lion-level", lionLevel);
 
-        this.updateCollectionCard(els.collectionMonkeyCard, els.collectionMonkeyStatus, monkeyDiscovered);
-        this.updateCollectionCard(els.collectionPandaCard, els.collectionPandaStatus, pandaDiscovered);
-        this.updateCollectionCard(els.collectionLionCard, els.collectionLionStatus, lionDiscovered);
+        const monkeyUpgradeBtn = this.getEl("upgrade-monkey-btn");
+        const pandaUpgradeBtn = this.getEl("upgrade-panda-btn");
+        const lionUpgradeBtn = this.getEl("upgrade-lion-btn");
+
+        if (monkeyUpgradeBtn && CryptoZoo.gameplay && CryptoZoo.gameplay.getAnimalUpgradeCost) {
+            monkeyUpgradeBtn.textContent = `Lvl Up (${CryptoZoo.gameplay.getAnimalUpgradeCost("monkey")})`;
+        }
+
+        if (pandaUpgradeBtn && CryptoZoo.gameplay && CryptoZoo.gameplay.getAnimalUpgradeCost) {
+            pandaUpgradeBtn.textContent = `Lvl Up (${CryptoZoo.gameplay.getAnimalUpgradeCost("panda")})`;
+        }
+
+        if (lionUpgradeBtn && CryptoZoo.gameplay && CryptoZoo.gameplay.getAnimalUpgradeCost) {
+            lionUpgradeBtn.textContent = `Lvl Up (${CryptoZoo.gameplay.getAnimalUpgradeCost("lion")})`;
+        }
+
+        const monkeyDiscovered = monkeyCount > 0;
+        const pandaDiscovered = pandaCount > 0;
+        const lionDiscovered = lionCount > 0;
+
+        const foundCount =
+            (monkeyDiscovered ? 1 : 0) +
+            (pandaDiscovered ? 1 : 0) +
+            (lionDiscovered ? 1 : 0);
+
+        this.updateText("collection-found", foundCount);
+        this.updateText("collection-total", 3);
+        this.updateText("common-found", `${monkeyDiscovered ? 1 : 0}/1`);
+        this.updateText("rare-found", `${pandaDiscovered ? 1 : 0}/1`);
+        this.updateText("epic-found", `${lionDiscovered ? 1 : 0}/1`);
+
+        this.updateCollectionCard("collection-monkey", "collection-monkey-status", monkeyDiscovered);
+        this.updateCollectionCard("collection-panda", "collection-panda-status", pandaDiscovered);
+        this.updateCollectionCard("collection-lion", "collection-lion-status", lionDiscovered);
     }
 };
