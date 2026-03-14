@@ -38,7 +38,7 @@ window.CryptoZoo.init = {
             if (CryptoZoo.ui && CryptoZoo.ui.showScreen) {
                 CryptoZoo.ui.showScreen("game");
             }
-        } catch (error) {
+       } catch (error) {
             console.error("INIT ERROR:", error);
         }
     }
