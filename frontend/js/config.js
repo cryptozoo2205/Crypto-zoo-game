@@ -1,4 +1,4 @@
-lwindow.CryptoZoo = window.CryptoZoo || {};
+window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.config = {
     economy: {
