@@ -2,57 +2,44 @@ window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.init = {
     async start() {
-        console.log("INIT START");
-
         try {
-            if (window.Telegram && window.Telegram.WebApp) {
-                try {
-                    window.Telegram.WebApp.ready();
-                    window.Telegram.WebApp.expand();
-                } catch (e) {
-                    console.error("Telegram ready/expand error:", e);
-                }
-            }
-
-            if (CryptoZoo.telegram && typeof CryptoZoo.telegram.setupPlayerIdentity === "function") {
+            if (CryptoZoo.telegram && CryptoZoo.telegram.setupPlayerIdentity) {
                 CryptoZoo.telegram.setupPlayerIdentity();
             }
 
-            if (CryptoZoo.gameplay && typeof CryptoZoo.gameplay.normalizeAnimals === "function") {
+            if (CryptoZoo.gameplay && CryptoZoo.gameplay.normalizeAnimals) {
                 CryptoZoo.gameplay.normalizeAnimals();
             }
 
-            if (CryptoZoo.gameplay && typeof CryptoZoo.gameplay.loadPlayerState === "function") {
+            if (CryptoZoo.gameplay && CryptoZoo.gameplay.loadPlayerState) {
                 await CryptoZoo.gameplay.loadPlayerState();
             }
 
-            if (CryptoZoo.gameplay && typeof CryptoZoo.gameplay.recalculateCoreStats === "function") {
+            if (CryptoZoo.gameplay && CryptoZoo.gameplay.recalculateCoreStats) {
                 CryptoZoo.gameplay.recalculateCoreStats();
             }
 
-            if (CryptoZoo.ui && typeof CryptoZoo.ui.render === "function") {
+            if (CryptoZoo.ui && CryptoZoo.ui.render) {
                 CryptoZoo.ui.render();
             }
 
-            if (CryptoZoo.gameplay && typeof CryptoZoo.gameplay.bindNavigation === "function") {
+            if (CryptoZoo.gameplay && CryptoZoo.gameplay.bindNavigation) {
                 CryptoZoo.gameplay.bindNavigation();
             }
 
-            if (CryptoZoo.gameplay && typeof CryptoZoo.gameplay.bindActions === "function") {
+            if (CryptoZoo.gameplay && CryptoZoo.gameplay.bindActions) {
                 CryptoZoo.gameplay.bindActions();
             }
 
-            if (CryptoZoo.gameplay && typeof CryptoZoo.gameplay.startPassiveIncome === "function") {
+            if (CryptoZoo.gameplay && CryptoZoo.gameplay.startPassiveIncome) {
                 CryptoZoo.gameplay.startPassiveIncome();
             }
 
-            if (CryptoZoo.ui && typeof CryptoZoo.ui.showScreen === "function") {
+            if (CryptoZoo.ui && CryptoZoo.ui.showScreen) {
                 CryptoZoo.ui.showScreen("game");
             }
-
-            console.log("INIT OK");
         } catch (error) {
-            console.error("INIT FATAL ERROR:", error);
+            console.error("INIT ERROR:", error);
         }
     }
 };
