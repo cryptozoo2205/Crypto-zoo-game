@@ -2,67 +2,34 @@ const mongoose = require("mongoose");
 
 const animalSchema = new mongoose.Schema(
     {
-        count: {
-            type: Number,
-            default: 0
-        },
-        level: {
-            type: Number,
-            default: 1
-        }
+        count: { type: Number, default: 0 },
+        level: { type: Number, default: 1 }
     },
     { _id: false }
 );
 
-const userSchema = new mongoose.Schema(
-    {
-        telegramId: {
-            type: String,
-            required: true,
-            unique: true
-        },
-        username: {
-            type: String,
-            default: "Gracz"
-        },
-        coins: {
-            type: Number,
-            default: 0
-        },
-        level: {
-            type: Number,
-            default: 1
-        },
-        coinsPerClick: {
-            type: Number,
-            default: 1
-        },
-        upgradeCost: {
-            type: Number,
-            default: 50
-        },
-        animals: {
-            monkey: {
-                type: animalSchema,
-                default: () => ({ count: 0, level: 1 })
-            },
-            panda: {
-                type: animalSchema,
-                default: () => ({ count: 0, level: 1 })
-            },
-            lion: {
-                type: animalSchema,
-                default: () => ({ count: 0, level: 1 })
-            }
-        },
-        lastLogin: {
-            type: Date,
-            default: Date.now
-        }
-    },
-    {
-        timestamps: true
+const userSchema = new mongoose.Schema({
+    telegramId: { type: String, required: true, unique: true },
+    username: { type: String, default: "Gracz" },
+
+    coins: { type: Number, default: 0 },
+    gems: { type: Number, default: 0 },
+    level: { type: Number, default: 1 },
+    coinsPerClick: { type: Number, default: 1 },
+    upgradeCost: { type: Number, default: 50 },
+
+    animals: {
+        monkey: { type: animalSchema, default: () => ({}) },
+        rabbit: { type: animalSchema, default: () => ({}) },
+        parrot: { type: animalSchema, default: () => ({}) },
+        turtle: { type: animalSchema, default: () => ({}) },
+        panda: { type: animalSchema, default: () => ({}) },
+        wolf: { type: animalSchema, default: () => ({}) },
+        flamingo: { type: animalSchema, default: () => ({}) },
+        lion: { type: animalSchema, default: () => ({}) },
+        tiger: { type: animalSchema, default: () => ({}) },
+        elephant: { type: animalSchema, default: () => ({}) }
     }
-);
+});
 
 module.exports = mongoose.model("User", userSchema);
