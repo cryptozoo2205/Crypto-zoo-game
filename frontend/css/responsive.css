@@ -1,0 +1,45 @@
+@media (max-width: 420px){
+    h1{
+        font-size:34px;
+    }
+
+    .stats{
+        font-size:14px;
+    }
+
+    .center-card{
+        min-height:calc(100vh - 240px);
+        padding-top:70px;
+    }
+
+    .tap-wrapper{
+        max-width:280px;
+    }
+
+    #tap-btn{
+        font-size:18px;
+        padding:14px 22px;
+    }
+
+    .collection-grid{
+        grid-template-columns:1fr;
+    }
+
+    .collection-rarity-summary{
+        grid-template-columns:1fr;
+    }
+
+    .animal-row,
+    .shop-row{
+        flex-direction:column;
+        align-items:stretch;
+    }
+
+    .animal-actions{
+        flex-direction:row;
+    }
+
+    .animal-actions button{
+        flex:1;
+    }
+}
