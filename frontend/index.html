@@ -1,369 +1,193 @@
-<!DOCTYPE html>
+l<!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crypto Zoo</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crypto Zoo</title>
 
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-<link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/layout.css">
-<link rel="stylesheet" href="css/game.css">
-<link rel="stylesheet" href="css/zoo.css">
-<link rel="stylesheet" href="css/shop.css">
-<link rel="stylesheet" href="css/ranking.css">
-<link rel="stylesheet" href="css/menu.css">
-<link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/game.css" />
+  <link rel="stylesheet" href="css/zoo.css" />
+  <link rel="stylesheet" href="css/shop.css" />
+  <link rel="stylesheet" href="css/ranking.css" />
+  <link rel="stylesheet" href="css/menu.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
 </head>
 <body>
-
-<div class="app-shell">
-
+  <div class="app-shell">
     <header class="top-hero">
-        <div class="hero-overlay"></div>
-        <div class="hero-content">
-            <h1>Crypto Zoo</h1>
-            <div class="paw-deco">🐾 🐾</div>
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <h1>Crypto Zoo</h1>
+        <div class="paw-deco">🐾 🐾</div>
 
-            <div class="stats-panel">
-                <div class="stat-card">
-                    <div class="stat-label">Monety</div>
-                    <div class="stat-value" id="coins-count">0</div>
-                </div>
+        <div class="stats-panel">
+          <div class="stat-card">
+            <div class="stat-label">Monety</div>
+            <div class="stat-value" id="coins-count">0</div>
+          </div>
 
-                <div class="stat-card">
-                    <div class="stat-label">Gems</div>
-                    <div class="stat-value" id="gems-count">0</div>
-                </div>
+          <div class="stat-card">
+            <div class="stat-label">Gems</div>
+            <div class="stat-value" id="gems-count">0</div>
+          </div>
 
-                <div class="stat-card">
-                    <div class="stat-label">Poziom</div>
-                    <div class="stat-value" id="level">1</div>
-                </div>
+          <div class="stat-card">
+            <div class="stat-label">Poziom</div>
+            <div class="stat-value" id="level">1</div>
+          </div>
 
-                <div class="stat-card">
-                    <div class="stat-label">Za klik</div>
-                    <div class="stat-value" id="coins-per-click">1</div>
-                </div>
-            </div>
+          <div class="stat-card">
+            <div class="stat-label">Za klik</div>
+            <div class="stat-value" id="coins-per-click">1</div>
+          </div>
         </div>
+      </div>
     </header>
 
     <div id="toast" class="toast"></div>
 
     <section id="game" class="screen active-screen">
-        <div class="game-main-panel">
-            <div class="tap-ring-wrap">
-                <div class="tap-ring-glow"></div>
-                <button id="tap-btn" type="button">
-                    <span class="tap-paw">🐾</span>
-                </button>
-                <div id="coin-animation-container"></div>
-            </div>
-
-            <div class="tap-title">UZYSKAJ MONETY</div>
-
-            <div class="income-bar">
-                <div class="income-box">
-                    <div class="income-label">Dochód zoo / sek</div>
-                    <div class="income-value" id="zoo-income">0</div>
-                </div>
-
-                <div class="income-box">
-                    <div class="income-label">Łącznie zwierząt</div>
-                    <div class="income-value" id="animals-total">0</div>
-                </div>
-            </div>
+      <div class="game-main-panel">
+        <div class="tap-ring-wrap">
+          <div class="tap-ring-glow"></div>
+          <button id="tap-btn" type="button">
+            <span class="tap-paw">🐾</span>
+          </button>
+          <div id="coin-animation-container"></div>
         </div>
+
+        <div class="tap-title">UZYSKAJ MONETY</div>
+
+        <div class="income-bar">
+          <div class="income-box">
+            <div class="income-label">Dochód zoo / sek</div>
+            <div class="income-value" id="zoo-income">0</div>
+          </div>
+
+          <div class="income-box">
+            <div class="income-label">Łącznie zwierząt</div>
+            <div class="income-value" id="animals-total">0</div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section id="zoo" class="screen">
-        <div class="screen-card zoo-screen-card">
+      <div class="screen-card zoo-screen-card">
+        <h3 class="section-title">🐾 Zoo</h3>
 
-            <h3 class="section-title">🐾 Zoo Collection</h3>
-
-            <div class="rarity-legend">
-                <div class="legend-item">
-                    <span class="rarity-badge rarity-common">Common</span>
-                    <span>x1.0</span>
-                </div>
-                <div class="legend-item">
-                    <span class="rarity-badge rarity-rare">Rare</span>
-                    <span>x1.5</span>
-                </div>
-                <div class="legend-item">
-                    <span class="rarity-badge rarity-epic">Epic</span>
-                    <span>x2.5</span>
-                </div>
+        <div class="animal-row">
+          <div class="animal-left">
+            <div class="animal-icon">🐵</div>
+            <div class="animal-text">
+              <div class="animal-name">Małpa</div>
+              <div class="animal-desc">Dochód 1/sek • Koszt 100</div>
+              <div class="animal-owned">
+                Posiadasz: <span id="monkey-count">0</span> • Poziom: <span id="monkey-level">1</span>
+              </div>
             </div>
-
-            <div class="animal-row">
-                <div class="animal-left">
-                    <div class="animal-icon">🐵</div>
-                    <div class="animal-text">
-                        <div class="animal-topline">
-                            <div class="animal-name">Małpa</div>
-                            <span class="rarity-badge rarity-common">Common</span>
-                        </div>
-                        <div class="animal-desc">Dochód 1/sek • Koszt 100</div>
-                        <div class="animal-owned">Posiadasz: <span id="monkey-count">0</span> • Poziom: <span id="monkey-level">1</span></div>
-                    </div>
-                </div>
-                <div class="animal-actions">
-                    <button id="buy-monkey-btn" type="button">Kup</button>
-                    <button id="upgrade-monkey-btn" type="button">Lvl Up</button>
-                </div>
-            </div>
-
-            <div class="animal-row">
-                <div class="animal-left">
-                    <div class="animal-icon">🐰</div>
-                    <div class="animal-text">
-                        <div class="animal-topline">
-                            <div class="animal-name">Królik</div>
-                            <span class="rarity-badge rarity-common">Common</span>
-                        </div>
-                        <div class="animal-desc">Dochód 2/sek • Koszt 180</div>
-                        <div class="animal-owned">Posiadasz: <span id="rabbit-count">0</span> • Poziom: <span id="rabbit-level">1</span></div>
-                    </div>
-                </div>
-                <div class="animal-actions">
-                    <button id="buy-rabbit-btn" type="button">Kup</button>
-                    <button id="upgrade-rabbit-btn" type="button">Lvl Up</button>
-                </div>
-            </div>
-
-            <div class="animal-row">
-                <div class="animal-left">
-                    <div class="animal-icon">🦜</div>
-                    <div class="animal-text">
-                        <div class="animal-topline">
-                            <div class="animal-name">Papuga</div>
-                            <span class="rarity-badge rarity-common">Common</span>
-                        </div>
-                        <div class="animal-desc">Dochód 4/sek • Koszt 320</div>
-                        <div class="animal-owned">Posiadasz: <span id="parrot-count">0</span> • Poziom: <span id="parrot-level">1</span></div>
-                    </div>
-                </div>
-                <div class="animal-actions">
-                    <button id="buy-parrot-btn" type="button">Kup</button>
-                    <button id="upgrade-parrot-btn" type="button">Lvl Up</button>
-                </div>
-            </div>
-
-            <div class="animal-row">
-                <div class="animal-left">
-                    <div class="animal-icon">🐢</div>
-                    <div class="animal-text">
-                        <div class="animal-topline">
-                            <div class="animal-name">Żółw</div>
-                            <span class="rarity-badge rarity-common">Common</span>
-                        </div>
-                        <div class="animal-desc">Dochód 6/sek • Koszt 550</div>
-                        <div class="animal-owned">Posiadasz: <span id="turtle-count">0</span> • Poziom: <span id="turtle-level">1</span></div>
-                    </div>
-                </div>
-                <div class="animal-actions">
-                    <button id="buy-turtle-btn" type="button">Kup</button>
-                    <button id="upgrade-turtle-btn" type="button">Lvl Up</button>
-                </div>
-            </div>
-
-            <div class="animal-row">
-                <div class="animal-left">
-                    <div class="animal-icon">🐼</div>
-                    <div class="animal-text">
-                        <div class="animal-topline">
-                            <div class="animal-name">Panda</div>
-                            <span class="rarity-badge rarity-rare">Rare</span>
-                        </div>
-                        <div class="animal-desc">Dochód 10/sek • Koszt 900</div>
-                        <div class="animal-owned">Posiadasz: <span id="panda-count">0</span> • Poziom: <span id="panda-level">1</span></div>
-                    </div>
-                </div>
-                <div class="animal-actions">
-                    <button id="buy-panda-btn" type="button">Kup</button>
-                    <button id="upgrade-panda-btn" type="button">Lvl Up</button>
-                </div>
-            </div>
-
-            <div class="animal-row">
-                <div class="animal-left">
-                    <div class="animal-icon">🐺</div>
-                    <div class="animal-text">
-                        <div class="animal-topline">
-                            <div class="animal-name">Wilk</div>
-                            <span class="rarity-badge rarity-rare">Rare</span>
-                        </div>
-                        <div class="animal-desc">Dochód 16/sek • Koszt 1500</div>
-                        <div class="animal-owned">Posiadasz: <span id="wolf-count">0</span> • Poziom: <span id="wolf-level">1</span></div>
-                    </div>
-                </div>
-                <div class="animal-actions">
-                    <button id="buy-wolf-btn" type="button">Kup</button>
-                    <button id="upgrade-wolf-btn" type="button">Lvl Up</button>
-                </div>
-            </div>
-
-            <div class="animal-row">
-                <div class="animal-left">
-                    <div class="animal-icon">🦩</div>
-                    <div class="animal-text">
-                        <div class="animal-topline">
-                            <div class="animal-name">Flaming</div>
-                            <span class="rarity-badge rarity-rare">Rare</span>
-                        </div>
-                        <div class="animal-desc">Dochód 24/sek • Koszt 2400</div>
-                        <div class="animal-owned">Posiadasz: <span id="flamingo-count">0</span> • Poziom: <span id="flamingo-level">1</span></div>
-                    </div>
-                </div>
-                <div class="animal-actions">
-                    <button id="buy-flamingo-btn" type="button">Kup</button>
-                    <button id="upgrade-flamingo-btn" type="button">Lvl Up</button>
-                </div>
-            </div>
-
-            <div class="animal-row">
-                <div class="animal-left">
-                    <div class="animal-icon">🦁</div>
-                    <div class="animal-text">
-                        <div class="animal-topline">
-                            <div class="animal-name">Lew</div>
-                            <span class="rarity-badge rarity-epic">Epic</span>
-                        </div>
-                        <div class="animal-desc">Dochód 40/sek • Koszt 4200</div>
-                        <div class="animal-owned">Posiadasz: <span id="lion-count">0</span> • Poziom: <span id="lion-level">1</span></div>
-                    </div>
-                </div>
-                <div class="animal-actions">
-                    <button id="buy-lion-btn" type="button">Kup</button>
-                    <button id="upgrade-lion-btn" type="button">Lvl Up</button>
-                </div>
-            </div>
-
-            <div class="animal-row">
-                <div class="animal-left">
-                    <div class="animal-icon">🐯</div>
-                    <div class="animal-text">
-                        <div class="animal-topline">
-                            <div class="animal-name">Tygrys</div>
-                            <span class="rarity-badge rarity-epic">Epic</span>
-                        </div>
-                        <div class="animal-desc">Dochód 70/sek • Koszt 7600</div>
-                        <div class="animal-owned">Posiadasz: <span id="tiger-count">0</span> • Poziom: <span id="tiger-level">1</span></div>
-                    </div>
-                </div>
-                <div class="animal-actions">
-                    <button id="buy-tiger-btn" type="button">Kup</button>
-                    <button id="upgrade-tiger-btn" type="button">Lvl Up</button>
-                </div>
-            </div>
-
-            <div class="animal-row">
-                <div class="animal-left">
-                    <div class="animal-icon">🐘</div>
-                    <div class="animal-text">
-                        <div class="animal-topline">
-                            <div class="animal-name">Słoń</div>
-                            <span class="rarity-badge rarity-epic">Epic</span>
-                        </div>
-                        <div class="animal-desc">Dochód 110/sek • Koszt 12000</div>
-                        <div class="animal-owned">Posiadasz: <span id="elephant-count">0</span> • Poziom: <span id="elephant-level">1</span></div>
-                    </div>
-                </div>
-                <div class="animal-actions">
-                    <button id="buy-elephant-btn" type="button">Kup</button>
-                    <button id="upgrade-elephant-btn" type="button">Lvl Up</button>
-                </div>
-            </div>
-
-            <div class="collection-block">
-                <div class="collection-header">
-                    <h4>📚 Kolekcja</h4>
-                    <div class="collection-progress">Odkryte: <span id="collection-found">0</span> / <span id="collection-total">10</span></div>
-                </div>
-
-                <div class="collection-grid">
-                    <div class="collection-card" id="collection-monkey"><div class="collection-icon">🐵</div><div class="collection-name">Małpa</div><div class="collection-rarity rarity-common-text">Common</div><div class="collection-status" id="collection-monkey-status">Nieodkryte</div></div>
-                    <div class="collection-card" id="collection-rabbit"><div class="collection-icon">🐰</div><div class="collection-name">Królik</div><div class="collection-rarity rarity-common-text">Common</div><div class="collection-status" id="collection-rabbit-status">Nieodkryte</div></div>
-                    <div class="collection-card" id="collection-parrot"><div class="collection-icon">🦜</div><div class="collection-name">Papuga</div><div class="collection-rarity rarity-common-text">Common</div><div class="collection-status" id="collection-parrot-status">Nieodkryte</div></div>
-                    <div class="collection-card" id="collection-turtle"><div class="collection-icon">🐢</div><div class="collection-name">Żółw</div><div class="collection-rarity rarity-common-text">Common</div><div class="collection-status" id="collection-turtle-status">Nieodkryte</div></div>
-                    <div class="collection-card" id="collection-panda"><div class="collection-icon">🐼</div><div class="collection-name">Panda</div><div class="collection-rarity rarity-rare-text">Rare</div><div class="collection-status" id="collection-panda-status">Nieodkryte</div></div>
-                    <div class="collection-card" id="collection-wolf"><div class="collection-icon">🐺</div><div class="collection-name">Wilk</div><div class="collection-rarity rarity-rare-text">Rare</div><div class="collection-status" id="collection-wolf-status">Nieodkryte</div></div>
-                    <div class="collection-card" id="collection-flamingo"><div class="collection-icon">🦩</div><div class="collection-name">Flaming</div><div class="collection-rarity rarity-rare-text">Rare</div><div class="collection-status" id="collection-flamingo-status">Nieodkryte</div></div>
-                    <div class="collection-card" id="collection-lion"><div class="collection-icon">🦁</div><div class="collection-name">Lew</div><div class="collection-rarity rarity-epic-text">Epic</div><div class="collection-status" id="collection-lion-status">Nieodkryte</div></div>
-                    <div class="collection-card" id="collection-tiger"><div class="collection-icon">🐯</div><div class="collection-name">Tygrys</div><div class="collection-rarity rarity-epic-text">Epic</div><div class="collection-status" id="collection-tiger-status">Nieodkryte</div></div>
-                    <div class="collection-card" id="collection-elephant"><div class="collection-icon">🐘</div><div class="collection-name">Słoń</div><div class="collection-rarity rarity-epic-text">Epic</div><div class="collection-status" id="collection-elephant-status">Nieodkryte</div></div>
-                </div>
-
-                <div class="collection-rarity-summary">
-                    <div class="rarity-summary-item"><span class="rarity-badge rarity-common">Common</span><strong id="common-found">0/4</strong></div>
-                    <div class="rarity-summary-item"><span class="rarity-badge rarity-rare">Rare</span><strong id="rare-found">0/3</strong></div>
-                    <div class="rarity-summary-item"><span class="rarity-badge rarity-epic">Epic</span><strong id="epic-found">0/3</strong></div>
-                </div>
-            </div>
-
+          </div>
+          <div class="animal-actions">
+            <button id="buy-monkey-btn" type="button">Kup</button>
+            <button id="upgrade-monkey-btn" type="button">Lvl Up</button>
+          </div>
         </div>
+
+        <div class="animal-row">
+          <div class="animal-left">
+            <div class="animal-icon">🐼</div>
+            <div class="animal-text">
+              <div class="animal-name">Panda</div>
+              <div class="animal-desc">Dochód 3/sek • Koszt 400</div>
+              <div class="animal-owned">
+                Posiadasz: <span id="panda-count">0</span> • Poziom: <span id="panda-level">1</span>
+              </div>
+            </div>
+          </div>
+          <div class="animal-actions">
+            <button id="buy-panda-btn" type="button">Kup</button>
+            <button id="upgrade-panda-btn" type="button">Lvl Up</button>
+          </div>
+        </div>
+
+        <div class="animal-row">
+          <div class="animal-left">
+            <div class="animal-icon">🦁</div>
+            <div class="animal-text">
+              <div class="animal-name">Lew</div>
+              <div class="animal-desc">Dochód 8/sek • Koszt 1200</div>
+              <div class="animal-owned">
+                Posiadasz: <span id="lion-count">0</span> • Poziom: <span id="lion-level">1</span>
+              </div>
+            </div>
+          </div>
+          <div class="animal-actions">
+            <button id="buy-lion-btn" type="button">Kup</button>
+            <button id="upgrade-lion-btn" type="button">Lvl Up</button>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section id="shop" class="screen">
-        <div class="screen-card premium-card">
-            <h3 class="section-title">🛒 Sklep</h3>
+      <div class="screen-card premium-card">
+        <h3 class="section-title">🛒 Sklep</h3>
 
-            <div class="shop-row">
-                <div class="shop-text">
-                    <div class="shop-title">Upgrade kliknięcia</div>
-                    <div class="shop-desc">Zwiększa liczbę monet za klik o +1</div>
-                </div>
-                <button id="buy-upgrade-btn" type="button">Kup</button>
-            </div>
-
-            <div class="info-box">
-                Koszt ulepszenia: <span id="upgrade-cost">50</span>
-            </div>
+        <div class="shop-row">
+          <div class="shop-text">
+            <div class="shop-title">Upgrade kliknięcia</div>
+            <div class="shop-desc">Zwiększa liczbę monet za klik o +1</div>
+          </div>
+          <button id="buy-upgrade-btn" type="button">Kup</button>
         </div>
+
+        <div class="info-box">
+          Koszt ulepszenia: <span id="upgrade-cost">50</span>
+        </div>
+      </div>
     </section>
 
     <section id="ranking" class="screen">
-        <div class="screen-card premium-card">
-            <h3 class="section-title">🏆 Ranking</h3>
-            <ul id="ranking-list" class="ranking-list"></ul>
-        </div>
+      <div class="screen-card premium-card">
+        <h3 class="section-title">🏆 Ranking</h3>
+        <ul id="ranking-list" class="ranking-list"></ul>
+      </div>
     </section>
+  </div>
 
-</div>
-
-<nav class="bottom-menu">
+  <nav class="bottom-menu">
     <button class="nav-btn active-nav" data-screen="game" type="button">
-        <span class="nav-icon">🏠</span>
-        <span class="nav-text">Gra</span>
+      <span class="nav-icon">🏠</span>
+      <span class="nav-text">Gra</span>
     </button>
 
     <button class="nav-btn" data-screen="zoo" type="button">
-        <span class="nav-icon">🐾</span>
-        <span class="nav-text">Zoo</span>
+      <span class="nav-icon">🐾</span>
+      <span class="nav-text">Zoo</span>
     </button>
 
     <button class="nav-btn" data-screen="shop" type="button">
-        <span class="nav-icon">🛒</span>
-        <span class="nav-text">Sklep</span>
+      <span class="nav-icon">🛒</span>
+      <span class="nav-text">Sklep</span>
     </button>
 
     <button class="nav-btn" data-screen="ranking" type="button">
-        <span class="nav-icon">🏆</span>
-        <span class="nav-text">Ranking</span>
+      <span class="nav-icon">🏆</span>
+      <span class="nav-text">Ranking</span>
     </button>
-</nav>
+  </nav>
 
-<script src="js/state.js"></script>
-<script src="js/config.js"></script>
-<script src="js/telegram.js"></script>
-<script src="js/dom.js"></script>
-<script src="js/api.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/gameplay.js"></script>
-<script src="js/init.js"></script>
-
+  <script src="js/state.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/telegram.js"></script>
+  <script src="js/dom.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/gameplay.js"></script>
+  <script src="js/init.js"></script>
 </body>
 </html>
