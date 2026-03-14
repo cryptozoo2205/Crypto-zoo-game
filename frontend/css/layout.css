@@ -17,15 +17,13 @@
     position:relative;
     border-radius:0 0 28px 28px;
     overflow:hidden;
-    background:
-        linear-gradient(180deg, rgba(17,33,50,0.20) 0%, rgba(7,15,24,0.30) 100%);
+    background:linear-gradient(180deg, rgba(17,33,50,0.20) 0%, rgba(7,15,24,0.30) 100%);
 }
 
 .hero-overlay{
     position:absolute;
     inset:0;
-    background:
-        linear-gradient(180deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.25) 100%);
+    background:linear-gradient(180deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.25) 100%);
     pointer-events:none;
 }
 
@@ -52,7 +50,7 @@ h1{
 
 .stats-panel{
     display:grid;
-    grid-template-columns:repeat(3, 1fr);
+    grid-template-columns:repeat(2, 1fr);
     gap:10px;
 }
 
