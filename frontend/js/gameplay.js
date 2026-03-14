@@ -1,4 +1,4 @@
-window.CryptoZoo = window.CryptoZoo || {};
+lwindow.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.gameplay = {
     passiveIncomeStarted: false,
@@ -84,6 +84,20 @@ window.CryptoZoo.gameplay = {
         state.level = this.getLevelFromCoins(state.coins);
     },
 
+    awardGemsForLevelUp(oldLevel, newLevel) {
+        const economy = this.getEconomy();
+        const gainedLevels = Math.max(0, newLevel - oldLevel);
+
+        if (gainedLevels <= 0) return;
+
+        const gemsAward = gainedLevels * (economy.gemsPerLevel || 1);
+        CryptoZoo.state.gems += gemsAward;
+
+        if (CryptoZoo.ui && CryptoZoo.ui.showToast) {
+            CryptoZoo.ui.showToast("Gems +" + gemsAward);
+        }
+    },
+
     async saveGame() {
         if (!CryptoZoo.api || !CryptoZoo.api.savePlayer) return;
 
@@ -115,6 +129,7 @@ window.CryptoZoo.gameplay = {
             const state = CryptoZoo.state;
 
             state.coins = Number(user.coins) || economy.startCoins || 0;
+            state.gems = Number(user.gems) || economy.startGems || 0;
             state.coinsPerClick = Number(user.coinsPerClick) || economy.startCoinsPerClick || 1;
             state.upgradeCost = Number(user.upgradeCost) || economy.startUpgradeCost || 50;
             state.animals = user.animals || state.animals || {};
@@ -130,9 +145,12 @@ window.CryptoZoo.gameplay = {
 
     click() {
         const state = CryptoZoo.state;
+        const oldLevel = state.level;
 
         state.coins += state.coinsPerClick;
         state.level = this.getLevelFromCoins(state.coins);
+
+        this.awardGemsForLevelUp(oldLevel, state.level);
 
         if (CryptoZoo.ui && CryptoZoo.ui.render) {
             CryptoZoo.ui.render();
@@ -310,12 +328,15 @@ window.CryptoZoo.gameplay = {
 
         setInterval(() => {
             const state = CryptoZoo.state;
+            const oldLevel = state.level;
 
             this.updateZooIncome();
 
             if (state.zooIncome > 0) {
                 state.coins += state.zooIncome;
                 state.level = this.getLevelFromCoins(state.coins);
+
+                this.awardGemsForLevelUp(oldLevel, state.level);
 
                 if (CryptoZoo.ui && CryptoZoo.ui.render) {
                     CryptoZoo.ui.render();
