@@ -74,84 +74,51 @@ window.CryptoZoo.ui = {
         }
     },
 
-    updateCollectionCard(cardId, statusId, discovered) {
-        const card = document.getElementById(cardId);
-        const statusEl = document.getElementById(statusId);
-
-        if (!card || !statusEl) return;
-
-        if (discovered) {
-            card.classList.remove("locked");
-            card.classList.add("discovered");
-            statusEl.textContent = "Odkryte";
-            statusEl.classList.remove("locked-status");
-            statusEl.classList.add("discovered-status");
-        } else {
-            card.classList.remove("discovered");
-            card.classList.add("locked");
-            statusEl.textContent = "Nieodkryte";
-            statusEl.classList.remove("discovered-status");
-            statusEl.classList.add("locked-status");
-        }
-    },
-
     render() {
         const state = CryptoZoo.state || {};
         const animals = state.animals || {};
-        const animalsConfig = CryptoZoo.config.animals || {};
 
-        this.updateText("coins-count", CryptoZoo.formatNumber(state.coins ?? 0));
-        this.updateText("gems-count", CryptoZoo.formatNumber(state.gems ?? 0));
-        this.updateText("level", CryptoZoo.formatNumber(state.level ?? 1));
-        this.updateText("coins-per-click", CryptoZoo.formatNumber(state.coinsPerClick ?? 1));
-        this.updateText("upgrade-cost", CryptoZoo.formatNumber(state.upgradeCost ?? 50));
-        this.updateText("zoo-income", CryptoZoo.formatNumber(state.zooIncome ?? 0));
+        const monkey = animals.monkey || { count: 0, level: 1 };
+        const panda = animals.panda || { count: 0, level: 1 };
+        const lion = animals.lion || { count: 0, level: 1 };
 
-        let animalsTotal = 0;
-        let foundCount = 0;
+        this.updateText("coins-count", CryptoZoo.formatNumber(state.coins || 0));
+        this.updateText("gems-count", CryptoZoo.formatNumber(state.gems || 0));
+        this.updateText("level", CryptoZoo.formatNumber(state.level || 1));
+        this.updateText("coins-per-click", CryptoZoo.formatNumber(state.coinsPerClick || 1));
+        this.updateText("upgrade-cost", CryptoZoo.formatNumber(state.upgradeCost || 50));
+        this.updateText("zoo-income", CryptoZoo.formatNumber(state.zooIncome || 0));
 
-        const rarityCounts = {
-            common: { found: 0, total: 0 },
-            rare: { found: 0, total: 0 },
-            epic: { found: 0, total: 0 }
-        };
+        this.updateText("monkey-count", CryptoZoo.formatNumber(monkey.count));
+        this.updateText("monkey-level", CryptoZoo.formatNumber(monkey.level));
 
-        Object.keys(animalsConfig).forEach((type) => {
-            const animalState = animals[type] || { count: 0, level: 1 };
-            const animalConfig = animalsConfig[type];
+        this.updateText("panda-count", CryptoZoo.formatNumber(panda.count));
+        this.updateText("panda-level", CryptoZoo.formatNumber(panda.level));
 
-            animalsTotal += Number(animalState.count) || 0;
+        this.updateText("lion-count", CryptoZoo.formatNumber(lion.count));
+        this.updateText("lion-level", CryptoZoo.formatNumber(lion.level));
 
-            this.updateText(`${type}-count`, CryptoZoo.formatNumber(animalState.count));
-            this.updateText(`${type}-level`, CryptoZoo.formatNumber(animalState.level));
+        const totalAnimals =
+            (Number(monkey.count) || 0) +
+            (Number(panda.count) || 0) +
+            (Number(lion.count) || 0);
 
-            const upgradeBtn = document.getElementById(`upgrade-${type}-btn`);
-            if (upgradeBtn && CryptoZoo.gameplay && CryptoZoo.gameplay.getAnimalUpgradeCost) {
-                upgradeBtn.textContent = `Lvl Up (${CryptoZoo.formatNumber(CryptoZoo.gameplay.getAnimalUpgradeCost(type))})`;
-            }
+        this.updateText("animals-total", CryptoZoo.formatNumber(totalAnimals));
 
-            const discovered = (Number(animalState.count) || 0) > 0;
+        const monkeyUpgradeBtn = document.getElementById("upgrade-monkey-btn");
+        const pandaUpgradeBtn = document.getElementById("upgrade-panda-btn");
+        const lionUpgradeBtn = document.getElementById("upgrade-lion-btn");
 
-            if (discovered) {
-                foundCount += 1;
-            }
+        if (monkeyUpgradeBtn) {
+            monkeyUpgradeBtn.textContent = `Lvl Up (${CryptoZoo.formatNumber(CryptoZoo.gameplay.getAnimalUpgradeCost("monkey"))})`;
+        }
 
-            if (rarityCounts[animalConfig.rarity]) {
-                rarityCounts[animalConfig.rarity].total += 1;
-                if (discovered) {
-                    rarityCounts[animalConfig.rarity].found += 1;
-                }
-            }
+        if (pandaUpgradeBtn) {
+            pandaUpgradeBtn.textContent = `Lvl Up (${CryptoZoo.formatNumber(CryptoZoo.gameplay.getAnimalUpgradeCost("panda"))})`;
+        }
 
-            this.updateCollectionCard(`collection-${type}`, `collection-${type}-status`, discovered);
-        });
-
-        this.updateText("animals-total", CryptoZoo.formatNumber(animalsTotal));
-        this.updateText("collection-found", foundCount);
-        this.updateText("collection-total", Object.keys(animalsConfig).length);
-
-        this.updateText("common-found", `${rarityCounts.common.found}/${rarityCounts.common.total}`);
-        this.updateText("rare-found", `${rarityCounts.rare.found}/${rarityCounts.rare.total}`);
-        this.updateText("epic-found", `${rarityCounts.epic.found}/${rarityCounts.epic.total}`);
+        if (lionUpgradeBtn) {
+            lionUpgradeBtn.textContent = `Lvl Up (${CryptoZoo.formatNumber(CryptoZoo.gameplay.getAnimalUpgradeCost("lion"))})`;
+        }
     }
 };
