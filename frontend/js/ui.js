@@ -1,4 +1,4 @@
-window.CryptoZoo = window.CryptoZoo || {};
+lwindow.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.ui = {
     getEl(id) {
@@ -74,6 +74,53 @@ window.CryptoZoo.ui = {
         }
     },
 
+    getRarityBadgeClass(rarity) {
+        if (rarity === "rare") return "rarity-rare";
+        if (rarity === "epic") return "rarity-epic";
+        return "rarity-common";
+    },
+
+    renderZooList() {
+        const zooList = document.getElementById("zoo-list");
+        if (!zooList) return;
+
+        const animalsConfig = CryptoZoo.config.animals || {};
+        const animalsState = CryptoZoo.state.animals || {};
+
+        zooList.innerHTML = "";
+
+        Object.keys(animalsConfig).forEach((type) => {
+            const config = animalsConfig[type];
+            const state = animalsState[type] || { count: 0, level: 1 };
+
+            const row = document.createElement("div");
+            row.className = "animal-row";
+
+            row.innerHTML = `
+                <div class="animal-left">
+                    <div class="animal-icon">${config.icon || "🐾"}</div>
+                    <div class="animal-text">
+                        <div class="animal-topline">
+                            <div class="animal-name">${config.name}</div>
+                            <span class="rarity-badge ${this.getRarityBadgeClass(config.rarity)}">${config.rarity}</span>
+                        </div>
+                        <div class="animal-desc">Dochód ${config.baseIncome}/sek • Koszt ${CryptoZoo.formatNumber(config.buyCost)}</div>
+                        <div class="animal-owned">
+                            Posiadasz: <span id="${type}-count">${CryptoZoo.formatNumber(state.count)}</span>
+                            • Poziom: <span id="${type}-level">${CryptoZoo.formatNumber(state.level)}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="animal-actions">
+                    <button id="buy-${type}-btn" type="button">Kup</button>
+                    <button id="upgrade-${type}-btn" type="button">Lvl Up</button>
+                </div>
+            `;
+
+            zooList.appendChild(row);
+        });
+    },
+
     render() {
         const state = CryptoZoo.state || {};
         const animals = state.animals || {};
@@ -90,8 +137,14 @@ window.CryptoZoo.ui = {
 
         Object.keys(animalsConfig).forEach((type) => {
             const animal = animals[type] || { count: 0, level: 1 };
-
             totalAnimals += Number(animal.count) || 0;
+        });
+
+        this.updateText("animals-total", CryptoZoo.formatNumber(totalAnimals));
+        this.renderZooList();
+
+        Object.keys(animalsConfig).forEach((type) => {
+            const animal = animals[type] || { count: 0, level: 1 };
 
             this.updateText(`${type}-count`, CryptoZoo.formatNumber(animal.count));
             this.updateText(`${type}-level`, CryptoZoo.formatNumber(animal.level));
@@ -101,7 +154,5 @@ window.CryptoZoo.ui = {
                 upgradeBtn.textContent = `Lvl Up (${CryptoZoo.formatNumber(CryptoZoo.gameplay.getAnimalUpgradeCost(type))})`;
             }
         });
-
-        this.updateText("animals-total", CryptoZoo.formatNumber(totalAnimals));
     }
 };
