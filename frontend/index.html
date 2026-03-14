@@ -33,6 +33,11 @@
                 </div>
 
                 <div class="stat-card">
+                    <div class="stat-label">Gems</div>
+                    <div class="stat-value" id="gems-count">0</div>
+                </div>
+
+                <div class="stat-card">
                     <div class="stat-label">Poziom</div>
                     <div class="stat-value" id="level">1</div>
                 </div>
@@ -302,90 +307,22 @@
                 </div>
 
                 <div class="collection-grid">
-                    <div class="collection-card" id="collection-monkey">
-                        <div class="collection-icon">🐵</div>
-                        <div class="collection-name">Małpa</div>
-                        <div class="collection-rarity rarity-common-text">Common</div>
-                        <div class="collection-status" id="collection-monkey-status">Nieodkryte</div>
-                    </div>
-
-                    <div class="collection-card" id="collection-rabbit">
-                        <div class="collection-icon">🐰</div>
-                        <div class="collection-name">Królik</div>
-                        <div class="collection-rarity rarity-common-text">Common</div>
-                        <div class="collection-status" id="collection-rabbit-status">Nieodkryte</div>
-                    </div>
-
-                    <div class="collection-card" id="collection-parrot">
-                        <div class="collection-icon">🦜</div>
-                        <div class="collection-name">Papuga</div>
-                        <div class="collection-rarity rarity-common-text">Common</div>
-                        <div class="collection-status" id="collection-parrot-status">Nieodkryte</div>
-                    </div>
-
-                    <div class="collection-card" id="collection-turtle">
-                        <div class="collection-icon">🐢</div>
-                        <div class="collection-name">Żółw</div>
-                        <div class="collection-rarity rarity-common-text">Common</div>
-                        <div class="collection-status" id="collection-turtle-status">Nieodkryte</div>
-                    </div>
-
-                    <div class="collection-card" id="collection-panda">
-                        <div class="collection-icon">🐼</div>
-                        <div class="collection-name">Panda</div>
-                        <div class="collection-rarity rarity-rare-text">Rare</div>
-                        <div class="collection-status" id="collection-panda-status">Nieodkryte</div>
-                    </div>
-
-                    <div class="collection-card" id="collection-wolf">
-                        <div class="collection-icon">🐺</div>
-                        <div class="collection-name">Wilk</div>
-                        <div class="collection-rarity rarity-rare-text">Rare</div>
-                        <div class="collection-status" id="collection-wolf-status">Nieodkryte</div>
-                    </div>
-
-                    <div class="collection-card" id="collection-flamingo">
-                        <div class="collection-icon">🦩</div>
-                        <div class="collection-name">Flaming</div>
-                        <div class="collection-rarity rarity-rare-text">Rare</div>
-                        <div class="collection-status" id="collection-flamingo-status">Nieodkryte</div>
-                    </div>
-
-                    <div class="collection-card" id="collection-lion">
-                        <div class="collection-icon">🦁</div>
-                        <div class="collection-name">Lew</div>
-                        <div class="collection-rarity rarity-epic-text">Epic</div>
-                        <div class="collection-status" id="collection-lion-status">Nieodkryte</div>
-                    </div>
-
-                    <div class="collection-card" id="collection-tiger">
-                        <div class="collection-icon">🐯</div>
-                        <div class="collection-name">Tygrys</div>
-                        <div class="collection-rarity rarity-epic-text">Epic</div>
-                        <div class="collection-status" id="collection-tiger-status">Nieodkryte</div>
-                    </div>
-
-                    <div class="collection-card" id="collection-elephant">
-                        <div class="collection-icon">🐘</div>
-                        <div class="collection-name">Słoń</div>
-                        <div class="collection-rarity rarity-epic-text">Epic</div>
-                        <div class="collection-status" id="collection-elephant-status">Nieodkryte</div>
-                    </div>
+                    <div class="collection-card" id="collection-monkey"><div class="collection-icon">🐵</div><div class="collection-name">Małpa</div><div class="collection-rarity rarity-common-text">Common</div><div class="collection-status" id="collection-monkey-status">Nieodkryte</div></div>
+                    <div class="collection-card" id="collection-rabbit"><div class="collection-icon">🐰</div><div class="collection-name">Królik</div><div class="collection-rarity rarity-common-text">Common</div><div class="collection-status" id="collection-rabbit-status">Nieodkryte</div></div>
+                    <div class="collection-card" id="collection-parrot"><div class="collection-icon">🦜</div><div class="collection-name">Papuga</div><div class="collection-rarity rarity-common-text">Common</div><div class="collection-status" id="collection-parrot-status">Nieodkryte</div></div>
+                    <div class="collection-card" id="collection-turtle"><div class="collection-icon">🐢</div><div class="collection-name">Żółw</div><div class="collection-rarity rarity-common-text">Common</div><div class="collection-status" id="collection-turtle-status">Nieodkryte</div></div>
+                    <div class="collection-card" id="collection-panda"><div class="collection-icon">🐼</div><div class="collection-name">Panda</div><div class="collection-rarity rarity-rare-text">Rare</div><div class="collection-status" id="collection-panda-status">Nieodkryte</div></div>
+                    <div class="collection-card" id="collection-wolf"><div class="collection-icon">🐺</div><div class="collection-name">Wilk</div><div class="collection-rarity rarity-rare-text">Rare</div><div class="collection-status" id="collection-wolf-status">Nieodkryte</div></div>
+                    <div class="collection-card" id="collection-flamingo"><div class="collection-icon">🦩</div><div class="collection-name">Flaming</div><div class="collection-rarity rarity-rare-text">Rare</div><div class="collection-status" id="collection-flamingo-status">Nieodkryte</div></div>
+                    <div class="collection-card" id="collection-lion"><div class="collection-icon">🦁</div><div class="collection-name">Lew</div><div class="collection-rarity rarity-epic-text">Epic</div><div class="collection-status" id="collection-lion-status">Nieodkryte</div></div>
+                    <div class="collection-card" id="collection-tiger"><div class="collection-icon">🐯</div><div class="collection-name">Tygrys</div><div class="collection-rarity rarity-epic-text">Epic</div><div class="collection-status" id="collection-tiger-status">Nieodkryte</div></div>
+                    <div class="collection-card" id="collection-elephant"><div class="collection-icon">🐘</div><div class="collection-name">Słoń</div><div class="collection-rarity rarity-epic-text">Epic</div><div class="collection-status" id="collection-elephant-status">Nieodkryte</div></div>
                 </div>
 
                 <div class="collection-rarity-summary">
-                    <div class="rarity-summary-item">
-                        <span class="rarity-badge rarity-common">Common</span>
-                        <strong id="common-found">0/4</strong>
-                    </div>
-                    <div class="rarity-summary-item">
-                        <span class="rarity-badge rarity-rare">Rare</span>
-                        <strong id="rare-found">0/3</strong>
-                    </div>
-                    <div class="rarity-summary-item">
-                        <span class="rarity-badge rarity-epic">Epic</span>
-                        <strong id="epic-found">0/3</strong>
-                    </div>
+                    <div class="rarity-summary-item"><span class="rarity-badge rarity-common">Common</span><strong id="common-found">0/4</strong></div>
+                    <div class="rarity-summary-item"><span class="rarity-badge rarity-rare">Rare</span><strong id="rare-found">0/3</strong></div>
+                    <div class="rarity-summary-item"><span class="rarity-badge rarity-epic">Epic</span><strong id="epic-found">0/3</strong></div>
                 </div>
             </div>
 
