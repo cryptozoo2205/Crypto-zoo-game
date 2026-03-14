@@ -11,18 +11,43 @@ window.CryptoZoo.init = {
                 CryptoZoo.telegram.setupPlayerIdentity();
             }
 
-            CryptoZoo.gameplay.normalizeAnimals();
+            if (CryptoZoo.gameplay && CryptoZoo.gameplay.normalizeAnimals) {
+                CryptoZoo.gameplay.normalizeAnimals();
+            }
 
-            await CryptoZoo.gameplay.loadPlayerState();
+            if (CryptoZoo.gameplay && CryptoZoo.gameplay.loadPlayerState) {
+                await CryptoZoo.gameplay.loadPlayerState();
+            }
 
-            CryptoZoo.gameplay.updateZooIncome();
-            CryptoZoo.ui.render();
+            if (CryptoZoo.gameplay && CryptoZoo.gameplay.recalculateCoreStats) {
+                CryptoZoo.gameplay.recalculateCoreStats();
+            }
 
-            CryptoZoo.gameplay.bindNavigation();
-            CryptoZoo.gameplay.bindActions();
-            CryptoZoo.gameplay.startPassiveIncome();
+            if (CryptoZoo.ui && CryptoZoo.ui.render) {
+                CryptoZoo.ui.render();
+            }
 
-            CryptoZoo.ui.showScreen("game");
+            if (CryptoZoo.gameplay && CryptoZoo.gameplay.bindNavigation) {
+                CryptoZoo.gameplay.bindNavigation();
+            }
+
+            if (CryptoZoo.gameplay && CryptoZoo.gameplay.bindActions) {
+                CryptoZoo.gameplay.bindActions();
+            }
+
+            if (CryptoZoo.gameplay && CryptoZoo.gameplay.startPassiveIncome) {
+                CryptoZoo.gameplay.startPassiveIncome();
+            }
+
+            if (CryptoZoo.ui && CryptoZoo.ui.showScreen) {
+                CryptoZoo.ui.showScreen("game");
+            }
+
+            if (CryptoZoo.gameplay && CryptoZoo.gameplay.loadRanking) {
+                CryptoZoo.gameplay.loadRanking();
+            }
+
+            console.log("Crypto Zoo init OK");
         } catch (error) {
             console.error("Błąd startu gry:", error);
         }
