@@ -1,4 +1,3 @@
-
 window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.config = {
@@ -26,7 +25,31 @@ window.CryptoZoo.config = {
         }
     },
     maxOfflineSeconds: 86400,
-    loadingFadeStartMs: 1800,
-    loadingHideMs: 2600,
     passiveIncomeIntervalMs: 1000
+};
+
+window.CryptoZoo.formatNumber = function (num) {
+    if (num === null || num === undefined) return "0";
+
+    num = Number(num);
+
+    if (Number.isNaN(num)) return "0";
+
+    if (num >= 1000000000000) {
+        return (num / 1000000000000).toFixed(2) + "T";
+    }
+
+    if (num >= 1000000000) {
+        return (num / 1000000000).toFixed(2) + "B";
+    }
+
+    if (num >= 1000000) {
+        return (num / 1000000).toFixed(2) + "M";
+    }
+
+    if (num >= 1000) {
+        return (num / 1000).toFixed(2) + "K";
+    }
+
+    return Math.floor(num).toString();
 };
