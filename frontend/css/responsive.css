@@ -1,24 +1,46 @@
 @media (max-width: 420px){
+    .app-shell{
+        padding:0 10px 106px;
+    }
+
     h1{
-        font-size:34px;
+        font-size:42px;
     }
 
-    .stats{
-        font-size:14px;
+    .paw-deco{
+        font-size:24px;
     }
 
-    .center-card{
-        min-height:calc(100vh - 240px);
-        padding-top:70px;
+    .stats-panel{
+        grid-template-columns:1fr;
     }
 
-    .tap-wrapper{
-        max-width:280px;
+    .stat-value{
+        font-size:22px;
+    }
+
+    .tap-ring-wrap{
+        width:220px;
+        height:220px;
+    }
+
+    .tap-ring-glow{
+        width:210px;
+        height:210px;
     }
 
     #tap-btn{
-        font-size:18px;
-        padding:14px 22px;
+        width:175px;
+        height:175px;
+        font-size:60px;
+    }
+
+    .tap-title{
+        font-size:20px;
+    }
+
+    .income-bar{
+        grid-template-columns:1fr;
     }
 
     .collection-grid{
@@ -41,5 +63,19 @@
 
     .animal-actions button{
         flex:1;
+        min-width:0;
+    }
+
+    .bottom-menu{
+        height:78px;
+        border-radius:22px;
+    }
+
+    .nav-icon{
+        font-size:22px;
+    }
+
+    .nav-text{
+        font-size:12px;
     }
 }
