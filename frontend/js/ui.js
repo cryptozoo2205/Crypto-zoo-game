@@ -21,15 +21,26 @@ window.CryptoZoo.ui = {
 
     showScreen(screenId) {
         const screens = document.querySelectorAll(".screen");
+        const navButtons = document.querySelectorAll(".nav-btn");
 
         screens.forEach(function (screen) {
             screen.classList.remove("active-screen");
+        });
+
+        navButtons.forEach(function (btn) {
+            btn.classList.remove("active-nav");
         });
 
         const target = this.getEl(screenId);
         if (target) {
             target.classList.add("active-screen");
         }
+
+        navButtons.forEach(function (btn) {
+            if (btn.getAttribute("data-screen") === screenId) {
+                btn.classList.add("active-nav");
+            }
+        });
     },
 
     animateCoinsBurst() {
@@ -43,8 +54,8 @@ window.CryptoZoo.ui = {
             const moveX = (Math.floor(Math.random() * 220) - 110) + "px";
             const moveY = (-70 - Math.floor(Math.random() * 140)) + "px";
 
-            coin.style.left = "129px";
-            coin.style.top = "85px";
+            coin.style.left = "114px";
+            coin.style.top = "114px";
             coin.style.setProperty("--moveX", moveX);
             coin.style.setProperty("--moveY", moveY);
 
