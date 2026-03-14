@@ -19,25 +19,98 @@ window.CryptoZoo.config = {
             rarity: "common",
             buyCost: 100,
             baseIncome: 1,
-            upgradeBaseCost: 150
+            upgradeBaseCost: 150,
+            icon: "🐵"
+        },
+
+        rabbit: {
+            key: "rabbit",
+            name: "Królik",
+            rarity: "common",
+            buyCost: 180,
+            baseIncome: 2,
+            upgradeBaseCost: 260,
+            icon: "🐰"
+        },
+
+        parrot: {
+            key: "parrot",
+            name: "Papuga",
+            rarity: "common",
+            buyCost: 320,
+            baseIncome: 4,
+            upgradeBaseCost: 420,
+            icon: "🦜"
+        },
+
+        turtle: {
+            key: "turtle",
+            name: "Żółw",
+            rarity: "common",
+            buyCost: 550,
+            baseIncome: 6,
+            upgradeBaseCost: 700,
+            icon: "🐢"
         },
 
         panda: {
             key: "panda",
             name: "Panda",
             rarity: "rare",
-            buyCost: 400,
-            baseIncome: 3,
-            upgradeBaseCost: 600
+            buyCost: 900,
+            baseIncome: 10,
+            upgradeBaseCost: 1100,
+            icon: "🐼"
+        },
+
+        wolf: {
+            key: "wolf",
+            name: "Wilk",
+            rarity: "rare",
+            buyCost: 1500,
+            baseIncome: 16,
+            upgradeBaseCost: 1750,
+            icon: "🐺"
+        },
+
+        flamingo: {
+            key: "flamingo",
+            name: "Flaming",
+            rarity: "rare",
+            buyCost: 2400,
+            baseIncome: 24,
+            upgradeBaseCost: 2600,
+            icon: "🦩"
         },
 
         lion: {
             key: "lion",
             name: "Lew",
             rarity: "epic",
-            buyCost: 1200,
-            baseIncome: 8,
-            upgradeBaseCost: 1800
+            buyCost: 4200,
+            baseIncome: 40,
+            upgradeBaseCost: 4500,
+            icon: "🦁"
+        },
+
+        tiger: {
+            key: "tiger",
+            name: "Tygrys",
+            rarity: "epic",
+            buyCost: 7600,
+            baseIncome: 70,
+            upgradeBaseCost: 8000,
+            icon: "🐯"
+        },
+
+        elephant: {
+            key: "elephant",
+            name: "Słoń",
+            rarity: "epic",
+            buyCost: 12000,
+            baseIncome: 110,
+            upgradeBaseCost: 12600,
+            icon: "🐘"
         }
     }
 };
