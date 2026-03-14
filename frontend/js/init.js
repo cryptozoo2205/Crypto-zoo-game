@@ -1,4 +1,4 @@
-window.CryptoZoo = window.CryptoZoo || {};
+lwindow.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.init = {
     async start() {
@@ -38,8 +38,6 @@ window.CryptoZoo.init = {
             if (CryptoZoo.ui && CryptoZoo.ui.showScreen) {
                 CryptoZoo.ui.showScreen("game");
             }
-
-            console.log("Crypto Zoo init OK");
         } catch (error) {
             console.error("INIT ERROR:", error);
         }
