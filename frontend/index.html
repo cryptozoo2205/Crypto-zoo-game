@@ -1,159 +1,174 @@
-<!DOCTYPE html>
+l<!DOCTYPE html>
 <html lang="pl">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Crypto Zoo</title>
 
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="css/base.css" />
-  <link rel="stylesheet" href="css/layout.css" />
-  <link rel="stylesheet" href="css/game.css" />
-  <link rel="stylesheet" href="css/zoo.css" />
-  <link rel="stylesheet" href="css/shop.css" />
-  <link rel="stylesheet" href="css/ranking.css" />
-  <link rel="stylesheet" href="css/menu.css" />
-  <link rel="stylesheet" href="css/responsive.css" />
+<title>Crypto Zoo</title>
+
+<link rel="stylesheet" href="css/style.css">
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
 </head>
+
 <body>
-  <div class="app-shell">
-    <header class="top-hero">
-      <div class="hero-overlay"></div>
-      <div class="hero-content">
-        <h1>Crypto Zoo</h1>
-        <div class="paw-deco">🐾 🐾</div>
 
-        <div class="stats-panel">
-          <div class="stat-card">
-            <div class="stat-label">Monety</div>
-            <div class="stat-value" id="coins-count">0</div>
-          </div>
+<div class="app">
 
-          <div class="stat-card">
-            <div class="stat-label">Gems</div>
-            <div class="stat-value" id="gems-count">0</div>
-          </div>
+<header>
 
-          <div class="stat-card">
-            <div class="stat-label">Poziom</div>
-            <div class="stat-value" id="level">1</div>
-          </div>
+<h1>Crypto Zoo</h1>
 
-          <div class="stat-card">
-            <div class="stat-label">Za klik</div>
-            <div class="stat-value" id="coins-per-click">1</div>
-          </div>
-        </div>
-      </div>
-    </header>
+<div class="stats">
 
-    <div id="toast" class="toast"></div>
+<div>
+Monety
+<span id="coins-count">0</span>
+</div>
 
-    <section id="game" class="screen active-screen">
-      <div class="game-main-panel">
-        <div class="tap-ring-wrap">
-          <div class="tap-ring-glow"></div>
-          <button id="tap-btn" type="button">
-            <span class="tap-paw">🐾</span>
-          </button>
-          <div id="coin-animation-container"></div>
-        </div>
+<div>
+Gems
+<span id="gems-count">0</span>
+</div>
 
-        <div class="tap-title">UZYSKAJ MONETY</div>
+<div>
+Poziom
+<span id="level">1</span>
+</div>
 
-        <div class="income-bar">
-          <div class="income-box">
-            <div class="income-label">Dochód zoo / sek</div>
-            <div class="income-value" id="zoo-income">0</div>
-          </div>
+<div>
+Klik
+<span id="coins-per-click">1</span>
+</div>
 
-          <div class="income-box">
-            <div class="income-label">Łącznie zwierząt</div>
-            <div class="income-value" id="animals-total">0</div>
-          </div>
-        </div>
-      </div>
-    </section>
+</div>
 
-    <section id="zoo" class="screen">
-      <div class="screen-card zoo-screen-card">
-        <h3 class="section-title">🐾 Zoo</h3>
+</header>
 
-        <div class="rarity-legend">
-          <div class="legend-item">
-            <span class="rarity-badge rarity-common">Common</span>
-            <span>x1.0</span>
-          </div>
-          <div class="legend-item">
-            <span class="rarity-badge rarity-rare">Rare</span>
-            <span>x1.5</span>
-          </div>
-          <div class="legend-item">
-            <span class="rarity-badge rarity-epic">Epic</span>
-            <span>x2.5</span>
-          </div>
-        </div>
+<div id="toast"></div>
 
-        <div id="zoo-list"></div>
-      </div>
-    </section>
+<!-- GAME -->
 
-    <section id="shop" class="screen">
-      <div class="screen-card premium-card">
-        <h3 class="section-title">🛒 Sklep</h3>
+<section id="game" class="screen active-screen">
 
-        <div class="shop-row">
-          <div class="shop-text">
-            <div class="shop-title">Upgrade kliknięcia</div>
-            <div class="shop-desc">Zwiększa liczbę monet za klik o +1</div>
-          </div>
-          <button id="buy-upgrade-btn" type="button">Kup</button>
-        </div>
+<div class="tap-area">
 
-        <div class="info-box">
-          Koszt ulepszenia: <span id="upgrade-cost">50</span>
-        </div>
-      </div>
-    </section>
+<button id="tap-btn">
 
-    <section id="ranking" class="screen">
-      <div class="screen-card premium-card">
-        <h3 class="section-title">🏆 Ranking</h3>
-        <ul id="ranking-list" class="ranking-list"></ul>
-      </div>
-    </section>
-  </div>
+🐾
 
-  <nav class="bottom-menu">
-    <button class="nav-btn active-nav" data-screen="game" type="button">
-      <span class="nav-icon">🏠</span>
-      <span class="nav-text">Gra</span>
-    </button>
+</button>
 
-    <button class="nav-btn" data-screen="zoo" type="button">
-      <span class="nav-icon">🐾</span>
-      <span class="nav-text">Zoo</span>
-    </button>
+<div id="coin-animation-container"></div>
 
-    <button class="nav-btn" data-screen="shop" type="button">
-      <span class="nav-icon">🛒</span>
-      <span class="nav-text">Sklep</span>
-    </button>
+</div>
 
-    <button class="nav-btn" data-screen="ranking" type="button">
-      <span class="nav-icon">🏆</span>
-      <span class="nav-text">Ranking</span>
-    </button>
-  </nav>
+<div class="tap-text">
 
-  <script src="js/state.js"></script>
-  <script src="js/config.js"></script>
-  <script src="js/telegram.js"></script>
-  <script src="js/dom.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/ui.js"></script>
-  <script src="js/gameplay.js"></script>
-  <script src="js/init.js"></script>
+UZYSKAJ MONETY
+
+</div>
+
+<div class="income-bar">
+
+Dochód zoo / sek
+
+<span id="zoo-income">
+
+0
+
+</span>
+
+</div>
+
+</section>
+
+<!-- ZOO -->
+
+<section id="zoo" class="screen">
+
+<h2>Zoo</h2>
+
+<div id="zoo-list"></div>
+
+</section>
+
+<!-- SHOP -->
+
+<section id="shop" class="screen">
+
+<h2>Sklep</h2>
+
+<button id="buy-upgrade-btn">
+
+Upgrade kliknięcia
+
+</button>
+
+<div>
+
+Koszt
+
+<span id="upgrade-cost">
+
+50
+
+</span>
+
+</div>
+
+</section>
+
+<!-- RANKING -->
+
+<section id="ranking" class="screen">
+
+<h2>Ranking</h2>
+
+<ul id="ranking-list"></ul>
+
+</section>
+
+<!-- MENU -->
+
+<nav class="bottom-menu">
+
+<button class="nav-btn active-nav" data-screen="game">
+
+🏠
+
+</button>
+
+<button class="nav-btn" data-screen="zoo">
+
+🐾
+
+</button>
+
+<button class="nav-btn" data-screen="shop">
+
+🛒
+
+</button>
+
+<button class="nav-btn" data-screen="ranking">
+
+🏆
+
+</button>
+
+</nav>
+
+<script src="js/state.js"></script>
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/gameplay.js"></script>
+<script src="js/init.js"></script>
+
 </body>
+
 </html>
