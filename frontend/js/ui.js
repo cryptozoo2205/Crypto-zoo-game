@@ -101,6 +101,7 @@ window.CryptoZoo.ui = {
         const animalsConfig = CryptoZoo.config.animals || {};
 
         this.updateText("coins-count", CryptoZoo.formatNumber(state.coins ?? 0));
+        this.updateText("gems-count", CryptoZoo.formatNumber(state.gems ?? 0));
         this.updateText("level", CryptoZoo.formatNumber(state.level ?? 1));
         this.updateText("coins-per-click", CryptoZoo.formatNumber(state.coinsPerClick ?? 1));
         this.updateText("upgrade-cost", CryptoZoo.formatNumber(state.upgradeCost ?? 50));
