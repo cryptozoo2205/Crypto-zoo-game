@@ -1,4 +1,4 @@
-window.CryptoZoo = window.CryptoZoo || {};
+lwindow.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.ui = {
     getEl(id) {
