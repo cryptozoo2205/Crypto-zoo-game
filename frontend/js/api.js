@@ -91,7 +91,7 @@ window.CryptoZoo.api = {
             const response = await fetch("/api/ranking");
 
             if (!response.ok) return [];
-            const data = await response.json();
+           const data = await response.json();
             return Array.isArray(data) ? data : [];
         } catch (error) {
             console.error("API ranking error:", error);
