@@ -1,24 +1,53 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.api = {
-    getPlayerPayload() {
-        const state = CryptoZoo.state || {};
-        const telegramId =
-            localStorage.getItem("telegramId") ||
-            (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user
-                ? String(window.Telegram.WebApp.initDataUnsafe.user.id)
-                : "local-player");
+    getPlayerId() {
+        const tgUser =
+            window.Telegram &&
+            window.Telegram.WebApp &&
+            window.Telegram.WebApp.initDataUnsafe &&
+            window.Telegram.WebApp.initDataUnsafe.user;
 
-        const username =
-            localStorage.getItem("telegramUsername") ||
-            (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user
-                ? (window.Telegram.WebApp.initDataUnsafe.user.username || "Gracz")
-                : "Gracz lokalny");
+        if (tgUser && tgUser.id) {
+            localStorage.setItem("telegramId", String(tgUser.id));
+            if (tgUser.username) {
+                localStorage.setItem("telegramUsername", tgUser.username);
+            }
+            return String(tgUser.id);
+        }
+
+        let localId = localStorage.getItem("telegramId");
+        if (!localId) {
+            localId = "local-player";
+            localStorage.setItem("telegramId", localId);
+        }
+
+        return localId;
+    },
+
+    getUsername() {
+        const tgUser =
+            window.Telegram &&
+            window.Telegram.WebApp &&
+            window.Telegram.WebApp.initDataUnsafe &&
+            window.Telegram.WebApp.initDataUnsafe.user;
+
+        if (tgUser && tgUser.username) {
+            localStorage.setItem("telegramUsername", tgUser.username);
+            return tgUser.username;
+        }
+
+        return localStorage.getItem("telegramUsername") || "Gracz";
+    },
+
+    getSavePayload() {
+        const state = CryptoZoo.state || {};
 
         return {
-            telegramId,
-            username,
+            telegramId: this.getPlayerId(),
+            username: this.getUsername(),
             coins: Number(state.coins) || 0,
+            gems: Number(state.gems) || 0,
             level: Number(state.level) || 1,
             coinsPerClick: Number(state.coinsPerClick) || 1,
             upgradeCost: Number(state.upgradeCost) || 50,
@@ -28,12 +57,11 @@ window.CryptoZoo.api = {
 
     async loadPlayer() {
         try {
-            const payload = this.getPlayerPayload();
-
-            const response = await fetch("/api/player/" + encodeURIComponent(payload.telegramId));
+            const telegramId = this.getPlayerId();
+            const response = await fetch("/api/player/" + encodeURIComponent(telegramId));
 
             if (!response.ok) {
-                return null;
+                throw new Error("LOAD_FAILED");
             }
 
             return await response.json();
@@ -45,18 +73,16 @@ window.CryptoZoo.api = {
 
     async savePlayer() {
         try {
-            const payload = this.getPlayerPayload();
-
             const response = await fetch("/api/player", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(this.getSavePayload())
             });
 
             if (!response.ok) {
-                throw new Error("Save failed");
+                throw new Error("SAVE_FAILED");
             }
 
             return await response.json();
@@ -71,18 +97,13 @@ window.CryptoZoo.api = {
             const response = await fetch("/api/ranking");
 
             if (!response.ok) {
-                return [];
+                throw new Error("RANKING_FAILED");
             }
 
             const data = await response.json();
-
-            if (!Array.isArray(data)) {
-                return [];
-            }
-
-            return data;
+            return Array.isArray(data) ? data : [];
         } catch (error) {
-            console.error("API loadRanking error:", error);
+            console.error("API ranking error:", error);
             return [];
         }
     }
