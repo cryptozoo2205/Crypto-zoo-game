@@ -1,4 +1,4 @@
-lwindow.CryptoZoo = window.CryptoZoo || {};
+window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.ui = {
     getEl(id) {
@@ -31,7 +31,7 @@ window.CryptoZoo.ui = {
             btn.classList.remove("active-nav");
         });
 
-        const target = this.getEl(screenId);
+        const target = document.getElementById(screenId);
         if (target) {
             target.classList.add("active-screen");
         }
@@ -44,7 +44,7 @@ window.CryptoZoo.ui = {
     },
 
     animateCoinsBurst() {
-        const container = this.getEl("coin-animation-container");
+        const container = document.getElementById("coin-animation-container");
         if (!container) return;
 
         for (let i = 0; i < 8; i++) {
@@ -68,15 +68,15 @@ window.CryptoZoo.ui = {
     },
 
     updateText(id, value) {
-        const el = this.getEl(id);
+        const el = document.getElementById(id);
         if (el) {
             el.textContent = value;
         }
     },
 
     updateCollectionCard(cardId, statusId, discovered) {
-        const card = this.getEl(cardId);
-        const statusEl = this.getEl(statusId);
+        const card = document.getElementById(cardId);
+        const statusEl = document.getElementById(statusId);
 
         if (!card || !statusEl) return;
 
@@ -119,17 +119,17 @@ window.CryptoZoo.ui = {
             const animalState = animals[type] || { count: 0, level: 1 };
             const animalConfig = animalsConfig[type];
 
-            animalsTotal += animalState.count;
+            animalsTotal += Number(animalState.count) || 0;
 
             this.updateText(`${type}-count`, CryptoZoo.formatNumber(animalState.count));
             this.updateText(`${type}-level`, CryptoZoo.formatNumber(animalState.level));
 
-            const upgradeBtn = this.getEl(`upgrade-${type}-btn`);
+            const upgradeBtn = document.getElementById(`upgrade-${type}-btn`);
             if (upgradeBtn && CryptoZoo.gameplay && CryptoZoo.gameplay.getAnimalUpgradeCost) {
                 upgradeBtn.textContent = `Lvl Up (${CryptoZoo.formatNumber(CryptoZoo.gameplay.getAnimalUpgradeCost(type))})`;
             }
 
-            const discovered = animalState.count > 0;
+            const discovered = (Number(animalState.count) || 0) > 0;
 
             if (discovered) {
                 foundCount += 1;
