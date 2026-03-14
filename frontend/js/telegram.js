@@ -1,44 +1,60 @@
-
 window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.telegram = {
-    getTelegramUser() {
-        if (!window.Telegram || !window.Telegram.WebApp) {
-            return null;
-        }
 
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+setupPlayerIdentity() {
 
-        const unsafeUser =
-            tg.initDataUnsafe && tg.initDataUnsafe.user
-                ? tg.initDataUnsafe.user
-                : null;
+if(!window.CryptoZoo.state){
+window.CryptoZoo.state = {};
+}
 
-        if (!unsafeUser || !unsafeUser.id) {
-            return null;
-        }
+try{
 
-        return {
-            id: String(unsafeUser.id),
-            username: unsafeUser.username || unsafeUser.first_name || "TelegramUser"
-        };
-    },
+if(window.Telegram && Telegram.WebApp){
 
-    setupPlayerIdentity() {
-        const state = CryptoZoo.state;
+const tg = Telegram.WebApp;
 
-        state.telegramUser = this.getTelegramUser();
+tg.ready();
+tg.expand();
 
-        state.telegramId = state.telegramUser
-            ? state.telegramUser.id
-            : (localStorage.getItem("telegramId") || String(Date.now()));
+const user = tg.initDataUnsafe?.user;
 
-        state.playerUsername = state.telegramUser
-            ? state.telegramUser.username
-            : `Gracz_${state.telegramId}`;
+if(user){
 
-        localStorage.setItem("telegramId", state.telegramId);
-    }
+CryptoZoo.state.telegramUser = {
+id: user.id,
+username: user.username || "Gracz"
+};
+
+localStorage.setItem("telegramId", user.id);
+localStorage.setItem("telegramUsername", user.username || "Gracz");
+
+return;
+
+}
+
+}
+
+}catch(e){
+
+console.log("Telegram init skipped");
+
+}
+
+let localId = localStorage.getItem("telegramId");
+
+if(!localId){
+
+localId = "local-player";
+localStorage.setItem("telegramId", localId);
+
+}
+
+CryptoZoo.state.telegramUser = {
+id: localId,
+username: localStorage.getItem("telegramUsername") || "Gracz"
+};
+
+}
+
 };
