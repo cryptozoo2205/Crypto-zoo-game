@@ -5,27 +5,6 @@ window.CryptoZoo.ui = {
         return document.getElementById(id);
     },
 
-    showLoading() {
-        const loadingScreen = this.getEl("loading-screen");
-        if (!loadingScreen) return;
-
-        loadingScreen.style.display = "flex";
-        loadingScreen.classList.remove("hide-loading");
-    },
-
-    hideLoading() {
-        const loadingScreen = this.getEl("loading-screen");
-        if (!loadingScreen) return;
-
-        setTimeout(function () {
-            loadingScreen.classList.add("hide-loading");
-        }, 1200);
-
-        setTimeout(function () {
-            loadingScreen.style.display = "none";
-        }, 2000);
-    },
-
     showToast(message) {
         const toast = this.getEl("toast");
         if (!toast) return;
@@ -42,6 +21,7 @@ window.CryptoZoo.ui = {
 
     showScreen(screenId) {
         const screens = document.querySelectorAll(".screen");
+
         screens.forEach(function (screen) {
             screen.classList.remove("active-screen");
         });
@@ -120,37 +100,37 @@ window.CryptoZoo.ui = {
         const pandaLevel = animals.panda?.level || 1;
         const lionLevel = animals.lion?.level || 1;
 
-        this.updateText("coins-count", state.coins ?? 0);
-        this.updateText("level", state.level ?? 1);
-        this.updateText("coins-per-click", state.coinsPerClick ?? 1);
-        this.updateText("upgrade-cost", state.upgradeCost ?? 50);
-        this.updateText("zoo-income", state.zooIncome ?? 0);
+        this.updateText("coins-count", CryptoZoo.formatNumber(state.coins ?? 0));
+        this.updateText("level", CryptoZoo.formatNumber(state.level ?? 1));
+        this.updateText("coins-per-click", CryptoZoo.formatNumber(state.coinsPerClick ?? 1));
+        this.updateText("upgrade-cost", CryptoZoo.formatNumber(state.upgradeCost ?? 50));
+        this.updateText("zoo-income", CryptoZoo.formatNumber(state.zooIncome ?? 0));
 
         const animalsTotal = monkeyCount + pandaCount + lionCount;
-        this.updateText("animals-total", animalsTotal);
+        this.updateText("animals-total", CryptoZoo.formatNumber(animalsTotal));
 
-        this.updateText("monkey-count", monkeyCount);
-        this.updateText("panda-count", pandaCount);
-        this.updateText("lion-count", lionCount);
+        this.updateText("monkey-count", CryptoZoo.formatNumber(monkeyCount));
+        this.updateText("panda-count", CryptoZoo.formatNumber(pandaCount));
+        this.updateText("lion-count", CryptoZoo.formatNumber(lionCount));
 
-        this.updateText("monkey-level", monkeyLevel);
-        this.updateText("panda-level", pandaLevel);
-        this.updateText("lion-level", lionLevel);
+        this.updateText("monkey-level", CryptoZoo.formatNumber(monkeyLevel));
+        this.updateText("panda-level", CryptoZoo.formatNumber(pandaLevel));
+        this.updateText("lion-level", CryptoZoo.formatNumber(lionLevel));
 
         const monkeyUpgradeBtn = this.getEl("upgrade-monkey-btn");
         const pandaUpgradeBtn = this.getEl("upgrade-panda-btn");
         const lionUpgradeBtn = this.getEl("upgrade-lion-btn");
 
         if (monkeyUpgradeBtn && CryptoZoo.gameplay && CryptoZoo.gameplay.getAnimalUpgradeCost) {
-            monkeyUpgradeBtn.textContent = `Lvl Up (${CryptoZoo.gameplay.getAnimalUpgradeCost("monkey")})`;
+            monkeyUpgradeBtn.textContent = `Lvl Up (${CryptoZoo.formatNumber(CryptoZoo.gameplay.getAnimalUpgradeCost("monkey"))})`;
         }
 
         if (pandaUpgradeBtn && CryptoZoo.gameplay && CryptoZoo.gameplay.getAnimalUpgradeCost) {
-            pandaUpgradeBtn.textContent = `Lvl Up (${CryptoZoo.gameplay.getAnimalUpgradeCost("panda")})`;
+            pandaUpgradeBtn.textContent = `Lvl Up (${CryptoZoo.formatNumber(CryptoZoo.gameplay.getAnimalUpgradeCost("panda"))})`;
         }
 
         if (lionUpgradeBtn && CryptoZoo.gameplay && CryptoZoo.gameplay.getAnimalUpgradeCost) {
-            lionUpgradeBtn.textContent = `Lvl Up (${CryptoZoo.gameplay.getAnimalUpgradeCost("lion")})`;
+            lionUpgradeBtn.textContent = `Lvl Up (${CryptoZoo.formatNumber(CryptoZoo.gameplay.getAnimalUpgradeCost("lion"))})`;
         }
 
         const monkeyDiscovered = monkeyCount > 0;
