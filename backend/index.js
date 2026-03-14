@@ -1,17 +1,16 @@
-require("dotenv").config();
-
+const path = require("path");
 const express = require("express");
 const mongoose = require("mongoose");
-const path = require("path");
-const cors = require("cors");
+require("dotenv").config();
 
-const User = require("./models/User");
+const User = require("./models/user");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 app.use(express.static(path.join(__dirname, "../frontend")));
 
 mongoose
@@ -20,38 +19,25 @@ mongoose
         console.log("MongoDB connected");
     })
     .catch((error) => {
-        console.error("MongoDB connection error:", error);
+        console.error("MongoDB error:", error);
     });
 
-function normalizeAnimals(animals) {
-    const raw = animals || {};
-
-    function normalizeAnimal(animalValue) {
-        if (typeof animalValue === "number") {
-            return {
-                count: animalValue,
-                level: 1
-            };
-        }
-
-        return {
-            count: Number(animalValue?.count) || 0,
-            level: Number(animalValue?.level) || 1
-        };
-    }
-
+function getDefaultAnimals() {
     return {
-        monkey: normalizeAnimal(raw.monkey),
-        panda: normalizeAnimal(raw.panda),
-        lion: normalizeAnimal(raw.lion)
+        monkey: { count: 0, level: 1 },
+        rabbit: { count: 0, level: 1 },
+        parrot: { count: 0, level: 1 },
+        turtle: { count: 0, level: 1 },
+        panda: { count: 0, level: 1 },
+        wolf: { count: 0, level: 1 },
+        flamingo: { count: 0, level: 1 },
+        lion: { count: 0, level: 1 },
+        tiger: { count: 0, level: 1 },
+        elephant: { count: 0, level: 1 }
     };
 }
 
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend/index.html"));
-});
-
-app.get("/player/:telegramId", async (req, res) => {
+app.get("/api/player/:telegramId", async (req, res) => {
     try {
         const { telegramId } = req.params;
 
@@ -60,23 +46,23 @@ app.get("/player/:telegramId", async (req, res) => {
         if (!user) {
             user = await User.create({
                 telegramId,
-                username: `Gracz_${telegramId}`,
-                lastLogin: new Date()
+                username: "Gracz",
+                coins: 0,
+                level: 1,
+                coinsPerClick: 1,
+                upgradeCost: 50,
+                animals: getDefaultAnimals()
             });
-        } else {
-            const normalizedAnimals = normalizeAnimals(user.animals);
-            user.animals = normalizedAnimals;
-            await user.save();
         }
 
         res.json(user);
     } catch (error) {
-        console.error("GET /player/:telegramId error:", error);
-        res.status(500).json({ error: "Błąd pobierania gracza" });
+        console.error("GET /api/player/:telegramId error:", error);
+        res.status(500).json({ error: "SERVER_ERROR" });
     }
 });
 
-app.post("/player/update", async (req, res) => {
+app.post("/api/player", async (req, res) => {
     try {
         const {
             telegramId,
@@ -85,27 +71,23 @@ app.post("/player/update", async (req, res) => {
             level,
             coinsPerClick,
             upgradeCost,
-            animals,
-            lastLogin
+            animals
         } = req.body;
 
         if (!telegramId) {
-            return res.status(400).json({ error: "Brak telegramId" });
+            return res.status(400).json({ error: "MISSING_TELEGRAM_ID" });
         }
 
-        const normalizedAnimals = normalizeAnimals(animals);
-
-        const updatedUser = await User.findOneAndUpdate(
+        const user = await User.findOneAndUpdate(
             { telegramId },
             {
                 telegramId,
-                username: username || `Gracz_${telegramId}`,
+                username: username || "Gracz",
                 coins: Number(coins) || 0,
                 level: Number(level) || 1,
                 coinsPerClick: Number(coinsPerClick) || 1,
                 upgradeCost: Number(upgradeCost) || 50,
-                animals: normalizedAnimals,
-                lastLogin: lastLogin ? new Date(lastLogin) : new Date()
+                animals: animals || getDefaultAnimals()
             },
             {
                 new: true,
@@ -113,28 +95,29 @@ app.post("/player/update", async (req, res) => {
             }
         );
 
-        res.json({
-            success: true,
-            user: updatedUser
-        });
+        res.json(user);
     } catch (error) {
-        console.error("POST /player/update error:", error);
-        res.status(500).json({ error: "Błąd zapisu gracza" });
+        console.error("POST /api/player error:", error);
+        res.status(500).json({ error: "SERVER_ERROR" });
     }
 });
 
-app.get("/ranking", async (req, res) => {
+app.get("/api/ranking", async (req, res) => {
     try {
         const ranking = await User.find({})
             .sort({ coins: -1 })
-            .limit(10)
-            .select("username coins");
+            .limit(50)
+            .select("username coins level telegramId");
 
         res.json(ranking);
     } catch (error) {
-        console.error("GET /ranking error:", error);
-        res.status(500).json({ error: "Błąd pobierania rankingu" });
+        console.error("GET /api/ranking error:", error);
+        res.status(500).json({ error: "SERVER_ERROR" });
     }
+});
+
+app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend/index.html"));
 });
 
 app.listen(PORT, () => {
