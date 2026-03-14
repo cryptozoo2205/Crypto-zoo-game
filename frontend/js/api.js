@@ -60,10 +60,7 @@ window.CryptoZoo.api = {
             const telegramId = this.getPlayerId();
             const response = await fetch("/api/player/" + encodeURIComponent(telegramId));
 
-            if (!response.ok) {
-                return null;
-            }
-
+            if (!response.ok) return null;
             return await response.json();
         } catch (error) {
             console.error("API loadPlayer error:", error);
@@ -81,10 +78,7 @@ window.CryptoZoo.api = {
                 body: JSON.stringify(this.getSavePayload())
             });
 
-            if (!response.ok) {
-                return null;
-            }
-
+            if (!response.ok) return null;
             return await response.json();
         } catch (error) {
             console.error("API savePlayer error:", error);
@@ -96,10 +90,7 @@ window.CryptoZoo.api = {
         try {
             const response = await fetch("/api/ranking");
 
-            if (!response.ok) {
-                return [];
-            }
-
+            if (!response.ok) return [];
             const data = await response.json();
             return Array.isArray(data) ? data : [];
         } catch (error) {
