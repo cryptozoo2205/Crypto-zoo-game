@@ -7,8 +7,12 @@ window.CryptoZoo.gameplay = {
         return CryptoZoo.config.economy;
     },
 
+    getAnimalsConfig() {
+        return CryptoZoo.config.animals;
+    },
+
     getAnimalConfig(type) {
-        return CryptoZoo.config.animals[type];
+        return this.getAnimalsConfig()[type];
     },
 
     getLevelFromCoins(coins) {
@@ -16,25 +20,26 @@ window.CryptoZoo.gameplay = {
         return Math.floor(Math.sqrt(Math.max(0, Number(coins) || 0) / divider)) + 1;
     },
 
+    createDefaultAnimalState() {
+        return { count: 0, level: 1 };
+    },
+
     normalizeAnimals() {
         const state = CryptoZoo.state;
+        const animalsConfig = this.getAnimalsConfig();
 
         if (!state.animals) {
             state.animals = {};
         }
 
-        if (!state.animals.monkey) state.animals.monkey = { count: 0, level: 1 };
-        if (!state.animals.panda) state.animals.panda = { count: 0, level: 1 };
-        if (!state.animals.lion) state.animals.lion = { count: 0, level: 1 };
+        Object.keys(animalsConfig).forEach((type) => {
+            if (!state.animals[type]) {
+                state.animals[type] = this.createDefaultAnimalState();
+            }
 
-        state.animals.monkey.count = Number(state.animals.monkey.count) || 0;
-        state.animals.monkey.level = Number(state.animals.monkey.level) || 1;
-
-        state.animals.panda.count = Number(state.animals.panda.count) || 0;
-        state.animals.panda.level = Number(state.animals.panda.level) || 1;
-
-        state.animals.lion.count = Number(state.animals.lion.count) || 0;
-        state.animals.lion.level = Number(state.animals.lion.level) || 1;
+            state.animals[type].count = Number(state.animals[type].count) || 0;
+            state.animals[type].level = Number(state.animals[type].level) || 1;
+        });
     },
 
     getAnimalUpgradeCost(type) {
@@ -57,11 +62,15 @@ window.CryptoZoo.gameplay = {
 
     updateZooIncome() {
         const state = CryptoZoo.state;
+        const animalsConfig = this.getAnimalsConfig();
 
-        state.zooIncome =
-            this.getAnimalIncome("monkey") +
-            this.getAnimalIncome("panda") +
-            this.getAnimalIncome("lion");
+        let totalIncome = 0;
+
+        Object.keys(animalsConfig).forEach((type) => {
+            totalIncome += this.getAnimalIncome(type);
+        });
+
+        state.zooIncome = totalIncome;
     },
 
     recalculateCoreStats() {
@@ -234,21 +243,13 @@ window.CryptoZoo.gameplay = {
         if (tapBtn) tapBtn.onclick = () => this.click();
         if (buyUpgradeBtn) buyUpgradeBtn.onclick = () => this.buyClickUpgrade();
 
-        const buyMonkeyBtn = document.getElementById("buy-monkey-btn");
-        const buyPandaBtn = document.getElementById("buy-panda-btn");
-        const buyLionBtn = document.getElementById("buy-lion-btn");
+        Object.keys(this.getAnimalsConfig()).forEach((type) => {
+            const buyBtn = document.getElementById(`buy-${type}-btn`);
+            const upgradeBtn = document.getElementById(`upgrade-${type}-btn`);
 
-        const upgradeMonkeyBtn = document.getElementById("upgrade-monkey-btn");
-        const upgradePandaBtn = document.getElementById("upgrade-panda-btn");
-        const upgradeLionBtn = document.getElementById("upgrade-lion-btn");
-
-        if (buyMonkeyBtn) buyMonkeyBtn.onclick = () => this.buyAnimal("monkey");
-        if (buyPandaBtn) buyPandaBtn.onclick = () => this.buyAnimal("panda");
-        if (buyLionBtn) buyLionBtn.onclick = () => this.buyAnimal("lion");
-
-        if (upgradeMonkeyBtn) upgradeMonkeyBtn.onclick = () => this.upgradeAnimal("monkey");
-        if (upgradePandaBtn) upgradePandaBtn.onclick = () => this.upgradeAnimal("panda");
-        if (upgradeLionBtn) upgradeLionBtn.onclick = () => this.upgradeAnimal("lion");
+            if (buyBtn) buyBtn.onclick = () => this.buyAnimal(type);
+            if (upgradeBtn) upgradeBtn.onclick = () => this.upgradeAnimal(type);
+        });
     },
 
     startPassiveIncome() {
