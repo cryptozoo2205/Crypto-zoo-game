@@ -3,17 +3,26 @@ window.CryptoZoo = window.CryptoZoo || {};
 window.CryptoZoo.init = {
     async start() {
         try {
-            CryptoZoo.dom.cacheElements();
-            CryptoZoo.telegram.setupPlayerIdentity();
+            if (CryptoZoo.dom && CryptoZoo.dom.cacheElements) {
+                CryptoZoo.dom.cacheElements();
+            }
+
+            if (CryptoZoo.telegram && CryptoZoo.telegram.setupPlayerIdentity) {
+                CryptoZoo.telegram.setupPlayerIdentity();
+            }
+
             CryptoZoo.gameplay.normalizeAnimals();
+
+            await CryptoZoo.gameplay.loadPlayerState();
+
             CryptoZoo.gameplay.updateZooIncome();
             CryptoZoo.ui.render();
+
             CryptoZoo.gameplay.bindNavigation();
             CryptoZoo.gameplay.bindActions();
-            await CryptoZoo.gameplay.loadPlayerState();
-            await CryptoZoo.gameplay.loadRanking();
-            CryptoZoo.ui.showScreen("game");
             CryptoZoo.gameplay.startPassiveIncome();
+
+            CryptoZoo.ui.showScreen("game");
         } catch (error) {
             console.error("Błąd startu gry:", error);
         }
