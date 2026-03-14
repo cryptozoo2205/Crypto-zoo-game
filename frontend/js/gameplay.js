@@ -245,24 +245,16 @@ window.CryptoZoo.gameplay = {
         const tapBtn = document.getElementById("tap-btn");
         const buyUpgradeBtn = document.getElementById("buy-upgrade-btn");
 
-        const buyMonkeyBtn = document.getElementById("buy-monkey-btn");
-        const buyPandaBtn = document.getElementById("buy-panda-btn");
-        const buyLionBtn = document.getElementById("buy-lion-btn");
-
-        const upgradeMonkeyBtn = document.getElementById("upgrade-monkey-btn");
-        const upgradePandaBtn = document.getElementById("upgrade-panda-btn");
-        const upgradeLionBtn = document.getElementById("upgrade-lion-btn");
-
         if (tapBtn) tapBtn.onclick = () => this.click();
         if (buyUpgradeBtn) buyUpgradeBtn.onclick = () => this.buyClickUpgrade();
 
-        if (buyMonkeyBtn) buyMonkeyBtn.onclick = () => this.buyAnimal("monkey");
-        if (buyPandaBtn) buyPandaBtn.onclick = () => this.buyAnimal("panda");
-        if (buyLionBtn) buyLionBtn.onclick = () => this.buyAnimal("lion");
+        Object.keys(this.getAnimalsConfig()).forEach((type) => {
+            const buyBtn = document.getElementById(`buy-${type}-btn`);
+            const upgradeBtn = document.getElementById(`upgrade-${type}-btn`);
 
-        if (upgradeMonkeyBtn) upgradeMonkeyBtn.onclick = () => this.upgradeAnimal("monkey");
-        if (upgradePandaBtn) upgradePandaBtn.onclick = () => this.upgradeAnimal("panda");
-        if (upgradeLionBtn) upgradeLionBtn.onclick = () => this.upgradeAnimal("lion");
+            if (buyBtn) buyBtn.onclick = () => this.buyAnimal(type);
+            if (upgradeBtn) upgradeBtn.onclick = () => this.upgradeAnimal(type);
+        });
     },
 
     startPassiveIncome() {
