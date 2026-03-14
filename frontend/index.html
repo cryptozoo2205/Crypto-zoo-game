@@ -20,21 +20,55 @@
 
 <div class="app-shell">
 
-    <h1>Crypto Zoo 🐾</h1>
+    <header class="top-hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1>Crypto Zoo</h1>
+            <div class="paw-deco">🐾 🐾</div>
 
-    <div class="stats">
-        <div>Monety: <span id="coins-count">0</span></div>
-        <div>Poziom: <span id="level">1</span></div>
-        <div>Za klik: <span id="coins-per-click">1</span></div>
-    </div>
+            <div class="stats-panel">
+                <div class="stat-card">
+                    <div class="stat-label">Monety</div>
+                    <div class="stat-value" id="coins-count">0</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Poziom</div>
+                    <div class="stat-value" id="level">1</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Za klik</div>
+                    <div class="stat-value" id="coins-per-click">1</div>
+                </div>
+            </div>
+        </div>
+    </header>
 
     <div id="toast" class="toast"></div>
 
     <section id="game" class="screen active-screen">
-        <div class="screen-card center-card">
-            <div class="tap-wrapper">
-                <button id="tap-btn" type="button">UZYSKAJ MONETY</button>
+        <div class="game-main-panel">
+            <div class="tap-ring-wrap">
+                <div class="tap-ring-glow"></div>
+                <button id="tap-btn" type="button">
+                    <span class="tap-paw">🐾</span>
+                </button>
                 <div id="coin-animation-container"></div>
+            </div>
+
+            <div class="tap-title">UZYSKAJ MONETY</div>
+
+            <div class="income-bar">
+                <div class="income-box">
+                    <div class="income-label">Dochód zoo / sek</div>
+                    <div class="income-value" id="zoo-income">0</div>
+                </div>
+
+                <div class="income-box">
+                    <div class="income-label">Łącznie zwierząt</div>
+                    <div class="income-value" id="animals-total">0</div>
+                </div>
             </div>
         </div>
     </section>
@@ -43,17 +77,6 @@
         <div class="screen-card zoo-screen-card">
 
             <h3 class="section-title">🐾 Zoo Collection</h3>
-
-            <div class="summary-box">
-                <div class="summary-item">
-                    <span>Dochód zoo / sek</span>
-                    <strong id="zoo-income">0</strong>
-                </div>
-                <div class="summary-item">
-                    <span>Łącznie zwierząt</span>
-                    <strong id="animals-total">0</strong>
-                </div>
-            </div>
 
             <div class="rarity-legend">
                 <div class="legend-item">
@@ -78,7 +101,7 @@
                             <div class="animal-name">Małpa</div>
                             <span class="rarity-badge rarity-common">Common</span>
                         </div>
-                        <div class="animal-desc">Dochód 1/sek • Bonus x1.0 • Koszt 100</div>
+                        <div class="animal-desc">Dochód 1/sek • Koszt 100</div>
                         <div class="animal-owned">
                             Posiadasz: <span id="monkey-count">0</span> • Poziom: <span id="monkey-level">1</span>
                         </div>
@@ -98,7 +121,7 @@
                             <div class="animal-name">Panda</div>
                             <span class="rarity-badge rarity-rare">Rare</span>
                         </div>
-                        <div class="animal-desc">Dochód 3/sek • Bonus x1.5 • Koszt 400</div>
+                        <div class="animal-desc">Dochód 3/sek • Koszt 400</div>
                         <div class="animal-owned">
                             Posiadasz: <span id="panda-count">0</span> • Poziom: <span id="panda-level">1</span>
                         </div>
@@ -118,7 +141,7 @@
                             <div class="animal-name">Lew</div>
                             <span class="rarity-badge rarity-epic">Epic</span>
                         </div>
-                        <div class="animal-desc">Dochód 8/sek • Bonus x2.5 • Koszt 1200</div>
+                        <div class="animal-desc">Dochód 8/sek • Koszt 1200</div>
                         <div class="animal-owned">
                             Posiadasz: <span id="lion-count">0</span> • Poziom: <span id="lion-level">1</span>
                         </div>
@@ -181,7 +204,7 @@
     </section>
 
     <section id="shop" class="screen">
-        <div class="screen-card">
+        <div class="screen-card premium-card">
             <h3 class="section-title">🛒 Sklep</h3>
 
             <div class="shop-row">
@@ -199,7 +222,7 @@
     </section>
 
     <section id="ranking" class="screen">
-        <div class="screen-card">
+        <div class="screen-card premium-card">
             <h3 class="section-title">🏆 Ranking</h3>
             <ul id="ranking-list" class="ranking-list"></ul>
         </div>
@@ -208,7 +231,7 @@
 </div>
 
 <nav class="bottom-menu">
-    <button class="nav-btn" data-screen="game" type="button">
+    <button class="nav-btn active-nav" data-screen="game" type="button">
         <span class="nav-icon">🏠</span>
         <span class="nav-text">Gra</span>
     </button>
