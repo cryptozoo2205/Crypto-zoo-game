@@ -10,7 +10,6 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 app.use(express.static(path.join(__dirname, "../frontend")));
 
 mongoose
@@ -48,6 +47,7 @@ app.get("/api/player/:telegramId", async (req, res) => {
                 telegramId,
                 username: "Gracz",
                 coins: 0,
+                gems: 0,
                 level: 1,
                 coinsPerClick: 1,
                 upgradeCost: 50,
@@ -68,6 +68,7 @@ app.post("/api/player", async (req, res) => {
             telegramId,
             username,
             coins,
+            gems,
             level,
             coinsPerClick,
             upgradeCost,
@@ -84,6 +85,7 @@ app.post("/api/player", async (req, res) => {
                 telegramId,
                 username: username || "Gracz",
                 coins: Number(coins) || 0,
+                gems: Number(gems) || 0,
                 level: Number(level) || 1,
                 coinsPerClick: Number(coinsPerClick) || 1,
                 upgradeCost: Number(upgradeCost) || 50,
@@ -107,7 +109,7 @@ app.get("/api/ranking", async (req, res) => {
         const ranking = await User.find({})
             .sort({ coins: -1 })
             .limit(50)
-            .select("username coins level telegramId");
+            .select("username coins gems level telegramId");
 
         res.json(ranking);
     } catch (error) {
