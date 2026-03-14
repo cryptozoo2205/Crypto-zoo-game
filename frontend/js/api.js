@@ -61,7 +61,7 @@ window.CryptoZoo.api = {
             const response = await fetch("/api/player/" + encodeURIComponent(telegramId));
 
             if (!response.ok) {
-                throw new Error("LOAD_FAILED");
+                return null;
             }
 
             return await response.json();
@@ -82,7 +82,7 @@ window.CryptoZoo.api = {
             });
 
             if (!response.ok) {
-                throw new Error("SAVE_FAILED");
+                return null;
             }
 
             return await response.json();
@@ -97,7 +97,7 @@ window.CryptoZoo.api = {
             const response = await fetch("/api/ranking");
 
             if (!response.ok) {
-                throw new Error("RANKING_FAILED");
+                return [];
             }
 
             const data = await response.json();
