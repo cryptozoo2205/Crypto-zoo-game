@@ -91,7 +91,10 @@ app.post("/api/player", async (req, res) => {
                 upgradeCost: Number(upgradeCost) || 50,
                 animals: animals || getDefaultAnimals()
             },
-            { new: true, upsert: true }
+            {
+                returnDocument: "after",
+                upsert: true
+            }
         );
 
         res.json(user);
