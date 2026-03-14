@@ -5,7 +5,7 @@ async function reset() {
   try {
     await mongoose.connect(process.env.MONGO_URI);
 
-    const Player = require("./models/Player");
+    const Player = require("./models/user");
 
     await Player.deleteMany({});
 
@@ -13,7 +13,7 @@ async function reset() {
 
     process.exit();
   } catch (error) {
-    console.error(error);
+    console.error("RESET ERROR:", error);
     process.exit();
   }
 }
