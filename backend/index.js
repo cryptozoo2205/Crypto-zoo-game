@@ -25,14 +25,14 @@ function getDefaultAnimals() {
     return {
         monkey: { count: 0, level: 1 },
         rabbit: { count: 0, level: 1 },
-        parrot: { count: 0, level: 1 },
-        turtle: { count: 0, level: 1 },
-        panda: { count: 0, level: 1 },
+        fox: { count: 0, level: 1 },
         wolf: { count: 0, level: 1 },
-        flamingo: { count: 0, level: 1 },
-        lion: { count: 0, level: 1 },
+        panda: { count: 0, level: 1 },
         tiger: { count: 0, level: 1 },
-        elephant: { count: 0, level: 1 }
+        gorilla: { count: 0, level: 1 },
+        lion: { count: 0, level: 1 },
+        elephant: { count: 0, level: 1 },
+        giraffe: { count: 0, level: 1 }
     };
 }
 
@@ -91,10 +91,7 @@ app.post("/api/player", async (req, res) => {
                 upgradeCost: Number(upgradeCost) || 50,
                 animals: animals || getDefaultAnimals()
             },
-            {
-                new: true,
-                upsert: true
-            }
+            { new: true, upsert: true }
         );
 
         res.json(user);
