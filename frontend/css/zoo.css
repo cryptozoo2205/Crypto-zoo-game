@@ -1,35 +1,5 @@
 .zoo-screen-card{
-    max-height:calc(100vh - 235px);
-    overflow-y:auto;
-    padding-right:12px;
-}
-
-.zoo-screen-card::-webkit-scrollbar{
-    width:6px;
-}
-
-.zoo-screen-card::-webkit-scrollbar-thumb{
-    background:rgba(255,255,255,0.20);
-    border-radius:10px;
-}
-
-.rarity-legend{
-    display:flex;
-    justify-content:space-between;
-    gap:8px;
-    margin-bottom:14px;
-    flex-wrap:wrap;
-}
-
-.legend-item{
-    display:flex;
-    align-items:center;
-    gap:7px;
-    background:rgba(255,255,255,0.07);
-    border-radius:999px;
-    padding:8px 11px;
-    font-size:12px;
-    color:#dfe7ef;
+    padding:18px 14px 18px;
 }
 
 .animal-row{
@@ -37,12 +7,11 @@
     justify-content:space-between;
     align-items:center;
     gap:12px;
-    margin:12px 0;
-    padding:14px;
-    border-radius:20px;
-    background:linear-gradient(180deg, rgba(19,28,40,0.90) 0%, rgba(10,16,27,0.95) 100%);
+    background:rgba(255,255,255,0.05);
     border:1px solid rgba(255,255,255,0.06);
-    box-shadow:0 10px 22px rgba(0,0,0,0.22);
+    border-radius:18px;
+    padding:14px 12px;
+    margin-bottom:12px;
 }
 
 .animal-left{
@@ -56,210 +25,58 @@
 .animal-icon{
     width:54px;
     height:54px;
+    border-radius:14px;
+    background:rgba(255,255,255,0.08);
     display:flex;
     align-items:center;
     justify-content:center;
-    border-radius:16px;
-    background:rgba(255,255,255,0.08);
-    font-size:30px;
+    font-size:28px;
     flex-shrink:0;
 }
 
 .animal-text{
-    display:flex;
-    flex-direction:column;
-    gap:4px;
     min-width:0;
-}
-
-.animal-topline{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    flex-wrap:wrap;
+    flex:1;
 }
 
 .animal-name{
     font-size:22px;
     font-weight:800;
     color:#ffffff;
+    margin-bottom:4px;
 }
 
 .animal-desc{
-    font-size:13px;
-    color:rgba(255,255,255,0.78);
-    line-height:1.25;
+    font-size:14px;
+    color:rgba(255,255,255,0.74);
+    margin-bottom:4px;
 }
 
 .animal-owned{
     font-size:14px;
+    color:#9fe3a7;
     font-weight:700;
-    color:#f8d96c;
-}
-
-.rarity-badge{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    padding:4px 10px;
-    border-radius:999px;
-    font-size:11px;
-    font-weight:800;
-    letter-spacing:0.2px;
-}
-
-.rarity-common{
-    background:#cfd4da;
-    color:#1a1d24;
-}
-
-.rarity-rare{
-    background:#9cf1ff;
-    color:#093343;
-}
-
-.rarity-epic{
-    background:#f1c0ff;
-    color:#4d1866;
-}
-
-.rarity-common-text{
-    color:#d8dce2;
-}
-
-.rarity-rare-text{
-    color:#9ce9ff;
-}
-
-.rarity-epic-text{
-    color:#ebb4ff;
 }
 
 .animal-actions{
     display:flex;
     flex-direction:column;
     gap:8px;
+    width:118px;
     flex-shrink:0;
 }
 
 .animal-actions button{
-    min-width:110px;
-    padding:11px 14px;
     border:none;
-    border-radius:16px;
-    background:linear-gradient(180deg, #7cff98 0%, #43c56c 100%);
-    color:#10311d;
+    border-radius:14px;
+    padding:10px 8px;
+    font-size:14px;
     font-weight:800;
     cursor:pointer;
-    font-size:14px;
-    box-shadow:0 8px 18px rgba(0,0,0,0.18);
+    background:linear-gradient(180deg, #b9ffd0 0%, #8ef0b5 100%);
+    color:#173121;
 }
 
-.collection-block{
-    margin-top:18px;
-    padding-top:4px;
-}
-
-.collection-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:10px;
-    margin-bottom:12px;
-    flex-wrap:wrap;
-}
-
-.collection-header h4{
-    margin:0;
-    font-size:22px;
-    color:#ffffff;
-}
-
-.collection-progress{
-    font-size:14px;
-    font-weight:bold;
-    color:#ffd86b;
-}
-
-.collection-grid{
-    display:grid;
-    grid-template-columns:repeat(3, 1fr);
-    gap:12px;
-}
-
-.collection-card{
-    background:linear-gradient(180deg, rgba(19,27,38,0.88) 0%, rgba(10,15,25,0.92) 100%);
-    border:1px solid rgba(255,255,255,0.06);
-    border-radius:18px;
-    padding:14px 10px;
-    text-align:center;
-    transition:0.2s;
-    min-height:132px;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-}
-
-.collection-card.locked{
-    opacity:0.55;
-    filter:grayscale(0.35);
-}
-
-.collection-card.discovered{
-    box-shadow:0 0 0 1px rgba(255,215,0,0.16), 0 10px 22px rgba(0,0,0,0.20);
-}
-
-.collection-icon{
-    font-size:34px;
-    margin-bottom:8px;
-}
-
-.collection-name{
-    font-size:18px;
-    font-weight:800;
-    margin-bottom:4px;
-    color:#ffffff;
-}
-
-.collection-rarity{
-    font-size:13px;
-    margin-bottom:6px;
-    font-weight:700;
-}
-
-.collection-status{
-    font-size:13px;
-    font-weight:800;
-}
-
-.collection-status.discovered-status{
-    color:#79f08a;
-}
-
-.collection-status.locked-status{
-    color:#ffb0b0;
-}
-
-.collection-rarity-summary{
-    display:grid;
-    grid-template-columns:1fr 1fr 1fr;
-    gap:10px;
-    margin-top:12px;
-}
-
-.rarity-summary-item{
-    background:rgba(255,255,255,0.06);
-    border-radius:16px;
-    padding:10px;
-    text-align:center;
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-    align-items:center;
-}
-
-.rarity-summary-item strong{
-    font-size:13px;
-    color:#ffffff;
+.animal-actions button:active{
+    transform:scale(0.98);
 }
