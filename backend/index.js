@@ -24,15 +24,15 @@ mongoose
 function getDefaultAnimals() {
     return {
         monkey: { count: 0, level: 1 },
-        rabbit: { count: 0, level: 1 },
-        fox: { count: 0, level: 1 },
-        wolf: { count: 0, level: 1 },
         panda: { count: 0, level: 1 },
-        tiger: { count: 0, level: 1 },
-        gorilla: { count: 0, level: 1 },
         lion: { count: 0, level: 1 },
+        tiger: { count: 0, level: 1 },
         elephant: { count: 0, level: 1 },
-        giraffe: { count: 0, level: 1 }
+        giraffe: { count: 0, level: 1 },
+        zebra: { count: 0, level: 1 },
+        penguin: { count: 0, level: 1 },
+        bear: { count: 0, level: 1 },
+        wolf: { count: 0, level: 1 }
     };
 }
 
@@ -79,6 +79,11 @@ app.post("/api/player", async (req, res) => {
             return res.status(400).json({ error: "MISSING_TELEGRAM_ID" });
         }
 
+        const mergedAnimals = {
+            ...getDefaultAnimals(),
+            ...(animals || {})
+        };
+
         const user = await User.findOneAndUpdate(
             { telegramId },
             {
@@ -89,7 +94,7 @@ app.post("/api/player", async (req, res) => {
                 level: Number(level) || 1,
                 coinsPerClick: Number(coinsPerClick) || 1,
                 upgradeCost: Number(upgradeCost) || 50,
-                animals: animals || getDefaultAnimals()
+                animals: mergedAnimals
             },
             {
                 returnDocument: "after",
