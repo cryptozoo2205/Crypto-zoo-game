@@ -106,4 +106,4 @@ window.CryptoZoo.formatNumber = function (num) {
     if (num >= 1e3) return (num / 1e3).toFixed(2) + "K";
 
     return Math.floor(num).toString();
-};
+}; 
