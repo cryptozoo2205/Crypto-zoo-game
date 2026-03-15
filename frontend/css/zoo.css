@@ -6,12 +6,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 18px;
+    gap: 14px;
+    background: linear-gradient(180deg, rgba(20, 28, 45, 0.84) 0%, rgba(13, 19, 31, 0.90) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 20px;
     padding: 14px 12px;
     margin-bottom: 12px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.16);
 }
 
 .animal-left {
@@ -23,20 +24,21 @@
 }
 
 .animal-icon {
-    width: 64px;
-    height: 64px;
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.08);
+    width: 68px;
+    height: 68px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.07);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
     flex-shrink: 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .animal-icon img {
-    width: 54px;
-    height: 54px;
+    width: 58px;
+    height: 58px;
     object-fit: contain;
 }
 
@@ -47,7 +49,7 @@
 
 .animal-name {
     font-size: 22px;
-    font-weight: 800;
+    font-weight: 900;
     color: #ffffff;
     margin-bottom: 4px;
 }
@@ -68,7 +70,7 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    width: 118px;
+    width: 124px;
     flex-shrink: 0;
 }
 
@@ -77,14 +79,16 @@
     border-radius: 14px;
     padding: 10px 8px;
     font-size: 14px;
-    font-weight: 800;
+    font-weight: 900;
     cursor: pointer;
     color: #173121;
-    background: url("../assets/ui/button_green.png") center center / cover no-repeat;
+    background: linear-gradient(180deg, #bbffd0 0%, #89f4b1 100%);
     min-height: 44px;
+    box-shadow: 0 8px 16px rgba(58, 205, 122, 0.16);
 }
 
 .animal-actions button:last-child {
     color: #ffffff;
-    background: url("../assets/ui/button_dark.png") center center / cover no-repeat;
+    background: linear-gradient(180deg, #31405d 0%, #223048 100%);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.18);
 }
