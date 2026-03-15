@@ -17,6 +17,7 @@ window.CryptoZoo.config = {
         monkey: {
             key: "monkey",
             name: "Małpa",
+            asset: "monkey",
             buyCost: 100,
             baseIncome: 1,
             upgradeBaseCost: 150
@@ -24,6 +25,7 @@ window.CryptoZoo.config = {
         panda: {
             key: "panda",
             name: "Panda",
+            asset: "panda",
             buyCost: 400,
             baseIncome: 3,
             upgradeBaseCost: 600
@@ -31,9 +33,66 @@ window.CryptoZoo.config = {
         lion: {
             key: "lion",
             name: "Lew",
+            asset: "lion",
             buyCost: 1200,
             baseIncome: 8,
             upgradeBaseCost: 1800
+        },
+        tiger: {
+            key: "tiger",
+            name: "Tygrys",
+            asset: "tiger",
+            buyCost: 3000,
+            baseIncome: 15,
+            upgradeBaseCost: 4200
+        },
+        elephant: {
+            key: "elephant",
+            name: "Słoń",
+            asset: "elephant",
+            buyCost: 8000,
+            baseIncome: 35,
+            upgradeBaseCost: 11000
+        },
+        giraffe: {
+            key: "giraffe",
+            name: "Żyrafa",
+            asset: "giraffe",
+            buyCost: 18000,
+            baseIncome: 70,
+            upgradeBaseCost: 24000
+        },
+        zebra: {
+            key: "zebra",
+            name: "Zebra",
+            asset: "zebra",
+            buyCost: 35000,
+            baseIncome: 130,
+            upgradeBaseCost: 48000
+        },
+        penguin: {
+            key: "penguin",
+            name: "Pingwin",
+            asset: "penguin",
+            buyCost: 70000,
+            baseIncome: 240,
+            upgradeBaseCost: 95000
+        },
+        bear: {
+            key: "bear",
+            name: "Niedźwiedź",
+            asset: "bear",
+            buyCost: 140000,
+            baseIncome: 420,
+            upgradeBaseCost: 190000
+        },
+        wolf: {
+            key: "wolf",
+            name: "Wilk",
+            asset: "wolf",
+            buyCost: 280000,
+            baseIncome: 750,
+            upgradeBaseCost: 380000
         }
     }
 };
