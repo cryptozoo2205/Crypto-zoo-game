@@ -1,155 +1,218 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.ui = {
-    getEl(id) {
-        return document.getElementById(id);
-    },
 
-    showToast(message) {
-        const toast = this.getEl("toast");
-        if (!toast) return;
+getEl(id){
+return document.getElementById(id);
+},
 
-        toast.textContent = message;
-        toast.style.display = "block";
+showToast(message){
 
-        clearTimeout(window.cryptoZooToastTimeout);
+const toast=this.getEl("toast");
 
-        window.cryptoZooToastTimeout = setTimeout(function () {
-            toast.style.display = "none";
-        }, 2000);
-    },
+if(!toast)return;
 
-    showScreen(screenId) {
-        const screens = document.querySelectorAll(".screen");
-        const navButtons = document.querySelectorAll(".nav-btn");
+toast.textContent=message;
+toast.style.display="block";
 
-        screens.forEach(function (screen) {
-            screen.classList.remove("active-screen");
-        });
+clearTimeout(window.cryptoZooToastTimeout);
 
-        navButtons.forEach(function (btn) {
-            btn.classList.remove("active-nav");
-        });
+window.cryptoZooToastTimeout=setTimeout(function(){
 
-        const target = document.getElementById(screenId);
-        if (target) {
-            target.classList.add("active-screen");
-        }
+toast.style.display="none";
 
-        navButtons.forEach(function (btn) {
-            if (btn.getAttribute("data-screen") === screenId) {
-                btn.classList.add("active-nav");
-            }
-        });
-    },
+},2000);
 
-    animateCoinsBurst() {
-        const container = document.getElementById("coin-animation-container");
-        if (!container) return;
+},
 
-        for (let i = 0; i < 8; i++) {
-            const coin = document.createElement("div");
-            coin.className = "flying-coin";
+showScreen(screenId){
 
-            const moveX = (Math.floor(Math.random() * 220) - 110) + "px";
-            const moveY = (-70 - Math.floor(Math.random() * 140)) + "px";
+const screens=document.querySelectorAll(".screen");
+const navButtons=document.querySelectorAll(".nav-btn");
 
-            coin.style.left = "114px";
-            coin.style.top = "114px";
-            coin.style.setProperty("--moveX", moveX);
-            coin.style.setProperty("--moveY", moveY);
+screens.forEach(function(screen){
+screen.classList.remove("active-screen");
+});
 
-            container.appendChild(coin);
+navButtons.forEach(function(btn){
+btn.classList.remove("active-nav");
+});
 
-            setTimeout(function () {
-                coin.remove();
-            }, 900);
-        }
-    },
+const target=document.getElementById(screenId);
 
-    updateText(id, value) {
-        const el = document.getElementById(id);
-        if (el) {
-            el.textContent = value;
-        }
-    },
+if(target){
+target.classList.add("active-screen");
+}
 
-    renderZooList() {
-        const zooList = document.getElementById("zoo-list");
-        if (!zooList) return;
+navButtons.forEach(function(btn){
 
-        const animalsConfig = CryptoZoo.config.animals;
-        const animalsState = CryptoZoo.state.animals || {};
+if(btn.getAttribute("data-screen")===screenId){
+btn.classList.add("active-nav");
+}
 
-        zooList.innerHTML = "";
+});
 
-        Object.keys(animalsConfig).forEach((type) => {
-            const config = animalsConfig[type];
-            const state = animalsState[type] || { count: 0, level: 1 };
+},
 
-            const row = document.createElement("div");
-            row.className = "animal-row";
+animateCoinsBurst(){
 
-            row.innerHTML = `
-                <div class="animal-left">
-                    <div class="animal-icon">
-                        <img src="assets/animals/${config.asset}.png" alt="${config.name}" />
-                    </div>
-                    <div class="animal-text">
-                        <div class="animal-name">${config.name}</div>
-                        <div class="animal-desc">Dochód ${CryptoZoo.formatNumber(config.baseIncome)}/sek • Koszt ${CryptoZoo.formatNumber(config.buyCost)}</div>
-                        <div class="animal-owned">
-                            Posiadasz: <span id="${type}-count">${CryptoZoo.formatNumber(state.count)}</span> • Poziom: <span id="${type}-level">${CryptoZoo.formatNumber(state.level)}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="animal-actions">
-                    <button id="buy-${type}-btn" type="button">Kup</button>
-                    <button id="upgrade-${type}-btn" type="button">Lvl Up</button>
-                </div>
-            `;
+const container=document.getElementById("coin-animation-container");
 
-            zooList.appendChild(row);
-        });
-    },
+if(!container)return;
 
-    render() {
-        const state = CryptoZoo.state || {};
-        const animals = state.animals || {};
-        const animalsConfig = CryptoZoo.config.animals || {};
+for(let i=0;i<10;i++){
 
-        this.updateText("coins-count", CryptoZoo.formatNumber(state.coins || 0));
-        this.updateText("gems-count", CryptoZoo.formatNumber(state.gems || 0));
-        this.updateText("level", CryptoZoo.formatNumber(state.level || 1));
-        this.updateText("coins-per-click", CryptoZoo.formatNumber(state.coinsPerClick || 1));
-        this.updateText("upgrade-cost", CryptoZoo.formatNumber(state.upgradeCost || 50));
-        this.updateText("zoo-income", CryptoZoo.formatNumber(state.zooIncome || 0));
+const coin=document.createElement("div");
 
-        let totalAnimals = 0;
+coin.className="flying-coin";
 
-        Object.keys(animalsConfig).forEach((type) => {
-            const animal = animals[type] || { count: 0, level: 1 };
-            totalAnimals += Number(animal.count) || 0;
-        });
+const moveX=(Math.random()*200-100)+"px";
+const moveY=(-80-Math.random()*120)+"px";
 
-        this.updateText("animals-total", CryptoZoo.formatNumber(totalAnimals));
+coin.style.left="120px";
+coin.style.top="120px";
 
-        this.renderZooList();
+coin.style.setProperty("--moveX",moveX);
+coin.style.setProperty("--moveY",moveY);
 
-        Object.keys(animalsConfig).forEach((type) => {
-            const animal = animals[type] || { count: 0, level: 1 };
+container.appendChild(coin);
 
-            this.updateText(`${type}-count`, CryptoZoo.formatNumber(animal.count));
-            this.updateText(`${type}-level`, CryptoZoo.formatNumber(animal.level));
+setTimeout(function(){
 
-            const upgradeBtn = document.getElementById(`upgrade-${type}-btn`);
-            if (upgradeBtn && CryptoZoo.gameplay) {
-                upgradeBtn.textContent = `Lvl Up (${CryptoZoo.formatNumber(CryptoZoo.gameplay.getAnimalUpgradeCost(type))})`;
-            }
-        });
+coin.remove();
 
-        if (CryptoZoo.gameplay && typeof CryptoZoo.gameplay.bindAnimalButtons === "function") {
-            CryptoZoo.gameplay.bindAnimalButtons();
-        }
-    }
+},800);
+
+}
+
+},
+
+updateText(id,value){
+
+const el=document.getElementById(id);
+
+if(el){
+el.textContent=value;
+}
+
+},
+
+renderZooList(){
+
+const zooList=document.getElementById("zoo-list");
+
+if(!zooList)return;
+
+const animalsConfig=CryptoZoo.config.animals;
+const animalsState=CryptoZoo.state.animals||{};
+
+zooList.innerHTML="";
+
+Object.keys(animalsConfig).forEach((type)=>{
+
+const config=animalsConfig[type];
+const state=animalsState[type]||{count:0,level:1};
+
+const row=document.createElement("div");
+
+row.className="animal-row";
+
+row.innerHTML=`
+
+<div class="animal-left">
+
+<div class="animal-icon">
+<img src="assets/animals/${config.asset}.png" alt="${config.name}" />
+</div>
+
+<div class="animal-text">
+
+<div class="animal-name">${config.name}</div>
+
+<div class="animal-desc">
+Dochód ${CryptoZoo.formatNumber(config.baseIncome)}/sek • Koszt ${CryptoZoo.formatNumber(config.buyCost)}
+</div>
+
+<div class="animal-owned">
+Posiadasz:
+<span id="${type}-count">${CryptoZoo.formatNumber(state.count)}</span>
+•
+Poziom:
+<span id="${type}-level">${CryptoZoo.formatNumber(state.level)}</span>
+</div>
+
+</div>
+</div>
+
+<div class="animal-actions">
+
+<button id="buy-${type}-btn" type="button">
+Kup
+</button>
+
+<button id="upgrade-${type}-btn" type="button">
+Lvl Up
+</button>
+
+</div>
+
+`;
+
+zooList.appendChild(row);
+
+});
+
+},
+
+render(){
+
+const state=CryptoZoo.state||{};
+const animals=state.animals||{};
+const animalsConfig=CryptoZoo.config.animals||{};
+
+this.updateText("coins-count",CryptoZoo.formatNumber(state.coins||0));
+this.updateText("gems-count",CryptoZoo.formatNumber(state.gems||0));
+this.updateText("level",CryptoZoo.formatNumber(state.level||1));
+this.updateText("coins-per-click",CryptoZoo.formatNumber(state.coinsPerClick||1));
+this.updateText("upgrade-cost",CryptoZoo.formatNumber(state.upgradeCost||50));
+this.updateText("zoo-income",CryptoZoo.formatNumber(state.zooIncome||0));
+
+let totalAnimals=0;
+
+Object.keys(animalsConfig).forEach((type)=>{
+
+const animal=animals[type]||{count:0,level:1};
+
+totalAnimals+=Number(animal.count)||0;
+
+});
+
+this.updateText("animals-total",CryptoZoo.formatNumber(totalAnimals));
+
+this.renderZooList();
+
+Object.keys(animalsConfig).forEach((type)=>{
+
+const animal=animals[type]||{count:0,level:1};
+
+this.updateText(`${type}-count`,CryptoZoo.formatNumber(animal.count));
+this.updateText(`${type}-level`,CryptoZoo.formatNumber(animal.level));
+
+const upgradeBtn=document.getElementById(`upgrade-${type}-btn`);
+
+if(upgradeBtn && CryptoZoo.gameplay){
+
+upgradeBtn.textContent=
+`Lvl Up (${CryptoZoo.formatNumber(CryptoZoo.gameplay.getAnimalUpgradeCost(type))})`;
+
+}
+
+});
+
+if(CryptoZoo.gameplay && typeof CryptoZoo.gameplay.bindAnimalButtons==="function"){
+CryptoZoo.gameplay.bindAnimalButtons();
+}
+
+}
+
 };
