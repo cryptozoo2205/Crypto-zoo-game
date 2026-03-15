@@ -20,15 +20,15 @@ const userSchema = new mongoose.Schema({
 
     animals: {
         monkey: { type: animalSchema, default: () => ({}) },
-        rabbit: { type: animalSchema, default: () => ({}) },
-        fox: { type: animalSchema, default: () => ({}) },
-        wolf: { type: animalSchema, default: () => ({}) },
         panda: { type: animalSchema, default: () => ({}) },
-        tiger: { type: animalSchema, default: () => ({}) },
-        gorilla: { type: animalSchema, default: () => ({}) },
         lion: { type: animalSchema, default: () => ({}) },
+        tiger: { type: animalSchema, default: () => ({}) },
         elephant: { type: animalSchema, default: () => ({}) },
-        giraffe: { type: animalSchema, default: () => ({}) }
+        giraffe: { type: animalSchema, default: () => ({}) },
+        zebra: { type: animalSchema, default: () => ({}) },
+        penguin: { type: animalSchema, default: () => ({}) },
+        bear: { type: animalSchema, default: () => ({}) },
+        wolf: { type: animalSchema, default: () => ({}) }
     }
 });
 
