@@ -1,55 +1,54 @@
-l.bottom-menu{
-    position:fixed;
-    left:50%;
-    bottom:12px;
-    transform:translateX(-50%);
-    width:calc(100% - 28px);
-    max-width:492px;
-    display:grid;
-    grid-template-columns:repeat(4, 1fr);
-    gap:8px;
-    padding:10px;
-    background:rgba(34,45,73,0.92);
-    border:1px solid rgba(255,255,255,0.10);
-    border-radius:22px;
-    box-shadow:0 12px 30px rgba(0,0,0,0.30);
-    backdrop-filter:blur(8px);
-    z-index:100;
-    box-sizing:border-box;
+.bottom-menu {
+    position: fixed;
+    left: 50%;
+    bottom: 12px;
+    transform: translateX(-50%);
+    width: calc(100% - 28px);
+    max-width: 492px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 10px;
+    background: rgba(34, 45, 73, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 22px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.30);
+    z-index: 100;
 }
 
-.nav-btn{
-    border:none;
-    background:transparent;
-    color:rgba(255,255,255,0.78);
-    border-radius:16px;
-    padding:10px 6px 8px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:4px;
-    cursor:pointer;
-    min-height:62px;
-    transition:background 0.15s ease, transform 0.15s ease, color 0.15s ease;
+.nav-btn {
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.78);
+    border-radius: 16px;
+    padding: 8px 6px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    min-height: 68px;
+    transition: background 0.15s ease, transform 0.15s ease, color 0.15s ease;
 }
 
-.nav-btn:active{
-    transform:scale(0.96);
+.nav-btn:active {
+    transform: scale(0.96);
 }
 
-.nav-btn.active-nav{
-    background:rgba(255,255,255,0.10);
-    color:#ffffff;
+.nav-btn.active-nav {
+    background: rgba(255, 255, 255, 0.10);
+    color: #ffffff;
 }
 
-.nav-icon{
-    font-size:20px;
-    line-height:1;
+.nav-icon-img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
 }
 
-.nav-text{
-    font-size:13px;
-    font-weight:700;
-    line-height:1;
+.nav-text {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
 }
