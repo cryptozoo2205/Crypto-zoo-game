@@ -51,24 +51,26 @@
     <div id="toast" class="toast"></div>
 
     <section id="game" class="screen active-screen">
-      <div class="game-main-panel">
-        <div class="tap-ring-wrap">
-          <img class="tap-ring-img" src="assets/effects/glow_circle.png" alt="" />
-          <button id="tap-btn" type="button" aria-label="Uzyskaj monety"></button>
-          <div id="coin-animation-container"></div>
-        </div>
-
-        <div class="tap-title">UZYSKAJ MONETY</div>
-
-        <div class="income-bar">
-          <div class="income-box">
-            <div class="income-label">Dochód zoo / sek</div>
-            <div class="income-value" id="zoo-income">0</div>
+      <div class="screen-card game-screen-card">
+        <div class="game-main-panel">
+          <div class="tap-ring-wrap">
+            <img class="tap-ring-img" src="assets/effects/glow_circle.png" alt="" />
+            <button id="tap-btn" type="button" aria-label="Uzyskaj monety"></button>
+            <div id="coin-animation-container"></div>
           </div>
 
-          <div class="income-box">
-            <div class="income-label">Łącznie zwierząt</div>
-            <div class="income-value" id="animals-total">0</div>
+          <div class="tap-title">UZYSKAJ MONETY</div>
+
+          <div class="income-bar">
+            <div class="income-box">
+              <div class="income-label">Dochód zoo / sek</div>
+              <div class="income-value" id="zoo-income">0</div>
+            </div>
+
+            <div class="income-box">
+              <div class="income-label">Łącznie zwierząt</div>
+              <div class="income-value" id="animals-total">0</div>
+            </div>
           </div>
         </div>
       </div>
@@ -76,7 +78,7 @@
 
     <section id="zoo" class="screen">
       <div class="screen-card zoo-screen-card">
-        <h3 class="section-title">🐾 Zoo</h3>
+        <h3 class="section-title">🐾 Zoo Collection</h3>
         <div id="zoo-list"></div>
       </div>
     </section>
