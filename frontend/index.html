@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="css/ranking.css" />
   <link rel="stylesheet" href="css/menu.css" />
   <link rel="stylesheet" href="css/responsive.css" />
+  <link rel="stylesheet" href="css/expeditions.css" />
 </head>
 <body>
   <div class="app-shell">
@@ -55,7 +56,9 @@
         <div class="game-main-panel">
           <div class="tap-ring-wrap">
             <img class="tap-ring-img" src="assets/effects/glow_circle.png" alt="" />
-            <button id="tap-btn" type="button" aria-label="Uzyskaj monety"></button>
+            <button id="tap-btn" type="button" aria-label="Uzyskaj monety">
+              <span class="tap-paw-icon">🐾</span>
+            </button>
             <div id="coin-animation-container"></div>
           </div>
 
@@ -80,6 +83,16 @@
       <div class="screen-card zoo-screen-card">
         <h3 class="section-title">🐾 Zoo Collection</h3>
         <div id="zoo-list"></div>
+      </div>
+    </section>
+
+    <section id="expeditions" class="screen">
+      <div class="screen-card expeditions-screen-card">
+        <h3 class="section-title">🧭 Ekspedycje</h3>
+
+        <div id="expedition-active-box" class="expedition-active-box"></div>
+
+        <div id="expedition-list" class="expedition-list"></div>
       </div>
     </section>
 
@@ -109,7 +122,7 @@
     </section>
   </div>
 
-  <nav class="bottom-menu">
+  <nav class="bottom-menu five-menu">
     <button class="nav-btn active-nav" data-screen="game" type="button">
       <img class="nav-icon-img" src="assets/menu/icon_game.png" alt="Gra" />
       <span class="nav-text">Gra</span>
@@ -118,6 +131,11 @@
     <button class="nav-btn" data-screen="zoo" type="button">
       <img class="nav-icon-img" src="assets/menu/icon_zoo.png" alt="Zoo" />
       <span class="nav-text">Zoo</span>
+    </button>
+
+    <button class="nav-btn" data-screen="expeditions" type="button">
+      <span class="nav-emoji">🧭</span>
+      <span class="nav-text">Misje</span>
     </button>
 
     <button class="nav-btn" data-screen="shop" type="button">
