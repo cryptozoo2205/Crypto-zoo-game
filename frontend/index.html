@@ -1,4 +1,4 @@
-l<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pl">
 <head>
   <meta charset="UTF-8" />
@@ -22,7 +22,7 @@ l<!DOCTYPE html>
       <div class="hero-overlay"></div>
       <div class="hero-content">
         <h1>Crypto Zoo</h1>
-        <div class="paw-deco">🐾 🐾</div>
+        <div class="paw-deco">🐾 🐾 🐾</div>
 
         <div class="stats-panel">
           <div class="stat-card">
@@ -53,10 +53,8 @@ l<!DOCTYPE html>
     <section id="game" class="screen active-screen">
       <div class="game-main-panel">
         <div class="tap-ring-wrap">
-          <div class="tap-ring-glow"></div>
-          <button id="tap-btn" type="button">
-            <span class="tap-paw">🐾</span>
-          </button>
+          <img class="tap-ring-img" src="assets/effects/glow_circle.png" alt="" />
+          <button id="tap-btn" type="button" aria-label="Uzyskaj monety"></button>
           <div id="coin-animation-container"></div>
         </div>
 
@@ -82,7 +80,9 @@ l<!DOCTYPE html>
 
         <div class="animal-row">
           <div class="animal-left">
-            <div class="animal-icon">🐵</div>
+            <div class="animal-icon">
+              <img src="assets/animals/monkey.png" alt="Małpa" />
+            </div>
             <div class="animal-text">
               <div class="animal-name">Małpa</div>
               <div class="animal-desc">Dochód 1/sek • Koszt 100</div>
@@ -99,7 +99,9 @@ l<!DOCTYPE html>
 
         <div class="animal-row">
           <div class="animal-left">
-            <div class="animal-icon">🐼</div>
+            <div class="animal-icon">
+              <img src="assets/animals/panda.png" alt="Panda" />
+            </div>
             <div class="animal-text">
               <div class="animal-name">Panda</div>
               <div class="animal-desc">Dochód 3/sek • Koszt 400</div>
@@ -116,7 +118,9 @@ l<!DOCTYPE html>
 
         <div class="animal-row">
           <div class="animal-left">
-            <div class="animal-icon">🦁</div>
+            <div class="animal-icon">
+              <img src="assets/animals/lion.png" alt="Lew" />
+            </div>
             <div class="animal-text">
               <div class="animal-name">Lew</div>
               <div class="animal-desc">Dochód 8/sek • Koszt 1200</div>
@@ -161,22 +165,22 @@ l<!DOCTYPE html>
 
   <nav class="bottom-menu">
     <button class="nav-btn active-nav" data-screen="game" type="button">
-      <span class="nav-icon">🏠</span>
+      <img class="nav-icon-img" src="assets/menu/icon_game.png" alt="Gra" />
       <span class="nav-text">Gra</span>
     </button>
 
     <button class="nav-btn" data-screen="zoo" type="button">
-      <span class="nav-icon">🐾</span>
+      <img class="nav-icon-img" src="assets/menu/icon_zoo.png" alt="Zoo" />
       <span class="nav-text">Zoo</span>
     </button>
 
     <button class="nav-btn" data-screen="shop" type="button">
-      <span class="nav-icon">🛒</span>
+      <img class="nav-icon-img" src="assets/menu/icon_shop.png" alt="Sklep" />
       <span class="nav-text">Sklep</span>
     </button>
 
     <button class="nav-btn" data-screen="ranking" type="button">
-      <span class="nav-icon">🏆</span>
+      <img class="nav-icon-img" src="assets/menu/icon_ranking.png" alt="Ranking" />
       <span class="nav-text">Ranking</span>
     </button>
   </nav>
