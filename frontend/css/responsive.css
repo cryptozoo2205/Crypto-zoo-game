@@ -1,81 +1,52 @@
-@media (max-width: 420px){
-    .app-shell{
-        padding:0 10px 106px;
+@media (max-width: 520px) {
+    .app-shell {
+        padding-left: 10px;
+        padding-right: 10px;
+        padding-bottom: 108px;
     }
 
-    h1{
-        font-size:42px;
+    h1 {
+        font-size: 42px;
     }
 
-    .paw-deco{
-        font-size:24px;
+    .stat-value {
+        font-size: 22px;
     }
 
-    .stats-panel{
-        grid-template-columns:1fr;
+    .tap-ring-wrap {
+        width: 220px;
+        height: 220px;
     }
 
-    .stat-value{
-        font-size:22px;
+    .tap-ring-img {
+        width: 200px;
+        height: 200px;
     }
 
-    .tap-ring-wrap{
-        width:220px;
-        height:220px;
+    #tap-btn {
+        width: 170px;
+        height: 170px;
     }
 
-    .tap-ring-glow{
-        width:210px;
-        height:210px;
+    .animal-row {
+        flex-direction: column;
+        align-items: stretch;
     }
 
-    #tap-btn{
-        width:175px;
-        height:175px;
-        font-size:60px;
+    .animal-actions {
+        width: 100%;
     }
 
-    .tap-title{
-        font-size:20px;
+    .income-bar {
+        grid-template-columns: 1fr;
     }
 
-    .income-bar{
-        grid-template-columns:1fr;
+    .shop-row {
+        flex-direction: column;
+        align-items: stretch;
     }
 
-    .collection-grid{
-        grid-template-columns:1fr;
-    }
-
-    .collection-rarity-summary{
-        grid-template-columns:1fr;
-    }
-
-    .animal-row,
-    .shop-row{
-        flex-direction:column;
-        align-items:stretch;
-    }
-
-    .animal-actions{
-        flex-direction:row;
-    }
-
-    .animal-actions button{
-        flex:1;
-        min-width:0;
-    }
-
-    .bottom-menu{
-        height:78px;
-        border-radius:22px;
-    }
-
-    .nav-icon{
-        font-size:22px;
-    }
-
-    .nav-text{
-        font-size:12px;
+    #buy-upgrade-btn {
+        width: 100%;
     }
 }
