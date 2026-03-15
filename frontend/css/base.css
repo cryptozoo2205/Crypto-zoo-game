@@ -13,7 +13,9 @@ body {
 }
 
 body {
-    background: url("../assets/backgrounds/background_zoo.png") center center no-repeat;
+    background:
+        linear-gradient(180deg, rgba(4, 12, 20, 0.12) 0%, rgba(4, 12, 20, 0.28) 100%),
+        url("../assets/backgrounds/background_zoo.png") center center no-repeat;
     background-size: cover;
     background-attachment: fixed;
     min-height: 100vh;
