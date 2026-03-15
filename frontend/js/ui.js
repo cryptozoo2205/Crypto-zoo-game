@@ -1,217 +1,78 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
-window.CryptoZoo.ui = {
+CryptoZoo.ui = {
 
-getEl(id){
-return document.getElementById(id);
-},
+render(){
 
-showToast(message){
+this.update("coins-count",CryptoZoo.state.coins);
+this.update("gems-count",CryptoZoo.state.gems);
+this.update("level",CryptoZoo.state.level);
+this.update("coins-per-click",CryptoZoo.state.coinsPerClick);
 
-const toast=this.getEl("toast");
-
-if(!toast)return;
-
-toast.textContent=message;
-toast.style.display="block";
-
-clearTimeout(window.cryptoZooToastTimeout);
-
-window.cryptoZooToastTimeout=setTimeout(function(){
-
-toast.style.display="none";
-
-},2000);
+this.renderExpeditions();
 
 },
 
-showScreen(screenId){
-
-const screens=document.querySelectorAll(".screen");
-const navButtons=document.querySelectorAll(".nav-btn");
-
-screens.forEach(function(screen){
-screen.classList.remove("active-screen");
-});
-
-navButtons.forEach(function(btn){
-btn.classList.remove("active-nav");
-});
-
-const target=document.getElementById(screenId);
-
-if(target){
-target.classList.add("active-screen");
-}
-
-navButtons.forEach(function(btn){
-
-if(btn.getAttribute("data-screen")===screenId){
-btn.classList.add("active-nav");
-}
-
-});
-
-},
-
-animateCoinsBurst(){
-
-const container=document.getElementById("coin-animation-container");
-
-if(!container)return;
-
-for(let i=0;i<10;i++){
-
-const coin=document.createElement("div");
-
-coin.className="flying-coin";
-
-const moveX=(Math.random()*200-100)+"px";
-const moveY=(-80-Math.random()*120)+"px";
-
-coin.style.left="120px";
-coin.style.top="120px";
-
-coin.style.setProperty("--moveX",moveX);
-coin.style.setProperty("--moveY",moveY);
-
-container.appendChild(coin);
-
-setTimeout(function(){
-
-coin.remove();
-
-},800);
-
-}
-
-},
-
-updateText(id,value){
+update(id,value){
 
 const el=document.getElementById(id);
 
 if(el){
-el.textContent=value;
+el.innerText=value;
 }
 
 },
 
-renderZooList(){
+renderExpeditions(){
 
-const zooList=document.getElementById("zoo-list");
+const container=document.getElementById("expeditions-list");
 
-if(!zooList)return;
+if(!container) return;
 
-const animalsConfig=CryptoZoo.config.animals;
-const animalsState=CryptoZoo.state.animals||{};
+container.innerHTML="";
 
-zooList.innerHTML="";
+const expedition=CryptoZoo.state.expedition;
 
-Object.keys(animalsConfig).forEach((type)=>{
+if(expedition){
 
-const config=animalsConfig[type];
-const state=animalsState[type]||{count:0,level:1};
+const timeLeft = Math.max(0,Math.floor((expedition.endTime-Date.now())/1000));
 
-const row=document.createElement("div");
-
-row.className="animal-row";
-
-row.innerHTML=`
-
-<div class="animal-left">
-
-<div class="animal-icon">
-<img src="assets/animals/${config.asset}.png" alt="${config.name}" />
+container.innerHTML=`
+<div class="expedition-card">
+Trwa ekspedycja<br>
+Pozostało: ${timeLeft}s<br>
+<button onclick="CryptoZoo.gameplay.collectExpedition()">Odbierz</button>
 </div>
-
-<div class="animal-text">
-
-<div class="animal-name">${config.name}</div>
-
-<div class="animal-desc">
-Dochód ${CryptoZoo.formatNumber(config.baseIncome)}/sek • Koszt ${CryptoZoo.formatNumber(config.buyCost)}
-</div>
-
-<div class="animal-owned">
-Posiadasz:
-<span id="${type}-count">${CryptoZoo.formatNumber(state.count)}</span>
-•
-Poziom:
-<span id="${type}-level">${CryptoZoo.formatNumber(state.level)}</span>
-</div>
-
-</div>
-</div>
-
-<div class="animal-actions">
-
-<button id="buy-${type}-btn" type="button">
-Kup
-</button>
-
-<button id="upgrade-${type}-btn" type="button">
-Lvl Up
-</button>
-
-</div>
-
 `;
 
-zooList.appendChild(row);
+return;
+
+}
+
+CryptoZoo.config.expeditions.forEach(exp=>{
+
+const el=document.createElement("div");
+
+el.className="expedition-card";
+
+el.innerHTML=`
+<h3>${exp.name}</h3>
+Czas: ${exp.duration}s<br>
+Nagroda: ${exp.rewardCoins} coins + ${exp.rewardGems} gems<br>
+<button onclick="CryptoZoo.gameplay.startExpedition('${exp.id}')">
+Start
+</button>
+`;
+
+container.appendChild(el);
 
 });
 
 },
 
-render(){
+showToast(text){
 
-const state=CryptoZoo.state||{};
-const animals=state.animals||{};
-const animalsConfig=CryptoZoo.config.animals||{};
-
-this.updateText("coins-count",CryptoZoo.formatNumber(state.coins||0));
-this.updateText("gems-count",CryptoZoo.formatNumber(state.gems||0));
-this.updateText("level",CryptoZoo.formatNumber(state.level||1));
-this.updateText("coins-per-click",CryptoZoo.formatNumber(state.coinsPerClick||1));
-this.updateText("upgrade-cost",CryptoZoo.formatNumber(state.upgradeCost||50));
-this.updateText("zoo-income",CryptoZoo.formatNumber(state.zooIncome||0));
-
-let totalAnimals=0;
-
-Object.keys(animalsConfig).forEach((type)=>{
-
-const animal=animals[type]||{count:0,level:1};
-
-totalAnimals+=Number(animal.count)||0;
-
-});
-
-this.updateText("animals-total",CryptoZoo.formatNumber(totalAnimals));
-
-this.renderZooList();
-
-Object.keys(animalsConfig).forEach((type)=>{
-
-const animal=animals[type]||{count:0,level:1};
-
-this.updateText(`${type}-count`,CryptoZoo.formatNumber(animal.count));
-this.updateText(`${type}-level`,CryptoZoo.formatNumber(animal.level));
-
-const upgradeBtn=document.getElementById(`upgrade-${type}-btn`);
-
-if(upgradeBtn && CryptoZoo.gameplay){
-
-upgradeBtn.textContent=
-`Lvl Up (${CryptoZoo.formatNumber(CryptoZoo.gameplay.getAnimalUpgradeCost(type))})`;
-
-}
-
-});
-
-if(CryptoZoo.gameplay && typeof CryptoZoo.gameplay.bindAnimalButtons==="function"){
-CryptoZoo.gameplay.bindAnimalButtons();
-}
+alert(text);
 
 }
 
