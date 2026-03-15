@@ -1,18 +1,35 @@
-html,
-body{
-    margin:0;
-    padding:0;
-    width:100%;
-    min-height:100%;
-    font-family:Arial, sans-serif;
-    background:#000;
-    color:white;
-    overflow-x:hidden;
+* {
+    box-sizing: border-box;
 }
 
-body{
-    background:url("../assets/background.png") center center no-repeat;
-    background-size:cover;
-    background-attachment:fixed;
-    min-height:100vh;
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+    font-family: Arial, sans-serif;
+    color: #ffffff;
+}
+
+body {
+    background: url("../assets/backgrounds/background_zoo.png") center center no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+    min-height: 100vh;
+}
+
+button {
+    font-family: inherit;
+}
+
+img {
+    display: block;
+    max-width: 100%;
+}
+
+ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
