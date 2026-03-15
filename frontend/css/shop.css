@@ -5,7 +5,7 @@
     gap: 14px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 18px;
+    border-radius: 20px;
     padding: 16px 14px;
 }
 
@@ -16,7 +16,7 @@
 
 .shop-title {
     font-size: 24px;
-    font-weight: 800;
+    font-weight: 900;
     color: #ffffff;
     margin-bottom: 6px;
 }
@@ -28,22 +28,23 @@
 
 #buy-upgrade-btn {
     border: none;
-    border-radius: 14px;
+    border-radius: 16px;
     padding: 12px 20px;
     font-size: 16px;
-    font-weight: 800;
+    font-weight: 900;
     cursor: pointer;
     color: #173121;
-    background: url("../assets/ui/button_green.png") center center / cover no-repeat;
+    background: linear-gradient(180deg, #bbffd0 0%, #89f4b1 100%);
     min-width: 110px;
     min-height: 52px;
+    box-shadow: 0 8px 16px rgba(58, 205, 122, 0.16);
 }
 
 .info-box {
     margin-top: 14px;
     text-align: center;
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 14px;
+    border-radius: 16px;
     padding: 14px 12px;
     font-size: 18px;
     font-weight: 700;
