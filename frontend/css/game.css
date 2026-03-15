@@ -1,115 +1,128 @@
-#game {
-    width: 100%;
+#game{
+width:100%;
 }
 
-.game-main-panel {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 18px;
-    padding: 4px 0 4px;
+.game-main-panel{
+width:100%;
+display:flex;
+flex-direction:column;
+align-items:center;
+gap:20px;
+padding:10px 0;
 }
 
-.tap-ring-wrap {
-    position: relative;
-    width: 270px;
-    height: 270px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.tap-ring-wrap{
+position:relative;
+width:260px;
+height:260px;
+display:flex;
+align-items:center;
+justify-content:center;
 }
 
-.tap-ring-img {
-    position: absolute;
-    width: 250px;
-    height: 250px;
-    object-fit: contain;
-    opacity: 0.88;
-    pointer-events: none;
-    filter: drop-shadow(0 0 16px rgba(120, 255, 160, 0.25));
+.tap-ring-img{
+position:absolute;
+width:240px;
+height:240px;
+opacity:.85;
+pointer-events:none;
+animation:rotateRing 8s linear infinite;
 }
 
-#tap-btn {
-    position: relative;
-    z-index: 2;
-    width: 200px;
-    height: 200px;
-    border: none;
-    background: url("../assets/buttons/tap_button.png") center center / contain no-repeat;
-    cursor: pointer;
-    transition: transform 0.12s ease;
+#tap-btn{
+position:relative;
+z-index:2;
+
+width:200px;
+height:200px;
+
+border:none;
+cursor:pointer;
+
+background:url("../assets/buttons/tap_button.png") center/contain no-repeat;
+
+transition:transform .12s;
 }
 
-#tap-btn:active {
-    transform: scale(0.96);
-    background-image: url("../assets/buttons/tap_button_pressed.png");
+#tap-btn:hover{
+transform:scale(1.05);
 }
 
-.tap-title {
-    font-size: 24px;
-    font-weight: 900;
-    color: #ffffff;
-    letter-spacing: 1px;
-    text-align: center;
-    text-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+#tap-btn:active{
+transform:scale(.9);
+background:url("../assets/buttons/tap_button_pressed.png") center/contain no-repeat;
 }
 
-.income-bar {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
+.tap-title{
+font-size:24px;
+font-weight:900;
+letter-spacing:1px;
 }
 
-.income-box {
-    background: linear-gradient(180deg, rgba(15, 22, 35, 0.90) 0%, rgba(10, 15, 24, 0.96) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 20px;
-    padding: 14px 12px;
-    text-align: center;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+.income-bar{
+width:100%;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px;
 }
 
-.income-label {
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.72);
-    margin-bottom: 8px;
+.income-box{
+background:rgba(0,0,0,.35);
+border-radius:16px;
+padding:14px;
+text-align:center;
 }
 
-.income-value {
-    font-size: 26px;
-    font-weight: 900;
-    color: #7dff7c;
-    line-height: 1.1;
-    word-break: break-word;
+.income-label{
+font-size:13px;
+opacity:.8;
 }
 
-#coin-animation-container {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    overflow: visible;
+.income-value{
+font-size:26px;
+font-weight:900;
+color:#7dff7c;
 }
 
-.flying-coin {
-    position: absolute;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: url("../assets/coins/coin.png") center center / contain no-repeat;
-    animation: flyCoin 0.8s forwards;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+#coin-animation-container{
+position:absolute;
+inset:0;
+pointer-events:none;
 }
 
-@keyframes flyCoin {
-    0% {
-        opacity: 1;
-        transform: translate(0, 0) scale(1);
-    }
+.flying-coin{
 
-    100% {
-        opacity: 0;
-        transform: translate(var(--moveX), var(--moveY)) scale(0.8);
-    }
+position:absolute;
+width:26px;
+height:26px;
+
+background:url("../assets/coins/coin.png") center/contain no-repeat;
+
+animation:flyCoin .8s forwards;
+}
+
+@keyframes flyCoin{
+
+0%{
+opacity:1;
+transform:translate(0,0) scale(1);
+}
+
+100%{
+opacity:0;
+transform:translate(var(--moveX),var(--moveY)) scale(.6);
+}
+
+}
+
+@keyframes rotateRing{
+
+0%{
+transform:rotate(0deg);
+}
+
+100%{
+transform:rotate(360deg);
+}
+
 }
