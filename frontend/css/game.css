@@ -8,13 +8,13 @@
     flex-direction: column;
     align-items: center;
     gap: 18px;
-    padding: 8px 0 8px;
+    padding: 4px 0 4px;
 }
 
 .tap-ring-wrap {
     position: relative;
-    width: 250px;
-    height: 250px;
+    width: 270px;
+    height: 270px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -22,18 +22,19 @@
 
 .tap-ring-img {
     position: absolute;
-    width: 230px;
-    height: 230px;
+    width: 250px;
+    height: 250px;
     object-fit: contain;
-    opacity: 0.85;
+    opacity: 0.88;
     pointer-events: none;
+    filter: drop-shadow(0 0 16px rgba(120, 255, 160, 0.25));
 }
 
 #tap-btn {
     position: relative;
     z-index: 2;
-    width: 190px;
-    height: 190px;
+    width: 200px;
+    height: 200px;
     border: none;
     background: url("../assets/buttons/tap_button.png") center center / contain no-repeat;
     cursor: pointer;
@@ -62,9 +63,9 @@
 }
 
 .income-box {
-    background: linear-gradient(180deg, rgba(12, 20, 30, 0.86) 0%, rgba(8, 14, 22, 0.92) 100%);
+    background: linear-gradient(180deg, rgba(15, 22, 35, 0.90) 0%, rgba(10, 15, 24, 0.96) 100%);
     border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 18px;
+    border-radius: 20px;
     padding: 14px 12px;
     text-align: center;
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
@@ -93,8 +94,8 @@
 
 .flying-coin {
     position: absolute;
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     background: url("../assets/coins/coin.png") center center / contain no-repeat;
     animation: flyCoin 0.8s forwards;
@@ -104,11 +105,11 @@
 @keyframes flyCoin {
     0% {
         opacity: 1;
-        transform: translate(0, 0);
+        transform: translate(0, 0) scale(1);
     }
 
     100% {
         opacity: 0;
-        transform: translate(var(--moveX), var(--moveY));
+        transform: translate(var(--moveX), var(--moveY)) scale(0.8);
     }
 }
