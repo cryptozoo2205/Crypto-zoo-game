@@ -101,23 +101,29 @@ window.CryptoZoo.config = {
         {
             id: "short",
             name: "Krótka wyprawa",
-            duration: 600,
-            rewardCoins: 500,
-            rewardGems: 1
+            duration: 300,
+            baseCoins: 1200,
+            baseGems: 1,
+            rareChance: 0.25,
+            epicChance: 0.08
         },
         {
             id: "medium",
             name: "Średnia wyprawa",
-            duration: 1800,
-            rewardCoins: 2000,
-            rewardGems: 2
+            duration: 900,
+            baseCoins: 6000,
+            baseGems: 2,
+            rareChance: 0.35,
+            epicChance: 0.12
         },
         {
             id: "long",
             name: "Długa wyprawa",
-            duration: 3600,
-            rewardCoins: 8000,
-            rewardGems: 5
+            duration: 1800,
+            baseCoins: 18000,
+            baseGems: 4,
+            rareChance: 0.45,
+            epicChance: 0.18
         }
     ]
 };
