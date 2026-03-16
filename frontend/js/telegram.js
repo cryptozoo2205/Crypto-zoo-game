@@ -10,7 +10,10 @@ window.CryptoZoo.telegram = {
 
         try {
             tg.ready();
-            tg.expand();
+
+            if (typeof tg.expand === "function") {
+                tg.expand();
+            }
 
             if (typeof tg.setBackgroundColor === "function") {
                 tg.setBackgroundColor("#0f172a");
@@ -18,6 +21,14 @@ window.CryptoZoo.telegram = {
 
             if (typeof tg.setHeaderColor === "function") {
                 tg.setHeaderColor("#0f172a");
+            }
+
+            if (typeof tg.requestFullscreen === "function") {
+                try {
+                    tg.requestFullscreen();
+                } catch (fullscreenError) {
+                    console.error("TELEGRAM FULLSCREEN ERROR:", fullscreenError);
+                }
             }
 
             document.body.style.overflowX = "hidden";
