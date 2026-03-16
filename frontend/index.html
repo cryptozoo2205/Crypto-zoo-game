@@ -41,6 +41,8 @@ Reward
 
 <main id="game">
 
+<!-- GAME SCREEN -->
+
 <section id="screen-game">
 
 <div class="tap-area">
@@ -54,6 +56,8 @@ Reward
 </section>
 
 
+<!-- ZOO -->
+
 <section id="screen-zoo" class="hidden">
 
 <h2>Zoo</h2>
@@ -63,11 +67,14 @@ Reward
 </section>
 
 
+<!-- SHOP -->
+
 <section id="screen-shop" class="hidden">
 
 <h2>Shop</h2>
 
 <div id="shopList"></div>
+
 
 <h3>Boxes</h3>
 
@@ -102,6 +109,8 @@ Legendary Box
 </section>
 
 
+<!-- MISSIONS -->
+
 <section id="screen-missions" class="hidden">
 
 <h2>Expeditions</h2>
@@ -110,6 +119,21 @@ Legendary Box
 
 </section>
 
+
+<!-- MINI GAMES -->
+
+<section id="screen-minigames" class="hidden">
+
+<h2>Mini Games</h2>
+
+<button onclick="CryptoZoo.minigames.spinWheel()">
+Wheel Of Fortune
+</button>
+
+</section>
+
+
+<!-- RANKING -->
 
 <section id="screen-ranking" class="hidden">
 
@@ -121,6 +145,8 @@ Legendary Box
 
 </main>
 
+
+<!-- MENU -->
 
 <footer class="menu">
 
@@ -138,6 +164,10 @@ Shop
 
 <button data-nav="missions">
 Missions
+</button>
+
+<button data-nav="minigames">
+Mini Games
 </button>
 
 <button data-nav="ranking">
@@ -161,9 +191,9 @@ Ranking
 
 <script src="js/shop.js"></script>
 <script src="js/boxes.js"></script>
+<script src="js/minigames.js"></script>
 
 <script src="js/gameplay.js"></script>
-
 <script src="js/init.js"></script>
 
 </body>
