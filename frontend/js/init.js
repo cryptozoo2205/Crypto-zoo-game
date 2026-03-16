@@ -35,6 +35,10 @@ window.CryptoZoo.init = {
                 CryptoZoo.gameplay.bindActions();
             }
 
+            if (CryptoZoo.shop && CryptoZoo.shop.init) {
+                CryptoZoo.shop.init();
+            }
+
             if (CryptoZoo.gameplay && CryptoZoo.gameplay.startPassiveIncome) {
                 CryptoZoo.gameplay.startPassiveIncome();
             }
@@ -63,4 +67,4 @@ window.CryptoZoo.init = {
 
 document.addEventListener("DOMContentLoaded", function () {
     CryptoZoo.init.start();
-}); 
+});
