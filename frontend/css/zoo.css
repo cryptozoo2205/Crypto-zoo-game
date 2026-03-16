@@ -24,8 +24,8 @@
 }
 
 .animal-icon {
-    width: 68px;
-    height: 68px;
+    width: 90px;
+    height: 90px;
     border-radius: 18px;
     background: rgba(255, 255, 255, 0.07);
     display: flex;
@@ -37,8 +37,8 @@
 }
 
 .animal-icon img {
-    width: 58px;
-    height: 58px;
+    width: 80px;
+    height: 80px;
     object-fit: contain;
 }
 
