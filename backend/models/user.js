@@ -54,7 +54,10 @@ const userSchema = new mongoose.Schema({
         zebra: { type: animalSchema, default: () => ({}) },
         penguin: { type: animalSchema, default: () => ({}) },
         bear: { type: animalSchema, default: () => ({}) },
-        wolf: { type: animalSchema, default: () => ({}) }
+        wolf: { type: animalSchema, default: () => ({}) },
+        rhino: { type: animalSchema, default: () => ({}) },
+        gorilla: { type: animalSchema, default: () => ({}) },
+        crocodile: { type: animalSchema, default: () => ({}) }
     }
 });
 
