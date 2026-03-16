@@ -10,13 +10,16 @@ window.CryptoZoo.api = {
 
         if (tgUser && tgUser.id) {
             localStorage.setItem("telegramId", String(tgUser.id));
+
             if (tgUser.username) {
                 localStorage.setItem("telegramUsername", tgUser.username);
             }
+
             return String(tgUser.id);
         }
 
         let localId = localStorage.getItem("telegramId");
+
         if (!localId) {
             localId = "local-player";
             localStorage.setItem("telegramId", localId);
@@ -46,12 +49,24 @@ window.CryptoZoo.api = {
         return {
             telegramId: this.getPlayerId(),
             username: this.getUsername(),
+
             coins: Number(state.coins) || 0,
             gems: Number(state.gems) || 0,
             level: Number(state.level) || 1,
             coinsPerClick: Number(state.coinsPerClick) || 1,
             upgradeCost: Number(state.upgradeCost) || 50,
-            animals: state.animals || {}
+            zooIncome: Number(state.zooIncome) || 0,
+
+            lastLogin: Number(state.lastLogin) || Date.now(),
+
+            animals: state.animals || {},
+            boxes: state.boxes || {
+                common: 0,
+                rare: 0,
+                epic: 0
+            },
+
+            expedition: state.expedition || null
         };
     },
 
@@ -60,7 +75,10 @@ window.CryptoZoo.api = {
             const telegramId = this.getPlayerId();
             const response = await fetch("/api/player/" + encodeURIComponent(telegramId));
 
-            if (!response.ok) return null;
+            if (!response.ok) {
+                return null;
+            }
+
             return await response.json();
         } catch (error) {
             console.error("API loadPlayer error:", error);
@@ -78,7 +96,10 @@ window.CryptoZoo.api = {
                 body: JSON.stringify(this.getSavePayload())
             });
 
-            if (!response.ok) return null;
+            if (!response.ok) {
+                return null;
+            }
+
             return await response.json();
         } catch (error) {
             console.error("API savePlayer error:", error);
@@ -90,8 +111,11 @@ window.CryptoZoo.api = {
         try {
             const response = await fetch("/api/ranking");
 
-            if (!response.ok) return [];
-           const data = await response.json();
+            if (!response.ok) {
+                return [];
+            }
+
+            const data = await response.json();
             return Array.isArray(data) ? data : [];
         } catch (error) {
             console.error("API ranking error:", error);
