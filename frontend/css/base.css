@@ -47,46 +47,60 @@ img {
     border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* FINAL LOADING */
+/* FULLSCREEN LOADING */
 
 #loading-screen {
     position: fixed;
     inset: 0;
+    width: 100%;
+    height: 100%;
     z-index: 99999;
-    background: #07162b;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
+    background: #07162b;
 }
 
-.loading-overlay {
+.loading-bg {
     position: absolute;
     inset: 0;
-    background:
-        radial-gradient(circle at center, rgba(82, 255, 176, 0.10) 0%, rgba(7, 22, 43, 0.0) 42%),
-        linear-gradient(180deg, rgba(7, 22, 43, 0.90) 0%, rgba(7, 22, 43, 0.98) 100%);
-    z-index: 1;
+    background: url("../assets/loading/loading_screen_final.png") center center no-repeat;
+    background-size: cover;
 }
 
-.loading-wrap {
+.loading-ui {
     position: relative;
     z-index: 2;
-    width: 100%;
-    max-width: 460px;
-    padding: 24px;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
+    margin-top: 200px;
 }
 
-.loading-art {
-    width: 100%;
-    max-width: 420px;
-    max-height: 85vh;
-    object-fit: contain;
-    filter: drop-shadow(0 12px 40px rgba(0, 0, 0, 0.35));
-    animation: loadingArtPulse 1.8s ease-in-out infinite;
+.loading-bar {
+    width: 260px;
+    height: 16px;
+    background: #1c2740;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
+}
+
+.loading-bar-fill {
+    width: 40%;
+    height: 100%;
+    background: linear-gradient(90deg, #39caff, #57ff9e, #ffe75c);
+    animation: loadingBar 2s infinite;
+    border-radius: 20px;
+}
+
+.loading-percent {
+    margin-top: 10px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
 }
 
 .loading-hide {
@@ -95,14 +109,14 @@ img {
     transition: opacity 0.35s ease, visibility 0.35s ease;
 }
 
-@keyframes loadingArtPulse {
+@keyframes loadingBar {
     0% {
-        transform: scale(1);
+        transform: translateX(-120%);
     }
     50% {
-        transform: scale(1.015);
+        transform: translateX(40%);
     }
     100% {
-        transform: scale(1);
+        transform: translateX(120%);
     }
 }
