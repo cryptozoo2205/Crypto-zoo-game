@@ -1,56 +1,43 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.telegram = {
+
+    init() {
+
+        if (!window.Telegram || !Telegram.WebApp) return;
+
+        const tg = Telegram.WebApp;
+
+        tg.ready();
+
+        // pełny ekran
+        tg.expand();
+
+        // kolor tła
+        tg.setBackgroundColor("#0f172a");
+
+        // kolor nagłówka
+        tg.setHeaderColor("#0f172a");
+
+        // blokada scrolla
+        document.body.style.overflow = "hidden";
+
+    },
+
     setupPlayerIdentity() {
-        if (!window.CryptoZoo.state) {
-            window.CryptoZoo.state = {
-                coins: 0,
-                gems: 0,
-                level: 1,
-                coinsPerClick: 1,
-                upgradeCost: 50,
-                zooIncome: 0,
-                animals: {
-                    monkey: { count: 0, level: 1 },
-                    panda: { count: 0, level: 1 },
-                    lion: { count: 0, level: 1 }
-                }
-            };
+
+        if (!window.Telegram || !Telegram.WebApp) return;
+
+        const user = Telegram.WebApp.initDataUnsafe.user;
+
+        if (!user) return;
+
+        localStorage.setItem("telegramId", user.id);
+
+        if (user.username) {
+            localStorage.setItem("telegramUsername", user.username);
         }
 
-        try {
-            if (window.Telegram && window.Telegram.WebApp) {
-                const tg = window.Telegram.WebApp;
-
-                tg.ready();
-                tg.expand();
-
-                const user = tg.initDataUnsafe && tg.initDataUnsafe.user;
-
-                if (user) {
-                    window.CryptoZoo.state.telegramUser = {
-                        id: String(user.id),
-                        username: user.username || "Gracz"
-                    };
-
-                    localStorage.setItem("telegramId", String(user.id));
-                    localStorage.setItem("telegramUsername", user.username || "Gracz");
-                    return;
-                }
-            }
-        } catch (error) {
-            console.log("Telegram init skipped:", error);
-        }
-
-        let localId = localStorage.getItem("telegramId");
-        if (!localId) {
-            localId = "local-player";
-            localStorage.setItem("telegramId", localId);
-        }
-
-        window.CryptoZoo.state.telegramUser = {
-            id: localId,
-            username: localStorage.getItem("telegramUsername") || "Gracz"
-        };
     }
+
 };
