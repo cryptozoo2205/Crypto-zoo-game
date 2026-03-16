@@ -10,7 +10,8 @@ window.CryptoZoo.config = {
         clickUpgradeMultiplier: 2.2,
         levelDivider: 20000,
         passiveIncomeIntervalMs: 1000,
-        gemsPerLevel: 1
+        gemsPerLevel: 1,
+        offlineMaxSeconds: 28800
     },
 
     animals: {
