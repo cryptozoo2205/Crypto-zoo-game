@@ -14,7 +14,6 @@
 
 </head>
 
-
 <body>
 
 <div id="app">
@@ -38,43 +37,27 @@ Reward
 
 </header>
 
-
 <main id="game">
-
-<!-- GAME SCREEN -->
 
 <section id="screen-game">
 
 <div class="tap-area">
-
-<button id="tapButton">
-🐾
-</button>
-
+<button id="tapButton">🐾</button>
 </div>
 
 </section>
 
-
-<!-- ZOO -->
-
 <section id="screen-zoo" class="hidden">
 
 <h2>Zoo</h2>
-
 <div id="zooList"></div>
 
 </section>
 
-
-<!-- SHOP -->
-
 <section id="screen-shop" class="hidden">
 
 <h2>Shop</h2>
-
 <div id="shopList"></div>
-
 
 <h3>Boxes</h3>
 
@@ -108,79 +91,99 @@ Legendary Box
 
 </section>
 
-
-<!-- MISSIONS -->
-
 <section id="screen-missions" class="hidden">
 
 <h2>Expeditions</h2>
-
 <div id="missionsList"></div>
 
 </section>
-
-
-<!-- MINI GAMES -->
 
 <section id="screen-minigames" class="hidden">
 
 <h2>Mini Games</h2>
 
-<button onclick="CryptoZoo.minigames.spinWheel()">
-Wheel Of Fortune
-</button>
+<div id="minigamesWrap">
+
+<div id="wheelGame" style="margin-bottom:30px; text-align:center;">
+
+<h3>Wheel Of Fortune</h3>
+
+<div style="position:relative; width:260px; height:260px; margin:0 auto 16px auto;">
+<div id="wheelPointer" style="position:absolute; top:-8px; left:50%; transform:translateX(-50%); font-size:28px; z-index:2;">▼</div>
+
+<div id="wheel"
+style="
+width:260px;
+height:260px;
+border-radius:50%;
+border:8px solid #fff;
+background:
+conic-gradient(
+#ffcc00 0deg 60deg,
+#4caf50 60deg 120deg,
+#03a9f4 120deg 180deg,
+#ff5722 180deg 240deg,
+#9c27b0 240deg 300deg,
+#8bc34a 300deg 360deg
+);
+transition: transform 4s cubic-bezier(0.15, 0.85, 0.15, 1);
+box-shadow:0 0 20px rgba(0,0,0,0.35);
+margin:0 auto;
+">
+</div>
+</div>
+
+<button id="spinWheelBtn" type="button">Spin Wheel</button>
+
+<p id="wheelRewardText"></p>
+
+</div>
+
+<div id="memoryGame" style="text-align:center;">
+
+<h3>Memory Animals</h3>
+
+<div id="memoryBoard"
+style="
+display:grid;
+grid-template-columns:repeat(4, 70px);
+gap:10px;
+justify-content:center;
+margin:16px auto;
+">
+</div>
+
+<button id="startMemoryBtn" type="button">Start Memory</button>
+
+<p id="memoryStatus"></p>
+
+</div>
+
+</div>
 
 </section>
-
-
-<!-- RANKING -->
 
 <section id="screen-ranking" class="hidden">
 
 <h2>Ranking</h2>
-
 <ul id="rankingList"></ul>
 
 </section>
 
 </main>
 
-
-<!-- MENU -->
-
 <footer class="menu">
 
-<button data-nav="game">
-Game
-</button>
-
-<button data-nav="zoo">
-Zoo
-</button>
-
-<button data-nav="shop">
-Shop
-</button>
-
-<button data-nav="missions">
-Missions
-</button>
-
-<button data-nav="minigames">
-Mini Games
-</button>
-
-<button data-nav="ranking">
-Ranking
-</button>
+<button data-nav="game">Game</button>
+<button data-nav="zoo">Zoo</button>
+<button data-nav="shop">Shop</button>
+<button data-nav="missions">Missions</button>
+<button data-nav="minigames">Mini Games</button>
+<button data-nav="ranking">Ranking</button>
 
 </footer>
 
-
 </div>
-
-
-<!-- SCRIPTS -->
 
 <script src="js/config.js"></script>
 <script src="js/state.js"></script>
@@ -188,11 +191,9 @@ Ranking
 <script src="js/ui.js"></script>
 <script src="js/api.js"></script>
 <script src="js/telegram.js"></script>
-
 <script src="js/shop.js"></script>
 <script src="js/boxes.js"></script>
 <script src="js/minigames.js"></script>
-
 <script src="js/gameplay.js"></script>
 <script src="js/init.js"></script>
 
