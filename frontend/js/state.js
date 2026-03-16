@@ -22,5 +22,11 @@ window.CryptoZoo.state = {
         wolf: { count: 0, level: 1 }
     },
 
+    boxes: {
+        common: 0,
+        rare: 0,
+        epic: 0
+    },
+
     expedition: null
 };
