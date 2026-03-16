@@ -236,6 +236,30 @@ window.CryptoZoo.gameplay = {
         this.saveGame();
     },
 
+    generateExpeditionReward(expConfig) {
+        let rarity = "common";
+        let coinsMultiplier = 1;
+        let gemsBonus = 0;
+
+        const roll = Math.random();
+
+        if (roll < (expConfig.epicChance || 0)) {
+            rarity = "epic";
+            coinsMultiplier = 2.2;
+            gemsBonus = 3;
+        } else if (roll < ((expConfig.epicChance || 0) + (expConfig.rareChance || 0))) {
+            rarity = "rare";
+            coinsMultiplier = 1.5;
+            gemsBonus = 1;
+        }
+
+        return {
+            rewardRarity: rarity,
+            rewardCoins: Math.floor((expConfig.baseCoins || 0) * coinsMultiplier),
+            rewardGems: Math.floor((expConfig.baseGems || 0) + gemsBonus)
+        };
+    },
+
     startExpedition(type) {
         const expConfig = (CryptoZoo.config.expeditions || []).find(function (e) {
             return e.id === type;
@@ -248,14 +272,20 @@ window.CryptoZoo.gameplay = {
             return;
         }
 
+        const reward = this.generateExpeditionReward(expConfig);
+
         const endTime = Date.now() + (expConfig.duration * 1000);
 
         CryptoZoo.state.expedition = {
             type: type,
-            endTime: endTime
+            name: expConfig.name,
+            endTime: endTime,
+            rewardCoins: reward.rewardCoins,
+            rewardGems: reward.rewardGems,
+            rewardRarity: reward.rewardRarity
         };
 
-        CryptoZoo.ui.showToast("Ekspedycja rozpoczęta");
+        CryptoZoo.ui.showToast(`Start: ${expConfig.name}`);
         CryptoZoo.ui.render();
         this.saveGame();
     },
@@ -265,23 +295,21 @@ window.CryptoZoo.gameplay = {
 
         if (!expedition) return;
 
-        const expConfig = (CryptoZoo.config.expeditions || []).find(function (e) {
-            return e.id === expedition.type;
-        });
-
-        if (!expConfig) return;
-
         if (Date.now() < expedition.endTime) {
             CryptoZoo.ui.showToast("Ekspedycja jeszcze trwa");
             return;
         }
 
-        CryptoZoo.state.coins += Number(expConfig.rewardCoins) || 0;
-        CryptoZoo.state.gems += Number(expConfig.rewardGems) || 0;
+        CryptoZoo.state.coins += Number(expedition.rewardCoins) || 0;
+        CryptoZoo.state.gems += Number(expedition.rewardGems) || 0;
+
+        const coinsText = CryptoZoo.formatNumber(expedition.rewardCoins || 0);
+        const gemsText = CryptoZoo.formatNumber(expedition.rewardGems || 0);
+
         CryptoZoo.state.expedition = null;
 
         this.recalculateCoreStats();
-        CryptoZoo.ui.showToast("Nagroda z ekspedycji odebrana");
+        CryptoZoo.ui.showToast(`Nagroda: ${coinsText} coins + ${gemsText} gems`);
         CryptoZoo.ui.render();
         this.saveGame();
     },
