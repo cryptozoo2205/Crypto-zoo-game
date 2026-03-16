@@ -217,4 +217,4 @@ window.CryptoZoo.ui = {
             CryptoZoo.gameplay.bindAnimalButtons();
         }
     }
-};
+}; 
