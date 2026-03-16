@@ -1,70 +1,51 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
-window.CryptoZoo.init = {
-    async start() {
-        try {
-            if (CryptoZoo.telegram && CryptoZoo.telegram.init) {
-                CryptoZoo.telegram.init();
-            }
+CryptoZoo.init = async function () {
 
-            if (CryptoZoo.telegram && CryptoZoo.telegram.setupPlayerIdentity) {
-                CryptoZoo.telegram.setupPlayerIdentity();
-            }
+console.log("Crypto Zoo start");
 
-            if (CryptoZoo.gameplay && CryptoZoo.gameplay.normalizeAnimals) {
-                CryptoZoo.gameplay.normalizeAnimals();
-            }
+try {
 
-            if (CryptoZoo.gameplay && CryptoZoo.gameplay.loadPlayerState) {
-                await CryptoZoo.gameplay.loadPlayerState();
-            }
+if (CryptoZoo.telegram && CryptoZoo.telegram.init) {
+CryptoZoo.telegram.init();
+}
 
-            if (CryptoZoo.gameplay && CryptoZoo.gameplay.recalculateCoreStats) {
-                CryptoZoo.gameplay.recalculateCoreStats();
-            }
+if (CryptoZoo.api && CryptoZoo.api.loadPlayer) {
+await CryptoZoo.api.loadPlayer();
+}
 
-            if (CryptoZoo.ui && CryptoZoo.ui.render) {
-                CryptoZoo.ui.render();
-            }
+if (CryptoZoo.ui && CryptoZoo.ui.render) {
+CryptoZoo.ui.render();
+}
 
-            if (CryptoZoo.gameplay && CryptoZoo.gameplay.bindNavigation) {
-                CryptoZoo.gameplay.bindNavigation();
-            }
+if (CryptoZoo.shop && CryptoZoo.shop.init) {
+CryptoZoo.shop.init();
+}
 
-            if (CryptoZoo.gameplay && CryptoZoo.gameplay.bindActions) {
-                CryptoZoo.gameplay.bindActions();
-            }
+/* NOWY SYSTEM BOXÓW */
 
-            if (CryptoZoo.shop && CryptoZoo.shop.init) {
-                CryptoZoo.shop.init();
-            }
+if (CryptoZoo.boxes && CryptoZoo.boxes.init) {
+CryptoZoo.boxes.init();
+}
 
-            if (CryptoZoo.gameplay && CryptoZoo.gameplay.startPassiveIncome) {
-                CryptoZoo.gameplay.startPassiveIncome();
-            }
+if (CryptoZoo.gameplay && CryptoZoo.gameplay.init) {
+CryptoZoo.gameplay.init();
+}
 
-            if (CryptoZoo.ui && CryptoZoo.ui.showScreen) {
-                const savedScreen = localStorage.getItem("cryptoZooActiveScreen") || "game";
-                CryptoZoo.ui.showScreen(savedScreen);
-            }
+} catch (error) {
 
-            setTimeout(function () {
-                const loader = document.getElementById("loading-screen");
+console.error("Init error:", error);
 
-                if (loader) {
-                    loader.classList.add("loading-hide");
+}
 
-                    setTimeout(function () {
-                        loader.style.display = "none";
-                    }, 400);
-                }
-            }, 1800);
-        } catch (error) {
-            console.error("INIT ERROR:", error);
-        }
-    }
 };
 
-document.addEventListener("DOMContentLoaded", function () {
-    CryptoZoo.init.start();
+
+
+document.addEventListener("DOMContentLoaded", function(){
+
+if (CryptoZoo.init) {
+CryptoZoo.init();
+}
+
 });
