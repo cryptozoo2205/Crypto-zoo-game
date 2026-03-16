@@ -1,0 +1,49 @@
+window.CryptoZoo = window.CryptoZoo || {};
+
+window.CryptoZoo.boxes = {
+    open(type) {
+        const state = window.CryptoZoo.state;
+        const ui = window.CryptoZoo.ui;
+        const api = window.CryptoZoo.api;
+
+        if (!state) return;
+
+        let rewardText = "";
+
+        if (type === "common") {
+            const price = 1000;
+
+            if ((Number(state.coins) || 0) < price) {
+                ui?.showToast?.("Za mało monet");
+                return;
+            }
+
+            state.coins -= price;
+
+            const roll = Math.random();
+
+            if (roll < 0.70) {
+                const coins = Math.floor(Math.random() * 1501) + 500;
+                state.coins += coins;
+                rewardText = `Coins +${window.CryptoZoo.formatNumber ? window.CryptoZoo.formatNumber(coins) : coins}`;
+            } else if (roll < 0.95) {
+                const gems = 1;
+                state.gems = (Number(state.gems) || 0) + gems;
+                rewardText = `Gems +${gems}`;
+            } else {
+                state.expeditionBoost = true;
+                rewardText = "Expedition Boost";
+            }
+        }
+
+        if (type === "rare") {
+            const price = 5;
+
+            if ((Number(state.gems) || 0) < price) {
+                ui?.showToast?.("Za mało gemsów");
+                return;
+            }
+
+            state.gems -= price;
+
+            const roll = Math.random
