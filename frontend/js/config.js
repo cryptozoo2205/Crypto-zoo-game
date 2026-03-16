@@ -94,6 +94,30 @@ window.CryptoZoo.config = {
             buyCost: 280000,
             baseIncome: 750,
             upgradeBaseCost: 380000
+        },
+        rhino: {
+            key: "rhino",
+            name: "Nosorożec",
+            asset: "rhino",
+            buyCost: 600000,
+            baseIncome: 1300,
+            upgradeBaseCost: 800000
+        },
+        gorilla: {
+            key: "gorilla",
+            name: "Goryl",
+            asset: "gorilla",
+            buyCost: 1500000,
+            baseIncome: 2600,
+            upgradeBaseCost: 2000000
+        },
+        crocodile: {
+            key: "crocodile",
+            name: "Krokodyl",
+            asset: "crocodile",
+            buyCost: 4000000,
+            baseIncome: 5200,
+            upgradeBaseCost: 5500000
         }
     },
 
