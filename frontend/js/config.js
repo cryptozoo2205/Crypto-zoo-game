@@ -125,7 +125,34 @@ window.CryptoZoo.config = {
             rareChance: 0.45,
             epicChance: 0.18
         }
-    ]
+    ],
+
+    boxes: {
+        common: {
+            id: "common",
+            name: "Common Box",
+            coinMin: 300,
+            coinMax: 1200,
+            gemsMin: 0,
+            gemsMax: 1
+        },
+        rare: {
+            id: "rare",
+            name: "Rare Box",
+            coinMin: 1500,
+            coinMax: 5000,
+            gemsMin: 1,
+            gemsMax: 3
+        },
+        epic: {
+            id: "epic",
+            name: "Epic Box",
+            coinMin: 6000,
+            coinMax: 18000,
+            gemsMin: 3,
+            gemsMax: 7
+        }
+    }
 };
 
 window.CryptoZoo.formatNumber = function (num) {
