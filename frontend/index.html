@@ -21,23 +21,10 @@
 <body>
 
 <div id="loading-screen">
-    <div class="loading-scene">
-        <img class="loading-bg-image" src="assets/loading/loading_bg.png" alt="Loading background">
+    <div class="loading-bg"></div>
 
-        <div class="loading-ring-wrap">
-            <img class="loading-ring-image" src="assets/loading/loading_ring.png" alt="Loading ring">
-            <img class="loading-paw-image" src="assets/loading/loading_paw.png" alt="Loading paw">
-        </div>
-
-        <div class="loading-bar-wrap">
-            <img class="loading-bar-bg-image" src="assets/loading/loading_bar_bg.png" alt="Loading bar background">
-
-            <div class="loading-bar-fill-clip">
-                <img class="loading-bar-fill-image" src="assets/loading/loading_bar_fill.png" alt="Loading bar fill">
-            </div>
-        </div>
-
-        <img class="loading-percent-image" src="assets/loading/loading_percent.png" alt="Loading percent">
+    <div class="loading-bar-shine-wrap">
+        <div class="loading-bar-shine"></div>
     </div>
 </div>
 
@@ -149,25 +136,11 @@
 </div>
 
 <nav class="bottom-menu">
-    <button class="nav-btn active-nav" data-screen="game" type="button">
-        <span>Gra</span>
-    </button>
-
-    <button class="nav-btn" data-screen="zoo" type="button">
-        <span>Zoo</span>
-    </button>
-
-    <button class="nav-btn" data-screen="shop" type="button">
-        <span>Sklep</span>
-    </button>
-
-    <button class="nav-btn" data-screen="expeditions" type="button">
-        <span>Misje</span>
-    </button>
-
-    <button class="nav-btn" data-screen="ranking" type="button">
-        <span>Ranking</span>
-    </button>
+    <button class="nav-btn active-nav" data-screen="game" type="button"><span>Gra</span></button>
+    <button class="nav-btn" data-screen="zoo" type="button"><span>Zoo</span></button>
+    <button class="nav-btn" data-screen="shop" type="button"><span>Sklep</span></button>
+    <button class="nav-btn" data-screen="expeditions" type="button"><span>Misje</span></button>
+    <button class="nav-btn" data-screen="ranking" type="button"><span>Ranking</span></button>
 </nav>
 
 <script src="js/state.js"></script>
