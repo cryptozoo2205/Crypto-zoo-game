@@ -21,14 +21,23 @@
 <body>
 
 <div id="loading-screen">
-    <div class="loading-bg"></div>
+    <div class="loading-scene">
+        <img class="loading-bg-image" src="assets/loading/loading_background.png" alt="Loading background">
 
-    <div class="loading-ui">
-        <div class="loading-bar">
-            <div class="loading-bar-fill"></div>
+        <div class="loading-ring-wrap">
+            <img class="loading-ring-image" src="assets/loading/loading_ring.png" alt="Loading ring">
+            <img class="loading-paw-image" src="assets/loading/loading_paw.png" alt="Loading paw">
         </div>
 
-        <div class="loading-percent">Loading...</div>
+        <div class="loading-bar-wrap">
+            <img class="loading-bar-bg-image" src="assets/loading/loading_bar_bg.png" alt="Loading bar background">
+
+            <div class="loading-bar-fill-clip">
+                <img class="loading-bar-fill-image" src="assets/loading/loading_bar_fill.png" alt="Loading bar fill">
+            </div>
+        </div>
+
+        <img class="loading-percent-image" src="assets/loading/loading_percent.png" alt="Loading percent">
     </div>
 </div>
 
@@ -171,4 +180,4 @@
 <script src="js/init.js"></script>
 
 </body>
-</html> 
+</html>
