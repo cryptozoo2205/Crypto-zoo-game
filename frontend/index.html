@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Crypto Zoo</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -17,206 +16,161 @@
 <link rel="stylesheet" href="css/menu.css">
 <link rel="stylesheet" href="css/expeditions.css">
 <link rel="stylesheet" href="css/responsive.css">
-
 </head>
 
 <body>
 
-<!-- LOADING SCREEN -->
-
 <div id="loading-screen">
+    <div class="loading-bg"></div>
 
-<div class="loading-logo">
-🐾
-</div>
+    <div class="loading-content">
+        <img class="loading-screen-art" src="assets/loading/loading_screen.png" alt="Loading background">
 
-<div class="loading-title">
-Crypto Zoo
-</div>
+        <div class="loading-center">
+            <div class="loading-ring-wrap">
+                <img class="loading-ring" src="assets/loading/loading_ring.png" alt="Loading ring">
+                <img class="loading-paw" src="assets/loading/loading_paw.png" alt="Loading paw">
+            </div>
 
-<div class="loading-bar">
-<div class="loading-progress"></div>
-</div>
+            <div class="loading-title">Crypto Zoo</div>
 
+            <div class="loading-bar-wrap">
+                <img class="loading-bar-base" src="assets/loading/loading_bar.png" alt="Loading bar">
+                <div class="loading-fill-clip">
+                    <img class="loading-bar-fill" src="assets/loading/loading_progress_fill.png" alt="Loading progress">
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="app-shell">
 
 <header class="top-hero">
+    <div class="hero-overlay"></div>
 
-<div class="hero-overlay"></div>
+    <div class="hero-content">
+        <h1>Crypto Zoo</h1>
 
-<div class="hero-content">
+        <div class="paw-deco">🐾 🐾 🐾</div>
 
-<h1>Crypto Zoo</h1>
+        <div class="stats-panel">
+            <div class="stat-card">
+                <div class="stat-label">Monety</div>
+                <div class="stat-value" id="coins-count">0</div>
+            </div>
 
-<div class="paw-deco">
-🐾 🐾 🐾
-</div>
+            <div class="stat-card">
+                <div class="stat-label">Gems</div>
+                <div class="stat-value" id="gems-count">0</div>
+            </div>
 
-<div class="stats-panel">
+            <div class="stat-card">
+                <div class="stat-label">Poziom</div>
+                <div class="stat-value" id="level">1</div>
+            </div>
 
-<div class="stat-card">
-<div class="stat-label">Monety</div>
-<div class="stat-value" id="coins-count">0</div>
-</div>
-
-<div class="stat-card">
-<div class="stat-label">Gems</div>
-<div class="stat-value" id="gems-count">0</div>
-</div>
-
-<div class="stat-card">
-<div class="stat-label">Poziom</div>
-<div class="stat-value" id="level">1</div>
-</div>
-
-<div class="stat-card">
-<div class="stat-label">Za klik</div>
-<div class="stat-value" id="coins-per-click">1</div>
-</div>
-
-</div>
-
-</div>
-
+            <div class="stat-card">
+                <div class="stat-label">Za klik</div>
+                <div class="stat-value" id="coins-per-click">1</div>
+            </div>
+        </div>
+    </div>
 </header>
 
 <div id="toast"></div>
 
 <section id="game" class="screen active-screen">
+    <div class="screen-card game-screen-card">
+        <div class="game-main-panel">
+            <div class="tap-ring-wrap">
+                <img class="tap-ring-img" src="assets/effects/glow_circle.png" alt="">
+                <button id="tap-btn" type="button" aria-label="Uzyskaj monety"></button>
+                <div id="coin-animation-container"></div>
+            </div>
 
-<div class="screen-card game-screen-card">
+            <div class="tap-title">UZYSKAJ MONETY</div>
 
-<div class="game-main-panel">
+            <div class="income-bar">
+                <div class="income-box">
+                    <div class="income-label">Dochód zoo / sek</div>
+                    <div class="income-value" id="zoo-income">0</div>
+                </div>
 
-<div class="tap-ring-wrap">
-
-<img class="tap-ring-img" src="assets/effects/glow_circle.png">
-
-<button id="tap-btn"></button>
-
-<div id="coin-animation-container"></div>
-
-</div>
-
-<div class="tap-title">
-UZYSKAJ MONETY
-</div>
-
-<div class="income-bar">
-
-<div class="income-box">
-<div class="income-label">Dochód zoo / sek</div>
-<div class="income-value" id="zoo-income">0</div>
-</div>
-
-<div class="income-box">
-<div class="income-label">Łącznie zwierząt</div>
-<div class="income-value" id="animals-total">0</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
+                <div class="income-box">
+                    <div class="income-label">Łącznie zwierząt</div>
+                    <div class="income-value" id="animals-total">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
 
 <section id="zoo" class="screen">
-<div class="screen-card zoo-screen-card">
-<h3 class="section-title">🐾 Zoo Collection</h3>
-<div id="zoo-list"></div>
-</div>
+    <div class="screen-card zoo-screen-card">
+        <h3 class="section-title">🐾 Zoo Collection</h3>
+        <div id="zoo-list"></div>
+    </div>
 </section>
 
 <section id="shop" class="screen">
+    <div class="screen-card premium-card">
+        <h3 class="section-title">🛒 Sklep</h3>
 
-<div class="screen-card premium-card">
+        <div class="shop-row">
+            <div class="shop-text">
+                <div class="shop-title">Upgrade kliknięcia</div>
+                <div class="shop-desc">Zwiększa liczbę monet za klik o +1</div>
+            </div>
+            <button id="buy-upgrade-btn" type="button">Kup</button>
+        </div>
 
-<h3 class="section-title">🛒 Sklep</h3>
-
-<div class="shop-row">
-
-<div class="shop-text">
-<div class="shop-title">Upgrade kliknięcia</div>
-<div class="shop-desc">Zwiększa monety za klik</div>
-</div>
-
-<button id="buy-upgrade-btn">
-Kup
-</button>
-
-</div>
-
-<div class="info-box">
-Koszt ulepszenia:
-<span id="upgrade-cost">50</span>
-</div>
-
-</div>
-
+        <div class="info-box">
+            Koszt ulepszenia:
+            <span id="upgrade-cost">50</span>
+        </div>
+    </div>
 </section>
 
 <section id="expeditions" class="screen">
+    <div class="screen-card">
+        <h3 class="section-title">🌍 Ekspedycje</h3>
+        <div id="expeditions-list"></div>
 
-<div class="screen-card">
-
-<h3 class="section-title">
-🌍 Ekspedycje
-</h3>
-
-<div id="expeditions-list"></div>
-
-<h3 class="section-title">
-🎁 Boxy
-</h3>
-
-<div id="boxes-list"></div>
-
-</div>
-
+        <h3 class="section-title" style="margin-top:24px;">🎁 Boxy</h3>
+        <div id="boxes-list"></div>
+    </div>
 </section>
 
 <section id="ranking" class="screen">
-
-<div class="screen-card premium-card">
-
-<h3 class="section-title">
-🏆 Ranking
-</h3>
-
-<ul id="ranking-list"></ul>
-
-</div>
-
+    <div class="screen-card premium-card">
+        <h3 class="section-title">🏆 Ranking</h3>
+        <ul id="ranking-list"></ul>
+    </div>
 </section>
 
 </div>
 
 <nav class="bottom-menu">
+    <button class="nav-btn active-nav" data-screen="game" type="button">
+        <span>Gra</span>
+    </button>
 
-<button class="nav-btn active-nav" data-screen="game">
-<span>Gra</span>
-</button>
+    <button class="nav-btn" data-screen="zoo" type="button">
+        <span>Zoo</span>
+    </button>
 
-<button class="nav-btn" data-screen="zoo">
-<span>Zoo</span>
-</button>
+    <button class="nav-btn" data-screen="shop" type="button">
+        <span>Sklep</span>
+    </button>
 
-<button class="nav-btn" data-screen="shop">
-<span>Sklep</span>
-</button>
+    <button class="nav-btn" data-screen="expeditions" type="button">
+        <span>Misje</span>
+    </button>
 
-<button class="nav-btn" data-screen="expeditions">
-<span>Misje</span>
-</button>
-
-<button class="nav-btn" data-screen="ranking">
-<span>Ranking</span>
-</button>
-
+    <button class="nav-btn" data-screen="ranking" type="button">
+        <span>Ranking</span>
+    </button>
 </nav>
 
 <script src="js/state.js"></script>
