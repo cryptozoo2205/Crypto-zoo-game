@@ -19,7 +19,10 @@ window.CryptoZoo.state = {
         zebra: { count: 0, level: 1 },
         penguin: { count: 0, level: 1 },
         bear: { count: 0, level: 1 },
-        wolf: { count: 0, level: 1 }
+        wolf: { count: 0, level: 1 },
+        rhino: { count: 0, level: 1 },
+        gorilla: { count: 0, level: 1 },
+        crocodile: { count: 0, level: 1 }
     },
 
     boxes: {
