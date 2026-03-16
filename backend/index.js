@@ -36,6 +36,14 @@ function getDefaultAnimals() {
     };
 }
 
+function getDefaultBoxes() {
+    return {
+        common: 0,
+        rare: 0,
+        epic: 0
+    };
+}
+
 app.get("/api/player/:telegramId", async (req, res) => {
     try {
         const { telegramId } = req.params;
@@ -53,6 +61,7 @@ app.get("/api/player/:telegramId", async (req, res) => {
                 upgradeCost: 50,
                 lastLogin: Date.now(),
                 expedition: null,
+                boxes: getDefaultBoxes(),
                 animals: getDefaultAnimals()
             });
         }
@@ -76,7 +85,8 @@ app.post("/api/player", async (req, res) => {
             upgradeCost,
             animals,
             expedition,
-            lastLogin
+            lastLogin,
+            boxes
         } = req.body;
 
         if (!telegramId) {
@@ -86,6 +96,11 @@ app.post("/api/player", async (req, res) => {
         const mergedAnimals = {
             ...getDefaultAnimals(),
             ...(animals || {})
+        };
+
+        const mergedBoxes = {
+            ...getDefaultBoxes(),
+            ...(boxes || {})
         };
 
         const user = await User.findOneAndUpdate(
@@ -100,6 +115,7 @@ app.post("/api/player", async (req, res) => {
                 upgradeCost: Number(upgradeCost) || 50,
                 lastLogin: Number(lastLogin) || Date.now(),
                 expedition: expedition || null,
+                boxes: mergedBoxes,
                 animals: mergedAnimals
             },
             {
