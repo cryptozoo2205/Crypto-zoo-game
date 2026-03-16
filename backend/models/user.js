@@ -8,6 +8,14 @@ const animalSchema = new mongoose.Schema(
     { _id: false }
 );
 
+const expeditionSchema = new mongoose.Schema(
+    {
+        type: { type: String, default: null },
+        endTime: { type: Number, default: null }
+    },
+    { _id: false }
+);
+
 const userSchema = new mongoose.Schema({
     telegramId: { type: String, required: true, unique: true },
     username: { type: String, default: "Gracz" },
@@ -17,6 +25,9 @@ const userSchema = new mongoose.Schema({
     level: { type: Number, default: 1 },
     coinsPerClick: { type: Number, default: 1 },
     upgradeCost: { type: Number, default: 50 },
+    lastLogin: { type: Number, default: Date.now },
+
+    expedition: { type: expeditionSchema, default: null },
 
     animals: {
         monkey: { type: animalSchema, default: () => ({}) },
