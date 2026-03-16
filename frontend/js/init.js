@@ -3,6 +3,10 @@ window.CryptoZoo = window.CryptoZoo || {};
 window.CryptoZoo.init = {
     async start() {
         try {
+            if (CryptoZoo.telegram && CryptoZoo.telegram.init) {
+                CryptoZoo.telegram.init();
+            }
+
             if (CryptoZoo.telegram && CryptoZoo.telegram.setupPlayerIdentity) {
                 CryptoZoo.telegram.setupPlayerIdentity();
             }
@@ -39,6 +43,14 @@ window.CryptoZoo.init = {
                 const savedScreen = localStorage.getItem("cryptoZooActiveScreen") || "game";
                 CryptoZoo.ui.showScreen(savedScreen);
             }
+
+            setTimeout(function () {
+                const loader = document.getElementById("loading-screen");
+
+                if (loader) {
+                    loader.style.display = "none";
+                }
+            }, 800);
         } catch (error) {
             console.error("INIT ERROR:", error);
         }
