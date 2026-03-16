@@ -203,6 +203,42 @@ window.CryptoZoo.ui = {
         });
     },
 
+    renderBoxes() {
+        const container = document.getElementById("boxes-list");
+        if (!container) return;
+
+        container.innerHTML = "";
+
+        const boxesConfig = CryptoZoo.config.boxes || {};
+        const boxesState = CryptoZoo.state.boxes || {};
+
+        Object.keys(boxesConfig).forEach((type) => {
+            const config = boxesConfig[type];
+            const count = Number(boxesState[type]) || 0;
+
+            const card = document.createElement("div");
+            card.className = "expedition-card";
+
+            card.innerHTML = `
+                <h3>${config.name}</h3>
+                <div>Posiadasz: ${CryptoZoo.formatNumber(count)}</div>
+                <div>Nagroda: ${CryptoZoo.formatNumber(config.coinMin)} - ${CryptoZoo.formatNumber(config.coinMax)} coins / ${CryptoZoo.formatNumber(config.gemsMin)} - ${CryptoZoo.formatNumber(config.gemsMax)} gems</div>
+                <button id="open-box-${type}" type="button" ${count > 0 ? "" : "disabled"}>Otwórz</button>
+            `;
+
+            container.appendChild(card);
+        });
+
+        Object.keys(boxesConfig).forEach((type) => {
+            const btn = document.getElementById(`open-box-${type}`);
+            if (btn) {
+                btn.onclick = function () {
+                    CryptoZoo.gameplay.openBox(type);
+                };
+            }
+        });
+    },
+
     render() {
         const state = CryptoZoo.state || {};
         const animals = state.animals || {};
@@ -226,6 +262,7 @@ window.CryptoZoo.ui = {
 
         this.renderZooList();
         this.renderExpeditions();
+        this.renderBoxes();
 
         Object.keys(animalsConfig).forEach((type) => {
             const animal = animals[type] || { count: 0, level: 1 };
