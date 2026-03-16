@@ -187,4 +187,4 @@ CryptoZoo.minigames = {
         this.bindButtons();
         this.startMemory();
     }
-}; 
+};
