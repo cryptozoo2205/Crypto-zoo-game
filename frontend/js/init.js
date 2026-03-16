@@ -63,4 +63,4 @@ window.CryptoZoo.init = {
 
 document.addEventListener("DOMContentLoaded", function () {
     CryptoZoo.init.start();
-});
+}); 
