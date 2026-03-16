@@ -1,145 +1,171 @@
 <!DOCTYPE html>
 <html lang="pl">
+
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Crypto Zoo</title>
 
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-<link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/layout.css">
-<link rel="stylesheet" href="css/game.css">
+<link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/zoo.css">
 <link rel="stylesheet" href="css/shop.css">
-<link rel="stylesheet" href="css/ranking.css">
-<link rel="stylesheet" href="css/menu.css">
-<link rel="stylesheet" href="css/expeditions.css">
-<link rel="stylesheet" href="css/responsive.css">
+
 </head>
+
 
 <body>
 
-<div id="loading-screen">
-    <div class="loading-bg"></div>
+<div id="app">
 
-    <div class="loading-bar-shine-wrap">
-        <div class="loading-bar-shine"></div>
-    </div>
+<header class="top-bar">
+
+<div class="balance">
+Coins
+<span id="coins">0</span>
 </div>
 
-<div class="app-shell">
+<div class="balance">
+Gems
+<span id="gems">0</span>
+</div>
 
-    <header class="top-hero">
-        <div class="hero-overlay"></div>
+<div class="balance">
+Reward
+<span id="rewardBalance">0</span>
+</div>
 
-        <div class="hero-content">
-            <h1>Crypto Zoo</h1>
+</header>
 
-            <div class="paw-deco">🐾 🐾 🐾</div>
 
-            <div class="stats-panel">
-                <div class="stat-card">
-                    <div class="stat-label">Monety</div>
-                    <div class="stat-value" id="coins-count">0</div>
-                </div>
+<main id="game">
 
-                <div class="stat-card">
-                    <div class="stat-label">Gems</div>
-                    <div class="stat-value" id="gems-count">0</div>
-                </div>
+<section id="screen-game">
 
-                <div class="stat-card">
-                    <div class="stat-label">Poziom</div>
-                    <div class="stat-value" id="level">1</div>
-                </div>
+<div class="tap-area">
 
-                <div class="stat-card">
-                    <div class="stat-label">Za klik</div>
-                    <div class="stat-value" id="coins-per-click">1</div>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <div id="toast"></div>
-
-    <section id="game" class="screen active-screen">
-        <div class="screen-card game-screen-card">
-            <div class="game-main-panel">
-                <div class="tap-ring-wrap">
-                    <img class="tap-ring-img" src="assets/effects/glow_circle.png" alt="">
-                    <button id="tap-btn" type="button" aria-label="Uzyskaj monety"></button>
-                    <div id="coin-animation-container"></div>
-                </div>
-
-                <div class="tap-title">UZYSKAJ MONETY</div>
-
-                <div class="income-bar">
-                    <div class="income-box">
-                        <div class="income-label">Dochód zoo / sek</div>
-                        <div class="income-value" id="zoo-income">0</div>
-                    </div>
-
-                    <div class="income-box">
-                        <div class="income-label">Łącznie zwierząt</div>
-                        <div class="income-value" id="animals-total">0</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="zoo" class="screen">
-        <div class="screen-card zoo-screen-card">
-            <h3 class="section-title">🐾 Zoo Collection</h3>
-            <div id="zoo-list"></div>
-        </div>
-    </section>
-
-    <section id="shop" class="screen">
-        <div class="screen-card premium-card">
-            <h3 class="section-title">🛒 Sklep</h3>
-            <div id="shop-list"></div>
-        </div>
-    </section>
-
-    <section id="expeditions" class="screen">
-        <div class="screen-card">
-            <h3 class="section-title">🌍 Ekspedycje</h3>
-            <div id="expeditions-list"></div>
-
-            <h3 class="section-title" style="margin-top:24px;">🎁 Boxy</h3>
-            <div id="boxes-list"></div>
-        </div>
-    </section>
-
-    <section id="ranking" class="screen">
-        <div class="screen-card premium-card">
-            <h3 class="section-title">🏆 Ranking</h3>
-            <ul id="ranking-list"></ul>
-        </div>
-    </section>
+<button id="tapButton">
+🐾
+</button>
 
 </div>
 
-<nav class="bottom-menu">
-    <button class="nav-btn active-nav" data-screen="game" type="button"><span>Gra</span></button>
-    <button class="nav-btn" data-screen="zoo" type="button"><span>Zoo</span></button>
-    <button class="nav-btn" data-screen="shop" type="button"><span>Sklep</span></button>
-    <button class="nav-btn" data-screen="expeditions" type="button"><span>Misje</span></button>
-    <button class="nav-btn" data-screen="ranking" type="button"><span>Ranking</span></button>
-</nav>
+</section>
 
-<script src="js/state.js"></script>
+
+<section id="screen-zoo" class="hidden">
+
+<h2>Zoo</h2>
+
+<div id="zooList"></div>
+
+</section>
+
+
+<section id="screen-shop" class="hidden">
+
+<h2>Shop</h2>
+
+<div id="shopList"></div>
+
+<h3>Boxes</h3>
+
+<div class="boxes">
+
+<button data-box-type="common">
+Common Box
+<br>
+1000 coins
+</button>
+
+<button data-box-type="rare">
+Rare Box
+<br>
+5 gems
+</button>
+
+<button data-box-type="epic">
+Epic Box
+<br>
+15 gems
+</button>
+
+<button data-box-type="legendary">
+Legendary Box
+<br>
+40 gems
+</button>
+
+</div>
+
+</section>
+
+
+<section id="screen-missions" class="hidden">
+
+<h2>Expeditions</h2>
+
+<div id="missionsList"></div>
+
+</section>
+
+
+<section id="screen-ranking" class="hidden">
+
+<h2>Ranking</h2>
+
+<ul id="rankingList"></ul>
+
+</section>
+
+</main>
+
+
+<footer class="menu">
+
+<button data-nav="game">
+Game
+</button>
+
+<button data-nav="zoo">
+Zoo
+</button>
+
+<button data-nav="shop">
+Shop
+</button>
+
+<button data-nav="missions">
+Missions
+</button>
+
+<button data-nav="ranking">
+Ranking
+</button>
+
+</footer>
+
+
+</div>
+
+
+<!-- SCRIPTS -->
+
 <script src="js/config.js"></script>
-<script src="js/telegram.js"></script>
+<script src="js/state.js"></script>
 <script src="js/dom.js"></script>
-<script src="js/api.js"></script>
 <script src="js/ui.js"></script>
+<script src="js/api.js"></script>
+<script src="js/telegram.js"></script>
+
 <script src="js/shop.js"></script>
+<script src="js/boxes.js"></script>
+
 <script src="js/gameplay.js"></script>
+
 <script src="js/init.js"></script>
 
 </body>
+
 </html>
