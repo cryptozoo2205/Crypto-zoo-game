@@ -11,6 +11,10 @@ window.CryptoZoo.gameplay = {
         return CryptoZoo.config.animals || {};
     },
 
+    getBoxesConfig() {
+        return CryptoZoo.config.boxes || {};
+    },
+
     getAnimalConfig(type) {
         return this.getAnimalsConfig()[type];
     },
@@ -20,6 +24,20 @@ window.CryptoZoo.gameplay = {
             count: 0,
             level: 1
         };
+    },
+
+    normalizeBoxes() {
+        if (!CryptoZoo.state.boxes) {
+            CryptoZoo.state.boxes = {
+                common: 0,
+                rare: 0,
+                epic: 0
+            };
+        }
+
+        CryptoZoo.state.boxes.common = Number(CryptoZoo.state.boxes.common) || 0;
+        CryptoZoo.state.boxes.rare = Number(CryptoZoo.state.boxes.rare) || 0;
+        CryptoZoo.state.boxes.epic = Number(CryptoZoo.state.boxes.epic) || 0;
     },
 
     getLevelFromCoins(coins) {
@@ -80,6 +98,7 @@ window.CryptoZoo.gameplay = {
         const state = CryptoZoo.state;
 
         this.normalizeAnimals();
+        this.normalizeBoxes();
         this.updateZooIncome();
         state.level = this.getLevelFromCoins(state.coins);
     },
@@ -128,6 +147,7 @@ window.CryptoZoo.gameplay = {
 
             if (!user) {
                 this.normalizeAnimals();
+                this.normalizeBoxes();
                 this.recalculateCoreStats();
                 this.applyOfflineEarnings();
                 return;
@@ -141,15 +161,18 @@ window.CryptoZoo.gameplay = {
             state.coinsPerClick = Number(user.coinsPerClick) || economy.startCoinsPerClick || 1;
             state.upgradeCost = Number(user.upgradeCost) || economy.startUpgradeCost || 50;
             state.animals = user.animals || state.animals || {};
+            state.boxes = user.boxes || state.boxes || {};
             state.expedition = user.expedition || null;
             state.lastLogin = Number(user.lastLogin) || Date.now();
 
             this.normalizeAnimals();
+            this.normalizeBoxes();
             this.recalculateCoreStats();
             this.applyOfflineEarnings();
         } catch (error) {
             console.error("LOAD PLAYER STATE ERROR:", error);
             this.normalizeAnimals();
+            this.normalizeBoxes();
             this.recalculateCoreStats();
             this.applyOfflineEarnings();
         }
@@ -260,6 +283,30 @@ window.CryptoZoo.gameplay = {
         };
     },
 
+    generateBoxDrop(expeditionType) {
+        const roll = Math.random();
+
+        if (expeditionType === "short") {
+            if (roll < 0.40) return "common";
+            return null;
+        }
+
+        if (expeditionType === "medium") {
+            if (roll < 0.10) return "rare";
+            if (roll < 0.45) return "common";
+            return null;
+        }
+
+        if (expeditionType === "long") {
+            if (roll < 0.15) return "epic";
+            if (roll < 0.45) return "rare";
+            if (roll < 0.70) return "common";
+            return null;
+        }
+
+        return null;
+    },
+
     startExpedition(type) {
         const expConfig = (CryptoZoo.config.expeditions || []).find(function (e) {
             return e.id === type;
@@ -273,6 +320,7 @@ window.CryptoZoo.gameplay = {
         }
 
         const reward = this.generateExpeditionReward(expConfig);
+        const boxDrop = this.generateBoxDrop(type);
 
         const endTime = Date.now() + (expConfig.duration * 1000);
 
@@ -282,7 +330,8 @@ window.CryptoZoo.gameplay = {
             endTime: endTime,
             rewardCoins: reward.rewardCoins,
             rewardGems: reward.rewardGems,
-            rewardRarity: reward.rewardRarity
+            rewardRarity: reward.rewardRarity,
+            rewardBox: boxDrop
         };
 
         CryptoZoo.ui.showToast(`Start: ${expConfig.name}`);
@@ -303,13 +352,51 @@ window.CryptoZoo.gameplay = {
         CryptoZoo.state.coins += Number(expedition.rewardCoins) || 0;
         CryptoZoo.state.gems += Number(expedition.rewardGems) || 0;
 
-        const coinsText = CryptoZoo.formatNumber(expedition.rewardCoins || 0);
-        const gemsText = CryptoZoo.formatNumber(expedition.rewardGems || 0);
+        let rewardText = `${CryptoZoo.formatNumber(expedition.rewardCoins)} coins + ${CryptoZoo.formatNumber(expedition.rewardGems)} gems`;
+
+        if (expedition.rewardBox) {
+            this.normalizeBoxes();
+            CryptoZoo.state.boxes[expedition.rewardBox] += 1;
+            rewardText += ` + ${expedition.rewardBox} box`;
+        }
 
         CryptoZoo.state.expedition = null;
 
         this.recalculateCoreStats();
-        CryptoZoo.ui.showToast(`Nagroda: ${coinsText} coins + ${gemsText} gems`);
+        CryptoZoo.ui.showToast(`Nagroda: ${rewardText}`);
+        CryptoZoo.ui.render();
+        this.saveGame();
+    },
+
+    openBox(type) {
+        this.normalizeBoxes();
+
+        const boxesConfig = this.getBoxesConfig();
+        const boxConfig = boxesConfig[type];
+
+        if (!boxConfig) return;
+
+        if ((CryptoZoo.state.boxes[type] || 0) <= 0) {
+            CryptoZoo.ui.showToast("Nie masz tego boxa");
+            return;
+        }
+
+        const coins =
+            Math.floor(
+                Math.random() * ((boxConfig.coinMax - boxConfig.coinMin) + 1)
+            ) + boxConfig.coinMin;
+
+        const gems =
+            Math.floor(
+                Math.random() * ((boxConfig.gemsMax - boxConfig.gemsMin) + 1)
+            ) + boxConfig.gemsMin;
+
+        CryptoZoo.state.boxes[type] -= 1;
+        CryptoZoo.state.coins += coins;
+        CryptoZoo.state.gems += gems;
+
+        this.recalculateCoreStats();
+        CryptoZoo.ui.showToast(`Otworzono ${boxConfig.name}: ${CryptoZoo.formatNumber(coins)} coins + ${CryptoZoo.formatNumber(gems)} gems`);
         CryptoZoo.ui.render();
         this.saveGame();
     },
@@ -352,6 +439,7 @@ window.CryptoZoo.gameplay = {
 
                 if (screenId === "expeditions") {
                     CryptoZoo.ui.renderExpeditions();
+                    CryptoZoo.ui.renderBoxes();
                 }
             };
         });
