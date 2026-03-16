@@ -54,7 +54,7 @@ window.CryptoZoo.init = {
                         loader.style.display = "none";
                     }, 400);
                 }
-            }, 1600);
+            }, 1700);
         } catch (error) {
             console.error("INIT ERROR:", error);
         }
