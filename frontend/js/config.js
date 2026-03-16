@@ -1,191 +1,111 @@
-window.CryptoZoo = window.CryptoZoo || {};
+export const GAME_CONFIG = {
 
-window.CryptoZoo.config = {
-    economy: {
-        startCoins: 0,
-        startGems: 0,
-        startLevel: 1,
-        startCoinsPerClick: 1,
-        startUpgradeCost: 50,
-        clickUpgradeMultiplier: 2.2,
-        levelDivider: 20000,
-        passiveIncomeIntervalMs: 1000,
-        gemsPerLevel: 1,
-        offlineMaxSeconds: 28800
+  clickValue: 1,
+
+  offlineLimitHours: 8,
+
+  animals: [
+
+    {
+      id: "monkey",
+      name: "Monkey",
+      price: 100,
+      income: 1
     },
 
-    animals: {
-        monkey: {
-            key: "monkey",
-            name: "Małpa",
-            asset: "monkey",
-            buyCost: 100,
-            baseIncome: 1,
-            upgradeBaseCost: 150
-        },
-        panda: {
-            key: "panda",
-            name: "Panda",
-            asset: "panda",
-            buyCost: 400,
-            baseIncome: 3,
-            upgradeBaseCost: 600
-        },
-        lion: {
-            key: "lion",
-            name: "Lew",
-            asset: "lion",
-            buyCost: 1200,
-            baseIncome: 8,
-            upgradeBaseCost: 1800
-        },
-        tiger: {
-            key: "tiger",
-            name: "Tygrys",
-            asset: "tiger",
-            buyCost: 3000,
-            baseIncome: 15,
-            upgradeBaseCost: 4200
-        },
-        elephant: {
-            key: "elephant",
-            name: "Słoń",
-            asset: "elephant",
-            buyCost: 8000,
-            baseIncome: 35,
-            upgradeBaseCost: 11000
-        },
-        giraffe: {
-            key: "giraffe",
-            name: "Żyrafa",
-            asset: "giraffe",
-            buyCost: 18000,
-            baseIncome: 70,
-            upgradeBaseCost: 24000
-        },
-        zebra: {
-            key: "zebra",
-            name: "Zebra",
-            asset: "zebra",
-            buyCost: 35000,
-            baseIncome: 130,
-            upgradeBaseCost: 48000
-        },
-        penguin: {
-            key: "penguin",
-            name: "Pingwin",
-            asset: "penguin",
-            buyCost: 70000,
-            baseIncome: 240,
-            upgradeBaseCost: 95000
-        },
-        bear: {
-            key: "bear",
-            name: "Niedźwiedź",
-            asset: "bear",
-            buyCost: 140000,
-            baseIncome: 420,
-            upgradeBaseCost: 190000
-        },
-        wolf: {
-            key: "wolf",
-            name: "Wilk",
-            asset: "wolf",
-            buyCost: 280000,
-            baseIncome: 750,
-            upgradeBaseCost: 380000
-        },
-        rhino: {
-            key: "rhino",
-            name: "Nosorożec",
-            asset: "rhino",
-            buyCost: 600000,
-            baseIncome: 1300,
-            upgradeBaseCost: 800000
-        },
-        gorilla: {
-            key: "gorilla",
-            name: "Goryl",
-            asset: "gorilla",
-            buyCost: 1500000,
-            baseIncome: 2600,
-            upgradeBaseCost: 2000000
-        },
-        crocodile: {
-            key: "crocodile",
-            name: "Krokodyl",
-            asset: "crocodile",
-            buyCost: 4000000,
-            baseIncome: 5200,
-            upgradeBaseCost: 5500000
-        }
+    {
+      id: "panda",
+      name: "Panda",
+      price: 400,
+      income: 3
     },
 
-    expeditions: [
-        {
-            id: "short",
-            name: "Krótka wyprawa",
-            duration: 300,
-            baseCoins: 1200,
-            baseGems: 1,
-            rareChance: 0.25,
-            epicChance: 0.08
-        },
-        {
-            id: "medium",
-            name: "Średnia wyprawa",
-            duration: 900,
-            baseCoins: 6000,
-            baseGems: 2,
-            rareChance: 0.35,
-            epicChance: 0.12
-        },
-        {
-            id: "long",
-            name: "Długa wyprawa",
-            duration: 1800,
-            baseCoins: 18000,
-            baseGems: 4,
-            rareChance: 0.45,
-            epicChance: 0.18
-        }
-    ],
+    {
+      id: "lion",
+      name: "Lion",
+      price: 1200,
+      income: 8
+    },
 
-    boxes: {
-        common: {
-            id: "common",
-            name: "Common Box",
-            coinMin: 300,
-            coinMax: 1200,
-            gemsMin: 0,
-            gemsMax: 1
-        },
-        rare: {
-            id: "rare",
-            name: "Rare Box",
-            coinMin: 1500,
-            coinMax: 5000,
-            gemsMin: 1,
-            gemsMax: 3
-        },
-        epic: {
-            id: "epic",
-            name: "Epic Box",
-            coinMin: 6000,
-            coinMax: 18000,
-            gemsMin: 3,
-            gemsMax: 7
-        }
+    {
+      id: "tiger",
+      name: "Tiger",
+      price: 3500,
+      income: 20
+    },
+
+    {
+      id: "elephant",
+      name: "Elephant",
+      price: 9000,
+      income: 45
+    },
+
+    {
+      id: "giraffe",
+      name: "Giraffe",
+      price: 25000,
+      income: 100
+    },
+
+    {
+      id: "zebra",
+      name: "Zebra",
+      price: 70000,
+      income: 250
+    },
+
+    {
+      id: "hippo",
+      name: "Hippo",
+      price: 180000,
+      income: 600
+    },
+
+    {
+      id: "penguin",
+      name: "Penguin",
+      price: 500000,
+      income: 1500
+    },
+
+    {
+      id: "bear",
+      name: "Bear",
+      price: 1200000,
+      income: 3500
+    },
+
+    {
+      id: "crocodile",
+      name: "Crocodile",
+      price: 3000000,
+      income: 8000
+    },
+
+    {
+      id: "kangaroo",
+      name: "Kangaroo",
+      price: 7500000,
+      income: 18000
+    },
+
+    {
+      id: "wolf",
+      name: "Wolf",
+      price: 18000000,
+      income: 40000
     }
-};
 
-window.CryptoZoo.formatNumber = function (num) {
-    num = Number(num) || 0;
+  ],
 
-    if (num >= 1e12) return (num / 1e12).toFixed(2) + "T";
-    if (num >= 1e9) return (num / 1e9).toFixed(2) + "B";
-    if (num >= 1e6) return (num / 1e6).toFixed(2) + "M";
-    if (num >= 1e3) return (num / 1e3).toFixed(2) + "K";
+  upgrade: {
 
-    return Math.floor(num).toString();
+    click: {
+      baseCost: 200,
+      multiplier: 1.4
+    }
+
+  }
+
 };
