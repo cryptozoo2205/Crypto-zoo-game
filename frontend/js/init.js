@@ -48,9 +48,13 @@ window.CryptoZoo.init = {
                 const loader = document.getElementById("loading-screen");
 
                 if (loader) {
-                    loader.style.display = "none";
+                    loader.classList.add("loading-hide");
+
+                    setTimeout(function () {
+                        loader.style.display = "none";
+                    }, 380);
                 }
-            }, 800);
+            }, 1400);
         } catch (error) {
             console.error("INIT ERROR:", error);
         }
