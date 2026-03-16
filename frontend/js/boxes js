@@ -46,4 +46,103 @@ window.CryptoZoo.boxes = {
 
             state.gems -= price;
 
-            const roll = Math.random
+            const roll = Math.random();
+
+            if (roll < 0.50) {
+                const coins = Math.floor(Math.random() * 6001) + 2000;
+                state.coins += coins;
+                rewardText = `Coins +${window.CryptoZoo.formatNumber ? window.CryptoZoo.formatNumber(coins) : coins}`;
+            } else if (roll < 0.80) {
+                const gems = Math.floor(Math.random() * 3) + 2;
+                state.gems += gems;
+                rewardText = `Gems +${gems}`;
+            } else if (roll < 0.95) {
+                const coins = 15000;
+                state.coins += coins;
+                rewardText = `Rare reward +${window.CryptoZoo.formatNumber ? window.CryptoZoo.formatNumber(coins) : coins}`;
+            } else {
+                state.rewardBalance = (Number(state.rewardBalance) || 0) + 0.01;
+                rewardText = "Reward Balance +0.01";
+            }
+        }
+
+        if (type === "epic") {
+            const price = 15;
+
+            if ((Number(state.gems) || 0) < price) {
+                ui?.showToast?.("Za mało gemsów");
+                return;
+            }
+
+            state.gems -= price;
+
+            const roll = Math.random();
+
+            if (roll < 0.40) {
+                const coins = Math.floor(Math.random() * 30001) + 10000;
+                state.coins += coins;
+                rewardText = `Coins +${window.CryptoZoo.formatNumber ? window.CryptoZoo.formatNumber(coins) : coins}`;
+            } else if (roll < 0.65) {
+                const gems = Math.floor(Math.random() * 6) + 5;
+                state.gems += gems;
+                rewardText = `Gems +${gems}`;
+            } else if (roll < 0.90) {
+                const coins = 50000;
+                state.coins += coins;
+                rewardText = `Epic reward +${window.CryptoZoo.formatNumber ? window.CryptoZoo.formatNumber(coins) : coins}`;
+            } else {
+                state.rewardBalance = (Number(state.rewardBalance) || 0) + 0.02;
+                rewardText = "Reward Balance +0.02";
+            }
+        }
+
+        if (type === "legendary") {
+            const price = 40;
+
+            if ((Number(state.gems) || 0) < price) {
+                ui?.showToast?.("Za mało gemsów");
+                return;
+            }
+
+            state.gems -= price;
+
+            const roll = Math.random();
+
+            if (roll < 0.30) {
+                const coins = Math.floor(Math.random() * 100001) + 50000;
+                state.coins += coins;
+                rewardText = `Coins +${window.CryptoZoo.formatNumber ? window.CryptoZoo.formatNumber(coins) : coins}`;
+            } else if (roll < 0.50) {
+                const gems = Math.floor(Math.random() * 11) + 10;
+                state.gems += gems;
+                rewardText = `Gems +${gems}`;
+            } else if (roll < 0.80) {
+                const coins = 200000;
+                state.coins += coins;
+                rewardText = `Legendary reward +${window.CryptoZoo.formatNumber ? window.CryptoZoo.formatNumber(coins) : coins}`;
+            } else {
+                state.rewardBalance = (Number(state.rewardBalance) || 0) + 0.05;
+                rewardText = "Reward Balance +0.05";
+            }
+        }
+
+        ui?.showToast?.(rewardText);
+        ui?.render?.();
+        api?.savePlayer?.();
+    },
+
+    bindButtons() {
+        const buttons = document.querySelectorAll("[data-box-type]");
+
+        buttons.forEach((button) => {
+            button.onclick = () => {
+                const type = button.getAttribute("data-box-type");
+                this.open(type);
+            };
+        });
+    },
+
+    init() {
+        this.bindButtons();
+    }
+};
