@@ -1,580 +1,82 @@
-html,
 body{
-    margin:0;
-    padding:0;
-    width:100%;
-    min-height:100%;
-    font-family:Arial, sans-serif;
-    background:#000;
-    color:white;
-    overflow-x:hidden;
-}
-
-body{
-    background:url("assets/background.png") center center no-repeat;
-    background-size:cover;
-    background-attachment:fixed;
-    min-height:100vh;
-}
-
-#loading-screen{
-    position:fixed;
-    inset:0;
-    width:100%;
-    height:100%;
-    background:#0e2f24;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    z-index:99999;
-    opacity:1;
-    transition:opacity 0.8s ease;
-}
-
-#loading-screen.hide-loading{
-    opacity:0;
-    pointer-events:none;
-}
-
-.loading-image{
-    width:100%;
-    height:100%;
-    object-fit:cover;
-    display:block;
-}
-
-.app-shell{
-    min-height:100vh;
-    width:100%;
-    max-width:500px;
-    margin:0 auto;
-    box-sizing:border-box;
-    padding:18px 14px 100px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-}
-
-h1{
-    margin:8px 0 10px;
-    text-shadow:0 2px 8px rgba(0,0,0,0.45);
-    font-size:42px;
-    text-align:center;
-}
-
-.stats{
-    text-align:center;
-    background:rgba(0,0,0,0.60);
-    padding:10px 16px;
-    border-radius:12px;
-    margin-bottom:16px;
-    box-shadow:0 6px 16px rgba(0,0,0,0.2);
-    font-size:16px;
-}
-
-.toast{
-    position:fixed;
-    top:20px;
-    left:50%;
-    transform:translateX(-50%);
-    background:rgba(0,0,0,0.85);
-    color:#fff;
-    padding:12px 16px;
-    border-radius:12px;
-    font-weight:bold;
-    z-index:999;
-    display:none;
-    box-shadow:0 8px 20px rgba(0,0,0,0.3);
-}
-
-.screen{
-    display:none;
-    width:100%;
-    max-width:460px;
-}
-
-.active-screen{
-    display:block;
-}
-
-.screen-card{
-    background:rgba(0,0,0,0.72);
-    border-radius:18px;
-    padding:16px;
-    box-shadow:0 8px 20px rgba(0,0,0,0.30);
-    backdrop-filter:blur(4px);
-}
-
-.zoo-screen-card{
-    max-height:calc(100vh - 190px);
-    overflow-y:auto;
-    padding-right:12px;
-}
-
-.zoo-screen-card::-webkit-scrollbar{
-    width:6px;
-}
-
-.zoo-screen-card::-webkit-scrollbar-thumb{
-    background:rgba(255,255,255,0.25);
-    border-radius:10px;
-}
-
-#game{
-    width:100%;
-}
-
-#game .screen-card{
-    background:transparent;
-    box-shadow:none;
-    backdrop-filter:none;
-    padding:0;
-}
-
-.center-card{
-    min-height:calc(100vh - 260px);
-    display:flex;
-    align-items:flex-start;
-    justify-content:center;
-    padding-top:90px;
-    box-sizing:border-box;
-}
-
-.tap-wrapper{
-    position:relative;
-    width:100%;
-    max-width:320px;
-    min-height:160px;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-}
-
-#tap-btn{
-    padding:15px 26px;
-    border:none;
-    border-radius:18px;
-    background:#ffd700;
-    color:#111;
-    font-size:21px;
-    font-weight:bold;
-    cursor:pointer;
-    box-shadow:0 8px 18px rgba(0,0,0,0.35);
-}
-
-#tap-btn:active{
-    transform:scale(0.97);
-}
-
-#coin-animation-container{
-    position:absolute;
-    inset:0;
-    pointer-events:none;
-    overflow:visible;
-}
-
-.flying-coin{
-    position:absolute;
-    width:22px;
-    height:22px;
-    border-radius:50%;
-    background:radial-gradient(circle,#fff3a0,#ffd700);
-    animation:flyCoin 0.8s forwards;
-    box-shadow:0 3px 8px rgba(0,0,0,0.2);
-}
-
-@keyframes flyCoin{
-    0%{
-        opacity:1;
-        transform:translate(0,0);
-    }
-    100%{
-        opacity:0;
-        transform:translate(var(--moveX),var(--moveY));
-    }
-}
-
-.section-title{
-    margin-top:0;
-    margin-bottom:12px;
-    font-size:22px;
-    text-align:center;
-}
-
-.summary-box{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px;
-    margin-bottom:12px;
-}
-
-.summary-item{
-    background:rgba(255,255,255,0.14);
-    border:1px solid rgba(255,255,255,0.10);
-    border-radius:12px;
-    padding:10px;
-    text-align:center;
-}
-
-.summary-item span{
-    display:block;
-    font-size:12px;
-    opacity:0.9;
-    margin-bottom:5px;
-}
-
-.summary-item strong{
-    font-size:18px;
-}
-
-.rarity-legend{
-    display:flex;
-    justify-content:space-between;
-    gap:8px;
-    margin-bottom:12px;
-    flex-wrap:wrap;
-}
-
-.legend-item{
-    display:flex;
-    align-items:center;
-    gap:7px;
-    background:rgba(255,255,255,0.10);
-    border-radius:10px;
-    padding:7px 9px;
-    font-size:12px;
-}
-
-.animal-row,
-.shop-row{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:10px;
-    margin:10px 0;
-    padding:12px;
-    border-radius:14px;
-    background:rgba(255,255,255,0.14);
-    border:1px solid rgba(255,255,255,0.10);
-}
-
-.animal-left{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    min-width:0;
-    flex:1;
-}
-
-.animal-icon{
-    font-size:30px;
-    line-height:1;
-    width:38px;
-    text-align:center;
-}
-
-.animal-text,
-.shop-text{
-    display:flex;
-    flex-direction:column;
-    gap:3px;
-    min-width:0;
-}
-
-.animal-topline{
-    display:flex;
-    align-items:center;
-    gap:6px;
-    flex-wrap:wrap;
-}
-
-.animal-name,
-.shop-title{
-    font-size:17px;
-    font-weight:bold;
-    color:#ffffff;
-}
-
-.animal-desc,
-.shop-desc{
-    font-size:12px;
-    color:rgba(255,255,255,0.92);
-    line-height:1.25;
-}
-
-.animal-owned{
-    font-size:13px;
-    font-weight:bold;
-    color:#ffd700;
-}
-
-.rarity-badge{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    padding:3px 8px;
-    border-radius:999px;
-    font-size:11px;
-    font-weight:bold;
-    letter-spacing:0.2px;
-}
-
-.rarity-common{
-    background:#9ca3af;
-    color:#111827;
-}
-
-.rarity-rare{
-    background:#60a5fa;
-    color:#082f49;
-}
-
-.rarity-epic{
-    background:#c084fc;
-    color:#3b0764;
-}
-
-.rarity-common-text{
-    color:#d1d5db;
-}
-
-.rarity-rare-text{
-    color:#93c5fd;
-}
-
-.rarity-epic-text{
-    color:#d8b4fe;
-}
-
-.animal-actions{
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-    flex-shrink:0;
-}
-
-.animal-actions button{
-    min-width:88px;
-}
-
-.info-box{
-    margin-top:14px;
-    padding:12px;
-    border-radius:10px;
-    background:rgba(255,255,255,0.16);
-    font-weight:bold;
-    text-align:center;
-}
-
-.collection-block{
-    margin-top:14px;
-    padding-top:4px;
-}
-
-.collection-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:10px;
-    margin-bottom:10px;
-    flex-wrap:wrap;
-}
-
-.collection-header h4{
-    margin:0;
-    font-size:18px;
-}
-
-.collection-progress{
-    font-size:13px;
-    font-weight:bold;
-    color:#ffd700;
-}
-
-.collection-grid{
-    display:grid;
-    grid-template-columns:repeat(3, 1fr);
-    gap:10px;
-}
-
-.collection-card{
-    background:rgba(255,255,255,0.12);
-    border:1px solid rgba(255,255,255,0.10);
-    border-radius:14px;
-    padding:10px 8px;
-    text-align:center;
-    transition:0.2s;
-    min-height:120px;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-}
-
-.collection-card.locked{
-    opacity:0.55;
-    filter:grayscale(0.35);
-}
-
-.collection-card.discovered{
-    box-shadow:0 0 0 1px rgba(255,215,0,0.2), 0 8px 18px rgba(0,0,0,0.18);
-}
-
-.collection-icon{
-    font-size:30px;
-    margin-bottom:6px;
-}
-
-.collection-name{
-    font-size:16px;
-    font-weight:bold;
-    margin-bottom:4px;
-}
-
-.collection-rarity{
-    font-size:13px;
-    margin-bottom:6px;
-    font-weight:bold;
-}
-
-.collection-status{
-    font-size:13px;
-    font-weight:bold;
-}
-
-.collection-status.discovered-status{
-    color:#4ade80;
-}
-
-.collection-status.locked-status{
-    color:#fca5a5;
-}
-
-.collection-rarity-summary{
-    display:grid;
-    grid-template-columns:1fr 1fr 1fr;
-    gap:8px;
-    margin-top:10px;
-}
-
-.rarity-summary-item{
-    background:rgba(255,255,255,0.10);
-    border-radius:12px;
-    padding:8px;
-    text-align:center;
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-    align-items:center;
-}
-
-.rarity-summary-item strong{
-    font-size:13px;
-}
-
-.screen button{
-    padding:8px 12px;
-    border:none;
-    border-radius:8px;
-    background:#4ade80;
-    color:#123;
-    font-weight:bold;
-    cursor:pointer;
-    flex-shrink:0;
-    font-size:13px;
-}
-
-.ranking-list{
-    list-style:none;
-    padding:0;
-    margin:0;
-}
-
-.ranking-list li{
-    background:rgba(255,255,255,0.14);
-    border:1px solid rgba(255,255,255,0.10);
-    border-radius:12px;
-    padding:12px 14px;
-    margin-bottom:10px;
-    font-weight:bold;
-    color:#fff;
+margin:0;
+padding:0;
+font-family:Arial,Helvetica,sans-serif;
+background:url("assets/backgrounds/background_main.png");
+background-size:cover;
+background-position:center;
+background-attachment:fixed;
+color:white;
+}
+
+.container{
+max-width:420px;
+margin:auto;
+padding:20px;
+}
+
+.panel{
+background:url("assets/ui/panel_stats.png");
+background-size:100% 100%;
+padding:20px;
+margin-bottom:20px;
+}
+
+.card{
+background:url("assets/ui/panel_card.png");
+background-size:100% 100%;
+padding:20px;
+margin-bottom:20px;
+}
+
+.tap-area{
+display:flex;
+justify-content:center;
+align-items:center;
+margin:30px 0;
+}
+
+.tap-button{
+width:220px;
+height:220px;
+background:url("assets/buttons/tap_button.png");
+background-size:contain;
+background-repeat:no-repeat;
+background-position:center;
+border:none;
+cursor:pointer;
+}
+
+.tap-button:active{
+background:url("assets/buttons/tap_button_pressed.png");
+background-size:contain;
+background-repeat:no-repeat;
+background-position:center;
+transform:scale(0.95);
 }
 
 .bottom-menu{
-    position:fixed;
-    bottom:0;
-    left:0;
-    width:100%;
-    height:82px;
-    background:rgba(0,0,0,0.82);
-    display:flex;
-    justify-content:space-around;
-    align-items:center;
-    backdrop-filter:blur(6px);
-    z-index:20;
+position:fixed;
+bottom:0;
+left:0;
+right:0;
+height:80px;
+background:url("assets/menu/menu_bar.png");
+background-size:100% 100%;
+display:flex;
+justify-content:space-around;
+align-items:center;
 }
 
-.bottom-menu button{
-    background:none;
-    border:none;
-    color:white;
-    cursor:pointer;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:4px;
+.menu-item{
+text-align:center;
+font-size:12px;
+cursor:pointer;
 }
 
-.nav-icon{
-    font-size:24px;
-}
-
-.nav-text{
-    font-size:13px;
-}
-
-@media (max-width: 420px){
-    h1{
-        font-size:34px;
-    }
-
-    .stats{
-        font-size:14px;
-    }
-
-    .center-card{
-        min-height:calc(100vh - 240px);
-        padding-top:70px;
-    }
-
-    .tap-wrapper{
-        max-width:280px;
-    }
-
-    #tap-btn{
-        font-size:18px;
-        padding:14px 22px;
-    }
-
-    .collection-grid{
-        grid-template-columns:1fr;
-    }
-
-    .collection-rarity-summary{
-        grid-template-columns:1fr;
-    }
-
-    .animal-row,
-    .shop-row{
-        flex-direction:column;
-        align-items:stretch;
-    }
-
-    .animal-actions{
-        flex-direction:row;
-    }
-
-    .animal-actions button{
-        flex:1;
-    }
+.menu-item img{
+width:26px;
+height:26px;
+display:block;
+margin:auto;
 }
