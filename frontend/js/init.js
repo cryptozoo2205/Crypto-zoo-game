@@ -36,7 +36,8 @@ window.CryptoZoo.init = {
             }
 
             if (CryptoZoo.ui && CryptoZoo.ui.showScreen) {
-                CryptoZoo.ui.showScreen("game");
+                const savedScreen = localStorage.getItem("cryptoZooActiveScreen") || "game";
+                CryptoZoo.ui.showScreen(savedScreen);
             }
         } catch (error) {
             console.error("INIT ERROR:", error);
@@ -46,4 +47,4 @@ window.CryptoZoo.init = {
 
 document.addEventListener("DOMContentLoaded", function () {
     CryptoZoo.init.start();
-}); 
+});
