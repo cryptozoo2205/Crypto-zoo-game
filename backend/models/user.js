@@ -11,7 +11,21 @@ const animalSchema = new mongoose.Schema(
 const expeditionSchema = new mongoose.Schema(
     {
         type: { type: String, default: null },
-        endTime: { type: Number, default: null }
+        name: { type: String, default: null },
+        endTime: { type: Number, default: null },
+        rewardCoins: { type: Number, default: 0 },
+        rewardGems: { type: Number, default: 0 },
+        rewardRarity: { type: String, default: "common" },
+        rewardBox: { type: String, default: null }
+    },
+    { _id: false }
+);
+
+const boxesSchema = new mongoose.Schema(
+    {
+        common: { type: Number, default: 0 },
+        rare: { type: Number, default: 0 },
+        epic: { type: Number, default: 0 }
     },
     { _id: false }
 );
@@ -28,6 +42,7 @@ const userSchema = new mongoose.Schema({
     lastLogin: { type: Number, default: Date.now },
 
     expedition: { type: expeditionSchema, default: null },
+    boxes: { type: boxesSchema, default: () => ({}) },
 
     animals: {
         monkey: { type: animalSchema, default: () => ({}) },
