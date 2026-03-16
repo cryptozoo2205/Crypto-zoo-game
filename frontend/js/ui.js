@@ -39,6 +39,7 @@ window.CryptoZoo.ui = {
         const target = document.getElementById(screenId);
         if (target) {
             target.classList.add("active-screen");
+            localStorage.setItem("cryptoZooActiveScreen", screenId);
         }
 
         navButtons.forEach(function (btn) {
