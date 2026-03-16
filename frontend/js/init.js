@@ -52,9 +52,9 @@ window.CryptoZoo.init = {
 
                     setTimeout(function () {
                         loader.style.display = "none";
-                    }, 380);
+                    }, 400);
                 }
-            }, 1400);
+            }, 1600);
         } catch (error) {
             console.error("INIT ERROR:", error);
         }
