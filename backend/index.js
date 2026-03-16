@@ -51,6 +51,8 @@ app.get("/api/player/:telegramId", async (req, res) => {
                 level: 1,
                 coinsPerClick: 1,
                 upgradeCost: 50,
+                lastLogin: Date.now(),
+                expedition: null,
                 animals: getDefaultAnimals()
             });
         }
@@ -72,7 +74,9 @@ app.post("/api/player", async (req, res) => {
             level,
             coinsPerClick,
             upgradeCost,
-            animals
+            animals,
+            expedition,
+            lastLogin
         } = req.body;
 
         if (!telegramId) {
@@ -94,6 +98,8 @@ app.post("/api/player", async (req, res) => {
                 level: Number(level) || 1,
                 coinsPerClick: Number(coinsPerClick) || 1,
                 upgradeCost: Number(upgradeCost) || 50,
+                lastLogin: Number(lastLogin) || Date.now(),
+                expedition: expedition || null,
                 animals: mergedAnimals
             },
             {
