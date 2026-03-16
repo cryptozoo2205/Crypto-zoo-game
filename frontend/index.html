@@ -2,16 +2,13 @@
 <html lang="pl">
 
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Crypto Zoo</title>
 
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/zoo.css">
 <link rel="stylesheet" href="css/shop.css">
-
 </head>
 
 <body>
@@ -40,27 +37,21 @@ Reward
 <main id="game">
 
 <section id="screen-game">
-
 <div class="tap-area">
 <button id="tapButton">🐾</button>
 </div>
-
 </section>
 
 <section id="screen-zoo" class="hidden">
-
 <h2>Zoo</h2>
 <div id="zooList"></div>
-
 </section>
 
 <section id="screen-shop" class="hidden">
-
 <h2>Shop</h2>
 <div id="shopList"></div>
 
 <h3>Boxes</h3>
-
 <div class="boxes">
 
 <button data-box-type="common">
@@ -88,14 +79,11 @@ Legendary Box
 </button>
 
 </div>
-
 </section>
 
 <section id="screen-missions" class="hidden">
-
 <h2>Expeditions</h2>
 <div id="missionsList"></div>
-
 </section>
 
 <section id="screen-minigames" class="hidden">
@@ -134,7 +122,6 @@ margin:0 auto;
 </div>
 
 <button id="spinWheelBtn" type="button">Spin Wheel</button>
-
 <p id="wheelRewardText"></p>
 
 </div>
@@ -154,7 +141,6 @@ margin:16px auto;
 </div>
 
 <button id="startMemoryBtn" type="button">Start Memory</button>
-
 <p id="memoryStatus"></p>
 
 </div>
@@ -164,25 +150,31 @@ margin:16px auto;
 </section>
 
 <section id="screen-ranking" class="hidden">
-
 <h2>Ranking</h2>
 <ul id="rankingList"></ul>
-
 </section>
 
 </main>
 
 <footer class="menu">
-
 <button data-nav="game">Game</button>
 <button data-nav="zoo">Zoo</button>
 <button data-nav="shop">Shop</button>
 <button data-nav="missions">Missions</button>
 <button data-nav="minigames">Mini Games</button>
 <button data-nav="ranking">Ranking</button>
-
 </footer>
 
+</div>
+
+<div id="dailyReward" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:#1f2a44; color:#fff; padding:24px; border-radius:16px; text-align:center; width:90%; max-width:320px; box-shadow:0 10px 30px rgba(0,0,0,0.35);">
+        <h2 style="margin-top:0;">Daily Reward</h2>
+        <p id="dailyRewardText">Claim your reward</p>
+        <button id="claimDailyBtn" type="button" style="padding:12px 18px; border:none; border-radius:12px; font-weight:700; cursor:pointer;">
+            CLAIM REWARD
+        </button>
+    </div>
 </div>
 
 <script src="js/config.js"></script>
@@ -194,9 +186,9 @@ margin:16px auto;
 <script src="js/shop.js"></script>
 <script src="js/boxes.js"></script>
 <script src="js/minigames.js"></script>
+<script src="js/daily.js"></script>
 <script src="js/gameplay.js"></script>
 <script src="js/init.js"></script>
 
 </body>
-
 </html>
