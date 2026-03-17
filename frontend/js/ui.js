@@ -274,14 +274,28 @@ CryptoZoo.ui = {
         const rankingList = document.getElementById("rankingList");
         if (!rankingList) return;
 
-        const ranking = await CryptoZoo.api?.loadRanking?.();
-        rankingList.innerHTML = "";
+        rankingList.innerHTML = "<li>Ładowanie rankingu...</li>";
 
-        (Array.isArray(ranking) ? ranking : []).forEach((row, index) => {
-            const li = document.createElement("li");
-            li.textContent = `${index + 1}. ${row.username || "Gracz"} — ${CryptoZoo.formatNumber(row.coins || 0)} coins`;
-            rankingList.appendChild(li);
-        });
+        try {
+            const ranking = await CryptoZoo.api?.loadRanking?.();
+            rankingList.innerHTML = "";
+
+            const safeRanking = Array.isArray(ranking) ? ranking : [];
+
+            if (!safeRanking.length) {
+                rankingList.innerHTML = "<li>Brak danych rankingu</li>";
+                return;
+            }
+
+            safeRanking.forEach((row, index) => {
+                const li = document.createElement("li");
+                li.textContent = `${index + 1}. ${row.username || row.name || "Gracz"} — ${CryptoZoo.formatNumber(row.coins || 0)} coins`;
+                rankingList.appendChild(li);
+            });
+        } catch (error) {
+            console.error("Ranking render error:", error);
+            rankingList.innerHTML = "<li>Błąd ładowania rankingu</li>";
+        }
     },
 
     render() {
