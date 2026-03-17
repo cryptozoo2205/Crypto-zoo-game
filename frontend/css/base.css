@@ -1,29 +1,23 @@
-html,
-body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    min-height: 100%;
-    font-family: Arial, sans-serif;
-    color: #ffffff;
-    background: #08152f;
-}
-
-body {
-    background: url("../assets/backgrounds/background_main.png") center center no-repeat;
-    background-size: cover;
-    background-attachment: fixed;
-    min-height: 100vh;
-}
-
 * {
     box-sizing: border-box;
 }
 
-button,
-input,
-textarea,
-select {
+html {
+    min-height: 100%;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #ffffff;
+    background:
+        linear-gradient(180deg, rgba(6, 12, 22, 0.82) 0%, rgba(8, 14, 28, 0.9) 100%),
+        url("../assets/backgrounds/game_bg.png") center top / cover no-repeat fixed;
+    overflow-x: hidden;
+}
+
+button {
     font: inherit;
 }
 
@@ -32,112 +26,105 @@ img {
     display: block;
 }
 
-#toast {
-    position: fixed;
-    left: 50%;
-    bottom: 96px;
-    transform: translateX(-50%);
-    background: rgba(10, 18, 35, 0.92);
-    color: #ffffff;
-    padding: 12px 18px;
-    border-radius: 14px;
-    z-index: 2000;
-    display: none;
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-/* FINAL LOADING - ORYGINALNY WYGLĄD + SUBTELNA ANIMACJA */
-
-#loading-screen {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 99999;
-    overflow: hidden;
-    background: #07162b;
-}
-
-.loading-bg {
-    position: absolute;
-    inset: 0;
-    background: url("../assets/loading/loading_screen_final.png") center center no-repeat;
-    background-size: cover;
-    animation: loadingBgPulse 2.8s ease-in-out infinite;
-}
-
-/* delikatny błysk dokładnie na pasku z oryginalnej grafiki */
-.loading-bar-shine-wrap {
-    position: absolute;
-    left: 50%;
-    top: 63.1%;
-    transform: translateX(-50%);
-    width: min(34vw, 195px);
-    height: min(1.3vw + 9px, 16px);
-    overflow: hidden;
-    border-radius: 999px;
-    pointer-events: none;
-    mix-blend-mode: screen;
-    opacity: 0.9;
-}
-
-.loading-bar-shine {
-    position: absolute;
-    top: 0;
-    left: -35%;
-    width: 28%;
-    height: 100%;
-    border-radius: 999px;
-    background: linear-gradient(
-        90deg,
-        rgba(255,255,255,0) 0%,
-        rgba(255,255,255,0.16) 20%,
-        rgba(255,255,255,0.60) 50%,
-        rgba(255,255,255,0.16) 80%,
-        rgba(255,255,255,0) 100%
-    );
-    filter: blur(1px);
-    animation: loadingShineMove 1.8s ease-in-out infinite;
-}
-
-.loading-hide {
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.35s ease, visibility 0.35s ease;
-}
-
-@keyframes loadingBgPulse {
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.01);
-    }
-    100% {
-        transform: scale(1);
-    }
-}
-
-@keyframes loadingShineMove {
-    0% {
-        left: -35%;
-    }
-    50% {
-        left: 48%;
-    }
-    100% {
-        left: 110%;
-    }
-}
 .hidden {
     display: none !important;
+}
+
+#app {
+    width: 100%;
+    max-width: 560px;
+    min-height: 100vh;
+    margin: 0 auto;
+    padding: 0 14px 110px;
+}
+
+#game {
+    width: 100%;
 }
 
 .screen {
     width: 100%;
 }
 
-.active-screen {
-    display: block;
+.panel.card {
+    background: linear-gradient(180deg, rgba(16, 24, 40, 0.88) 0%, rgba(10, 16, 28, 0.92) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    padding: 16px;
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.26);
+    backdrop-filter: blur(4px);
+}
+
+.panel.card h2 {
+    margin: 0 0 16px;
+    text-align: center;
+    font-size: 26px;
+    font-weight: 900;
+    color: #ffffff;
+}
+
+.panel.card h3 {
+    margin: 0 0 12px;
+    color: #ffffff;
+}
+
+.shop-item,
+.expedition-card,
+.animal-row,
+#rankingList li {
+    background: linear-gradient(180deg, rgba(22, 30, 49, 0.82) 0%, rgba(14, 20, 34, 0.9) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 18px;
+    padding: 14px;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+}
+
+.shop-item button,
+.expedition-card button,
+.animal-actions button,
+.boxes button,
+.menu button,
+#spinWheelBtn,
+#startMemoryBtn,
+#memoryBoard button {
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    font-weight: 800;
+    transition: transform 0.12s ease, opacity 0.12s ease;
+}
+
+.shop-item button:active,
+.expedition-card button:active,
+.animal-actions button:active,
+.boxes button:active,
+.menu button:active,
+#spinWheelBtn:active,
+#startMemoryBtn:active,
+#memoryBoard button:active {
+    transform: scale(0.97);
+}
+
+.shop-item button:disabled,
+.expedition-card button:disabled,
+.animal-actions button:disabled,
+.boxes button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+#zooList,
+#shopList,
+#missionsList,
+#boxesList,
+#rankingList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#rankingList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
