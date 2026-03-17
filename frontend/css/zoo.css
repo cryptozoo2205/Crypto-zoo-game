@@ -1,21 +1,10 @@
-.zoo-screen-card {
-    background: linear-gradient(180deg, rgba(21, 31, 61, 0.90) 0%, rgba(15, 24, 48, 0.94) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 28px;
-    padding: 18px 16px 110px;
-    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
-    backdrop-filter: blur(10px);
+#screen-zoo .panel.card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
 }
 
-.section-title {
-    margin: 0 0 14px;
-    font-size: 22px;
-    font-weight: 800;
-    color: #ffffff;
-    letter-spacing: 0.2px;
-}
-
-#zoo-list {
+#zooList {
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -76,7 +65,7 @@
     color: #ffffff;
 }
 
-.animal-meta,
+.animal-desc,
 .animal-owned {
     margin: 0;
     font-size: 13px;
@@ -94,15 +83,15 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    width: 116px;
+    width: 132px;
     flex-shrink: 0;
 }
 
 .animal-actions button {
     border: none;
     border-radius: 16px;
-    height: 42px;
-    font-size: 15px;
+    min-height: 44px;
+    font-size: 14px;
     font-weight: 800;
     cursor: pointer;
     transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
@@ -112,66 +101,14 @@
     transform: scale(0.97);
 }
 
-.buy-btn {
+.animal-actions button:first-child {
     color: #ffffff;
     background: linear-gradient(180deg, #41cf88 0%, #23a86b 100%);
     box-shadow: 0 8px 18px rgba(39, 185, 110, 0.28);
 }
 
-.buy-btn:hover {
-    opacity: 0.96;
-}
-
-.level-btn {
+.animal-actions button:last-child {
     color: #ffffff;
     background: linear-gradient(180deg, rgba(73, 91, 138, 0.95) 0%, rgba(56, 71, 110, 0.95) 100%);
     box-shadow: 0 8px 18px rgba(19, 29, 58, 0.28);
-}
-
-.level-btn:hover {
-    opacity: 0.96;
-}
-
-@media (max-width: 480px) {
-    .zoo-screen-card {
-        padding: 16px 12px 110px;
-        border-radius: 24px;
-    }
-
-    .animal-row {
-        align-items: stretch;
-        gap: 10px;
-        padding: 10px;
-    }
-
-    .animal-icon {
-        width: 66px;
-        height: 66px;
-        border-radius: 16px;
-    }
-
-    .animal-icon img {
-        width: 58px;
-        height: 58px;
-    }
-
-    .animal-name {
-        font-size: 17px;
-    }
-
-    .animal-meta,
-    .animal-owned {
-        font-size: 12px;
-    }
-
-    .animal-actions {
-        width: 102px;
-        gap: 8px;
-    }
-
-    .animal-actions button {
-        height: 40px;
-        font-size: 14px;
-        border-radius: 14px;
-    }
 }
