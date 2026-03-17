@@ -41,6 +41,10 @@ CryptoZoo.init = async function () {
             CryptoZoo.shop.init();
         }
 
+        if (CryptoZoo.minigames && typeof CryptoZoo.minigames.init === "function") {
+            CryptoZoo.minigames.init();
+        }
+
         if (CryptoZoo.gameplay && typeof CryptoZoo.gameplay.init === "function") {
             CryptoZoo.gameplay.init();
         }
