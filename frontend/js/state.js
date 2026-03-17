@@ -37,4 +37,4 @@ window.CryptoZoo.state = {
     },
 
     expedition: null
-}; 
+};
