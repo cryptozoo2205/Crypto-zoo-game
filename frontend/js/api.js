@@ -53,6 +53,8 @@ window.CryptoZoo.api = {
             coinsPerClick: 1,
             upgradeCost: 50,
             zooIncome: 0,
+            expeditionBoost: 0,
+            offlineBoost: 1,
             lastLogin: Date.now(),
             animals: {
                 monkey: { count: 0, level: 1 },
@@ -94,6 +96,8 @@ window.CryptoZoo.api = {
             coinsPerClick: Number(data.coinsPerClick ?? base.coinsPerClick) || 1,
             upgradeCost: Number(data.upgradeCost ?? base.upgradeCost) || 50,
             zooIncome: Number(data.zooIncome ?? base.zooIncome) || 0,
+            expeditionBoost: Number(data.expeditionBoost ?? base.expeditionBoost) || 0,
+            offlineBoost: Number(data.offlineBoost ?? base.offlineBoost) || 1,
             lastLogin: Number(data.lastLogin ?? base.lastLogin) || Date.now(),
             animals: {
                 ...base.animals,
@@ -113,7 +117,6 @@ window.CryptoZoo.api = {
         return {
             telegramId: this.getPlayerId(),
             username: this.getUsername(),
-
             coins: state.coins,
             gems: state.gems,
             rewardBalance: state.rewardBalance,
@@ -122,8 +125,9 @@ window.CryptoZoo.api = {
             coinsPerClick: state.coinsPerClick,
             upgradeCost: state.upgradeCost,
             zooIncome: state.zooIncome,
-            lastLogin: state.lastLogin,
-
+            expeditionBoost: state.expeditionBoost,
+            offlineBoost: state.offlineBoost,
+            lastLogin: Date.now(),
             animals: state.animals,
             boxes: state.boxes,
             expedition: state.expedition
@@ -135,77 +139,36 @@ window.CryptoZoo.api = {
 
         if (localSave) {
             try {
-                const parsed = JSON.parse(localSave);
-                CryptoZoo.state = this.normalizeState(parsed);
+                CryptoZoo.state = this.normalizeState(JSON.parse(localSave));
             } catch (error) {
                 console.error("Local load error:", error);
+                CryptoZoo.state = this.normalizeState(CryptoZoo.state);
             }
         } else {
             CryptoZoo.state = this.normalizeState(CryptoZoo.state);
         }
 
-        try {
-            const telegramId = this.getPlayerId();
-            const response = await fetch("/api/player/" + encodeURIComponent(telegramId));
-
-            if (!response.ok) {
-                return CryptoZoo.state;
-            }
-
-            const data = await response.json();
-
-            if (data && typeof data === "object") {
-                const merged = this.normalizeState({
-                    ...CryptoZoo.state,
-                    ...data
-                });
-
-                CryptoZoo.state = merged;
-                localStorage.setItem("cryptozoo_save", JSON.stringify(merged));
-            }
-
-            return CryptoZoo.state;
-        } catch (error) {
-            console.error("API loadPlayer error:", error);
-            return CryptoZoo.state;
-        }
+        return CryptoZoo.state;
     },
 
     async savePlayer() {
         const payload = this.getSavePayload();
-
-        localStorage.setItem("cryptozoo_save", JSON.stringify(payload));
-
-        try {
-            const response = await fetch("/api/player", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                return null;
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error("API savePlayer error:", error);
-            return null;
-        }
+        CryptoZoo.state = this.normalizeState(payload);
+        localStorage.setItem("cryptozoo_save", JSON.stringify(CryptoZoo.state));
+        return CryptoZoo.state;
     },
 
     async loadRanking() {
         try {
-            const response = await fetch("/api/ranking");
+            const currentName = this.getUsername();
+            const currentCoins = Number(CryptoZoo.state?.coins) || 0;
 
-            if (!response.ok) {
-                return [];
-            }
-
-            const data = await response.json();
-            return Array.isArray(data) ? data : [];
+            return [
+                {
+                    username: currentName,
+                    coins: currentCoins
+                }
+            ];
         } catch (error) {
             console.error("API ranking error:", error);
             return [];
