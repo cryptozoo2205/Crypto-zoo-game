@@ -1,5 +1,9 @@
 .game-main-card {
-    padding-bottom: 18px;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    padding: 0 0 18px !important;
 }
 
 .tap-area {
@@ -9,8 +13,8 @@
     align-items: center;
     justify-content: center;
     position: relative;
-    padding: 18px 0 8px;
-    overflow: hidden;
+    padding: 6px 0 8px;
+    overflow: visible;
 }
 
 .tap-glow {
@@ -19,7 +23,7 @@
     height: 320px;
     border-radius: 50%;
     background:
-        radial-gradient(circle, rgba(112, 255, 120, 0.28) 0%, rgba(112, 255, 120, 0.08) 48%, rgba(112, 255, 120, 0) 72%);
+        radial-gradient(circle, rgba(112, 255, 120, 0.22) 0%, rgba(112, 255, 120, 0.08) 48%, rgba(112, 255, 120, 0) 72%);
     filter: blur(14px);
     animation: tapPulse 2.2s ease-in-out infinite;
 }
@@ -33,7 +37,7 @@
     border-radius: 50%;
     cursor: pointer;
     background: url("../assets/buttons/tap_button_main.png") center center / contain no-repeat;
-    box-shadow: 0 0 36px rgba(91, 255, 110, 0.22);
+    box-shadow: none;
     transition: transform 0.12s ease, filter 0.12s ease;
 }
 
@@ -45,12 +49,17 @@
 .coin-pop {
     position: absolute;
     transform: translate(-50%, -50%);
-    font-size: 34px;
+    font-size: 32px;
+    font-weight: 900;
     line-height: 1;
     pointer-events: none;
     opacity: 0;
-    z-index: 5;
-    text-shadow: 0 4px 10px rgba(0, 0, 0, 0.22);
+    z-index: 6;
+    color: #ffd54f;
+    text-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.32),
+        0 0 14px rgba(255, 213, 79, 0.20);
+    white-space: nowrap;
 }
 
 .coin-pop.animate {
@@ -70,7 +79,7 @@
 
     100% {
         opacity: 0;
-        transform: translate(calc(-50% + var(--moveX)), calc(-50% + var(--moveY))) scale(1.15);
+        transform: translate(calc(-50% + var(--moveX)), calc(-50% + var(--moveY))) scale(1.08);
     }
 }
 
@@ -105,6 +114,6 @@
     }
 
     .coin-pop {
-        font-size: 28px;
+        font-size: 24px;
     }
 }
