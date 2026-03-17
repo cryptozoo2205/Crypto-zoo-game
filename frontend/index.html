@@ -1,200 +1,208 @@
 <!DOCTYPE html>
 <html lang="pl">
-
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crypto Zoo</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crypto Zoo</title>
 
-<link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/layout.css">
-<link rel="stylesheet" href="css/game.css">
-<link rel="stylesheet" href="css/zoo.css">
-<link rel="stylesheet" href="css/shop.css">
-<link rel="stylesheet" href="css/expeditions.css">
-<link rel="stylesheet" href="css/menu.css">
-<link rel="stylesheet" href="css/ranking.css">
-<link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/game.css">
+  <link rel="stylesheet" href="css/zoo.css">
+  <link rel="stylesheet" href="css/shop.css">
+  <link rel="stylesheet" href="css/expeditions.css">
+  <link rel="stylesheet" href="css/menu.css">
+  <link rel="stylesheet" href="css/ranking.css">
+  <link rel="stylesheet" href="css/responsive.css">
 </head>
-
 <body>
 
-<div id="app">
+  <div class="app-shell">
 
-<header class="top-bar">
+    <header class="top-hero">
+      <div class="hero-overlay"></div>
 
-<div class="balance">
-Coins
-<span id="coins">0</span>
-</div>
+      <div class="hero-content">
+        <h1>Crypto Zoo</h1>
 
-<div class="balance">
-Gems
-<span id="gems">0</span>
-</div>
+        <div class="paw-deco">🐾 🐾 🐾</div>
 
-<div class="balance">
-Reward
-<span id="rewardBalance">0</span>
-</div>
+        <div class="stats-panel">
+          <div class="stat-card">
+            <div class="stat-label">Coins</div>
+            <div class="stat-value" id="coins">0</div>
+          </div>
 
-</header>
+          <div class="stat-card">
+            <div class="stat-label">Gems</div>
+            <div class="stat-value" id="gems">0</div>
+          </div>
 
-<main id="game">
+          <div class="stat-card">
+            <div class="stat-label">Reward</div>
+            <div class="stat-value" id="rewardBalance">0</div>
+          </div>
+        </div>
+      </div>
+    </header>
 
-<section id="screen-game">
-<div class="tap-area">
-<button id="tapButton">🐾</button>
-</div>
-</section>
+    <main id="game">
 
-<section id="screen-zoo" class="hidden">
-<h2>Zoo</h2>
-<div id="zooList"></div>
-</section>
+      <section id="screen-game" class="screen active-screen">
+        <div class="screen-card game-screen-card">
+          <div class="game-main-panel">
+            <div class="tap-ring-wrap">
+              <button id="tapButton" type="button" aria-label="Tap">🐾</button>
+            </div>
+          </div>
+        </div>
+      </section>
 
-<section id="screen-shop" class="hidden">
-<h2>Shop</h2>
-<div id="shopList"></div>
+      <section id="screen-zoo" class="screen hidden">
+        <div class="screen-card zoo-screen-card">
+          <h3 class="section-title">🐾 Zoo</h3>
+          <div id="zooList"></div>
+        </div>
+      </section>
 
-<h3>Boxes</h3>
-<div class="boxes">
+      <section id="screen-shop" class="screen hidden">
+        <div class="screen-card premium-card">
+          <h3 class="section-title">🛒 Shop</h3>
+          <div id="shopList"></div>
 
-<button data-box-type="common">
-Common Box
-<br>
-1000 coins
-</button>
+          <h3 class="section-title" style="margin-top:24px;">🎁 Boxes</h3>
 
-<button data-box-type="rare">
-Rare Box
-<br>
-5 gems
-</button>
+          <div class="boxes">
+            <button data-box-type="common" type="button">
+              Common Box
+              <br>
+              1000 coins
+            </button>
 
-<button data-box-type="epic">
-Epic Box
-<br>
-15 gems
-</button>
+            <button data-box-type="rare" type="button">
+              Rare Box
+              <br>
+              5 gems
+            </button>
 
-<button data-box-type="legendary">
-Legendary Box
-<br>
-40 gems
-</button>
+            <button data-box-type="epic" type="button">
+              Epic Box
+              <br>
+              15 gems
+            </button>
 
-</div>
-</section>
+            <button data-box-type="legendary" type="button">
+              Legendary Box
+              <br>
+              40 gems
+            </button>
+          </div>
+        </div>
+      </section>
 
-<section id="screen-missions" class="hidden">
-<h2>Expeditions</h2>
-<div id="missionsList"></div>
-</section>
+      <section id="screen-missions" class="screen hidden">
+        <div class="screen-card">
+          <h3 class="section-title">🌍 Expeditions</h3>
+          <div id="missionsList"></div>
+        </div>
+      </section>
 
-<section id="screen-minigames" class="hidden">
+      <section id="screen-minigames" class="screen hidden">
+        <div class="screen-card">
+          <h3 class="section-title">🎮 Mini Games</h3>
 
-<h2>Mini Games</h2>
+          <div id="minigamesWrap">
 
-<div id="minigamesWrap">
+            <div id="wheelGame" style="margin-bottom:30px; text-align:center;">
+              <h3>Wheel Of Fortune</h3>
 
-<div id="wheelGame" style="margin-bottom:30px; text-align:center;">
+              <div style="position:relative; width:260px; height:260px; margin:0 auto 16px auto;">
+                <div id="wheelPointer" style="position:absolute; top:-8px; left:50%; transform:translateX(-50%); font-size:28px; z-index:2;">▼</div>
 
-<h3>Wheel Of Fortune</h3>
+                <div id="wheel" style="
+                  width:260px;
+                  height:260px;
+                  border-radius:50%;
+                  border:8px solid #fff;
+                  background:
+                  conic-gradient(
+                    #ffcc00 0deg 60deg,
+                    #4caf50 60deg 120deg,
+                    #03a9f4 120deg 180deg,
+                    #ff5722 180deg 240deg,
+                    #9c27b0 240deg 300deg,
+                    #8bc34a 300deg 360deg
+                  );
+                  transition: transform 4s cubic-bezier(0.15, 0.85, 0.15, 1);
+                  box-shadow:0 0 20px rgba(0,0,0,0.35);
+                  margin:0 auto;
+                "></div>
+              </div>
 
-<div style="position:relative; width:260px; height:260px; margin:0 auto 16px auto;">
-<div id="wheelPointer" style="position:absolute; top:-8px; left:50%; transform:translateX(-50%); font-size:28px; z-index:2;">▼</div>
+              <button id="spinWheelBtn" type="button">Spin Wheel</button>
+              <p id="wheelRewardText"></p>
+            </div>
 
-<div id="wheel"
-style="
-width:260px;
-height:260px;
-border-radius:50%;
-border:8px solid #fff;
-background:
-conic-gradient(
-#ffcc00 0deg 60deg,
-#4caf50 60deg 120deg,
-#03a9f4 120deg 180deg,
-#ff5722 180deg 240deg,
-#9c27b0 240deg 300deg,
-#8bc34a 300deg 360deg
-);
-transition: transform 4s cubic-bezier(0.15, 0.85, 0.15, 1);
-box-shadow:0 0 20px rgba(0,0,0,0.35);
-margin:0 auto;
-">
-</div>
-</div>
+            <div id="memoryGame" style="text-align:center;">
+              <h3>Memory Animals</h3>
 
-<button id="spinWheelBtn" type="button">Spin Wheel</button>
-<p id="wheelRewardText"></p>
+              <div id="memoryBoard" style="
+                display:grid;
+                grid-template-columns:repeat(4, 70px);
+                gap:10px;
+                justify-content:center;
+                margin:16px auto;
+              "></div>
 
-</div>
+              <button id="startMemoryBtn" type="button">Start Memory</button>
+              <p id="memoryStatus"></p>
+            </div>
 
-<div id="memoryGame" style="text-align:center;">
+          </div>
+        </div>
+      </section>
 
-<h3>Memory Animals</h3>
+      <section id="screen-ranking" class="screen hidden">
+        <div class="screen-card premium-card">
+          <h3 class="section-title">🏆 Ranking</h3>
+          <ul id="rankingList"></ul>
+        </div>
+      </section>
 
-<div id="memoryBoard"
-style="
-display:grid;
-grid-template-columns:repeat(4, 70px);
-gap:10px;
-justify-content:center;
-margin:16px auto;
-">
-</div>
+    </main>
+  </div>
 
-<button id="startMemoryBtn" type="button">Start Memory</button>
-<p id="memoryStatus"></p>
+  <footer class="bottom-menu">
+    <button class="nav-btn active-nav" data-nav="game" type="button"><span>Game</span></button>
+    <button class="nav-btn" data-nav="zoo" type="button"><span>Zoo</span></button>
+    <button class="nav-btn" data-nav="shop" type="button"><span>Shop</span></button>
+    <button class="nav-btn" data-nav="missions" type="button"><span>Missions</span></button>
+    <button class="nav-btn" data-nav="minigames" type="button"><span>Mini Games</span></button>
+    <button class="nav-btn" data-nav="ranking" type="button"><span>Ranking</span></button>
+  </footer>
 
-</div>
-
-</div>
-
-</section>
-
-<section id="screen-ranking" class="hidden">
-<h2>Ranking</h2>
-<ul id="rankingList"></ul>
-</section>
-
-</main>
-
-<footer class="menu">
-<button data-nav="game">Game</button>
-<button data-nav="zoo">Zoo</button>
-<button data-nav="shop">Shop</button>
-<button data-nav="missions">Missions</button>
-<button data-nav="minigames">Mini Games</button>
-<button data-nav="ranking">Ranking</button>
-</footer>
-
-</div>
-
-<div id="dailyReward" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center;">
+  <div id="dailyReward" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center;">
     <div style="background:#1f2a44; color:#fff; padding:24px; border-radius:16px; text-align:center; width:90%; max-width:320px; box-shadow:0 10px 30px rgba(0,0,0,0.35);">
-        <h2 style="margin-top:0;">Daily Reward</h2>
-        <p id="dailyRewardText">Claim your reward</p>
-        <button id="claimDailyBtn" type="button" style="padding:12px 18px; border:none; border-radius:12px; font-weight:700; cursor:pointer;">
-            CLAIM REWARD
-        </button>
+      <h2 style="margin-top:0;">Daily Reward</h2>
+      <p id="dailyRewardText">Claim your reward</p>
+      <button id="claimDailyBtn" type="button" style="padding:12px 18px; border:none; border-radius:12px; font-weight:700; cursor:pointer;">
+        CLAIM REWARD
+      </button>
     </div>
-</div>
+  </div>
 
-<script src="js/config.js"></script>
-<script src="js/state.js"></script>
-<script src="js/dom.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/api.js"></script>
-<script src="js/telegram.js"></script>
-<script src="js/shop.js"></script>
-<script src="js/boxes.js"></script>
-<script src="js/minigames.js"></script>
-<script src="js/daily.js"></script>
-<script src="js/gameplay.js"></script>
-<script src="js/init.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/dom.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/telegram.js"></script>
+  <script src="js/shop.js"></script>
+  <script src="js/boxes.js"></script>
+  <script src="js/minigames.js"></script>
+  <script src="js/daily.js"></script>
+  <script src="js/gameplay.js"></script>
+  <script src="js/init.js"></script>
 
 </body>
 </html>
