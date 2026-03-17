@@ -22,45 +22,29 @@ CryptoZoo.boxes = {
             };
         }
 
-        if (type === "common") {
-            if ((CryptoZoo.state.coins || 0) < 1000) {
+        const config = CryptoZoo.config?.boxes?.[type];
+        if (!config) return;
+
+        const buyCoins = Number(config.buyCoins) || 0;
+        const buyGems = Number(config.buyGems) || 0;
+
+        if ((Number(CryptoZoo.state.coins) || 0) < buyCoins) {
+            if (buyCoins > 0) {
                 CryptoZoo.ui?.showToast?.("Za mało coins");
                 return;
             }
-
-            CryptoZoo.state.coins -= 1000;
-            CryptoZoo.state.boxes.common += 1;
         }
 
-        if (type === "rare") {
-            if ((CryptoZoo.state.gems || 0) < 5) {
+        if ((Number(CryptoZoo.state.gems) || 0) < buyGems) {
+            if (buyGems > 0) {
                 CryptoZoo.ui?.showToast?.("Za mało gems");
                 return;
             }
-
-            CryptoZoo.state.gems -= 5;
-            CryptoZoo.state.boxes.rare += 1;
         }
 
-        if (type === "epic") {
-            if ((CryptoZoo.state.gems || 0) < 15) {
-                CryptoZoo.ui?.showToast?.("Za mało gems");
-                return;
-            }
-
-            CryptoZoo.state.gems -= 15;
-            CryptoZoo.state.boxes.epic += 1;
-        }
-
-        if (type === "legendary") {
-            if ((CryptoZoo.state.gems || 0) < 40) {
-                CryptoZoo.ui?.showToast?.("Za mało gems");
-                return;
-            }
-
-            CryptoZoo.state.gems -= 40;
-            CryptoZoo.state.boxes.legendary += 1;
-        }
+        CryptoZoo.state.coins -= buyCoins;
+        CryptoZoo.state.gems -= buyGems;
+        CryptoZoo.state.boxes[type] = (Number(CryptoZoo.state.boxes[type]) || 0) + 1;
 
         CryptoZoo.api?.savePlayer?.();
         CryptoZoo.ui?.render?.();
@@ -84,11 +68,20 @@ CryptoZoo.boxes = {
         const gems =
             Math.floor(Math.random() * (config.gemsMax - config.gemsMin + 1)) + config.gemsMin;
 
+        let reward = 0;
+
+        if (Number(config.rewardMax) > 0) {
+            reward = Number((Math.random() * config.rewardMax).toFixed(2));
+        }
+
         CryptoZoo.state.coins = (CryptoZoo.state.coins || 0) + coins;
         CryptoZoo.state.gems = (CryptoZoo.state.gems || 0) + gems;
+        CryptoZoo.state.rewardBalance = (CryptoZoo.state.rewardBalance || 0) + reward;
 
         CryptoZoo.api?.savePlayer?.();
         CryptoZoo.ui?.render?.();
-        CryptoZoo.ui?.showToast?.(`Box: +${CryptoZoo.formatNumber(coins)} coins, +${gems} gems`);
+        CryptoZoo.ui?.showToast?.(
+            `Box: +${CryptoZoo.formatNumber(coins)} coins, +${gems} gems${reward > 0 ? `, +${reward} reward` : ""}`
+        );
     }
 };
