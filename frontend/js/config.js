@@ -6,15 +6,12 @@ CryptoZoo.formatNumber = function (value) {
     if (num >= 1_000_000_000_000) {
         return (num / 1_000_000_000_000).toFixed(2).replace(/\.00$/, "") + "T";
     }
-
     if (num >= 1_000_000_000) {
         return (num / 1_000_000_000).toFixed(2).replace(/\.00$/, "") + "B";
     }
-
     if (num >= 1_000_000) {
         return (num / 1_000_000).toFixed(2).replace(/\.00$/, "") + "M";
     }
-
     if (num >= 1_000) {
         return (num / 1_000).toFixed(2).replace(/\.00$/, "") + "K";
     }
@@ -27,84 +24,19 @@ CryptoZoo.config = {
     offlineLimitHours: 8,
 
     animals: {
-        monkey: {
-            name: "Monkey",
-            asset: "monkey",
-            buyCost: 100,
-            baseIncome: 1
-        },
-        panda: {
-            name: "Panda",
-            asset: "panda",
-            buyCost: 400,
-            baseIncome: 3
-        },
-        lion: {
-            name: "Lion",
-            asset: "lion",
-            buyCost: 1200,
-            baseIncome: 8
-        },
-        tiger: {
-            name: "Tiger",
-            asset: "tiger",
-            buyCost: 3000,
-            baseIncome: 15
-        },
-        elephant: {
-            name: "Elephant",
-            asset: "elephant",
-            buyCost: 8000,
-            baseIncome: 35
-        },
-        giraffe: {
-            name: "Giraffe",
-            asset: "giraffe",
-            buyCost: 18000,
-            baseIncome: 70
-        },
-        zebra: {
-            name: "Zebra",
-            asset: "zebra",
-            buyCost: 45000,
-            baseIncome: 140
-        },
-        hippo: {
-            name: "Hippo",
-            asset: "hippo",
-            buyCost: 120000,
-            baseIncome: 280
-        },
-        penguin: {
-            name: "Penguin",
-            asset: "penguin",
-            buyCost: 300000,
-            baseIncome: 600
-        },
-        bear: {
-            name: "Bear",
-            asset: "bear",
-            buyCost: 800000,
-            baseIncome: 1400
-        },
-        crocodile: {
-            name: "Crocodile",
-            asset: "crocodile",
-            buyCost: 2000000,
-            baseIncome: 3200
-        },
-        kangaroo: {
-            name: "Kangaroo",
-            asset: "kangaroo",
-            buyCost: 5000000,
-            baseIncome: 7500
-        },
-        wolf: {
-            name: "Wolf",
-            asset: "wolf",
-            buyCost: 12000000,
-            baseIncome: 18000
-        }
+        monkey: { name: "Monkey", asset: "monkey", buyCost: 100, baseIncome: 1 },
+        panda: { name: "Panda", asset: "panda", buyCost: 400, baseIncome: 3 },
+        lion: { name: "Lion", asset: "lion", buyCost: 1200, baseIncome: 8 },
+        tiger: { name: "Tiger", asset: "tiger", buyCost: 3000, baseIncome: 15 },
+        elephant: { name: "Elephant", asset: "elephant", buyCost: 8000, baseIncome: 35 },
+        giraffe: { name: "Giraffe", asset: "giraffe", buyCost: 18000, baseIncome: 70 },
+        zebra: { name: "Zebra", asset: "zebra", buyCost: 45000, baseIncome: 140 },
+        hippo: { name: "Hippo", asset: "hippo", buyCost: 120000, baseIncome: 280 },
+        penguin: { name: "Penguin", asset: "penguin", buyCost: 300000, baseIncome: 600 },
+        bear: { name: "Bear", asset: "bear", buyCost: 800000, baseIncome: 1400 },
+        crocodile: { name: "Crocodile", asset: "crocodile", buyCost: 2000000, baseIncome: 3200 },
+        kangaroo: { name: "Kangaroo", asset: "kangaroo", buyCost: 5000000, baseIncome: 7500 },
+        wolf: { name: "Wolf", asset: "wolf", buyCost: 12000000, baseIncome: 18000 }
     },
 
     expeditions: [
@@ -140,31 +72,47 @@ CryptoZoo.config = {
     boxes: {
         common: {
             name: "Common Box",
+            buyCoins: 1000,
+            buyGems: 0,
             coinMin: 300,
             coinMax: 1200,
             gemsMin: 0,
-            gemsMax: 1
+            gemsMax: 1,
+            rewardMin: 0,
+            rewardMax: 0
         },
         rare: {
             name: "Rare Box",
+            buyCoins: 0,
+            buyGems: 5,
             coinMin: 1500,
             coinMax: 5000,
             gemsMin: 1,
-            gemsMax: 3
+            gemsMax: 3,
+            rewardMin: 0,
+            rewardMax: 0.01
         },
         epic: {
             name: "Epic Box",
+            buyCoins: 0,
+            buyGems: 15,
             coinMin: 6000,
             coinMax: 20000,
             gemsMin: 2,
-            gemsMax: 6
+            gemsMax: 6,
+            rewardMin: 0,
+            rewardMax: 0.02
         },
         legendary: {
             name: "Legendary Box",
+            buyCoins: 0,
+            buyGems: 40,
             coinMin: 25000,
             coinMax: 80000,
             gemsMin: 5,
-            gemsMax: 12
+            gemsMax: 12,
+            rewardMin: 0,
+            rewardMax: 0.05
         }
     },
 
