@@ -17,20 +17,17 @@
 </head>
 <body>
     <div id="loading-screen">
-        <div class="loading-inner">
-            <div class="loading-logo-wrap">
-                <div class="loading-logo-ring"></div>
-                <div class="loading-logo-core">🐾</div>
+        <div class="loading-visual">
+            <div class="loading-image-wrap">
+                <img src="./assets/loading/loading_main.png" alt="Crypto Zoo Loading" class="loading-image">
+
+                <div class="loading-progress-overlay">
+                    <div class="loading-progress-bar">
+                        <div class="loading-progress-fill" id="loadingBarFill"></div>
+                    </div>
+                    <div class="loading-progress-text" id="loadingPercent">0%</div>
+                </div>
             </div>
-
-            <div class="loading-title">Crypto Zoo</div>
-            <div class="loading-subtitle">Loading Zoo...</div>
-
-            <div class="loading-bar">
-                <div class="loading-bar-fill" id="loadingBarFill"></div>
-            </div>
-
-            <div class="loading-percent" id="loadingPercent">0%</div>
         </div>
     </div>
 
