@@ -1,7 +1,6 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.minigames = {
-
     wheelSpinning: false,
     memoryCards: [],
     memoryFlipped: [],
@@ -44,6 +43,8 @@ CryptoZoo.minigames = {
         wheel.style.transform = `rotate(${finalDeg}deg)`;
 
         setTimeout(() => {
+            CryptoZoo.state = CryptoZoo.state || {};
+
             if (reward.type === "coins") {
                 CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + reward.value;
             }
@@ -53,25 +54,16 @@ CryptoZoo.minigames = {
             }
 
             if (reward.type === "reward") {
-                CryptoZoo.state.rewardBalance =
-                    (Number(CryptoZoo.state.rewardBalance) || 0) + reward.value;
+                CryptoZoo.state.rewardBalance = (Number(CryptoZoo.state.rewardBalance) || 0) + reward.value;
             }
 
             if (rewardText) {
                 rewardText.textContent = "Reward: " + reward.label;
             }
 
-            if (CryptoZoo.ui && CryptoZoo.ui.showToast) {
-                CryptoZoo.ui.showToast(reward.label);
-            }
-
-            if (CryptoZoo.ui && CryptoZoo.ui.render) {
-                CryptoZoo.ui.render();
-            }
-
-            if (CryptoZoo.api && CryptoZoo.api.savePlayer) {
-                CryptoZoo.api.savePlayer();
-            }
+            CryptoZoo.ui?.showToast?.(reward.label);
+            CryptoZoo.ui?.render?.();
+            CryptoZoo.api?.savePlayer?.();
 
             this.wheelSpinning = false;
         }, 4100);
@@ -158,6 +150,7 @@ CryptoZoo.minigames = {
             this.memoryMatched += 2;
             this.memoryFlipped = [];
             this.memoryLocked = false;
+            this.renderMemory();
 
             if (this.memoryMatched === this.memoryCards.length) {
                 CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + 3000;
@@ -168,17 +161,9 @@ CryptoZoo.minigames = {
                     status.textContent = "Completed! Reward: 3000 Coins + 1 Gem";
                 }
 
-                if (CryptoZoo.ui && CryptoZoo.ui.showToast) {
-                    CryptoZoo.ui.showToast("Memory reward: 3000 Coins + 1 Gem");
-                }
-
-                if (CryptoZoo.ui && CryptoZoo.ui.render) {
-                    CryptoZoo.ui.render();
-                }
-
-                if (CryptoZoo.api && CryptoZoo.api.savePlayer) {
-                    CryptoZoo.api.savePlayer();
-                }
+                CryptoZoo.ui?.showToast?.("Memory reward: 3000 Coins + 1 Gem");
+                CryptoZoo.ui?.render?.();
+                CryptoZoo.api?.savePlayer?.();
             }
         } else {
             setTimeout(() => {
