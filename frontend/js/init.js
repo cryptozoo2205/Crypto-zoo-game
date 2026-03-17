@@ -3,13 +3,33 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.init = async function () {
     console.log("Crypto Zoo start");
 
+    const loadingPercent = document.getElementById("loadingPercent");
+    const loadingBarFill = document.getElementById("loadingBarFill");
+    const loadingScreen = document.getElementById("loading-screen");
+
+    const setLoading = function (value) {
+        const safeValue = Math.max(0, Math.min(100, Number(value) || 0));
+
+        if (loadingPercent) {
+            loadingPercent.textContent = safeValue + "%";
+        }
+
+        if (loadingBarFill) {
+            loadingBarFill.style.width = safeValue + "%";
+        }
+    };
+
     try {
+        setLoading(10);
+
         CryptoZoo.state = CryptoZoo.state || {};
         CryptoZoo.config = CryptoZoo.config || {};
 
         if (CryptoZoo.dom && typeof CryptoZoo.dom.cacheElements === "function") {
             CryptoZoo.dom.cacheElements();
         }
+
+        setLoading(25);
 
         if (!CryptoZoo.state.boxes) {
             CryptoZoo.state.boxes = {
@@ -24,6 +44,8 @@ CryptoZoo.init = async function () {
             CryptoZoo.telegram.init();
         }
 
+        setLoading(40);
+
         if (CryptoZoo.api && typeof CryptoZoo.api.loadPlayer === "function") {
             await CryptoZoo.api.loadPlayer();
         }
@@ -31,6 +53,8 @@ CryptoZoo.init = async function () {
         if (CryptoZoo.dom && typeof CryptoZoo.dom.cacheElements === "function") {
             CryptoZoo.dom.cacheElements();
         }
+
+        setLoading(60);
 
         if (!CryptoZoo.state.boxes) {
             CryptoZoo.state.boxes = {
@@ -57,11 +81,25 @@ CryptoZoo.init = async function () {
             CryptoZoo.gameplay.init();
         }
 
+        setLoading(85);
+
         if (CryptoZoo.ui && typeof CryptoZoo.ui.render === "function") {
             CryptoZoo.ui.render();
         }
+
+        setLoading(100);
+
+        setTimeout(() => {
+            if (loadingScreen) {
+                loadingScreen.classList.add("loading-hidden");
+            }
+        }, 350);
     } catch (error) {
         console.error("Init error:", error);
+
+        if (loadingScreen) {
+            loadingScreen.classList.add("loading-hidden");
+        }
     }
 };
 
