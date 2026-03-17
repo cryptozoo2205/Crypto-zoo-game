@@ -1,128 +1,183 @@
-#game{
-width:100%;
+#screen-game .panel.card {
+    min-height: 420px;
 }
 
-.game-main-panel{
-width:100%;
-display:flex;
-flex-direction:column;
-align-items:center;
-gap:20px;
-padding:10px 0;
+.tap-area {
+    width: 100%;
+    min-height: 320px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 14px 0 6px;
 }
 
-.tap-ring-wrap{
-position:relative;
-width:260px;
-height:260px;
-display:flex;
-align-items:center;
-justify-content:center;
+#tapButton {
+    position: relative;
+    z-index: 2;
+    width: 220px;
+    height: 220px;
+    border: none;
+    cursor: pointer;
+    border-radius: 50%;
+    background: url("../assets/buttons/tap_button.png") center / contain no-repeat;
+    transition: transform 0.12s ease;
 }
 
-.tap-ring-img{
-position:absolute;
-width:240px;
-height:240px;
-opacity:.85;
-pointer-events:none;
-animation:rotateRing 8s linear infinite;
+#tapButton:hover {
+    transform: scale(1.03);
 }
 
-#tap-btn{
-position:relative;
-z-index:2;
-
-width:200px;
-height:200px;
-
-border:none;
-cursor:pointer;
-
-background:url("../assets/buttons/tap_button.png") center/contain no-repeat;
-
-transition:transform .12s;
+#tapButton:active {
+    transform: scale(0.94);
+    background: url("../assets/buttons/tap_button_pressed.png") center / contain no-repeat;
 }
 
-#tap-btn:hover{
-transform:scale(1.05);
+#screen-game .tap-area::before {
+    content: "";
+    position: absolute;
+    width: 255px;
+    height: 255px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+        0 0 0 12px rgba(255, 255, 255, 0.02),
+        0 0 28px rgba(255, 209, 102, 0.08);
+    animation: gamePulse 2.8s ease-in-out infinite;
 }
 
-#tap-btn:active{
-transform:scale(.9);
-background:url("../assets/buttons/tap_button_pressed.png") center/contain no-repeat;
+@keyframes gamePulse {
+    0% {
+        transform: scale(0.98);
+        opacity: 0.7;
+    }
+
+    50% {
+        transform: scale(1.02);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(0.98);
+        opacity: 0.7;
+    }
 }
 
-.tap-title{
-font-size:24px;
-font-weight:900;
-letter-spacing:1px;
+.animal-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
 }
 
-.income-bar{
-width:100%;
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:12px;
+.animal-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    flex: 1;
 }
 
-.income-box{
-background:rgba(0,0,0,.35);
-border-radius:16px;
-padding:14px;
-text-align:center;
+.animal-icon {
+    width: 62px;
+    height: 62px;
+    flex: 0 0 62px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.income-label{
-font-size:13px;
-opacity:.8;
+.animal-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
-.income-value{
-font-size:26px;
-font-weight:900;
-color:#7dff7c;
+.animal-text {
+    min-width: 0;
+    flex: 1;
 }
 
-#coin-animation-container{
-position:absolute;
-inset:0;
-pointer-events:none;
+.animal-name {
+    font-size: 18px;
+    font-weight: 900;
+    margin-bottom: 6px;
 }
 
-.flying-coin{
-
-position:absolute;
-width:26px;
-height:26px;
-
-background:url("../assets/coins/coin.png") center/contain no-repeat;
-
-animation:flyCoin .8s forwards;
+.animal-desc,
+.animal-owned {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.82);
+    line-height: 1.35;
 }
 
-@keyframes flyCoin{
-
-0%{
-opacity:1;
-transform:translate(0,0) scale(1);
+.animal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 132px;
+    flex: 0 0 132px;
 }
 
-100%{
-opacity:0;
-transform:translate(var(--moveX),var(--moveY)) scale(.6);
+.animal-actions button,
+.shop-item button,
+.expedition-card button,
+.boxes button,
+#spinWheelBtn,
+#startMemoryBtn {
+    width: 100%;
+    padding: 12px 10px;
+    background: linear-gradient(180deg, #ffd54f 0%, #ffbf00 100%);
+    color: #1a1a1a;
 }
 
+.boxes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
 }
 
-@keyframes rotateRing{
-
-0%{
-transform:rotate(0deg);
+.boxes button {
+    min-height: 78px;
+    padding: 10px;
+    text-align: center;
 }
 
-100%{
-transform:rotate(360deg);
+.expedition-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
+.expedition-card h3 {
+    margin: 0;
+}
+
+.shop-item {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#minigamesWrap {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+#wheelGame,
+#memoryGame {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 18px;
+    padding: 16px 12px;
+}
+
+#wheelRewardText,
+#memoryStatus {
+    min-height: 24px;
+    margin-top: 12px;
+    font-weight: 700;
 }
