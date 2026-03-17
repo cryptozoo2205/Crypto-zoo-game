@@ -4,27 +4,48 @@ CryptoZoo.init = async function () {
     console.log("Crypto Zoo start");
 
     try {
-        if (CryptoZoo.telegram && CryptoZoo.telegram.init) {
+        CryptoZoo.state = CryptoZoo.state || {};
+        CryptoZoo.config = CryptoZoo.config || {};
+
+        if (!CryptoZoo.state.boxes) {
+            CryptoZoo.state.boxes = {
+                common: 0,
+                rare: 0,
+                epic: 0,
+                legendary: 0
+            };
+        }
+
+        if (CryptoZoo.telegram && typeof CryptoZoo.telegram.init === "function") {
             CryptoZoo.telegram.init();
         }
 
-        if (CryptoZoo.api && CryptoZoo.api.loadPlayer) {
+        if (CryptoZoo.api && typeof CryptoZoo.api.loadPlayer === "function") {
             await CryptoZoo.api.loadPlayer();
         }
 
-        if (CryptoZoo.boxes && CryptoZoo.boxes.init) {
+        if (!CryptoZoo.state.boxes) {
+            CryptoZoo.state.boxes = {
+                common: 0,
+                rare: 0,
+                epic: 0,
+                legendary: 0
+            };
+        }
+
+        if (CryptoZoo.boxes && typeof CryptoZoo.boxes.init === "function") {
             CryptoZoo.boxes.init();
         }
 
-        if (CryptoZoo.shop && CryptoZoo.shop.init) {
+        if (CryptoZoo.shop && typeof CryptoZoo.shop.init === "function") {
             CryptoZoo.shop.init();
         }
 
-        if (CryptoZoo.gameplay && CryptoZoo.gameplay.init) {
+        if (CryptoZoo.gameplay && typeof CryptoZoo.gameplay.init === "function") {
             CryptoZoo.gameplay.init();
         }
 
-        if (CryptoZoo.ui && CryptoZoo.ui.render) {
+        if (CryptoZoo.ui && typeof CryptoZoo.ui.render === "function") {
             CryptoZoo.ui.render();
         }
     } catch (error) {
@@ -33,7 +54,7 @@ CryptoZoo.init = async function () {
 };
 
 document.addEventListener("DOMContentLoaded", function () {
-    if (CryptoZoo.init) {
+    if (typeof CryptoZoo.init === "function") {
         CryptoZoo.init();
     }
 });
