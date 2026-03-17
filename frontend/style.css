@@ -1,82 +1,312 @@
-body{
-margin:0;
-padding:0;
-font-family:Arial,Helvetica,sans-serif;
-background:url("assets/backgrounds/background_main.png");
-background-size:cover;
-background-position:center;
-background-attachment:fixed;
-color:white;
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: url("assets/backgrounds/background_main.png");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    color: white;
+    min-height: 100vh;
 }
 
-.container{
-max-width:420px;
-margin:auto;
-padding:20px;
+.hidden {
+    display: none !important;
 }
 
-.panel{
-background:url("assets/ui/panel_stats.png");
-background-size:100% 100%;
-padding:20px;
-margin-bottom:20px;
+#app {
+    min-height: 100vh;
+    padding-bottom: 95px;
+    box-sizing: border-box;
 }
 
-.card{
-background:url("assets/ui/panel_card.png");
-background-size:100% 100%;
-padding:20px;
-margin-bottom:20px;
+.top-bar {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 10px;
+    background: rgba(10, 18, 32, 0.75);
+    backdrop-filter: blur(6px);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.tap-area{
-display:flex;
-justify-content:center;
-align-items:center;
-margin:30px 0;
+.balance {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #ffffff;
+    min-width: 70px;
 }
 
-.tap-button{
-width:220px;
-height:220px;
-background:url("assets/buttons/tap_button.png");
-background-size:contain;
-background-repeat:no-repeat;
-background-position:center;
-border:none;
-cursor:pointer;
+.balance span {
+    margin-top: 4px;
+    font-size: 18px;
+    color: #ffe66d;
 }
 
-.tap-button:active{
-background:url("assets/buttons/tap_button_pressed.png");
-background-size:contain;
-background-repeat:no-repeat;
-background-position:center;
-transform:scale(0.95);
+main#game {
+    padding: 16px 14px 24px;
+    box-sizing: border-box;
 }
 
-.bottom-menu{
-position:fixed;
-bottom:0;
-left:0;
-right:0;
-height:80px;
-background:url("assets/menu/menu_bar.png");
-background-size:100% 100%;
-display:flex;
-justify-content:space-around;
-align-items:center;
+main#game section {
+    background: rgba(8, 16, 28, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 18px 14px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+    margin-bottom: 16px;
 }
 
-.menu-item{
-text-align:center;
-font-size:12px;
-cursor:pointer;
+h2, h3 {
+    margin-top: 0;
+    color: #ffffff;
 }
 
-.menu-item img{
-width:26px;
-height:26px;
-display:block;
-margin:auto;
+.tap-area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 30px 0;
+}
+
+#tapButton {
+    width: 220px;
+    height: 220px;
+    background: url("assets/buttons/tap_button.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    border: none;
+    cursor: pointer;
+    outline: none;
+    padding: 0;
+    font-size: 0;
+    color: transparent;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+#tapButton:active {
+    background: url("assets/buttons/tap_button_pressed.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    transform: scale(0.95);
+}
+
+#zooList,
+#shopList,
+#missionsList,
+#rankingList,
+#minigamesWrap {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.boxes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.boxes button,
+#spinWheelBtn,
+#startMemoryBtn,
+#claimDailyBtn,
+.menu button {
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.boxes button:active,
+#spinWheelBtn:active,
+#startMemoryBtn:active,
+#claimDailyBtn:active,
+.menu button:active {
+    transform: scale(0.97);
+}
+
+.boxes button {
+    padding: 12px 10px;
+    background: rgba(255, 255, 255, 0.10);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    min-height: 72px;
+}
+
+#screen-minigames {
+    text-align: center;
+}
+
+#minigamesWrap {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+#wheelGame,
+#memoryGame {
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 18px;
+    padding: 16px 12px;
+}
+
+#wheel {
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    border: 8px solid #ffffff;
+    background:
+        conic-gradient(
+            #ffcc00 0deg 60deg,
+            #4caf50 60deg 120deg,
+            #03a9f4 120deg 180deg,
+            #ff5722 180deg 240deg,
+            #9c27b0 240deg 300deg,
+            #8bc34a 300deg 360deg
+        );
+    transition: transform 4s cubic-bezier(0.15, 0.85, 0.15, 1);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.35);
+    margin: 0 auto;
+}
+
+#spinWheelBtn,
+#startMemoryBtn,
+#claimDailyBtn {
+    padding: 12px 18px;
+    background: linear-gradient(180deg, #4ce38a, #22b86a);
+    color: #072313;
+    min-width: 150px;
+}
+
+#wheelRewardText,
+#memoryStatus,
+#dailyRewardText {
+    margin-top: 12px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+#memoryBoard {
+    display: grid;
+    grid-template-columns: repeat(4, 70px);
+    gap: 10px;
+    justify-content: center;
+    margin: 16px auto;
+}
+
+#memoryBoard button {
+    width: 70px;
+    height: 70px;
+    font-size: 30px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    background: #3b4a68;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+#rankingList {
+    padding-left: 18px;
+}
+
+.menu {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 80px;
+    background: rgba(8, 16, 28, 0.92);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 30;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.menu button {
+    background: transparent;
+    color: #ffffff;
+    font-size: 12px;
+    padding: 8px 10px;
+    min-width: 54px;
+}
+
+.menu button.active {
+    color: #ffe66d;
+}
+
+#dailyReward {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+
+#dailyReward > div {
+    background: #1f2a44;
+    color: #ffffff;
+    padding: 24px;
+    border-radius: 16px;
+    text-align: center;
+    width: 90%;
+    max-width: 320px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+@media (max-width: 480px) {
+    .top-bar {
+        gap: 4px;
+        padding: 10px 6px;
+    }
+
+    .balance {
+        font-size: 12px;
+        min-width: 58px;
+    }
+
+    .balance span {
+        font-size: 16px;
+    }
+
+    #tapButton {
+        width: 190px;
+        height: 190px;
+    }
+
+    #wheel {
+        width: 220px;
+        height: 220px;
+    }
+
+    #memoryBoard {
+        grid-template-columns: repeat(4, 58px);
+        gap: 8px;
+    }
+
+    #memoryBoard button {
+        width: 58px;
+        height: 58px;
+        font-size: 24px;
+    }
+
+    .boxes {
+        grid-template-columns: 1fr 1fr;
+    }
 }
