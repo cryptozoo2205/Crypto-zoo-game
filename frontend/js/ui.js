@@ -40,26 +40,31 @@ CryptoZoo.ui = {
         const area = tapButton.parentElement;
         area.style.position = "relative";
 
-        const coin = document.createElement("div");
-        coin.className = "coin-pop";
-        coin.textContent = "🪙";
+        const clickValue =
+            Number(CryptoZoo.state?.coinsPerClick) ||
+            Number(CryptoZoo.config?.clickValue) ||
+            1;
 
-        const offsetX = Math.floor(Math.random() * 70) - 35;
-        const offsetY = -70 - Math.floor(Math.random() * 35);
+        const pop = document.createElement("div");
+        pop.className = "coin-pop";
+        pop.textContent = "+" + CryptoZoo.formatNumber(clickValue);
 
-        coin.style.left = "50%";
-        coin.style.top = "50%";
-        coin.style.setProperty("--moveX", offsetX + "px");
-        coin.style.setProperty("--moveY", offsetY + "px");
+        const offsetX = Math.floor(Math.random() * 80) - 40;
+        const offsetY = -90 - Math.floor(Math.random() * 30);
 
-        area.appendChild(coin);
+        pop.style.left = "50%";
+        pop.style.top = "50%";
+        pop.style.setProperty("--moveX", offsetX + "px");
+        pop.style.setProperty("--moveY", offsetY + "px");
+
+        area.appendChild(pop);
 
         requestAnimationFrame(() => {
-            coin.classList.add("animate");
+            pop.classList.add("animate");
         });
 
         setTimeout(() => {
-            coin.remove();
+            pop.remove();
         }, 900);
     },
 
