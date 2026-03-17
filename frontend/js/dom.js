@@ -1,58 +1,49 @@
-
 window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.dom = {
     cacheElements() {
-        const state = CryptoZoo.state;
+        CryptoZoo.state = CryptoZoo.state || {};
 
-        state.els = {
-            loadingScreen: document.getElementById("loading-screen"),
+        CryptoZoo.state.els = {
+            app: document.getElementById("app"),
+            game: document.getElementById("game"),
 
-            coinsCount: document.getElementById("coins-count"),
+            coins: document.getElementById("coins"),
+            gems: document.getElementById("gems"),
+            rewardBalance: document.getElementById("rewardBalance"),
             level: document.getElementById("level"),
-            coinsPerClick: document.getElementById("coins-per-click"),
-            upgradeCost: document.getElementById("upgrade-cost"),
-            zooIncome: document.getElementById("zoo-income"),
-            animalsTotal: document.getElementById("animals-total"),
+            coinsPerClick: document.getElementById("coinsPerClick"),
+            zooIncome: document.getElementById("zooIncome"),
 
-            monkeyCount: document.getElementById("monkey-count"),
-            pandaCount: document.getElementById("panda-count"),
-            lionCount: document.getElementById("lion-count"),
+            tapButton: document.getElementById("tapButton"),
 
-            monkeyLevel: document.getElementById("monkey-level"),
-            pandaLevel: document.getElementById("panda-level"),
-            lionLevel: document.getElementById("lion-level"),
+            zooList: document.getElementById("zooList"),
+            shopList: document.getElementById("shopList"),
+            boxesBuyList: document.getElementById("boxesBuyList"),
+            boxesList: document.getElementById("boxesList"),
+            missionsList: document.getElementById("missionsList"),
+            rankingList: document.getElementById("rankingList"),
 
-            collectionFound: document.getElementById("collection-found"),
-            collectionTotal: document.getElementById("collection-total"),
-            commonFound: document.getElementById("common-found"),
-            rareFound: document.getElementById("rare-found"),
-            epicFound: document.getElementById("epic-found"),
+            wheel: document.getElementById("wheel"),
+            wheelPointer: document.getElementById("wheelPointer"),
+            spinWheelBtn: document.getElementById("spinWheelBtn"),
+            wheelRewardText: document.getElementById("wheelRewardText"),
 
-            collectionMonkeyCard: document.getElementById("collection-monkey"),
-            collectionPandaCard: document.getElementById("collection-panda"),
-            collectionLionCard: document.getElementById("collection-lion"),
+            memoryBoard: document.getElementById("memoryBoard"),
+            startMemoryBtn: document.getElementById("startMemoryBtn"),
+            memoryStatus: document.getElementById("memoryStatus"),
 
-            collectionMonkeyStatus: document.getElementById("collection-monkey-status"),
-            collectionPandaStatus: document.getElementById("collection-panda-status"),
-            collectionLionStatus: document.getElementById("collection-lion-status"),
+            navButtons: document.querySelectorAll("[data-nav]"),
+            screens: document.querySelectorAll('main section[id^="screen-"]'),
+            boxButtons: document.querySelectorAll("[data-box-type]"),
 
-            tapBtn: document.getElementById("tap-btn"),
-            buyUpgradeBtn: document.getElementById("buy-upgrade-btn"),
-
-            buyMonkeyBtn: document.getElementById("buy-monkey-btn"),
-            buyPandaBtn: document.getElementById("buy-panda-btn"),
-            buyLionBtn: document.getElementById("buy-lion-btn"),
-
-            upgradeMonkeyBtn: document.getElementById("upgrade-monkey-btn"),
-            upgradePandaBtn: document.getElementById("upgrade-panda-btn"),
-            upgradeLionBtn: document.getElementById("upgrade-lion-btn"),
-
-            navButtons: document.querySelectorAll(".nav-btn"),
-            screens: document.querySelectorAll(".screen"),
-            rankingList: document.getElementById("ranking-list"),
-            coinAnimationContainer: document.getElementById("coin-animation-container"),
             toast: document.getElementById("toast")
         };
+
+        return CryptoZoo.state.els;
+    },
+
+    get(id) {
+        return document.getElementById(id);
     }
 };
