@@ -1,183 +1,103 @@
-#screen-game .panel.card {
-    min-height: 420px;
+.game-main-card {
+    padding-bottom: 18px;
 }
 
 .tap-area {
     width: 100%;
-    min-height: 320px;
+    min-height: 310px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    padding: 14px 0 6px;
+    padding: 10px 0 14px;
 }
 
-#tapButton {
+.tap-glow {
+    position: absolute;
+    width: 230px;
+    height: 230px;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle, rgba(112, 255, 120, 0.36) 0%, rgba(112, 255, 120, 0.08) 48%, rgba(112, 255, 120, 0) 72%);
+    filter: blur(4px);
+    animation: tapPulse 2.2s ease-in-out infinite;
+}
+
+.tap-button {
     position: relative;
     z-index: 2;
-    width: 220px;
-    height: 220px;
+    width: 190px;
+    height: 190px;
     border: none;
+    border-radius: 50%;
     cursor: pointer;
-    border-radius: 50%;
-    background: url("../assets/buttons/tap_button.png") center / contain no-repeat;
-    transition: transform 0.12s ease;
-}
-
-#tapButton:hover {
-    transform: scale(1.03);
-}
-
-#tapButton:active {
-    transform: scale(0.94);
-    background: url("../assets/buttons/tap_button_pressed.png") center / contain no-repeat;
-}
-
-#screen-game .tap-area::before {
-    content: "";
-    position: absolute;
-    width: 255px;
-    height: 255px;
-    border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.08);
+    background: radial-gradient(circle at 35% 30%, #b8ff9a 0%, #51d84b 48%, #168c2a 100%);
     box-shadow:
-        0 0 0 12px rgba(255, 255, 255, 0.02),
-        0 0 28px rgba(255, 209, 102, 0.08);
-    animation: gamePulse 2.8s ease-in-out infinite;
+        inset 0 6px 14px rgba(255, 255, 255, 0.30),
+        inset 0 -10px 18px rgba(0, 0, 0, 0.16),
+        0 0 0 8px rgba(255, 255, 255, 0.06),
+        0 0 34px rgba(91, 255, 110, 0.28);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
-@keyframes gamePulse {
-    0% {
-        transform: scale(0.98);
-        opacity: 0.7;
-    }
-
-    50% {
-        transform: scale(1.02);
-        opacity: 1;
-    }
-
-    100% {
-        transform: scale(0.98);
-        opacity: 0.7;
-    }
-}
-
-.animal-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.animal-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 0;
-    flex: 1;
-}
-
-.animal-icon {
-    width: 62px;
-    height: 62px;
-    flex: 0 0 62px;
-    border-radius: 16px;
-    overflow: hidden;
-    background: rgba(255, 255, 255, 0.05);
+.tap-button::before {
+    content: "🐾";
+    position: absolute;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 82px;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.22));
 }
 
-.animal-icon img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+.tap-button:active {
+    transform: scale(0.94);
+    box-shadow:
+        inset 0 4px 10px rgba(255, 255, 255, 0.22),
+        inset 0 -8px 14px rgba(0, 0, 0, 0.18),
+        0 0 0 6px rgba(255, 255, 255, 0.05),
+        0 0 24px rgba(91, 255, 110, 0.22);
 }
 
-.animal-text {
-    min-width: 0;
-    flex: 1;
+@keyframes tapPulse {
+    0% {
+        transform: scale(0.96);
+        opacity: 0.75;
+    }
+    50% {
+        transform: scale(1.04);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0.96);
+        opacity: 0.75;
+    }
 }
 
-.animal-name {
-    font-size: 18px;
-    font-weight: 900;
-    margin-bottom: 6px;
-}
-
-.animal-desc,
-.animal-owned {
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.82);
-    line-height: 1.35;
-}
-
-.animal-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 132px;
-    flex: 0 0 132px;
-}
-
-.animal-actions button,
-.shop-item button,
-.expedition-card button,
-.boxes button,
-#spinWheelBtn,
-#startMemoryBtn {
-    width: 100%;
-    padding: 12px 10px;
-    background: linear-gradient(180deg, #ffd54f 0%, #ffbf00 100%);
-    color: #1a1a1a;
-}
-
-.boxes {
+.game-income-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
+    margin-top: 6px;
 }
 
-.boxes button {
-    min-height: 78px;
-    padding: 10px;
-    text-align: center;
-}
-
-.expedition-card {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.expedition-card h3 {
-    margin: 0;
-}
-
-.shop-item {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-#minigamesWrap {
-    display: flex;
-    flex-direction: column;
-    gap: 22px;
-}
-
-#wheelGame,
-#memoryGame {
-    background: rgba(255, 255, 255, 0.03);
+.game-income-box {
+    background: rgba(12, 18, 30, 0.48);
+    border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 18px;
-    padding: 16px 12px;
+    padding: 14px 12px;
+    text-align: left;
 }
 
-#wheelRewardText,
-#memoryStatus {
-    min-height: 24px;
-    margin-top: 12px;
-    font-weight: 700;
+.game-income-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.78);
+    margin-bottom: 6px;
+}
+
+.game-income-value {
+    font-size: 20px;
+    font-weight: 900;
+    color: #6cff7d;
 }
