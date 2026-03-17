@@ -12,16 +12,20 @@ CryptoZoo.init = async function () {
             await CryptoZoo.api.loadPlayer();
         }
 
-        if (CryptoZoo.ui && CryptoZoo.ui.render) {
-            CryptoZoo.ui.render();
-        }
-
         if (CryptoZoo.boxes && CryptoZoo.boxes.init) {
             CryptoZoo.boxes.init();
         }
 
+        if (CryptoZoo.shop && CryptoZoo.shop.init) {
+            CryptoZoo.shop.init();
+        }
+
         if (CryptoZoo.gameplay && CryptoZoo.gameplay.init) {
             CryptoZoo.gameplay.init();
+        }
+
+        if (CryptoZoo.ui && CryptoZoo.ui.render) {
+            CryptoZoo.ui.render();
         }
     } catch (error) {
         console.error("Init error:", error);
