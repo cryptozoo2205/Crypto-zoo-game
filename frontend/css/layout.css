@@ -3,20 +3,14 @@
     margin: 14px auto 12px;
 }
 
-.top-bar-banner {
+.top-bar-image {
     width: 100%;
-    height: 180px;
-    margin-bottom: 14px;
-    background: url("../assets/ui/top_bar_bg.png") center center no-repeat;
-    background-size: 100% auto;
     display: block;
+    border-radius: 22px;
 }
 
 .stats-panel {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    display: none;
 }
 
 .stat-box {
@@ -61,8 +55,6 @@ main#game {
 #screen-ranking {
     width: 100%;
 }
-
-/* HOME SCREEN V2 READY */
 
 .home-stats-panel {
     width: 100%;
@@ -178,26 +170,12 @@ main#game {
 }
 
 @media (max-width: 520px) {
-    .top-bar-banner {
-        height: 120px;
-        margin-bottom: 10px;
+    .top-bar {
+        margin: 12px auto 10px;
     }
 
-    .stats-panel {
-        gap: 8px;
-    }
-
-    .stat-box {
-        padding: 10px;
-        border-radius: 16px;
-    }
-
-    .stat-label {
-        font-size: 11px;
-    }
-
-    .stat-value {
-        font-size: 17px;
+    .top-bar-image {
+        border-radius: 18px;
     }
 
     .home-stats-panel {
@@ -233,11 +211,25 @@ main#game {
     }
 
     .home-zoo-preview-list {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .home-zoo-preview-card {
+        padding: 8px;
     }
 
     .home-zoo-preview-card img {
-        width: 56px;
-        height: 56px;
+        width: 46px;
+        height: 46px;
+        margin-bottom: 6px;
+    }
+
+    .home-zoo-preview-name {
+        font-size: 11px;
+    }
+
+    .home-zoo-preview-meta {
+        font-size: 10px;
     }
 }
