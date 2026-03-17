@@ -88,13 +88,6 @@ CryptoZoo.ui = {
         ].join(":");
     },
 
-    setHTML(id, html) {
-        const el = document.getElementById(id);
-        if (!el) return null;
-        el.innerHTML = html;
-        return el;
-    },
-
     bindClick(id, handler) {
         document.getElementById(id)?.addEventListener("click", handler);
     },
@@ -137,12 +130,20 @@ CryptoZoo.ui = {
         const state = CryptoZoo.state || {};
         const animals = state.animals || {};
 
+        this.updateText("coins", CryptoZoo.formatNumber(state.coins || 0));
+        this.updateText("gems", CryptoZoo.formatNumber(state.gems || 0));
+        this.updateText("rewardBalance", CryptoZoo.formatNumber(state.rewardBalance || 0));
+        this.updateText("level", CryptoZoo.formatNumber(state.level || 1));
+        this.updateText("coinsPerClick", CryptoZoo.formatNumber(state.coinsPerClick || 1));
+        this.updateText("zooIncome", CryptoZoo.formatNumber(state.zooIncome || 0));
+
         this.updateText("homeCoins", CryptoZoo.formatNumber(state.coins || 0));
         this.updateText("homeGems", CryptoZoo.formatNumber(state.gems || 0));
         this.updateText("homeRewardBalance", CryptoZoo.formatNumber(state.rewardBalance || 0));
         this.updateText("homeLevel", CryptoZoo.formatNumber(state.level || 1));
         this.updateText("homeCoinsPerClick", CryptoZoo.formatNumber(state.coinsPerClick || 1));
         this.updateText("homeZooIncome", CryptoZoo.formatNumber(state.zooIncome || 0));
+        this.updateText("homeIncomeStripValue", CryptoZoo.formatNumber(state.zooIncome || 0));
 
         this.updateText("homeMonkeyCount", CryptoZoo.formatNumber(animals.monkey?.count || 0));
         this.updateText("homeMonkeyLevel", CryptoZoo.formatNumber(animals.monkey?.level || 1));
@@ -340,15 +341,6 @@ CryptoZoo.ui = {
     },
 
     render() {
-        const state = CryptoZoo.state || {};
-
-        this.updateText("coins", CryptoZoo.formatNumber(state.coins || 0));
-        this.updateText("gems", CryptoZoo.formatNumber(state.gems || 0));
-        this.updateText("rewardBalance", CryptoZoo.formatNumber(state.rewardBalance || 0));
-        this.updateText("level", CryptoZoo.formatNumber(state.level || 1));
-        this.updateText("coinsPerClick", CryptoZoo.formatNumber(state.coinsPerClick || 1));
-        this.updateText("zooIncome", CryptoZoo.formatNumber(state.zooIncome || 0));
-
         this.renderHomeOverview();
         this.renderZooList();
         this.renderExpeditions();
