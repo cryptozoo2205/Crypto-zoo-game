@@ -1,12 +1,16 @@
-@media (max-width: 520px) {
+@media (max-width: 900px) {
+    body {
+        background-attachment: scroll;
+    }
+}
+
+@media (max-width: 640px) {
     #app {
-        padding-left: 10px;
-        padding-right: 10px;
         padding-bottom: 102px;
     }
 
     .top-bar {
-        padding: 18px 10px 14px;
+        padding: 14px 10px 12px;
         border-radius: 0 0 22px 22px;
     }
 
@@ -18,14 +22,17 @@
         font-size: 16px;
     }
 
+    main#game {
+        padding: 0 10px;
+    }
+
     .stats-panel {
-        grid-template-columns: repeat(2, 1fr);
         gap: 8px;
     }
 
     .stat-box {
-        min-height: 66px;
         padding: 10px 8px;
+        border-radius: 16px;
     }
 
     .stat-value {
@@ -33,52 +40,28 @@
     }
 
     .panel.card {
-        border-radius: 20px;
         padding: 14px;
+        border-radius: 20px;
     }
 
     .panel.card h2 {
         font-size: 22px;
     }
 
-    #tapButton {
-        width: 180px;
-        height: 180px;
+    .menu {
+        gap: 4px;
+        padding-left: 6px;
+        padding-right: 6px;
     }
 
-    #screen-game .tap-area::before {
-        width: 210px;
-        height: 210px;
-    }
-
-    .tap-area {
-        min-height: 260px;
-    }
-
-    .animal-row {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .animal-left {
-        width: 100%;
-    }
-
-    .animal-actions {
-        width: 100%;
-        flex: none;
-    }
-
-    .boxes {
-        grid-template-columns: 1fr;
-    }
-
-    #memoryBoard {
-        grid-template-columns: repeat(4, 1fr) !important;
+    .menu button {
+        min-height: 54px;
+        font-size: 10px;
+        border-radius: 12px;
     }
 }
 
-@media (max-width: 380px) {
+@media (max-width: 420px) {
     .top-bar h1 {
         font-size: 30px;
     }
@@ -91,29 +74,17 @@
         font-size: 16px;
     }
 
-    #tapButton {
-        width: 160px;
-        height: 160px;
+    main#game {
+        padding: 0 8px;
     }
 
-    #screen-game .tap-area::before {
-        width: 188px;
-        height: 188px;
+    .panel.card {
+        padding: 12px;
     }
 
-    .animal-icon {
-        width: 54px;
-        height: 54px;
-        flex-basis: 54px;
-    }
-
-    .animal-name {
-        font-size: 16px;
-    }
-
-    .animal-desc,
-    .animal-owned,
-    #rankingList li {
-        font-size: 13px;
+    .menu button {
+        font-size: 9px;
+        min-height: 50px;
+        padding: 4px 2px;
     }
 }
