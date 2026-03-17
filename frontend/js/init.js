@@ -7,6 +7,9 @@ CryptoZoo.init = async function () {
     const loadingBarFill = document.getElementById("loadingBarFill");
     const loadingScreen = document.getElementById("loading-screen");
 
+    const loadingStartTime = Date.now();
+    const minimumLoadingTime = 2200;
+
     const setLoading = function (value) {
         const safeValue = Math.max(0, Math.min(100, Number(value) || 0));
 
@@ -19,6 +22,23 @@ CryptoZoo.init = async function () {
         }
     };
 
+    const finishLoading = async function () {
+        const elapsed = Date.now() - loadingStartTime;
+        const remaining = Math.max(0, minimumLoadingTime - elapsed);
+
+        if (remaining > 0) {
+            await new Promise((resolve) => setTimeout(resolve, remaining));
+        }
+
+        setLoading(100);
+
+        setTimeout(() => {
+            if (loadingScreen) {
+                loadingScreen.classList.add("loading-hidden");
+            }
+        }, 250);
+    };
+
     try {
         setLoading(8);
 
@@ -29,6 +49,7 @@ CryptoZoo.init = async function () {
             CryptoZoo.dom.cacheElements();
         }
 
+        await new Promise((resolve) => setTimeout(resolve, 180));
         setLoading(20);
 
         if (!CryptoZoo.state.boxes) {
@@ -44,6 +65,7 @@ CryptoZoo.init = async function () {
             CryptoZoo.telegram.init();
         }
 
+        await new Promise((resolve) => setTimeout(resolve, 180));
         setLoading(35);
 
         if (CryptoZoo.api && typeof CryptoZoo.api.loadPlayer === "function") {
@@ -54,6 +76,7 @@ CryptoZoo.init = async function () {
             CryptoZoo.dom.cacheElements();
         }
 
+        await new Promise((resolve) => setTimeout(resolve, 180));
         setLoading(52);
 
         if (!CryptoZoo.state.boxes) {
@@ -81,25 +104,21 @@ CryptoZoo.init = async function () {
             CryptoZoo.gameplay.init();
         }
 
+        await new Promise((resolve) => setTimeout(resolve, 180));
         setLoading(78);
 
         if (CryptoZoo.ui && typeof CryptoZoo.ui.render === "function") {
             CryptoZoo.ui.render();
         }
 
-        setLoading(100);
+        await new Promise((resolve) => setTimeout(resolve, 180));
+        setLoading(92);
 
-        setTimeout(() => {
-            if (loadingScreen) {
-                loadingScreen.classList.add("loading-hidden");
-            }
-        }, 500);
+        await finishLoading();
     } catch (error) {
         console.error("Init error:", error);
 
-        if (loadingScreen) {
-            loadingScreen.classList.add("loading-hidden");
-        }
+        await finishLoading();
     }
 };
 
