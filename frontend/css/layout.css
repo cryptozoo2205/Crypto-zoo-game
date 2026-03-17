@@ -62,6 +62,121 @@ main#game {
     width: 100%;
 }
 
+/* HOME SCREEN V2 READY */
+
+.home-stats-panel {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0 0 14px;
+}
+
+.home-stat-box {
+    min-width: 0;
+    background: linear-gradient(
+        180deg,
+        rgba(18, 26, 44, 0.82) 0%,
+        rgba(12, 18, 32, 0.88) 100%
+    );
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    padding: 12px;
+    box-shadow:
+        0 12px 22px rgba(0, 0, 0, 0.18),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+    backdrop-filter: blur(8px);
+}
+
+.home-stat-title {
+    font-size: 11px;
+    color: rgba(255,255,255,0.72);
+    margin-bottom: 6px;
+}
+
+.home-stat-value {
+    font-size: 18px;
+    font-weight: 900;
+    color: #ffffff;
+    line-height: 1.1;
+    word-break: break-word;
+}
+
+.home-zoo-preview {
+    width: 100%;
+    margin-top: 14px;
+    background: linear-gradient(
+        180deg,
+        rgba(18, 26, 44, 0.72) 0%,
+        rgba(12, 18, 32, 0.82) 100%
+    );
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 14px;
+    box-shadow:
+        0 12px 22px rgba(0, 0, 0, 0.16),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+    backdrop-filter: blur(8px);
+}
+
+.home-zoo-preview-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.home-zoo-preview-title {
+    font-size: 18px;
+    font-weight: 900;
+    color: #ffffff;
+}
+
+.home-zoo-preview-button {
+    border: none;
+    border-radius: 14px;
+    padding: 10px 14px;
+    font-weight: 800;
+    cursor: pointer;
+    color: #1a1a1a;
+    background: linear-gradient(180deg, #ffe27a 0%, #ffbf00 100%);
+}
+
+.home-zoo-preview-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.home-zoo-preview-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 10px;
+    text-align: center;
+}
+
+.home-zoo-preview-card img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    margin: 0 auto 8px;
+}
+
+.home-zoo-preview-name {
+    font-size: 13px;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 4px;
+}
+
+.home-zoo-preview-meta {
+    font-size: 12px;
+    color: rgba(255,255,255,0.78);
+    line-height: 1.35;
+}
+
 @media (max-width: 520px) {
     .top-bar-banner {
         height: 120px;
@@ -83,5 +198,46 @@ main#game {
 
     .stat-value {
         font-size: 17px;
+    }
+
+    .home-stats-panel {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .home-stat-box {
+        padding: 10px;
+        border-radius: 16px;
+    }
+
+    .home-stat-title {
+        font-size: 10px;
+    }
+
+    .home-stat-value {
+        font-size: 16px;
+    }
+
+    .home-zoo-preview {
+        padding: 12px;
+        border-radius: 18px;
+    }
+
+    .home-zoo-preview-title {
+        font-size: 16px;
+    }
+
+    .home-zoo-preview-button {
+        padding: 9px 12px;
+        font-size: 13px;
+    }
+
+    .home-zoo-preview-list {
+        grid-template-columns: 1fr;
+    }
+
+    .home-zoo-preview-card img {
+        width: 56px;
+        height: 56px;
     }
 }
