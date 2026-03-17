@@ -26,7 +26,22 @@
 
     <div id="app">
         <header class="top-bar">
-            <div class="top-bar-banner"></div>
+            <div class="top-bar-banner">
+                <div class="top-bar-fallback">
+                    <div class="top-bar-left">
+                        <div class="top-avatar"></div>
+                        <div class="top-user-meta">
+                            <div class="top-user-name">Crypto Zoo</div>
+                            <div class="top-user-status">● Online</div>
+                        </div>
+                    </div>
+
+                    <div class="top-bar-right">
+                        <button class="top-action-btn" type="button" id="topTelegramBtn">✈</button>
+                        <button class="top-action-btn" type="button" id="topSettingsBtn">⚙</button>
+                    </div>
+                </div>
+            </div>
 
             <div class="stats-panel">
                 <div class="stat-box">
@@ -98,7 +113,7 @@
 
                     <div class="tap-area">
                         <div class="tap-glow"></div>
-                        <button id="tapButton" class="tap-button" type="button"></button>
+                        <button id="tapButton" class="tap-button" type="button" aria-label="Tap"></button>
                     </div>
 
                     <div class="home-income-strip">
