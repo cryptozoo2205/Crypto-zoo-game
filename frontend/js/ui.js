@@ -1,12 +1,26 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.ui = {
+    toastTimeout: null,
+
     showToast(message) {
         let toast = document.getElementById("toast");
 
         if (!toast) {
             toast = document.createElement("div");
             toast.id = "toast";
+            toast.style.position = "fixed";
+            toast.style.left = "50%";
+            toast.style.bottom = "96px";
+            toast.style.transform = "translateX(-50%)";
+            toast.style.background = "rgba(10, 18, 35, 0.92)";
+            toast.style.color = "#ffffff";
+            toast.style.padding = "12px 18px";
+            toast.style.borderRadius = "14px";
+            toast.style.zIndex = "2000";
+            toast.style.display = "none";
+            toast.style.boxShadow = "0 8px 28px rgba(0, 0, 0, 0.28)";
+            toast.style.border = "1px solid rgba(255,255,255,0.08)";
             document.body.appendChild(toast);
         }
 
@@ -21,7 +35,7 @@ CryptoZoo.ui = {
 
     animateCoin() {
         const tapButton = document.getElementById("tapButton");
-        if (!tapButton) return;
+        if (!tapButton || !tapButton.parentElement) return;
 
         const coin = document.createElement("div");
         coin.textContent = "🪙";
@@ -105,7 +119,7 @@ CryptoZoo.ui = {
 
                 <div class="animal-actions">
                     <button id="buy-${type}-btn" type="button">Kup</button>
-                    <button id="upgrade-${type}-btn" type="button">Lvl Up</button>
+                    <button id="upgrade-${type}-btn" type="button">Lvl Up (${CryptoZoo.formatNumber(CryptoZoo.gameplay?.getAnimalUpgradeCost?.(type) || 0)})</button>
                 </div>
             `;
 
@@ -201,6 +215,35 @@ CryptoZoo.ui = {
         });
     },
 
+    renderShopItems() {
+        const shopList = document.getElementById("shopList");
+        if (!shopList) return;
+
+        shopList.innerHTML = "";
+
+        const items = CryptoZoo.config?.shopItems || [];
+
+        items.forEach((item) => {
+            const card = document.createElement("div");
+            card.className = "shop-item";
+
+            card.innerHTML = `
+                <h3>${item.name}</h3>
+                <div>${item.desc}</div>
+                <div>Koszt: ${CryptoZoo.formatNumber(item.price)} coins</div>
+            `;
+
+            shopList.appendChild(card);
+        });
+    },
+
+    renderRanking() {
+        const rankingList = document.getElementById("rankingList");
+        if (!rankingList) return;
+
+        rankingList.innerHTML = "";
+    },
+
     render() {
         const state = CryptoZoo.state || {};
 
@@ -208,7 +251,14 @@ CryptoZoo.ui = {
         this.updateText("gems", CryptoZoo.formatNumber(state.gems || 0));
         this.updateText("rewardBalance", CryptoZoo.formatNumber(state.rewardBalance || 0));
 
+        const levelEl = document.getElementById("level");
+        if (levelEl) {
+            levelEl.textContent = CryptoZoo.formatNumber(state.level || 1);
+        }
+
         this.renderZooList();
         this.renderExpeditions();
+        this.renderShopItems();
+        this.renderRanking();
     }
 };
