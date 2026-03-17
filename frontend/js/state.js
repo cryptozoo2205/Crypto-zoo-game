@@ -9,6 +9,8 @@ window.CryptoZoo.state = {
     coinsPerClick: 1,
     upgradeCost: 50,
     zooIncome: 0,
+    expeditionBoost: 0,
+    offlineBoost: 1,
     lastLogin: Date.now(),
 
     animals: {
