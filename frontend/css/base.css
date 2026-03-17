@@ -130,3 +130,14 @@ img {
         left: 110%;
     }
 }
+.hidden {
+    display: none !important;
+}
+
+.screen {
+    width: 100%;
+}
+
+.active-screen {
+    display: block;
+}
