@@ -88,7 +88,7 @@ CryptoZoo.boxes = {
         CryptoZoo.state.gems = (CryptoZoo.state.gems || 0) + gems;
 
         CryptoZoo.api?.savePlayer?.();
-         CryptoZoo.ui?.render?.();
+        CryptoZoo.ui?.render?.();
         CryptoZoo.ui?.showToast?.(`Box: +${CryptoZoo.formatNumber(coins)} coins, +${gems} gems`);
     }
 };
