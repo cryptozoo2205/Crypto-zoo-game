@@ -20,13 +20,6 @@
         <div class="loading-visual">
             <div class="loading-image-wrap">
                 <img src="./assets/loading/loading_main.png" alt="Crypto Zoo Loading" class="loading-image">
-
-                <div class="loading-progress-overlay">
-                    <div class="loading-progress-bar">
-                        <div class="loading-progress-fill" id="loadingBarFill"></div>
-                    </div>
-                    <div class="loading-progress-text" id="loadingPercent">0%</div>
-                </div>
             </div>
         </div>
     </div>
@@ -71,9 +64,89 @@
         <main id="game">
             <section id="screen-game" class="screen">
                 <div class="panel card game-main-card">
+                    <div class="home-stats-panel">
+                        <div class="home-stat-box">
+                            <div class="home-stat-title">Coins</div>
+                            <div class="home-stat-value" id="homeCoins">0</div>
+                        </div>
+
+                        <div class="home-stat-box">
+                            <div class="home-stat-title">Gems</div>
+                            <div class="home-stat-value" id="homeGems">0</div>
+                        </div>
+
+                        <div class="home-stat-box">
+                            <div class="home-stat-title">Reward</div>
+                            <div class="home-stat-value" id="homeRewardBalance">0</div>
+                        </div>
+
+                        <div class="home-stat-box">
+                            <div class="home-stat-title">Poziom</div>
+                            <div class="home-stat-value" id="homeLevel">1</div>
+                        </div>
+
+                        <div class="home-stat-box">
+                            <div class="home-stat-title">Za klik</div>
+                            <div class="home-stat-value" id="homeCoinsPerClick">1</div>
+                        </div>
+
+                        <div class="home-stat-box">
+                            <div class="home-stat-title">Dochód / sek</div>
+                            <div class="home-stat-value" id="homeZooIncome">0</div>
+                        </div>
+                    </div>
+
                     <div class="tap-area">
                         <div class="tap-glow"></div>
                         <button id="tapButton" class="tap-button" type="button"></button>
+                    </div>
+
+                    <div class="home-income-strip">
+                        <div class="home-income-left">
+                            <div class="home-income-label">🐾 Dochód zoo / sek</div>
+                            <div class="home-income-value" id="homeIncomeStripValue">0</div>
+                        </div>
+
+                        <div class="home-boost-right">
+                            <div class="home-boost-title">⚡ X2 Boost</div>
+                            <button id="homeBoostBtn" class="home-boost-button" type="button">Aktywuj</button>
+                        </div>
+                    </div>
+
+                    <div class="home-zoo-preview">
+                        <div class="home-zoo-preview-head">
+                            <div class="home-zoo-preview-title">🐾 Twoje Zoo</div>
+                            <button id="homeZooPreviewBtn" class="home-zoo-preview-button" type="button">Zobacz więcej</button>
+                        </div>
+
+                        <div class="home-zoo-preview-list">
+                            <div class="home-zoo-preview-card">
+                                <img src="./assets/animals/monkey.png" alt="Monkey">
+                                <div class="home-zoo-preview-name">Monkey</div>
+                                <div class="home-zoo-preview-meta">
+                                    Ilość: <span id="homeMonkeyCount">0</span><br>
+                                    Lvl: <span id="homeMonkeyLevel">1</span>
+                                </div>
+                            </div>
+
+                            <div class="home-zoo-preview-card">
+                                <img src="./assets/animals/panda.png" alt="Panda">
+                                <div class="home-zoo-preview-name">Panda</div>
+                                <div class="home-zoo-preview-meta">
+                                    Ilość: <span id="homePandaCount">0</span><br>
+                                    Lvl: <span id="homePandaLevel">1</span>
+                                </div>
+                            </div>
+
+                            <div class="home-zoo-preview-card">
+                                <img src="./assets/animals/lion.png" alt="Lion">
+                                <div class="home-zoo-preview-name">Lion</div>
+                                <div class="home-zoo-preview-meta">
+                                    Ilość: <span id="homeLionCount">0</span><br>
+                                    Lvl: <span id="homeLionLevel">1</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
