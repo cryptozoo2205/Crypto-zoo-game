@@ -1,13 +1,21 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.minigames = {
+
     wheelSpinning: false,
     memoryCards: [],
     memoryFlipped: [],
     memoryMatched: 0,
     memoryLocked: false,
 
+    isActive() {
+        const screen = document.getElementById("screen-minigames");
+        return screen && !screen.classList.contains("hidden");
+    },
+
     spinWheel() {
+
+        if (!this.isActive()) return; // ✅ FIX
         if (this.wheelSpinning) return;
 
         const wheel = document.getElementById("wheel");
@@ -28,12 +36,13 @@ CryptoZoo.minigames = {
         ];
 
         const reward = rewards[Math.floor(Math.random() * rewards.length)];
-        const extraSpins = 360 * (4 + Math.floor(Math.random() * 3));
-        const finalDeg = extraSpins + (360 - reward.angle);
+        const spins = 360 * (4 + Math.floor(Math.random() * 3));
+        const finalDeg = spins + (360 - reward.angle);
 
         wheel.style.transform = `rotate(${finalDeg}deg)`;
 
         setTimeout(() => {
+
             if (reward.type === "coins") {
                 CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + reward.value;
             }
@@ -50,24 +59,16 @@ CryptoZoo.minigames = {
                 rewardText.textContent = "Reward: " + reward.label;
             }
 
-            if (CryptoZoo.ui && CryptoZoo.ui.showToast) {
-                CryptoZoo.ui.showToast(reward.label);
-            }
-
-            if (CryptoZoo.ui && CryptoZoo.ui.render) {
-                CryptoZoo.ui.render();
-            }
-
-            if (CryptoZoo.api && CryptoZoo.api.savePlayer) {
-                CryptoZoo.api.savePlayer();
-            }
+            CryptoZoo.ui?.render();
+            CryptoZoo.api?.savePlayer();
 
             this.wheelSpinning = false;
+
         }, 4100);
     },
 
     createMemoryDeck() {
-        const animals = ["🐵", "🐼", "🦁", "🐯"];
+        const animals = ["🐵","🐼","🦁","🐯"];
         const deck = [...animals, ...animals];
 
         for (let i = deck.length - 1; i > 0; i--) {
@@ -84,85 +85,76 @@ CryptoZoo.minigames = {
     },
 
     renderMemory() {
+        if (!this.isActive()) return; // ✅ FIX
+
         const board = document.getElementById("memoryBoard");
         if (!board) return;
 
         board.innerHTML = "";
 
-        this.memoryCards.forEach((card) => {
+        this.memoryCards.forEach(card => {
             const btn = document.createElement("button");
-            btn.type = "button";
-            btn.style.width = "70px";
-            btn.style.height = "70px";
-            btn.style.fontSize = "30px";
-            btn.style.borderRadius = "12px";
-            btn.style.border = "none";
-            btn.style.cursor = "pointer";
-            btn.style.background = card.flipped || card.matched ? "#ffffff" : "#3b4a68";
+
             btn.textContent = card.flipped || card.matched ? card.animal : "?";
             btn.onclick = () => this.flipMemoryCard(card.id);
+
             board.appendChild(btn);
         });
     },
 
     startMemory() {
+        if (!this.isActive()) return; // ✅ FIX
+
         this.memoryCards = this.createMemoryDeck();
         this.memoryFlipped = [];
         this.memoryMatched = 0;
         this.memoryLocked = false;
 
-        const status = document.getElementById("memoryStatus");
-        if (status) status.textContent = "Find all pairs";
-
         this.renderMemory();
     },
 
-    flipMemoryCard(cardId) {
+    flipMemoryCard(id) {
+
+        if (!this.isActive()) return;
         if (this.memoryLocked) return;
 
-        const card = this.memoryCards.find((c) => c.id === cardId);
+        const card = this.memoryCards.find(c => c.id === id);
         if (!card || card.flipped || card.matched) return;
 
         card.flipped = true;
         this.memoryFlipped.push(card);
+
         this.renderMemory();
 
         if (this.memoryFlipped.length < 2) return;
 
         this.memoryLocked = true;
 
-        const [first, second] = this.memoryFlipped;
+        const [a, b] = this.memoryFlipped;
 
-        if (first.animal === second.animal) {
-            first.matched = true;
-            second.matched = true;
+        if (a.animal === b.animal) {
+
+            a.matched = true;
+            b.matched = true;
+
             this.memoryMatched += 2;
             this.memoryFlipped = [];
             this.memoryLocked = false;
 
             if (this.memoryMatched === this.memoryCards.length) {
-                CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + 3000;
-                CryptoZoo.state.gems = (Number(CryptoZoo.state.gems) || 0) + 1;
 
-                const status = document.getElementById("memoryStatus");
-                if (status) status.textContent = "Completed! Reward: 3000 Coins + 1 Gem";
+                CryptoZoo.state.coins += 3000;
+                CryptoZoo.state.gems += 1;
 
-                if (CryptoZoo.ui && CryptoZoo.ui.showToast) {
-                    CryptoZoo.ui.showToast("Memory reward: 3000 Coins + 1 Gem");
-                }
-
-                if (CryptoZoo.ui && CryptoZoo.ui.render) {
-                    CryptoZoo.ui.render();
-                }
-
-                if (CryptoZoo.api && CryptoZoo.api.savePlayer) {
-                    CryptoZoo.api.savePlayer();
-                }
+                CryptoZoo.ui?.render();
+                CryptoZoo.api?.savePlayer();
             }
+
         } else {
+
             setTimeout(() => {
-                first.flipped = false;
-                second.flipped = false;
+                a.flipped = false;
+                b.flipped = false;
                 this.memoryFlipped = [];
                 this.memoryLocked = false;
                 this.renderMemory();
@@ -171,20 +163,16 @@ CryptoZoo.minigames = {
     },
 
     bindButtons() {
+
         const spinBtn = document.getElementById("spinWheelBtn");
         const memoryBtn = document.getElementById("startMemoryBtn");
 
-        if (spinBtn) {
-            spinBtn.onclick = () => this.spinWheel();
-        }
-
-        if (memoryBtn) {
-            memoryBtn.onclick = () => this.startMemory();
-        }
+        if (spinBtn) spinBtn.onclick = () => this.spinWheel();
+        if (memoryBtn) memoryBtn.onclick = () => this.startMemory();
     },
 
     init() {
-        this.bindButtons();
-        this.startMemory();
+        this.bindButtons(); // ✅ TYLKO TO
     }
+
 };
