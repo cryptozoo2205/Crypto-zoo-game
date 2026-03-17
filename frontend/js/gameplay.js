@@ -3,17 +3,48 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.gameplay = {
     activeScreen: "game",
     expeditionTimerStarted: false,
+    incomeTimerStarted: false,
 
     init() {
+        this.ensureState();
         this.bindNavigation();
         this.bindTap();
+        this.startIncomeTimer();
         this.startExpeditionTimer();
 
         const lastScreen = sessionStorage.getItem("cryptozoo_last_screen") || "game";
         this.showScreen(lastScreen);
 
+        this.recalculateZooIncome();
         this.bindAnimalButtons();
         this.bindShopButtons();
+    },
+
+    ensureState() {
+        CryptoZoo.state = CryptoZoo.state || {};
+        CryptoZoo.state.animals = CryptoZoo.state.animals || {};
+        CryptoZoo.state.boxes = CryptoZoo.state.boxes || {
+            common: 0,
+            rare: 0,
+            epic: 0,
+            legendary: 0
+        };
+
+        const animals = CryptoZoo.config?.animals || {};
+        Object.keys(animals).forEach((type) => {
+            if (!CryptoZoo.state.animals[type]) {
+                CryptoZoo.state.animals[type] = { count: 0, level: 1 };
+            }
+        });
+
+        if (typeof CryptoZoo.state.coins !== "number") CryptoZoo.state.coins = Number(CryptoZoo.state.coins) || 0;
+        if (typeof CryptoZoo.state.gems !== "number") CryptoZoo.state.gems = Number(CryptoZoo.state.gems) || 0;
+        if (typeof CryptoZoo.state.rewardBalance !== "number") CryptoZoo.state.rewardBalance = Number(CryptoZoo.state.rewardBalance) || 0;
+        if (typeof CryptoZoo.state.level !== "number") CryptoZoo.state.level = Number(CryptoZoo.state.level) || 1;
+        if (typeof CryptoZoo.state.coinsPerClick !== "number") CryptoZoo.state.coinsPerClick = Number(CryptoZoo.state.coinsPerClick) || 1;
+        if (typeof CryptoZoo.state.zooIncome !== "number") CryptoZoo.state.zooIncome = Number(CryptoZoo.state.zooIncome) || 0;
+        if (typeof CryptoZoo.state.expeditionBoost !== "number") CryptoZoo.state.expeditionBoost = Number(CryptoZoo.state.expeditionBoost) || 0;
+        if (typeof CryptoZoo.state.offlineBoost !== "number") CryptoZoo.state.offlineBoost = Number(CryptoZoo.state.offlineBoost) || 1;
     },
 
     bindNavigation() {
@@ -56,6 +87,14 @@ CryptoZoo.gameplay = {
 
         this.activeScreen = screenName;
         sessionStorage.setItem("cryptozoo_last_screen", screenName);
+
+        if (screenName === "ranking") {
+            CryptoZoo.ui?.renderRanking?.();
+        }
+
+        if (screenName === "missions") {
+            CryptoZoo.ui?.renderExpeditions?.();
+        }
     },
 
     bindTap() {
@@ -120,11 +159,12 @@ CryptoZoo.gameplay = {
         }
 
         if (item.type === "income") {
-            CryptoZoo.state.zooIncome = Math.floor((Number(CryptoZoo.state.zooIncome) || 0) * 1.25);
+            const currentIncome = Number(CryptoZoo.state.zooIncome) || 0;
+            CryptoZoo.state.zooIncome = Math.max(1, Math.floor(currentIncome * 1.25));
         }
 
         if (item.type === "expedition") {
-            CryptoZoo.state.expeditionBoost = ((Number(CryptoZoo.state.expeditionBoost) || 0) + 0.2);
+            CryptoZoo.state.expeditionBoost = (Number(CryptoZoo.state.expeditionBoost) || 0) + 0.2;
         }
 
         if (item.type === "offline") {
@@ -142,7 +182,7 @@ CryptoZoo.gameplay = {
 
         const coins = Number(CryptoZoo.state?.coins) || 0;
 
-        if (coins < config.buyCost) {
+        if (coins < Number(config.buyCost || 0)) {
             CryptoZoo.ui?.showToast?.("Za mało coins");
             return;
         }
@@ -211,6 +251,27 @@ CryptoZoo.gameplay = {
         });
 
         CryptoZoo.state.zooIncome = total;
+    },
+
+    startIncomeTimer() {
+        if (this.incomeTimerStarted) return;
+        this.incomeTimerStarted = true;
+
+        setInterval(() => {
+            const income = Number(CryptoZoo.state?.zooIncome) || 0;
+            if (income <= 0) return;
+
+            CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + income;
+
+            if (this.activeScreen === "game" || this.activeScreen === "zoo" || this.activeScreen === "shop") {
+                CryptoZoo.ui?.render?.();
+            } else {
+                CryptoZoo.ui?.updateText?.("coins", CryptoZoo.formatNumber(CryptoZoo.state.coins || 0));
+                CryptoZoo.ui?.updateText?.("zooIncome", CryptoZoo.formatNumber(CryptoZoo.state.zooIncome || 0));
+            }
+
+            CryptoZoo.api?.savePlayer?.();
+        }, 1000);
     },
 
     startExpedition(id) {
@@ -284,7 +345,9 @@ CryptoZoo.gameplay = {
 
         setInterval(() => {
             if (!CryptoZoo.state?.expedition) return;
-            CryptoZoo.ui?.render?.();
+            if (this.activeScreen !== "missions") return;
+
+            CryptoZoo.ui?.renderExpeditions?.();
         }, 1000);
     },
 
