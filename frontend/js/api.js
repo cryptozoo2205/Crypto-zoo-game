@@ -81,6 +81,22 @@ window.CryptoZoo.api = {
         };
     },
 
+    normalizeAnimals(rawAnimals) {
+        const baseAnimals = this.getDefaultState().animals;
+        const result = {};
+
+        Object.keys(baseAnimals).forEach((type) => {
+            const raw = rawAnimals && rawAnimals[type] ? rawAnimals[type] : baseAnimals[type];
+
+            result[type] = {
+                count: Number(raw.count) || 0,
+                level: Math.max(1, Number(raw.level) || 1)
+            };
+        });
+
+        return result;
+    },
+
     normalizeState(raw) {
         const base = this.getDefaultState();
         const data = raw || {};
@@ -91,21 +107,20 @@ window.CryptoZoo.api = {
             coins: Number(data.coins ?? base.coins) || 0,
             gems: Number(data.gems ?? base.gems) || 0,
             rewardBalance: Number(data.rewardBalance ?? base.rewardBalance) || 0,
-            level: Number(data.level ?? base.level) || 1,
+            level: Math.max(1, Number(data.level ?? base.level) || 1),
             xp: Number(data.xp ?? base.xp) || 0,
-            coinsPerClick: Number(data.coinsPerClick ?? base.coinsPerClick) || 1,
+            coinsPerClick: Math.max(1, Number(data.coinsPerClick ?? base.coinsPerClick) || 1),
             upgradeCost: Number(data.upgradeCost ?? base.upgradeCost) || 50,
             zooIncome: Number(data.zooIncome ?? base.zooIncome) || 0,
             expeditionBoost: Number(data.expeditionBoost ?? base.expeditionBoost) || 0,
             offlineBoost: Number(data.offlineBoost ?? base.offlineBoost) || 1,
             lastLogin: Number(data.lastLogin ?? base.lastLogin) || Date.now(),
-            animals: {
-                ...base.animals,
-                ...(data.animals || {})
-            },
+            animals: this.normalizeAnimals(data.animals || {}),
             boxes: {
-                ...base.boxes,
-                ...(data.boxes || {})
+                common: Number(data.boxes?.common) || 0,
+                rare: Number(data.boxes?.rare) || 0,
+                epic: Number(data.boxes?.epic) || 0,
+                legendary: Number(data.boxes?.legendary) || 0
             },
             expedition: data.expedition || null
         };
