@@ -1,149 +1,222 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
-CryptoZoo.formatNumber = function (value) {
-    const num = Number(value) || 0;
-
-    if (num >= 1_000_000_000_000) {
-        return (num / 1_000_000_000_000).toFixed(2).replace(/\.00$/, "") + "T";
-    }
-    if (num >= 1_000_000_000) {
-        return (num / 1_000_000_000).toFixed(2).replace(/\.00$/, "") + "B";
-    }
-    if (num >= 1_000_000) {
-        return (num / 1_000_000).toFixed(2).replace(/\.00$/, "") + "M";
-    }
-    if (num >= 1_000) {
-        return (num / 1_000).toFixed(2).replace(/\.00$/, "") + "K";
-    }
-
-    return String(Math.floor(num));
-};
-
 CryptoZoo.config = {
     clickValue: 1,
-    offlineLimitHours: 8,
 
     animals: {
-        monkey: { name: "Monkey", asset: "monkey", buyCost: 100, baseIncome: 1 },
-        panda: { name: "Panda", asset: "panda", buyCost: 400, baseIncome: 3 },
-        lion: { name: "Lion", asset: "lion", buyCost: 1200, baseIncome: 8 },
-        tiger: { name: "Tiger", asset: "tiger", buyCost: 3000, baseIncome: 15 },
-        elephant: { name: "Elephant", asset: "elephant", buyCost: 8000, baseIncome: 35 },
-        giraffe: { name: "Giraffe", asset: "giraffe", buyCost: 18000, baseIncome: 70 },
-        zebra: { name: "Zebra", asset: "zebra", buyCost: 45000, baseIncome: 140 },
-        hippo: { name: "Hippo", asset: "hippo", buyCost: 120000, baseIncome: 280 },
-        penguin: { name: "Penguin", asset: "penguin", buyCost: 300000, baseIncome: 600 },
-        bear: { name: "Bear", asset: "bear", buyCost: 800000, baseIncome: 1400 },
-        crocodile: { name: "Crocodile", asset: "crocodile", buyCost: 2000000, baseIncome: 3200 },
-        kangaroo: { name: "Kangaroo", asset: "kangaroo", buyCost: 5000000, baseIncome: 7500 },
-        wolf: { name: "Wolf", asset: "wolf", buyCost: 12000000, baseIncome: 18000 }
+        monkey: {
+            name: "Monkey",
+            asset: "monkey",
+            buyCost: 50,
+            baseIncome: 1
+        },
+        panda: {
+            name: "Panda",
+            asset: "panda",
+            buyCost: 250,
+            baseIncome: 4
+        },
+        lion: {
+            name: "Lion",
+            asset: "lion",
+            buyCost: 1000,
+            baseIncome: 12
+        },
+        tiger: {
+            name: "Tiger",
+            asset: "tiger",
+            buyCost: 3500,
+            baseIncome: 30
+        },
+        elephant: {
+            name: "Elephant",
+            asset: "elephant",
+            buyCost: 12000,
+            baseIncome: 85
+        },
+        giraffe: {
+            name: "Giraffe",
+            asset: "giraffe",
+            buyCost: 30000,
+            baseIncome: 180
+        },
+        zebra: {
+            name: "Zebra",
+            asset: "zebra",
+            buyCost: 80000,
+            baseIncome: 420
+        },
+        hippo: {
+            name: "Hippo",
+            asset: "hippo",
+            buyCost: 180000,
+            baseIncome: 900
+        },
+        penguin: {
+            name: "Penguin",
+            asset: "penguin",
+            buyCost: 350000,
+            baseIncome: 1600
+        },
+        bear: {
+            name: "Bear",
+            asset: "bear",
+            buyCost: 750000,
+            baseIncome: 3200
+        },
+        crocodile: {
+            name: "Crocodile",
+            asset: "crocodile",
+            buyCost: 1500000,
+            baseIncome: 6000
+        },
+        kangaroo: {
+            name: "Kangaroo",
+            asset: "kangaroo",
+            buyCost: 3500000,
+            baseIncome: 12000
+        },
+        wolf: {
+            name: "Wolf",
+            asset: "wolf",
+            buyCost: 7000000,
+            baseIncome: 22000
+        }
+    },
+
+    boxes: {
+        common: {
+            buyCoins: 1000,
+            buyGems: 0,
+            coinMin: 250,
+            coinMax: 1500,
+            gemsMin: 0,
+            gemsMax: 1,
+            rewardMax: 0
+        },
+        rare: {
+            buyCoins: 0,
+            buyGems: 5,
+            coinMin: 1500,
+            coinMax: 6000,
+            gemsMin: 1,
+            gemsMax: 4,
+            rewardMax: 0
+        },
+        epic: {
+            buyCoins: 0,
+            buyGems: 15,
+            coinMin: 6000,
+            coinMax: 20000,
+            gemsMin: 3,
+            gemsMax: 8,
+            rewardMax: 0.25
+        },
+        legendary: {
+            buyCoins: 0,
+            buyGems: 40,
+            coinMin: 20000,
+            coinMax: 60000,
+            gemsMin: 8,
+            gemsMax: 20,
+            rewardMax: 1
+        }
     },
 
     expeditions: [
         {
             id: "forest",
-            name: "Forest Expedition",
+            name: "Magic Forest",
             duration: 300,
-            baseCoins: 500,
+            baseCoins: 800,
             baseGems: 1,
-            rareChance: 0.20,
-            epicChance: 0.05
+            rareChance: 0.25,
+            epicChance: 0.08
         },
         {
             id: "river",
-            name: "River Expedition",
+            name: "Crystal River",
             duration: 900,
-            baseCoins: 1500,
-            baseGems: 2,
-            rareChance: 0.22,
-            epicChance: 0.06
+            baseCoins: 3000,
+            baseGems: 3,
+            rareChance: 0.3,
+            epicChance: 0.1
         },
         {
-            id: "desert",
-            name: "Desert Expedition",
+            id: "volcano",
+            name: "Golden Volcano",
             duration: 1800,
-            baseCoins: 4000,
-            baseGems: 3,
-            rareChance: 0.25,
-            epicChance: 0.07
+            baseCoins: 8000,
+            baseGems: 7,
+            rareChance: 0.35,
+            epicChance: 0.12
         }
     ],
 
-    boxes: {
-        common: {
-            name: "Common Box",
-            buyCoins: 1000,
-            buyGems: 0,
-            coinMin: 300,
-            coinMax: 1200,
-            gemsMin: 0,
-            gemsMax: 1,
-            rewardMin: 0,
-            rewardMax: 0
-        },
-        rare: {
-            name: "Rare Box",
-            buyCoins: 0,
-            buyGems: 5,
-            coinMin: 1500,
-            coinMax: 5000,
-            gemsMin: 1,
-            gemsMax: 3,
-            rewardMin: 0,
-            rewardMax: 0.01
-        },
-        epic: {
-            name: "Epic Box",
-            buyCoins: 0,
-            buyGems: 15,
-            coinMin: 6000,
-            coinMax: 20000,
-            gemsMin: 2,
-            gemsMax: 6,
-            rewardMin: 0,
-            rewardMax: 0.02
-        },
-        legendary: {
-            name: "Legendary Box",
-            buyCoins: 0,
-            buyGems: 40,
-            coinMin: 25000,
-            coinMax: 80000,
-            gemsMin: 5,
-            gemsMax: 12,
-            rewardMin: 0,
-            rewardMax: 0.05
-        }
-    },
-
     shopItems: [
         {
-            id: "click_upgrade",
+            id: "click1",
             name: "Click Upgrade",
-            desc: "+1 click power",
-            price: 200,
+            desc: "+1 coin per click",
+            price: 250,
             type: "click"
         },
         {
-            id: "zoo_manager",
+            id: "click2",
+            name: "Strong Finger",
+            desc: "+1 coin per click",
+            price: 1250,
+            type: "click"
+        },
+        {
+            id: "income1",
             name: "Zoo Manager",
             desc: "+25% zoo income",
-            price: 5000,
+            price: 3000,
             type: "income"
         },
         {
-            id: "expedition_boost",
-            name: "Expedition Gear",
+            id: "income2",
+            name: "VIP Caretaker",
+            desc: "+25% zoo income",
+            price: 12000,
+            type: "income"
+        },
+        {
+            id: "expedition1",
+            name: "Better Expedition Gear",
             desc: "+20% expedition rewards",
-            price: 15000,
+            price: 5000,
             type: "expedition"
         },
         {
-            id: "offline_boost",
+            id: "offline1",
             name: "Offline Booster",
-            desc: "x2 offline income",
-            price: 25000,
+            desc: "Better offline income",
+            price: 8000,
             type: "offline"
         }
     ]
+};
+
+CryptoZoo.formatNumber = function (value) {
+    const num = Number(value) || 0;
+
+    if (num >= 1000000000) {
+        return (num / 1000000000).toFixed(num >= 10000000000 ? 0 : 1).replace(/\.0$/, "") + "B";
+    }
+
+    if (num >= 1000000) {
+        return (num / 1000000).toFixed(num >= 10000000 ? 0 : 1).replace(/\.0$/, "") + "M";
+    }
+
+    if (num >= 1000) {
+        return (num / 1000).toFixed(num >= 10000 ? 0 : 1).replace(/\.0$/, "") + "K";
+    }
+
+    if (Number.isInteger(num)) {
+        return String(num);
+    }
+
+    return num.toFixed(2).replace(/\.00$/, "");
 };
