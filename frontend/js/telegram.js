@@ -23,13 +23,7 @@ window.CryptoZoo.telegram = {
                 tg.setHeaderColor("#0f172a");
             }
 
-            if (typeof tg.requestFullscreen === "function") {
-                try {
-                    tg.requestFullscreen();
-                } catch (fullscreenError) {
-                    console.error("TELEGRAM FULLSCREEN ERROR:", fullscreenError);
-                }
-            }
+            this.setupPlayerIdentity();
 
             document.body.style.overflowX = "hidden";
             document.body.style.overflowY = "auto";
