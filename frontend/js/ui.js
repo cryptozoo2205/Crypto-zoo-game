@@ -37,29 +37,30 @@ CryptoZoo.ui = {
         const tapButton = document.getElementById("tapButton");
         if (!tapButton || !tapButton.parentElement) return;
 
+        const area = tapButton.parentElement;
+        area.style.position = "relative";
+
         const coin = document.createElement("div");
+        coin.className = "coin-pop";
         coin.textContent = "🪙";
-        coin.style.position = "absolute";
+
+        const offsetX = Math.floor(Math.random() * 70) - 35;
+        const offsetY = -70 - Math.floor(Math.random() * 35);
+
         coin.style.left = "50%";
         coin.style.top = "50%";
-        coin.style.transform = "translate(-50%, -50%)";
-        coin.style.fontSize = "28px";
-        coin.style.pointerEvents = "none";
-        coin.style.zIndex = "20";
-        coin.style.transition = "all 0.8s ease";
-        coin.style.opacity = "1";
+        coin.style.setProperty("--moveX", offsetX + "px");
+        coin.style.setProperty("--moveY", offsetY + "px");
 
-        tapButton.parentElement.style.position = "relative";
-        tapButton.parentElement.appendChild(coin);
+        area.appendChild(coin);
 
         requestAnimationFrame(() => {
-            coin.style.top = "10%";
-            coin.style.opacity = "0";
+            coin.classList.add("animate");
         });
 
         setTimeout(() => {
             coin.remove();
-        }, 850);
+        }, 900);
     },
 
     updateText(id, value) {
