@@ -99,6 +99,63 @@ CryptoZoo.ui = {
         document.getElementById(id)?.addEventListener("click", handler);
     },
 
+    bindHomeButtons() {
+        const boostBtn = document.getElementById("homeBoostBtn");
+        if (boostBtn && !boostBtn.dataset.bound) {
+            boostBtn.dataset.bound = "1";
+            boostBtn.addEventListener("click", () => {
+                const shopButton = document.querySelector('[data-nav="shop"]');
+                if (shopButton) {
+                    shopButton.click();
+                    return;
+                }
+
+                if (CryptoZoo.gameplay?.showScreen) {
+                    CryptoZoo.gameplay.showScreen("shop");
+                }
+            });
+        }
+
+        const zooPreviewBtn = document.getElementById("homeZooPreviewBtn");
+        if (zooPreviewBtn && !zooPreviewBtn.dataset.bound) {
+            zooPreviewBtn.dataset.bound = "1";
+            zooPreviewBtn.addEventListener("click", () => {
+                const zooButton = document.querySelector('[data-nav="zoo"]');
+                if (zooButton) {
+                    zooButton.click();
+                    return;
+                }
+
+                if (CryptoZoo.gameplay?.showScreen) {
+                    CryptoZoo.gameplay.showScreen("zoo");
+                }
+            });
+        }
+    },
+
+    renderHomeOverview() {
+        const state = CryptoZoo.state || {};
+        const animals = state.animals || {};
+
+        this.updateText("homeCoins", CryptoZoo.formatNumber(state.coins || 0));
+        this.updateText("homeGems", CryptoZoo.formatNumber(state.gems || 0));
+        this.updateText("homeRewardBalance", CryptoZoo.formatNumber(state.rewardBalance || 0));
+        this.updateText("homeLevel", CryptoZoo.formatNumber(state.level || 1));
+        this.updateText("homeCoinsPerClick", CryptoZoo.formatNumber(state.coinsPerClick || 1));
+        this.updateText("homeZooIncome", CryptoZoo.formatNumber(state.zooIncome || 0));
+
+        this.updateText("homeMonkeyCount", CryptoZoo.formatNumber(animals.monkey?.count || 0));
+        this.updateText("homeMonkeyLevel", CryptoZoo.formatNumber(animals.monkey?.level || 1));
+
+        this.updateText("homePandaCount", CryptoZoo.formatNumber(animals.panda?.count || 0));
+        this.updateText("homePandaLevel", CryptoZoo.formatNumber(animals.panda?.level || 1));
+
+        this.updateText("homeLionCount", CryptoZoo.formatNumber(animals.lion?.count || 0));
+        this.updateText("homeLionLevel", CryptoZoo.formatNumber(animals.lion?.level || 1));
+
+        this.bindHomeButtons();
+    },
+
     renderZooList() {
         const zooList = document.getElementById("zooList");
         if (!zooList) return;
@@ -292,6 +349,7 @@ CryptoZoo.ui = {
         this.updateText("coinsPerClick", CryptoZoo.formatNumber(state.coinsPerClick || 1));
         this.updateText("zooIncome", CryptoZoo.formatNumber(state.zooIncome || 0));
 
+        this.renderHomeOverview();
         this.renderZooList();
         this.renderExpeditions();
         this.renderShopItems();
