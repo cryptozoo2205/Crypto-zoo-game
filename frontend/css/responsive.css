@@ -1,31 +1,58 @@
 @media (max-width: 520px) {
-    .app-shell {
+    #app {
         padding-left: 10px;
         padding-right: 10px;
-        padding-bottom: 108px;
+        padding-bottom: 102px;
     }
 
-    h1 {
-        font-size: 42px;
+    .top-bar {
+        padding: 18px 10px 14px;
+        border-radius: 0 0 22px 22px;
+    }
+
+    .top-bar h1 {
+        font-size: 34px;
+    }
+
+    .paw-row {
+        font-size: 16px;
+    }
+
+    .stats-panel {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .stat-box {
+        min-height: 66px;
+        padding: 10px 8px;
     }
 
     .stat-value {
+        font-size: 18px;
+    }
+
+    .panel.card {
+        border-radius: 20px;
+        padding: 14px;
+    }
+
+    .panel.card h2 {
         font-size: 22px;
     }
 
-    .tap-ring-wrap {
-        width: 230px;
-        height: 230px;
+    #tapButton {
+        width: 180px;
+        height: 180px;
     }
 
-    .tap-ring-img {
+    #screen-game .tap-area::before {
         width: 210px;
         height: 210px;
     }
 
-    #tap-btn {
-        width: 175px;
-        height: 175px;
+    .tap-area {
+        min-height: 260px;
     }
 
     .animal-row {
@@ -33,20 +60,60 @@
         align-items: stretch;
     }
 
-    .animal-actions {
+    .animal-left {
         width: 100%;
     }
 
-    .income-bar {
+    .animal-actions {
+        width: 100%;
+        flex: none;
+    }
+
+    .boxes {
         grid-template-columns: 1fr;
     }
 
-    .shop-row {
-        flex-direction: column;
-        align-items: stretch;
+    #memoryBoard {
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
+}
+
+@media (max-width: 380px) {
+    .top-bar h1 {
+        font-size: 30px;
     }
 
-    #buy-upgrade-btn {
-        width: 100%;
+    .stat-label {
+        font-size: 11px;
+    }
+
+    .stat-value {
+        font-size: 16px;
+    }
+
+    #tapButton {
+        width: 160px;
+        height: 160px;
+    }
+
+    #screen-game .tap-area::before {
+        width: 188px;
+        height: 188px;
+    }
+
+    .animal-icon {
+        width: 54px;
+        height: 54px;
+        flex-basis: 54px;
+    }
+
+    .animal-name {
+        font-size: 16px;
+    }
+
+    .animal-desc,
+    .animal-owned,
+    #rankingList li {
+        font-size: 13px;
     }
 }
