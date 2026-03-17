@@ -20,7 +20,7 @@ CryptoZoo.init = async function () {
     };
 
     try {
-        setLoading(10);
+        setLoading(8);
 
         CryptoZoo.state = CryptoZoo.state || {};
         CryptoZoo.config = CryptoZoo.config || {};
@@ -29,7 +29,7 @@ CryptoZoo.init = async function () {
             CryptoZoo.dom.cacheElements();
         }
 
-        setLoading(25);
+        setLoading(20);
 
         if (!CryptoZoo.state.boxes) {
             CryptoZoo.state.boxes = {
@@ -44,7 +44,7 @@ CryptoZoo.init = async function () {
             CryptoZoo.telegram.init();
         }
 
-        setLoading(40);
+        setLoading(35);
 
         if (CryptoZoo.api && typeof CryptoZoo.api.loadPlayer === "function") {
             await CryptoZoo.api.loadPlayer();
@@ -54,7 +54,7 @@ CryptoZoo.init = async function () {
             CryptoZoo.dom.cacheElements();
         }
 
-        setLoading(60);
+        setLoading(52);
 
         if (!CryptoZoo.state.boxes) {
             CryptoZoo.state.boxes = {
@@ -81,7 +81,7 @@ CryptoZoo.init = async function () {
             CryptoZoo.gameplay.init();
         }
 
-        setLoading(85);
+        setLoading(78);
 
         if (CryptoZoo.ui && typeof CryptoZoo.ui.render === "function") {
             CryptoZoo.ui.render();
@@ -93,7 +93,7 @@ CryptoZoo.init = async function () {
             if (loadingScreen) {
                 loadingScreen.classList.add("loading-hidden");
             }
-        }, 350);
+        }, 500);
     } catch (error) {
         console.error("Init error:", error);
 
