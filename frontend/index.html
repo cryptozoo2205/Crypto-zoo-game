@@ -26,54 +26,7 @@
 
     <div id="app">
         <header class="top-bar">
-            <div class="top-bar-banner">
-                <div class="top-bar-fallback">
-                    <div class="top-bar-left">
-                        <div class="top-avatar"></div>
-                        <div class="top-user-meta">
-                            <div class="top-user-name">Crypto Zoo</div>
-                            <div class="top-user-status">● Online</div>
-                        </div>
-                    </div>
-
-                    <div class="top-bar-right">
-                        <button class="top-action-btn" type="button" id="topTelegramBtn">✈</button>
-                        <button class="top-action-btn" type="button" id="topSettingsBtn">⚙</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="stats-panel">
-                <div class="stat-box">
-                    <div class="stat-label">Coins</div>
-                    <div class="stat-value" id="coins">0</div>
-                </div>
-
-                <div class="stat-box">
-                    <div class="stat-label">Gems</div>
-                    <div class="stat-value" id="gems">0</div>
-                </div>
-
-                <div class="stat-box">
-                    <div class="stat-label">Reward</div>
-                    <div class="stat-value" id="rewardBalance">0</div>
-                </div>
-
-                <div class="stat-box">
-                    <div class="stat-label">Lvl</div>
-                    <div class="stat-value" id="level">1</div>
-                </div>
-
-                <div class="stat-box">
-                    <div class="stat-label">Za klik</div>
-                    <div class="stat-value" id="coinsPerClick">1</div>
-                </div>
-
-                <div class="stat-box">
-                    <div class="stat-label">Dochód / sek</div>
-                    <div class="stat-value" id="zooIncome">0</div>
-                </div>
-            </div>
+            <img src="./assets/ui/top_bar_bg.png" alt="Crypto Zoo Top Bar" class="top-bar-image">
         </header>
 
         <main id="game">
@@ -162,6 +115,16 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- legacy hidden targets -->
+                    <div style="display:none;">
+                        <span id="coins">0</span>
+                        <span id="gems">0</span>
+                        <span id="rewardBalance">0</span>
+                        <span id="level">1</span>
+                        <span id="coinsPerClick">1</span>
+                        <span id="zooIncome">0</span>
                     </div>
                 </div>
             </section>
