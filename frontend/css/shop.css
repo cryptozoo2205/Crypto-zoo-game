@@ -1,51 +1,92 @@
-.shop-row {
+#screen-shop .panel.card {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
     gap: 14px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 20px;
-    padding: 16px 14px;
 }
 
-.shop-text {
-    flex: 1;
-    min-width: 0;
+#shopList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
-.shop-title {
-    font-size: 24px;
+.shop-item {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: linear-gradient(180deg, rgba(24, 34, 54, 0.84) 0%, rgba(15, 22, 36, 0.92) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 18px;
+    padding: 14px;
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
+}
+
+.shop-item h3 {
+    margin: 0;
+    font-size: 20px;
     font-weight: 900;
     color: #ffffff;
-    margin-bottom: 6px;
 }
 
-.shop-desc {
+.shop-item div {
     font-size: 14px;
-    color: rgba(255, 255, 255, 0.72);
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.82);
 }
 
-#buy-upgrade-btn {
+.shop-item button {
+    width: 100%;
+    min-height: 46px;
     border: none;
-    border-radius: 16px;
-    padding: 12px 20px;
-    font-size: 16px;
-    font-weight: 900;
+    border-radius: 14px;
     cursor: pointer;
+    font-size: 15px;
+    font-weight: 900;
     color: #173121;
     background: linear-gradient(180deg, #bbffd0 0%, #89f4b1 100%);
-    min-width: 110px;
-    min-height: 52px;
     box-shadow: 0 8px 16px rgba(58, 205, 122, 0.16);
+    transition: transform 0.12s ease, opacity 0.12s ease;
 }
 
-.info-box {
-    margin-top: 14px;
-    text-align: center;
-    background: rgba(255, 255, 255, 0.05);
+.shop-item button:active {
+    transform: scale(0.97);
+}
+
+.shop-item button:hover {
+    opacity: 0.96;
+}
+
+#boxesBuyList {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+#boxesBuyList button {
+    min-height: 84px;
+    border: none;
     border-radius: 16px;
-    padding: 14px 12px;
-    font-size: 18px;
-    font-weight: 700;
+    padding: 12px 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 900;
+    line-height: 1.35;
+    color: #1a1a1a;
+    background: linear-gradient(180deg, #ffe27a 0%, #ffbf00 100%);
+    box-shadow: 0 10px 18px rgba(255, 191, 0, 0.18);
+    transition: transform 0.12s ease, opacity 0.12s ease;
+}
+
+#boxesBuyList button:active {
+    transform: scale(0.97);
+}
+
+#boxesBuyList button:hover {
+    opacity: 0.97;
+}
+
+#boxesList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
