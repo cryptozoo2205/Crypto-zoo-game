@@ -1,61 +1,201 @@
-export const GAME_CONFIG = {
+window.CryptoZoo = window.CryptoZoo || {};
 
-clickValue: 1,
+CryptoZoo.formatNumber = function (value) {
+    const num = Number(value) || 0;
 
-offlineLimitHours: 8,
+    if (num >= 1_000_000_000_000) {
+        return (num / 1_000_000_000_000).toFixed(2).replace(/\.00$/, "") + "T";
+    }
 
-animals: [
+    if (num >= 1_000_000_000) {
+        return (num / 1_000_000_000).toFixed(2).replace(/\.00$/, "") + "B";
+    }
 
-{ id:"monkey", name:"Monkey", price:100, income:1 },
-{ id:"panda", name:"Panda", price:400, income:3 },
-{ id:"lion", name:"Lion", price:1200, income:8 },
-{ id:"tiger", name:"Tiger", price:3500, income:20 },
-{ id:"elephant", name:"Elephant", price:9000, income:45 },
-{ id:"giraffe", name:"Giraffe", price:25000, income:100 },
-{ id:"zebra", name:"Zebra", price:70000, income:250 },
-{ id:"hippo", name:"Hippo", price:180000, income:600 },
-{ id:"penguin", name:"Penguin", price:500000, income:1500 },
-{ id:"bear", name:"Bear", price:1200000, income:3500 },
-{ id:"crocodile", name:"Crocodile", price:3000000, income:8000 },
-{ id:"kangaroo", name:"Kangaroo", price:7500000, income:18000 },
-{ id:"wolf", name:"Wolf", price:18000000, income:40000 }
+    if (num >= 1_000_000) {
+        return (num / 1_000_000).toFixed(2).replace(/\.00$/, "") + "M";
+    }
 
-],
+    if (num >= 1_000) {
+        return (num / 1_000).toFixed(2).replace(/\.00$/, "") + "K";
+    }
 
-shopItems: [
+    return String(Math.floor(num));
+};
 
-{
-id:"click_upgrade",
-name:"Click Upgrade",
-desc:"+1 click power",
-price:200,
-type:"click"
-},
+CryptoZoo.config = {
+    clickValue: 1,
+    offlineLimitHours: 8,
 
-{
-id:"zoo_manager",
-name:"Zoo Manager",
-desc:"+25% zoo income",
-price:5000,
-type:"income"
-},
+    animals: {
+        monkey: {
+            name: "Monkey",
+            asset: "monkey",
+            buyCost: 100,
+            baseIncome: 1
+        },
+        panda: {
+            name: "Panda",
+            asset: "panda",
+            buyCost: 400,
+            baseIncome: 3
+        },
+        lion: {
+            name: "Lion",
+            asset: "lion",
+            buyCost: 1200,
+            baseIncome: 8
+        },
+        tiger: {
+            name: "Tiger",
+            asset: "tiger",
+            buyCost: 3000,
+            baseIncome: 15
+        },
+        elephant: {
+            name: "Elephant",
+            asset: "elephant",
+            buyCost: 8000,
+            baseIncome: 35
+        },
+        giraffe: {
+            name: "Giraffe",
+            asset: "giraffe",
+            buyCost: 18000,
+            baseIncome: 70
+        },
+        zebra: {
+            name: "Zebra",
+            asset: "zebra",
+            buyCost: 45000,
+            baseIncome: 140
+        },
+        hippo: {
+            name: "Hippo",
+            asset: "hippo",
+            buyCost: 120000,
+            baseIncome: 280
+        },
+        penguin: {
+            name: "Penguin",
+            asset: "penguin",
+            buyCost: 300000,
+            baseIncome: 600
+        },
+        bear: {
+            name: "Bear",
+            asset: "bear",
+            buyCost: 800000,
+            baseIncome: 1400
+        },
+        crocodile: {
+            name: "Crocodile",
+            asset: "crocodile",
+            buyCost: 2000000,
+            baseIncome: 3200
+        },
+        kangaroo: {
+            name: "Kangaroo",
+            asset: "kangaroo",
+            buyCost: 5000000,
+            baseIncome: 7500
+        },
+        wolf: {
+            name: "Wolf",
+            asset: "wolf",
+            buyCost: 12000000,
+            baseIncome: 18000
+        }
+    },
 
-{
-id:"expedition_boost",
-name:"Expedition Gear",
-desc:"+20% expedition rewards",
-price:15000,
-type:"expedition"
-},
+    expeditions: [
+        {
+            id: "forest",
+            name: "Forest Expedition",
+            duration: 300,
+            baseCoins: 500,
+            baseGems: 1,
+            rareChance: 0.20,
+            epicChance: 0.05
+        },
+        {
+            id: "river",
+            name: "River Expedition",
+            duration: 900,
+            baseCoins: 1500,
+            baseGems: 2,
+            rareChance: 0.22,
+            epicChance: 0.06
+        },
+        {
+            id: "desert",
+            name: "Desert Expedition",
+            duration: 1800,
+            baseCoins: 4000,
+            baseGems: 3,
+            rareChance: 0.25,
+            epicChance: 0.07
+        }
+    ],
 
-{
-id:"offline_boost",
-name:"Offline Booster",
-desc:"x2 offline income",
-price:25000,
-type:"offline"
-}
+    boxes: {
+        common: {
+            name: "Common Box",
+            coinMin: 300,
+            coinMax: 1200,
+            gemsMin: 0,
+            gemsMax: 1
+        },
+        rare: {
+            name: "Rare Box",
+            coinMin: 1500,
+            coinMax: 5000,
+            gemsMin: 1,
+            gemsMax: 3
+        },
+        epic: {
+            name: "Epic Box",
+            coinMin: 6000,
+            coinMax: 20000,
+            gemsMin: 2,
+            gemsMax: 6
+        },
+        legendary: {
+            name: "Legendary Box",
+            coinMin: 25000,
+            coinMax: 80000,
+            gemsMin: 5,
+            gemsMax: 12
+        }
+    },
 
-]
-
-}
+    shopItems: [
+        {
+            id: "click_upgrade",
+            name: "Click Upgrade",
+            desc: "+1 click power",
+            price: 200,
+            type: "click"
+        },
+        {
+            id: "zoo_manager",
+            name: "Zoo Manager",
+            desc: "+25% zoo income",
+            price: 5000,
+            type: "income"
+        },
+        {
+            id: "expedition_boost",
+            name: "Expedition Gear",
+            desc: "+20% expedition rewards",
+            price: 15000,
+            type: "expedition"
+        },
+        {
+            id: "offline_boost",
+            name: "Offline Booster",
+            desc: "x2 offline income",
+            price: 25000,
+            type: "offline"
+        }
+    ]
+};
