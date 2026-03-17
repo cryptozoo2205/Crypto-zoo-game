@@ -110,9 +110,7 @@ CryptoZoo.ui = {
                             Dochód ${CryptoZoo.formatNumber(config.baseIncome)}/sek • Koszt ${CryptoZoo.formatNumber(config.buyCost)}
                         </div>
                         <div class="animal-owned">
-                            Posiadasz: <span id="${type}-count">${CryptoZoo.formatNumber(state.count)}</span>
-                            •
-                            Poziom: <span id="${type}-level">${CryptoZoo.formatNumber(state.level)}</span>
+                            Posiadasz: ${CryptoZoo.formatNumber(state.count)} • Poziom: ${CryptoZoo.formatNumber(state.level)}
                         </div>
                     </div>
                 </div>
@@ -156,8 +154,7 @@ CryptoZoo.ui = {
                     <div>Jakość nagrody: ${rarityLabel}</div>
                     <div>
                         Przewidywana nagroda:
-                        ${CryptoZoo.formatNumber(expedition.rewardCoins)} coins
-                        +
+                        ${CryptoZoo.formatNumber(expedition.rewardCoins)} coins +
                         ${CryptoZoo.formatNumber(expedition.rewardGems)} gems
                     </div>
                     <button id="collect-expedition-btn" type="button" ${canCollect ? "" : "disabled"}>
@@ -184,14 +181,12 @@ CryptoZoo.ui = {
                 <div>Czas: ${this.formatTimeLeft(exp.duration)}</div>
                 <div>
                     Nagroda bazowa:
-                    ${CryptoZoo.formatNumber(exp.baseCoins)} coins
-                    +
+                    ${CryptoZoo.formatNumber(exp.baseCoins)} coins +
                     ${CryptoZoo.formatNumber(exp.baseGems)} gems
                 </div>
                 <div>
                     Szansa na bonus:
-                    Rare ${(exp.rareChance * 100).toFixed(0)}%
-                    /
+                    Rare ${(exp.rareChance * 100).toFixed(0)}% /
                     Epic ${(exp.epicChance * 100).toFixed(0)}%
                 </div>
                 <button id="start-expedition-${exp.id}" type="button">Start</button>
@@ -279,34 +274,12 @@ CryptoZoo.ui = {
         const rankingList = document.getElementById("rankingList");
         if (!rankingList) return;
 
-        rankingList.innerHTML = "<li>Ładowanie...</li>";
-
         const ranking = await CryptoZoo.api?.loadRanking?.();
-        const currentName = CryptoZoo.api?.getUsername?.() || "Gracz";
-        const currentCoins = Number(CryptoZoo.state?.coins) || 0;
-
-        let rows = Array.isArray(ranking) ? ranking.slice() : [];
-
-        const hasCurrent = rows.some((row) => (row.username || "Gracz") === currentName);
-
-        if (!hasCurrent) {
-            rows.push({
-                username: currentName,
-                coins: currentCoins
-            });
-        }
-
-        rows.sort((a, b) => (Number(b.coins) || 0) - (Number(a.coins) || 0));
-        rows = rows.slice(0, 20);
-
         rankingList.innerHTML = "";
 
-        rows.forEach((row, index) => {
+        (Array.isArray(ranking) ? ranking : []).forEach((row, index) => {
             const li = document.createElement("li");
-            const username = row.username || "Gracz";
-            const coins = CryptoZoo.formatNumber(row.coins || 0);
-
-            li.textContent = `${index + 1}. ${username} — ${coins} coins`;
+            li.textContent = `${index + 1}. ${row.username || "Gracz"} — ${CryptoZoo.formatNumber(row.coins || 0)} coins`;
             rankingList.appendChild(li);
         });
     },
