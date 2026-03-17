@@ -7,6 +7,10 @@ CryptoZoo.init = async function () {
         CryptoZoo.state = CryptoZoo.state || {};
         CryptoZoo.config = CryptoZoo.config || {};
 
+        if (CryptoZoo.dom && typeof CryptoZoo.dom.cacheElements === "function") {
+            CryptoZoo.dom.cacheElements();
+        }
+
         if (!CryptoZoo.state.boxes) {
             CryptoZoo.state.boxes = {
                 common: 0,
@@ -22,6 +26,10 @@ CryptoZoo.init = async function () {
 
         if (CryptoZoo.api && typeof CryptoZoo.api.loadPlayer === "function") {
             await CryptoZoo.api.loadPlayer();
+        }
+
+        if (CryptoZoo.dom && typeof CryptoZoo.dom.cacheElements === "function") {
+            CryptoZoo.dom.cacheElements();
         }
 
         if (!CryptoZoo.state.boxes) {
