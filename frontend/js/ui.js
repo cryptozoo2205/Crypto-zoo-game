@@ -126,9 +126,7 @@ CryptoZoo.ui = {
             zooList.appendChild(row);
         });
 
-        if (CryptoZoo.gameplay && typeof CryptoZoo.gameplay.bindAnimalButtons === "function") {
-            CryptoZoo.gameplay.bindAnimalButtons();
-        }
+        CryptoZoo.gameplay?.bindAnimalButtons?.();
     },
 
     renderExpeditions() {
@@ -168,12 +166,9 @@ CryptoZoo.ui = {
                 </div>
             `;
 
-            const collectBtn = document.getElementById("collect-expedition-btn");
-            if (collectBtn) {
-                collectBtn.onclick = function () {
-                    CryptoZoo.gameplay?.collectExpedition?.();
-                };
-            }
+            document.getElementById("collect-expedition-btn")?.addEventListener("click", () => {
+                CryptoZoo.gameplay?.collectExpedition?.();
+            });
 
             return;
         }
@@ -206,12 +201,9 @@ CryptoZoo.ui = {
         });
 
         expeditions.forEach((exp) => {
-            const btn = document.getElementById(`start-expedition-${exp.id}`);
-            if (btn) {
-                btn.onclick = function () {
-                    CryptoZoo.gameplay?.startExpedition?.(exp.id);
-                };
-            }
+            document.getElementById(`start-expedition-${exp.id}`)?.addEventListener("click", () => {
+                CryptoZoo.gameplay?.startExpedition?.(exp.id);
+            });
         });
     },
 
@@ -231,17 +223,92 @@ CryptoZoo.ui = {
                 <h3>${item.name}</h3>
                 <div>${item.desc}</div>
                 <div>Koszt: ${CryptoZoo.formatNumber(item.price)} coins</div>
+                <button id="buy-shop-${item.id}" type="button">Kup</button>
             `;
 
             shopList.appendChild(card);
         });
+
+        CryptoZoo.gameplay?.bindShopButtons?.();
     },
 
-    renderRanking() {
+    renderBoxes() {
+        const container = document.getElementById("boxesList");
+        if (!container) return;
+
+        const boxes = CryptoZoo.state?.boxes || {
+            common: 0,
+            rare: 0,
+            epic: 0,
+            legendary: 0
+        };
+
+        container.innerHTML = `
+            <div class="shop-item">
+                <h3>Common Box</h3>
+                <div>Posiadasz: ${CryptoZoo.formatNumber(boxes.common || 0)}</div>
+                <button id="open-box-common" type="button">Otwórz</button>
+            </div>
+
+            <div class="shop-item">
+                <h3>Rare Box</h3>
+                <div>Posiadasz: ${CryptoZoo.formatNumber(boxes.rare || 0)}</div>
+                <button id="open-box-rare" type="button">Otwórz</button>
+            </div>
+
+            <div class="shop-item">
+                <h3>Epic Box</h3>
+                <div>Posiadasz: ${CryptoZoo.formatNumber(boxes.epic || 0)}</div>
+                <button id="open-box-epic" type="button">Otwórz</button>
+            </div>
+
+            <div class="shop-item">
+                <h3>Legendary Box</h3>
+                <div>Posiadasz: ${CryptoZoo.formatNumber(boxes.legendary || 0)}</div>
+                <button id="open-box-legendary" type="button">Otwórz</button>
+            </div>
+        `;
+
+        document.getElementById("open-box-common")?.addEventListener("click", () => CryptoZoo.boxes?.open?.("common"));
+        document.getElementById("open-box-rare")?.addEventListener("click", () => CryptoZoo.boxes?.open?.("rare"));
+        document.getElementById("open-box-epic")?.addEventListener("click", () => CryptoZoo.boxes?.open?.("epic"));
+        document.getElementById("open-box-legendary")?.addEventListener("click", () => CryptoZoo.boxes?.open?.("legendary"));
+    },
+
+    async renderRanking() {
         const rankingList = document.getElementById("rankingList");
         if (!rankingList) return;
 
+        rankingList.innerHTML = "<li>Ładowanie...</li>";
+
+        const ranking = await CryptoZoo.api?.loadRanking?.();
+        const currentName = CryptoZoo.api?.getUsername?.() || "Gracz";
+        const currentCoins = Number(CryptoZoo.state?.coins) || 0;
+
+        let rows = Array.isArray(ranking) ? ranking.slice() : [];
+
+        const hasCurrent = rows.some((row) => (row.username || "Gracz") === currentName);
+
+        if (!hasCurrent) {
+            rows.push({
+                username: currentName,
+                coins: currentCoins
+            });
+        }
+
+        rows.sort((a, b) => (Number(b.coins) || 0) - (Number(a.coins) || 0));
+        rows = rows.slice(0, 20);
+
         rankingList.innerHTML = "";
+
+        rows.forEach((row, index) => {
+            const li = document.createElement("li");
+            const username = row.username || "Gracz";
+            const coins = CryptoZoo.formatNumber(row.coins || 0);
+
+            li.textContent = `${index + 1}. ${username} — ${coins} coins`;
+            rankingList.appendChild(li);
+        });
     },
 
     render() {
@@ -250,15 +317,14 @@ CryptoZoo.ui = {
         this.updateText("coins", CryptoZoo.formatNumber(state.coins || 0));
         this.updateText("gems", CryptoZoo.formatNumber(state.gems || 0));
         this.updateText("rewardBalance", CryptoZoo.formatNumber(state.rewardBalance || 0));
-
-        const levelEl = document.getElementById("level");
-        if (levelEl) {
-            levelEl.textContent = CryptoZoo.formatNumber(state.level || 1);
-        }
+        this.updateText("level", CryptoZoo.formatNumber(state.level || 1));
+        this.updateText("coinsPerClick", CryptoZoo.formatNumber(state.coinsPerClick || 1));
+        this.updateText("zooIncome", CryptoZoo.formatNumber(state.zooIncome || 0));
 
         this.renderZooList();
         this.renderExpeditions();
         this.renderShopItems();
+        this.renderBoxes();
         this.renderRanking();
     }
 };
