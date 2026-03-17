@@ -16,6 +16,24 @@
     <link rel="stylesheet" href="./css/responsive.css">
 </head>
 <body>
+    <div id="loading-screen">
+        <div class="loading-inner">
+            <div class="loading-logo-wrap">
+                <div class="loading-logo-ring"></div>
+                <div class="loading-logo-core">🐾</div>
+            </div>
+
+            <div class="loading-title">Crypto Zoo</div>
+            <div class="loading-subtitle">Loading Zoo...</div>
+
+            <div class="loading-bar">
+                <div class="loading-bar-fill" id="loadingBarFill"></div>
+            </div>
+
+            <div class="loading-percent" id="loadingPercent">0%</div>
+        </div>
+    </div>
+
     <div id="app">
         <header class="top-bar">
             <h1>Crypto Zoo</h1>
@@ -56,10 +74,24 @@
 
         <main id="game">
             <section id="screen-game" class="screen">
-                <div class="panel card">
+                <div class="panel card game-main-card">
                     <h2>🪙 Game</h2>
+
                     <div class="tap-area">
+                        <div class="tap-glow"></div>
                         <button id="tapButton" class="tap-button" type="button"></button>
+                    </div>
+
+                    <div class="game-income-row">
+                        <div class="game-income-box">
+                            <div class="game-income-label">Dochód zoo / sek</div>
+                            <div class="game-income-value" id="gameIncomeValue">0</div>
+                        </div>
+
+                        <div class="game-income-box">
+                            <div class="game-income-label">Za klik</div>
+                            <div class="game-income-value" id="gameClickValue">1</div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -76,7 +108,7 @@
                     <h2>🛒 Shop</h2>
                     <div id="shopList"></div>
 
-                    <h3 style="margin-top: 24px;">🎁 Boxes</h3>
+                    <h3 style="margin-top: 20px;">🎁 Boxes</h3>
                     <div class="boxes" id="boxesBuyList">
                         <button data-box-type="common" type="button">
                             Common Box
@@ -103,7 +135,7 @@
                         </button>
                     </div>
 
-                    <h3 style="margin-top: 24px;">📦 Twoje boxy</h3>
+                    <h3 style="margin-top: 20px;">📦 Twoje boxy</h3>
                     <div id="boxesList"></div>
                 </div>
             </section>
@@ -120,7 +152,7 @@
                     <h2>🎮 Mini Games</h2>
 
                     <div id="minigamesWrap">
-                        <div id="wheelGame" style="margin-bottom:30px; text-align:center;">
+                        <div id="wheelGame">
                             <h3>Wheel Of Fortune</h3>
 
                             <div style="position:relative; width:260px; height:260px; margin:0 auto 16px auto;">
@@ -150,7 +182,7 @@
                             <p id="wheelRewardText"></p>
                         </div>
 
-                        <div id="memoryGame" style="text-align:center;">
+                        <div id="memoryGame">
                             <h3>Memory Animals</h3>
 
                             <div id="memoryBoard" style="
@@ -198,4 +230,4 @@
     <script src="./js/gameplay.js"></script>
     <script src="./js/init.js"></script>
 </body>
-</html> 
+</html>
