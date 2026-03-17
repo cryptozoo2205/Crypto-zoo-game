@@ -8,19 +8,19 @@
 
 .tap-area {
     width: 100%;
-    min-height: 380px;
+    min-height: 260px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    padding: 6px 0 8px;
+    padding: 14px 0 12px;
     overflow: visible;
 }
 
 .tap-glow {
     position: absolute;
-    width: 320px;
-    height: 320px;
+    width: 280px;
+    height: 280px;
     border-radius: 50%;
     background:
         radial-gradient(circle, rgba(112, 255, 120, 0.22) 0%, rgba(112, 255, 120, 0.08) 48%, rgba(112, 255, 120, 0) 72%);
@@ -31,14 +31,32 @@
 .tap-button {
     position: relative;
     z-index: 2;
-    width: 260px;
-    height: 260px;
+    width: 220px;
+    height: 220px;
+    display: block;
     border: none;
     border-radius: 50%;
     cursor: pointer;
-    background: url("../assets/buttons/tap_button_main.png") center center / contain no-repeat;
-    box-shadow: none;
-    transition: transform 0.12s ease, filter 0.12s ease;
+    padding: 0;
+    outline: none;
+    background-color: rgba(78, 224, 112, 0.18);
+    background-image: url("../assets/buttons/tap_button_main.png");
+    background-position: center center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    box-shadow:
+        0 0 0 10px rgba(255,255,255,0.03),
+        0 0 28px rgba(91, 255, 110, 0.16);
+    transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
+}
+
+.tap-button::before {
+    content: "";
+    position: absolute;
+    inset: 18%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(119,255,129,0.22) 0%, rgba(119,255,129,0.08) 55%, rgba(119,255,129,0) 100%);
+    z-index: -1;
 }
 
 .tap-button:active {
@@ -97,8 +115,6 @@
         opacity: 0.75;
     }
 }
-
-/* HOME SCREEN V2 READY */
 
 .home-income-strip {
     width: 100%;
@@ -173,17 +189,18 @@
 
 @media (max-width: 520px) {
     .tap-area {
-        min-height: 310px;
+        min-height: 220px;
+        padding: 10px 0 10px;
     }
 
     .tap-glow {
-        width: 250px;
-        height: 250px;
+        width: 220px;
+        height: 220px;
     }
 
     .tap-button {
-        width: 200px;
-        height: 200px;
+        width: 170px;
+        height: 170px;
     }
 
     .coin-pop {
