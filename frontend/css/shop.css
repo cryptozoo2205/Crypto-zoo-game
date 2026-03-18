@@ -14,6 +14,7 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    min-width: 0;
     background: linear-gradient(180deg, rgba(24, 34, 54, 0.84) 0%, rgba(15, 22, 36, 0.92) 100%);
     border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 18px;
@@ -26,12 +27,14 @@
     font-size: 20px;
     font-weight: 900;
     color: #ffffff;
+    overflow-wrap: anywhere;
 }
 
 .shop-item div {
     font-size: 14px;
     line-height: 1.4;
     color: rgba(255, 255, 255, 0.82);
+    overflow-wrap: anywhere;
 }
 
 .shop-item button {
@@ -56,13 +59,20 @@
     opacity: 0.96;
 }
 
+.shop-item button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+}
+
 #boxesBuyList {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
 }
 
 #boxesBuyList button {
+    min-width: 0;
     min-height: 84px;
     border: none;
     border-radius: 16px;
@@ -75,6 +85,7 @@
     background: linear-gradient(180deg, #ffe27a 0%, #ffbf00 100%);
     box-shadow: 0 10px 18px rgba(255, 191, 0, 0.18);
     transition: transform 0.12s ease, opacity 0.12s ease;
+    overflow-wrap: anywhere;
 }
 
 #boxesBuyList button:active {
@@ -89,4 +100,88 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+}
+
+@media (max-width: 640px) {
+    .shop-item {
+        padding: 13px;
+    }
+
+    .shop-item h3 {
+        font-size: 18px;
+    }
+
+    .shop-item div {
+        font-size: 13px;
+    }
+
+    .shop-item button {
+        min-height: 44px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 520px) {
+    .shop-item {
+        gap: 9px;
+        padding: 12px;
+        border-radius: 16px;
+    }
+
+    .shop-item h3 {
+        font-size: 17px;
+    }
+
+    .shop-item div {
+        font-size: 13px;
+    }
+
+    .shop-item button {
+        min-height: 42px;
+        border-radius: 13px;
+        font-size: 14px;
+    }
+
+    #boxesBuyList {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    #boxesBuyList button {
+        min-height: 72px;
+        border-radius: 14px;
+        padding: 10px 8px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 420px) {
+    #boxesBuyList {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 380px) {
+    .shop-item {
+        padding: 10px;
+        border-radius: 14px;
+    }
+
+    .shop-item h3 {
+        font-size: 16px;
+    }
+
+    .shop-item div {
+        font-size: 12px;
+    }
+
+    .shop-item button {
+        min-height: 40px;
+        font-size: 13px;
+    }
+
+    #boxesBuyList button {
+        min-height: 68px;
+        font-size: 12px;
+    }
 }
