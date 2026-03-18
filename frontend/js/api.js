@@ -1,12 +1,22 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.api = {
+    getTelegramUser() {
+        try {
+            return (
+                window.Telegram &&
+                window.Telegram.WebApp &&
+                window.Telegram.WebApp.initDataUnsafe &&
+                window.Telegram.WebApp.initDataUnsafe.user
+            ) || null;
+        } catch (error) {
+            console.error("GET TELEGRAM USER ERROR:", error);
+            return null;
+        }
+    },
+
     getPlayerId() {
-        const tgUser =
-            window.Telegram &&
-            window.Telegram.WebApp &&
-            window.Telegram.WebApp.initDataUnsafe &&
-            window.Telegram.WebApp.initDataUnsafe.user;
+        const tgUser = this.getTelegramUser();
 
         if (tgUser && tgUser.id) {
             localStorage.setItem("telegramId", String(tgUser.id));
@@ -14,6 +24,13 @@ window.CryptoZoo.api = {
             if (tgUser.username) {
                 localStorage.setItem("telegramUsername", tgUser.username);
             }
+
+            const displayName =
+                tgUser.username ||
+                [tgUser.first_name, tgUser.last_name].filter(Boolean).join(" ").trim() ||
+                "Gracz";
+
+            localStorage.setItem("telegramDisplayName", displayName);
 
             return String(tgUser.id);
         }
@@ -29,18 +46,35 @@ window.CryptoZoo.api = {
     },
 
     getUsername() {
-        const tgUser =
-            window.Telegram &&
-            window.Telegram.WebApp &&
-            window.Telegram.WebApp.initDataUnsafe &&
-            window.Telegram.WebApp.initDataUnsafe.user;
+        const tgUser = this.getTelegramUser();
 
-        if (tgUser && tgUser.username) {
-            localStorage.setItem("telegramUsername", tgUser.username);
-            return tgUser.username;
+        if (tgUser) {
+            const username =
+                tgUser.username ||
+                [tgUser.first_name, tgUser.last_name].filter(Boolean).join(" ").trim() ||
+                "Gracz";
+
+            if (tgUser.username) {
+                localStorage.setItem("telegramUsername", tgUser.username);
+            }
+
+            localStorage.setItem("telegramDisplayName", username);
+            return username;
         }
 
-        return localStorage.getItem("telegramUsername") || "Gracz";
+        return (
+            localStorage.getItem("telegramUsername") ||
+            localStorage.getItem("telegramDisplayName") ||
+            "Gracz"
+        );
+    },
+
+    getPlayerSaveKey(playerId) {
+        return `cryptozoo_save_${playerId}`;
+    },
+
+    getRankingKey() {
+        return "cryptozoo_ranking";
     },
 
     getDefaultState() {
@@ -121,11 +155,17 @@ window.CryptoZoo.api = {
             return null;
         }
 
+        const endTime = Number(rawExpedition.endTime) || 0;
+
+        if (endTime <= 0) {
+            return null;
+        }
+
         return {
             id: rawExpedition.id || "",
             name: rawExpedition.name || "Expedition",
             startTime: Number(rawExpedition.startTime) || Date.now(),
-            endTime: Number(rawExpedition.endTime) || 0,
+            endTime,
             rewardRarity: rawExpedition.rewardRarity || "common",
             rewardCoins: Math.max(0, Number(rawExpedition.rewardCoins) || 0),
             rewardGems: Math.max(0, Number(rawExpedition.rewardGems) || 0)
@@ -167,7 +207,7 @@ window.CryptoZoo.api = {
             xp: Math.max(0, Number(data.xp ?? base.xp) || 0),
             coinsPerClick: Math.max(1, Number(data.coinsPerClick ?? base.coinsPerClick) || 1),
             upgradeCost: Math.max(0, Number(data.upgradeCost ?? base.upgradeCost) || 50),
-            zooIncome: Math.max(0, Number(data.zooIncome)) || derivedZooIncome,
+            zooIncome: Math.max(0, Number(data.zooIncome) || 0, derivedZooIncome),
             expeditionBoost: Math.max(0, Number(data.expeditionBoost ?? base.expeditionBoost) || 0),
             offlineBoost: Math.max(1, Number(data.offlineBoost ?? base.offlineBoost) || 1),
             lastLogin: Number(data.lastLogin ?? base.lastLogin) || Date.now(),
@@ -207,14 +247,84 @@ window.CryptoZoo.api = {
         };
     },
 
-    async loadPlayer() {
-        const localSave = localStorage.getItem("cryptozoo_save");
+    readRankingStore() {
+        try {
+            const raw = localStorage.getItem(this.getRankingKey());
+            const parsed = raw ? JSON.parse(raw) : [];
 
-        if (localSave) {
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+            console.error("RANKING READ ERROR:", error);
+            return [];
+        }
+    },
+
+    writeRankingStore(rows) {
+        try {
+            localStorage.setItem(this.getRankingKey(), JSON.stringify(rows));
+        } catch (error) {
+            console.error("RANKING WRITE ERROR:", error);
+        }
+    },
+
+    updateRankingSnapshot() {
+        const playerId = this.getPlayerId();
+        const username = this.getUsername();
+        const state = this.normalizeState(CryptoZoo.state || {});
+        const rows = this.readRankingStore();
+
+        const row = {
+            telegramId: playerId,
+            username,
+            coins: Math.max(0, Number(state.coins) || 0),
+            level: Math.max(1, Number(state.level) || 1),
+            updatedAt: Date.now()
+        };
+
+        const existingIndex = rows.findIndex((item) => String(item.telegramId) === String(playerId));
+
+        if (existingIndex >= 0) {
+            rows[existingIndex] = {
+                ...rows[existingIndex],
+                ...row
+            };
+        } else {
+            rows.push(row);
+        }
+
+        rows.sort((a, b) => {
+            const coinsDiff = (Number(b.coins) || 0) - (Number(a.coins) || 0);
+            if (coinsDiff !== 0) return coinsDiff;
+
+            const levelDiff = (Number(b.level) || 0) - (Number(a.level) || 0);
+            if (levelDiff !== 0) return levelDiff;
+
+            return (Number(b.updatedAt) || 0) - (Number(a.updatedAt) || 0);
+        });
+
+        this.writeRankingStore(rows.slice(0, 100));
+    },
+
+    async loadPlayer() {
+        const playerId = this.getPlayerId();
+        const playerKey = this.getPlayerSaveKey(playerId);
+
+        const localPlayerSave = localStorage.getItem(playerKey);
+        const legacySave = localStorage.getItem("cryptozoo_save");
+
+        if (localPlayerSave) {
             try {
-                CryptoZoo.state = this.normalizeState(JSON.parse(localSave));
+                CryptoZoo.state = this.normalizeState(JSON.parse(localPlayerSave));
             } catch (error) {
-                console.error("Local load error:", error);
+                console.error("PLAYER LOAD ERROR:", error);
+                CryptoZoo.state = this.normalizeState(CryptoZoo.state);
+            }
+        } else if (legacySave) {
+            try {
+                CryptoZoo.state = this.normalizeState(JSON.parse(legacySave));
+                localStorage.setItem(playerKey, JSON.stringify(CryptoZoo.state));
+            } catch (error) {
+                console.error("LEGACY LOAD ERROR:", error);
                 CryptoZoo.state = this.normalizeState(CryptoZoo.state);
             }
         } else {
@@ -225,32 +335,51 @@ window.CryptoZoo.api = {
             CryptoZoo.gameplay.recalculateProgress();
         }
 
+        this.updateRankingSnapshot();
         return CryptoZoo.state;
     },
 
     async savePlayer() {
+        const playerId = this.getPlayerId();
+        const playerKey = this.getPlayerSaveKey(playerId);
         const payload = this.getSavePayload();
+
         CryptoZoo.state = this.normalizeState(payload);
 
         if (CryptoZoo.gameplay?.recalculateProgress) {
             CryptoZoo.gameplay.recalculateProgress();
         }
 
+        localStorage.setItem(playerKey, JSON.stringify(CryptoZoo.state));
         localStorage.setItem("cryptozoo_save", JSON.stringify(CryptoZoo.state));
+
+        this.updateRankingSnapshot();
         return CryptoZoo.state;
     },
 
     async loadRanking() {
         try {
-            const currentName = this.getUsername();
-            const currentCoins = Number(CryptoZoo.state?.coins) || 0;
+            this.updateRankingSnapshot();
 
-            return [
-                {
-                    username: currentName,
-                    coins: currentCoins
-                }
-            ];
+            const rows = this.readRankingStore();
+
+            return rows
+                .sort((a, b) => {
+                    const coinsDiff = (Number(b.coins) || 0) - (Number(a.coins) || 0);
+                    if (coinsDiff !== 0) return coinsDiff;
+
+                    const levelDiff = (Number(b.level) || 0) - (Number(a.level) || 0);
+                    if (levelDiff !== 0) return levelDiff;
+
+                    return (Number(b.updatedAt) || 0) - (Number(a.updatedAt) || 0);
+                })
+                .slice(0, 50)
+                .map((row) => ({
+                    telegramId: String(row.telegramId || ""),
+                    username: row.username || "Gracz",
+                    coins: Math.max(0, Number(row.coins) || 0),
+                    level: Math.max(1, Number(row.level) || 1)
+                }));
         } catch (error) {
             console.error("API ranking error:", error);
             return [];
