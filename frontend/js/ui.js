@@ -81,18 +81,24 @@ CryptoZoo.ui = {
         }
     },
 
-    animateCoin() {
+    animateCoin(tapCount = 1) {
         const tapButton = document.getElementById("tapButton");
         if (!tapButton || !tapButton.parentElement) return;
 
         const area = tapButton.parentElement;
         area.style.position = "relative";
 
+        const safeTapCount = Math.max(1, Math.min(3, Number(tapCount) || 1));
+
         const clickValue =
-            CryptoZoo.gameplay?.getEffectiveCoinsPerClick?.(1) ||
-            Number(CryptoZoo.state?.coinsPerClick) ||
-            Number(CryptoZoo.config?.clickValue) ||
-            1;
+            CryptoZoo.gameplay?.getEffectiveCoinsPerClick?.(safeTapCount) ||
+            (
+                (
+                    Number(CryptoZoo.state?.coinsPerClick) ||
+                    Number(CryptoZoo.config?.clickValue) ||
+                    1
+                ) * safeTapCount
+            );
 
         const boostActive = (CryptoZoo.gameplay?.getBoost2xMultiplier?.() || 1) > 1;
 
