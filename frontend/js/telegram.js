@@ -3,6 +3,7 @@ window.CryptoZoo = window.CryptoZoo || {};
 window.CryptoZoo.telegram = {
     init() {
         if (!window.Telegram || !window.Telegram.WebApp) {
+            this.applyLocalIdentityToUi();
             return;
         }
 
@@ -24,6 +25,7 @@ window.CryptoZoo.telegram = {
             }
 
             this.setupPlayerIdentity();
+            this.applyLocalIdentityToUi();
 
             document.body.style.overflowX = "hidden";
             document.body.style.overflowY = "auto";
@@ -31,6 +33,7 @@ window.CryptoZoo.telegram = {
             document.documentElement.style.overflowY = "auto";
         } catch (error) {
             console.error("TELEGRAM INIT ERROR:", error);
+            this.applyLocalIdentityToUi();
         }
     },
 
@@ -51,8 +54,37 @@ window.CryptoZoo.telegram = {
             if (user.username) {
                 localStorage.setItem("telegramUsername", user.username);
             }
+
+            const displayName =
+                user.username ||
+                [user.first_name, user.last_name].filter(Boolean).join(" ").trim() ||
+                "Gracz";
+
+            localStorage.setItem("telegramDisplayName", displayName);
         } catch (error) {
             console.error("TELEGRAM USER ERROR:", error);
+        }
+    },
+
+    applyLocalIdentityToUi() {
+        const displayName =
+            localStorage.getItem("telegramUsername") ||
+            localStorage.getItem("telegramDisplayName") ||
+            "Crypto Zoo";
+
+        const topUserName = document.querySelector(".top-user-name");
+        const topUserStatus = document.querySelector(".top-user-status");
+
+        if (topUserName) {
+            topUserName.textContent = displayName;
+        }
+
+        if (topUserStatus) {
+            if (window.Telegram && window.Telegram.WebApp) {
+                topUserStatus.textContent = "● Telegram Online";
+            } else {
+                topUserStatus.textContent = "● Local Mode";
+            }
         }
     }
 };
