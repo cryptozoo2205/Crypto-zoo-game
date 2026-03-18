@@ -5,7 +5,7 @@
     backdrop-filter: none !important;
     padding: 0 0 10px !important;
     position: relative;
-    overflow: visible;
+    overflow: visible !important;
 }
 
 .tap-area {
@@ -329,6 +329,7 @@
 
 .home-income-left {
     min-width: 0;
+    flex: 1 1 auto;
 }
 
 .home-income-label {
@@ -343,6 +344,7 @@
     color: #6cff7d;
     line-height: 1.1;
     word-break: break-word;
+    overflow-wrap: anywhere;
 }
 
 .home-boost-right {
@@ -518,6 +520,43 @@
         display: inline-flex;
         margin-top: 6px;
         font-size: 10px;
+    }
+}
+
+@media (max-width: 380px) {
+    .tap-area {
+        min-height: 146px;
+    }
+
+    .tap-area::before {
+        width: 188px;
+        height: 188px;
+    }
+
+    .tap-glow {
+        width: 172px;
+        height: 172px;
+    }
+
+    .tap-button {
+        width: 132px;
+        height: 132px;
+    }
+
+    .tap-button::after {
+        font-size: 38px;
+    }
+
+    .home-tap-title {
+        font-size: 17px;
+    }
+
+    .home-tap-subtitle {
+        font-size: 10px;
+    }
+
+    .home-income-strip {
+        padding: 10px;
     }
 }
 
