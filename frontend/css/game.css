@@ -8,19 +8,19 @@
 
 .tap-area {
     width: 100%;
-    min-height: 260px;
+    min-height: 200px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    padding: 14px 0 12px;
+    padding: 6px 0 4px;
     overflow: visible;
 }
 
 .tap-glow {
     position: absolute;
-    width: 280px;
-    height: 280px;
+    width: 250px;
+    height: 250px;
     border-radius: 50%;
     background:
         radial-gradient(circle, rgba(112, 255, 120, 0.22) 0%, rgba(112, 255, 120, 0.08) 48%, rgba(112, 255, 120, 0) 72%);
@@ -31,8 +31,8 @@
 .tap-button {
     position: relative;
     z-index: 2;
-    width: 220px;
-    height: 220px;
+    width: 180px;
+    height: 180px;
     display: block;
     border: none;
     border-radius: 50%;
@@ -59,9 +59,41 @@
     z-index: -1;
 }
 
+.tap-button::after {
+    content: "🐾";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 58px;
+    color: rgba(255,255,255,0.22);
+    pointer-events: none;
+}
+
 .tap-button:active {
     transform: scale(0.94);
     filter: brightness(0.95);
+}
+
+.home-tap-caption {
+    text-align: center;
+    margin-top: 2px;
+    margin-bottom: 10px;
+}
+
+.home-tap-title {
+    font-size: 22px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    text-shadow: 0 3px 10px rgba(0,0,0,0.28);
+}
+
+.home-tap-subtitle {
+    margin-top: 4px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.76);
 }
 
 .coin-pop {
@@ -189,18 +221,30 @@
 
 @media (max-width: 520px) {
     .tap-area {
-        min-height: 220px;
-        padding: 10px 0 10px;
+        min-height: 170px;
+        padding: 4px 0 2px;
     }
 
     .tap-glow {
-        width: 220px;
-        height: 220px;
+        width: 200px;
+        height: 200px;
     }
 
     .tap-button {
-        width: 170px;
-        height: 170px;
+        width: 145px;
+        height: 145px;
+    }
+
+    .tap-button::after {
+        font-size: 48px;
+    }
+
+    .home-tap-title {
+        font-size: 18px;
+    }
+
+    .home-tap-subtitle {
+        font-size: 12px;
     }
 
     .coin-pop {
