@@ -100,12 +100,18 @@ CryptoZoo.ui = {
                 const shopButton = document.querySelector('[data-nav="shop"]');
                 if (shopButton) {
                     shopButton.click();
-                    return;
-                }
-
-                if (CryptoZoo.gameplay?.showScreen) {
+                } else if (CryptoZoo.gameplay?.showScreen) {
                     CryptoZoo.gameplay.showScreen("shop");
                 }
+
+                const boostCard = document.getElementById("boostShopCard");
+                if (boostCard) {
+                    setTimeout(() => {
+                        boostCard.scrollIntoView({ behavior: "smooth", block: "center" });
+                    }, 150);
+                }
+
+                this.showToast("Sekcja X2 Boost jest w sklepie");
             });
         }
 
@@ -122,6 +128,46 @@ CryptoZoo.ui = {
                 if (CryptoZoo.gameplay?.showScreen) {
                     CryptoZoo.gameplay.showScreen("zoo");
                 }
+            });
+        }
+
+        const animalActions = [
+            { buyId: "homeBuyMonkeyBtn", upgradeId: "homeUpgradeMonkeyBtn", type: "monkey" },
+            { buyId: "homeBuyPandaBtn", upgradeId: "homeUpgradePandaBtn", type: "panda" },
+            { buyId: "homeBuyLionBtn", upgradeId: "homeUpgradeLionBtn", type: "lion" }
+        ];
+
+        animalActions.forEach((item) => {
+            const buyBtn = document.getElementById(item.buyId);
+            if (buyBtn && !buyBtn.dataset.bound) {
+                buyBtn.dataset.bound = "1";
+                buyBtn.addEventListener("click", () => {
+                    CryptoZoo.gameplay?.buyAnimal?.(item.type);
+                });
+            }
+
+            const upgradeBtn = document.getElementById(item.upgradeId);
+            if (upgradeBtn && !upgradeBtn.dataset.bound) {
+                upgradeBtn.dataset.bound = "1";
+                upgradeBtn.addEventListener("click", () => {
+                    CryptoZoo.gameplay?.upgradeAnimal?.(item.type);
+                });
+            }
+        });
+
+        const settingsBtn = document.getElementById("topSettingsBtn");
+        if (settingsBtn && !settingsBtn.dataset.bound) {
+            settingsBtn.dataset.bound = "1";
+            settingsBtn.addEventListener("click", () => {
+                this.showToast("Settings w przygotowaniu");
+            });
+        }
+
+        const telegramBtn = document.getElementById("topTelegramBtn");
+        if (telegramBtn && !telegramBtn.dataset.bound) {
+            telegramBtn.dataset.bound = "1";
+            telegramBtn.addEventListener("click", () => {
+                this.showToast("Telegram w przygotowaniu");
             });
         }
     },
@@ -142,7 +188,6 @@ CryptoZoo.ui = {
         this.updateText("homeRewardBalance", CryptoZoo.formatNumber(state.rewardBalance || 0));
         this.updateText("homeLevel", CryptoZoo.formatNumber(state.level || 1));
         this.updateText("homeCoinsPerClick", CryptoZoo.formatNumber(state.coinsPerClick || 1));
-        this.updateText("homeZooIncome", CryptoZoo.formatNumber(state.zooIncome || 0));
         this.updateText("homeIncomeStripValue", CryptoZoo.formatNumber(state.zooIncome || 0));
 
         this.updateText("homeMonkeyCount", CryptoZoo.formatNumber(animals.monkey?.count || 0));
