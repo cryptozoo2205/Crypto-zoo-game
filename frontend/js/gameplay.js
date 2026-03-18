@@ -320,11 +320,9 @@ CryptoZoo.gameplay = {
         const spendRatio = spent / before;
         let levelLoss = 0;
 
-        if (spendRatio > 0.60) {
-            levelLoss = 3;
-        } else if (spendRatio > 0.30) {
+        if (spendRatio > 0.85) {
             levelLoss = 2;
-        } else if (spendRatio > 0.10) {
+        } else if (spendRatio > 0.55) {
             levelLoss = 1;
         }
 
@@ -332,7 +330,7 @@ CryptoZoo.gameplay = {
             CryptoZoo.state.level = Math.max(1, (Number(CryptoZoo.state.level) || 1) - levelLoss);
         }
 
-        CryptoZoo.state.xp = Math.floor((Number(CryptoZoo.state.xp) || 0) * 0.7);
+        CryptoZoo.state.xp = Math.floor((Number(CryptoZoo.state.xp) || 0) * 0.85);
     },
 
     buyShopItem(itemId) {
@@ -402,7 +400,7 @@ CryptoZoo.gameplay = {
         if (!config || !animal) return 0;
 
         const level = Number(animal.level) || 1;
-        return Math.floor((Number(config.buyCost) || 0) * level * 0.7);
+        return Math.floor((Number(config.buyCost) || 0) * (0.55 + level * 0.45));
     },
 
     upgradeAnimal(type) {
@@ -450,16 +448,16 @@ CryptoZoo.gameplay = {
         const xp = Number(CryptoZoo.state.xp) || 0;
 
         let level = 1;
-        let requiredXp = 100;
+        let requiredXp = 40;
         let spentXp = 0;
 
         while (xp >= spentXp + requiredXp) {
             spentXp += requiredXp;
             level += 1;
-            requiredXp += 100;
+            requiredXp = Math.floor(requiredXp * 1.18 + 12);
         }
 
-        CryptoZoo.state.level = Math.max(Number(CryptoZoo.state.level) || 1, level);
+        CryptoZoo.state.level = Math.max(1, level);
     },
 
     recalculateProgress() {
@@ -529,12 +527,12 @@ CryptoZoo.gameplay = {
 
         if (epicRoll < expedition.epicChance) {
             rewardRarity = "epic";
-            coinsMultiplier = 2.2;
-            gemsMultiplier = 2;
+            coinsMultiplier = 2.1;
+            gemsMultiplier = 1.8;
         } else if (rareRoll < expedition.rareChance) {
             rewardRarity = "rare";
-            coinsMultiplier = 1.5;
-            gemsMultiplier = 1.5;
+            coinsMultiplier = 1.45;
+            gemsMultiplier = 1.4;
         }
 
         const bonus = 1 + (Number(CryptoZoo.state.expeditionBoost) || 0);
