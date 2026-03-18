@@ -1,7 +1,7 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.init = async function () {
-    console.log("🚀 Crypto Zoo start");
+    localStorage.clear(); // RESET SAVE (USUŃ PO TEŚCIE)
 
     const loadingPercent = document.getElementById("loadingPercent");
     const loadingBarFill = document.getElementById("loadingBarFill");
