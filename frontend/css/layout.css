@@ -1,13 +1,13 @@
 .top-bar {
     width: 100%;
-    margin: 0;
+    margin: 0 0 10px;
 }
 
 .top-bar-banner {
     position: relative;
     width: 100%;
-    min-height: 82px;
-    border-radius: 20px;
+    min-height: 88px;
+    border-radius: 22px;
     overflow: hidden;
     background: linear-gradient(180deg, rgba(12, 18, 32, 0.82) 0%, rgba(10, 16, 28, 0.90) 100%);
     border: 1px solid rgba(255,255,255,0.08);
@@ -26,7 +26,7 @@
     object-fit: cover;
     display: block;
     z-index: 1;
-    opacity: 0.55;
+    opacity: 0.58;
 }
 
 .top-bar-fallback {
@@ -36,8 +36,8 @@
     align-items: center;
     justify-content: flex-start;
     gap: 10px;
-    min-height: 82px;
-    padding: 10px 12px;
+    min-height: 88px;
+    padding: 12px 14px;
     background: transparent;
 }
 
@@ -56,14 +56,15 @@
 .top-bar-left {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     min-width: 0;
     flex: 1 1 auto;
+    padding-right: 96px;
 }
 
 .top-avatar {
-    width: 42px;
-    height: 42px;
+    width: 46px;
+    height: 46px;
     border-radius: 50%;
     flex: 0 0 auto;
     background: linear-gradient(180deg, #31486e 0%, #1e2e48 100%);
@@ -76,29 +77,33 @@
 }
 
 .top-user-name {
-    font-size: 17px;
+    font-size: 20px;
     font-weight: 900;
     color: #ffffff;
-    line-height: 1.1;
+    line-height: 1.05;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
 }
 
 .top-user-status {
-    margin-top: 4px;
+    margin-top: 5px;
     font-size: 11px;
-    color: #5df08a;
+    font-weight: 700;
+    color: #8af7a5;
     line-height: 1;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.22);
 }
 
 .top-bar-overlay-actions {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
     z-index: 3;
     display: flex;
     align-items: center;
@@ -106,15 +111,15 @@
 }
 
 .top-icon-chip {
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     border: none;
     border-radius: 50%;
     cursor: pointer;
     font-size: 18px;
     font-weight: 900;
     color: #ffffff;
-    background: rgba(10, 18, 35, 0.42);
+    background: rgba(10, 18, 35, 0.48);
     border: 1px solid rgba(255,255,255,0.12);
     box-shadow:
         inset 0 1px 0 rgba(255,255,255,0.08),
@@ -125,7 +130,7 @@
 }
 
 .top-icon-chip:active {
-    transform: scale(0.94);
+    transform: translateY(-50%) scale(0.94);
 }
 
 .top-icon-chip:hover {
@@ -165,14 +170,14 @@ main#game {
     width: 100%;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
+    gap: 9px;
     margin: 0 0 12px;
 }
 
 .home-stat-box {
     position: relative;
     min-width: 0;
-    min-height: 74px;
+    min-height: 78px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -183,7 +188,7 @@ main#game {
     );
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 18px;
-    padding: 10px 12px;
+    padding: 11px 12px;
     box-shadow:
         0 14px 24px rgba(0, 0, 0, 0.18),
         inset 0 1px 0 rgba(255,255,255,0.05);
@@ -205,17 +210,17 @@ main#game {
 
 .home-stat-title {
     font-size: 10px;
-    color: rgba(255,255,255,0.70);
+    color: rgba(255,255,255,0.68);
     margin-bottom: 6px;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.5px;
 }
 
 .home-stat-value {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 900;
     color: #ffffff;
-    line-height: 1.1;
+    line-height: 1.05;
     word-break: break-word;
     overflow-wrap: anywhere;
 }
@@ -421,31 +426,40 @@ main#game {
 }
 
 @media (max-width: 520px) {
+    .top-bar {
+        margin-bottom: 8px;
+    }
+
     .top-bar-banner {
-        min-height: 74px;
+        min-height: 78px;
         border-radius: 18px;
     }
 
     .top-bar-fallback {
-        min-height: 74px;
-        padding: 9px 10px;
+        min-height: 78px;
+        padding: 10px;
+    }
+
+    .top-bar-left {
+        gap: 10px;
+        padding-right: 84px;
     }
 
     .top-avatar {
-        width: 38px;
-        height: 38px;
+        width: 40px;
+        height: 40px;
     }
 
     .top-user-name {
-        font-size: 15px;
+        font-size: 17px;
     }
 
     .top-user-status {
         font-size: 10px;
+        margin-top: 4px;
     }
 
     .top-bar-overlay-actions {
-        top: 8px;
         right: 8px;
         gap: 6px;
     }
@@ -463,7 +477,7 @@ main#game {
     }
 
     .home-stat-box {
-        min-height: 68px;
+        min-height: 70px;
         padding: 10px;
         border-radius: 16px;
     }
@@ -473,7 +487,7 @@ main#game {
     }
 
     .home-stat-value {
-        font-size: 16px;
+        font-size: 17px;
     }
 
     .home-zoo-preview {
@@ -550,17 +564,18 @@ main#game {
 
 @media (max-width: 380px) {
     .top-bar-banner {
-        min-height: 70px;
+        min-height: 72px;
         border-radius: 16px;
     }
 
     .top-bar-fallback {
-        min-height: 70px;
+        min-height: 72px;
         padding: 8px;
     }
 
     .top-bar-left {
         gap: 8px;
+        padding-right: 76px;
     }
 
     .top-avatar {
@@ -568,8 +583,11 @@ main#game {
         height: 34px;
     }
 
+    .top-user-name {
+        font-size: 15px;
+    }
+
     .top-bar-overlay-actions {
-        top: 7px;
         right: 7px;
         gap: 5px;
     }
@@ -591,4 +609,4 @@ main#game {
     .home-zoo-preview-card {
         padding: 10px;
     }
-} 
+}
