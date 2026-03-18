@@ -13,6 +13,8 @@ window.CryptoZoo.state = {
     offlineBoost: 1,
     lastLogin: Date.now(),
 
+    boost2xActiveUntil: 0,
+
     animals: {
         monkey: { count: 0, level: 1 },
         panda: { count: 0, level: 1 },
@@ -37,4 +39,4 @@ window.CryptoZoo.state = {
     },
 
     expedition: null
-}; 
+};
