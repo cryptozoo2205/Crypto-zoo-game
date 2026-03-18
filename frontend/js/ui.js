@@ -579,23 +579,55 @@ CryptoZoo.ui = {
         const rankingList = document.getElementById("rankingList");
         if (!rankingList) return;
 
-        rankingList.innerHTML = "<li>Ładowanie rankingu...</li>";
+        rankingList.innerHTML = "<li class=\"ranking-empty\">Ładowanie rankingu...</li>";
 
         try {
             const ranking = await CryptoZoo.api?.loadRanking?.();
             const safeRanking = Array.isArray(ranking) ? ranking : [];
+            const currentPlayerId = String(CryptoZoo.api?.getPlayerId?.() || "");
+            const currentBoostActive = CryptoZoo.gameplay?.isBoost2xActive?.() || false;
+            const currentBoostLeft = CryptoZoo.gameplay?.getBoost2xTimeLeft?.() || 0;
 
             if (!safeRanking.length) {
-                rankingList.innerHTML = "<li>Brak danych rankingu</li>";
+                rankingList.innerHTML = "<li class=\"ranking-empty\">Brak danych rankingu</li>";
                 return;
             }
 
-            rankingList.innerHTML = safeRanking.map((row, index) => `
-                <li>${index + 1}. ${row.username || row.name || "Gracz"} — ${CryptoZoo.formatNumber(row.coins || 0)} coins</li>
-            `).join("");
+            rankingList.innerHTML = safeRanking.map((row, index) => {
+                const isCurrentPlayer = String(row.telegramId || "") === currentPlayerId;
+                const place = index + 1;
+                const placeLabel =
+                    place === 1 ? "🥇" :
+                    place === 2 ? "🥈" :
+                    place === 3 ? "🥉" :
+                    `#${place}`;
+
+                return `
+                    <li class="ranking-row${isCurrentPlayer ? " ranking-row-current" : ""}">
+                        <div class="ranking-row-left">
+                            <div class="ranking-place">${placeLabel}</div>
+                            <div class="ranking-user-block">
+                                <div class="ranking-user-line">
+                                    <span class="ranking-name">${row.username || row.name || "Gracz"}</span>
+                                    ${isCurrentPlayer ? '<span class="ranking-you-badge">TY</span>' : ""}
+                                </div>
+                                <div class="ranking-meta">
+                                    Poziom: ${CryptoZoo.formatNumber(row.level || 1)}
+                                    ${isCurrentPlayer && currentBoostActive ? ` • Boost: ${this.formatTimeLeft(currentBoostLeft)}` : ""}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ranking-score">
+                            ${CryptoZoo.formatNumber(row.coins || 0)}
+                            <span>coins</span>
+                        </div>
+                    </li>
+                `;
+            }).join("");
         } catch (error) {
             console.error("Ranking render error:", error);
-            rankingList.innerHTML = "<li>Błąd ładowania rankingu</li>";
+            rankingList.innerHTML = "<li class=\"ranking-empty\">Błąd ładowania rankingu</li>";
         }
     },
 
