@@ -39,27 +39,19 @@ CryptoZoo.ui = {
         if (!tapButton || !tapButton.parentElement) return;
 
         const area = tapButton.parentElement;
-        area.style.position = "relative";
 
         const baseClickValue =
-            Number(CryptoZoo.state?.coinsPerClick) ||
-            Number(CryptoZoo.config?.clickValue) ||
-            1;
+            Number(CryptoZoo.state?.coinsPerClick) || 1;
 
         const multiplier = CryptoZoo.gameplay?.getBoost2xMultiplier?.() || 1;
         const clickValue = baseClickValue * multiplier;
 
         const pop = document.createElement("div");
         pop.className = "coin-pop";
-        pop.textContent = "+" + CryptoZoo.formatNumber(clickValue);
-
-        const offsetX = Math.floor(Math.random() * 80) - 40;
-        const offsetY = -90 - Math.floor(Math.random() * 30);
+        pop.textContent = "+" + clickValue;
 
         pop.style.left = "50%";
         pop.style.top = "50%";
-        pop.style.setProperty("--moveX", offsetX + "px");
-        pop.style.setProperty("--moveY", offsetY + "px");
 
         area.appendChild(pop);
 
@@ -73,3 +65,35 @@ CryptoZoo.ui = {
     },
 
     updateText(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+    },
+
+    renderHome() {
+        const state = CryptoZoo.state || {};
+        const multiplier = CryptoZoo.gameplay?.getBoost2xMultiplier?.() || 1;
+
+        this.updateText("homeCoins", state.coins || 0);
+        this.updateText("homeGems", state.gems || 0);
+        this.updateText("homeRewardBalance", state.rewardBalance || 0);
+        this.updateText("homeLevel", state.level || 1);
+        this.updateText("homeCoinsPerClick", (state.coinsPerClick || 1) * multiplier);
+        this.updateText("homeIncomeStripValue", (state.zooIncome || 0) * multiplier);
+    },
+
+    renderTopHiddenStats() {
+        const state = CryptoZoo.state || {};
+
+        this.updateText("coins", state.coins || 0);
+        this.updateText("gems", state.gems || 0);
+        this.updateText("rewardBalance", state.rewardBalance || 0);
+        this.updateText("level", state.level || 1);
+        this.updateText("coinsPerClick", state.coinsPerClick || 1);
+        this.updateText("zooIncome", state.zooIncome || 0);
+    },
+
+    render() {
+        this.renderHome();
+        this.renderTopHiddenStats();
+    }
+};
