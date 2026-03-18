@@ -371,3 +371,50 @@
         font-size: 10px;
     }
 }
+
+/* =========================
+   BOOST TAP EFFECT
+========================= */
+
+.tap-button.boost-active {
+    background-color: rgba(255, 200, 0, 0.18);
+
+    box-shadow:
+        0 0 0 10px rgba(255,255,255,0.04),
+        0 0 30px rgba(255, 208, 0, 0.35),
+        0 0 60px rgba(255, 208, 0, 0.18);
+
+    animation: tapBoostPulse 1.1s ease-in-out infinite;
+}
+
+.tap-button.boost-active::before {
+    background: radial-gradient(
+        circle,
+        rgba(255, 221, 120, 0.35) 0%,
+        rgba(255, 200, 0, 0.15) 55%,
+        rgba(255, 200, 0, 0) 100%
+    );
+}
+
+.tap-button.boost-active::after {
+    color: rgba(255, 230, 120, 0.45);
+    text-shadow:
+        0 0 12px rgba(255, 220, 120, 0.35),
+        0 0 22px rgba(255, 200, 0, 0.25);
+}
+
+/* puls szybszy niż normalny */
+@keyframes tapBoostPulse {
+    0% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+    50% {
+        transform: scale(1.06);
+        filter: brightness(1.15);
+    }
+    100% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+}
