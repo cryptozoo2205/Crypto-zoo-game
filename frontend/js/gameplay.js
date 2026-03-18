@@ -66,7 +66,7 @@ CryptoZoo.gameplay = {
     },
 
     activateBoost2x() {
-        const boostCostGems = 25;
+        const boostCostGems = 1;
         const boostDurationMs = 10 * 60 * 1000;
 
         if ((Number(CryptoZoo.state.gems) || 0) < boostCostGems) {
@@ -386,7 +386,6 @@ CryptoZoo.gameplay = {
         this.boostTimerStarted = true;
 
         setInterval(() => {
-            if (!this.isBoost2xActive()) return;
             CryptoZoo.ui?.render?.();
         }, 1000);
     },
