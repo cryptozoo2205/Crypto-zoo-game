@@ -18,12 +18,16 @@
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
-    .home-stat-box-wide {
-        grid-column: span 3;
-    }
-
     .home-zoo-preview-list {
         grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .home-quick-panel {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .home-quick-card {
+        min-height: 92px;
     }
 }
 
@@ -38,10 +42,6 @@
 
     .home-stats-panel {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .home-stat-box-wide {
-        grid-column: 1 / -1;
     }
 
     #screen-zoo .panel.card,
@@ -137,6 +137,10 @@
     .boxes button {
         min-width: 0;
     }
+
+    .home-quick-panel {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 420px) {
@@ -152,11 +156,7 @@
 
 @media (max-width: 380px) {
     .home-stats-panel {
-        grid-template-columns: 1fr;
-    }
-
-    .home-stat-box-wide {
-        grid-column: auto;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     #wheelGame > div:first-of-type {
