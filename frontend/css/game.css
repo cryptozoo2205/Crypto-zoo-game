@@ -3,36 +3,36 @@
     border: none !important;
     box-shadow: none !important;
     backdrop-filter: none !important;
-    padding: 0 0 18px !important;
+    padding: 0 0 20px !important;
 }
 
 .tap-area {
     width: 100%;
-    min-height: 210px;
+    min-height: 230px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    padding: 10px 0 6px;
+    padding: 10px 0 2px;
     overflow: visible;
 }
 
 .tap-glow {
     position: absolute;
-    width: 260px;
-    height: 260px;
+    width: 290px;
+    height: 290px;
     border-radius: 50%;
     background:
-        radial-gradient(circle, rgba(112, 255, 120, 0.22) 0%, rgba(112, 255, 120, 0.08) 48%, rgba(112, 255, 120, 0) 72%);
-    filter: blur(14px);
+        radial-gradient(circle, rgba(112, 255, 120, 0.26) 0%, rgba(112, 255, 120, 0.10) 45%, rgba(112, 255, 120, 0) 72%);
+    filter: blur(16px);
     animation: tapPulse 2.2s ease-in-out infinite;
 }
 
 .tap-button {
     position: relative;
     z-index: 2;
-    width: 190px;
-    height: 190px;
+    width: 210px;
+    height: 210px;
     display: block;
     border: none;
     border-radius: 50%;
@@ -51,8 +51,8 @@
     background-size: contain;
     background-repeat: no-repeat;
     box-shadow:
-        0 0 0 10px rgba(255,255,255,0.03),
-        0 0 28px rgba(91, 255, 110, 0.16);
+        0 0 0 12px rgba(255,255,255,0.03),
+        0 0 34px rgba(91, 255, 110, 0.18);
     transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
 }
 
@@ -72,8 +72,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 58px;
-    color: rgba(255,255,255,0.22);
+    font-size: 64px;
+    color: rgba(255,255,255,0.20);
     pointer-events: none;
 }
 
@@ -84,12 +84,12 @@
 
 .home-tap-caption {
     text-align: center;
-    margin-top: 2px;
-    margin-bottom: 12px;
+    margin-top: 4px;
+    margin-bottom: 14px;
 }
 
 .home-tap-title {
-    font-size: 24px;
+    font-size: 25px;
     font-weight: 900;
     color: #ffffff;
     letter-spacing: 0.5px;
@@ -97,7 +97,7 @@
 }
 
 .home-tap-subtitle {
-    margin-top: 4px;
+    margin-top: 5px;
     font-size: 13px;
     color: rgba(255,255,255,0.76);
 }
@@ -157,20 +157,20 @@
 .home-income-strip {
     width: 100%;
     margin-top: 8px;
-    padding: 12px 14px;
+    padding: 14px 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     background: linear-gradient(
         180deg,
-        rgba(18, 26, 44, 0.78) 0%,
-        rgba(12, 18, 32, 0.88) 100%
+        rgba(20, 29, 49, 0.92) 0%,
+        rgba(11, 18, 34, 0.92) 100%
     );
     border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 18px;
+    border-radius: 20px;
     box-shadow:
-        0 12px 22px rgba(0, 0, 0, 0.18),
+        0 14px 24px rgba(0, 0, 0, 0.18),
         inset 0 1px 0 rgba(255,255,255,0.05);
     backdrop-filter: blur(8px);
 }
@@ -186,7 +186,7 @@
 }
 
 .home-income-value {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 900;
     color: #6cff7d;
     line-height: 1.1;
@@ -208,7 +208,7 @@
 .home-boost-button {
     border: none;
     border-radius: 14px;
-    padding: 10px 14px;
+    padding: 11px 16px;
     font-weight: 900;
     cursor: pointer;
     color: #1a1a1a;
@@ -227,22 +227,22 @@
 
 @media (max-width: 520px) {
     .tap-area {
-        min-height: 180px;
+        min-height: 190px;
         padding: 6px 0 2px;
     }
 
     .tap-glow {
-        width: 210px;
-        height: 210px;
+        width: 220px;
+        height: 220px;
     }
 
     .tap-button {
-        width: 150px;
-        height: 150px;
+        width: 160px;
+        height: 160px;
     }
 
     .tap-button::after {
-        font-size: 48px;
+        font-size: 50px;
     }
 
     .home-tap-title {
@@ -258,8 +258,8 @@
     }
 
     .home-income-strip {
-        padding: 10px 12px;
-        border-radius: 16px;
+        padding: 12px;
+        border-radius: 18px;
         flex-direction: column;
         align-items: stretch;
     }
@@ -271,7 +271,7 @@
     }
 
     .home-income-value {
-        font-size: 16px;
+        font-size: 17px;
     }
 
     .home-boost-button {
