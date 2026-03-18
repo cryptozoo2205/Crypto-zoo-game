@@ -1,7 +1,7 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.config = {
-    clickValue: 1,
+    clickValue: 0.2,
 
     animals: {
         monkey: {
