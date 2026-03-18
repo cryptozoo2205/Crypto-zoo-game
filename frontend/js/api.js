@@ -90,7 +90,7 @@ window.CryptoZoo.api = {
             const raw = rawAnimals && rawAnimals[type] ? rawAnimals[type] : baseAnimals[type];
 
             result[type] = {
-                count: Number(raw.count) || 0,
+                count: Math.max(0, Number(raw.count) || 0),
                 level: Math.max(1, Number(raw.level) || 1)
             };
         });
@@ -109,36 +109,77 @@ window.CryptoZoo.api = {
             safeValue *= 1000;
         }
 
+        if (safeValue <= Date.now()) {
+            return 0;
+        }
+
         return safeValue;
+    },
+
+    normalizeExpedition(rawExpedition) {
+        if (!rawExpedition || typeof rawExpedition !== "object") {
+            return null;
+        }
+
+        return {
+            id: rawExpedition.id || "",
+            name: rawExpedition.name || "Expedition",
+            startTime: Number(rawExpedition.startTime) || Date.now(),
+            endTime: Number(rawExpedition.endTime) || 0,
+            rewardRarity: rawExpedition.rewardRarity || "common",
+            rewardCoins: Math.max(0, Number(rawExpedition.rewardCoins) || 0),
+            rewardGems: Math.max(0, Number(rawExpedition.rewardGems) || 0)
+        };
+    },
+
+    recalculateZooIncomeFromAnimals(animals) {
+        const configAnimals = CryptoZoo.config?.animals || {};
+        const safeAnimals = animals || {};
+        let total = 0;
+
+        Object.keys(configAnimals).forEach((type) => {
+            const config = configAnimals[type];
+            const animal = safeAnimals[type] || { count: 0, level: 1 };
+
+            total +=
+                (Math.max(0, Number(animal.count) || 0)) *
+                (Math.max(1, Number(animal.level) || 1)) *
+                (Math.max(0, Number(config.baseIncome) || 0));
+        });
+
+        return total;
     },
 
     normalizeState(raw) {
         const base = this.getDefaultState();
         const data = raw || {};
+        const animals = this.normalizeAnimals(data.animals || {});
+        const boost2xActiveUntil = this.normalizeBoostTimestamp(data.boost2xActiveUntil ?? base.boost2xActiveUntil);
+        const derivedZooIncome = this.recalculateZooIncomeFromAnimals(animals);
 
         return {
             ...base,
             ...data,
-            coins: Number(data.coins ?? base.coins) || 0,
-            gems: Number(data.gems ?? base.gems) || 0,
-            rewardBalance: Number(data.rewardBalance ?? base.rewardBalance) || 0,
+            coins: Math.max(0, Number(data.coins ?? base.coins) || 0),
+            gems: Math.max(0, Number(data.gems ?? base.gems) || 0),
+            rewardBalance: Math.max(0, Number(data.rewardBalance ?? base.rewardBalance) || 0),
             level: Math.max(1, Number(data.level ?? base.level) || 1),
-            xp: Number(data.xp ?? base.xp) || 0,
+            xp: Math.max(0, Number(data.xp ?? base.xp) || 0),
             coinsPerClick: Math.max(1, Number(data.coinsPerClick ?? base.coinsPerClick) || 1),
-            upgradeCost: Number(data.upgradeCost ?? base.upgradeCost) || 50,
-            zooIncome: Number(data.zooIncome ?? base.zooIncome) || 0,
-            expeditionBoost: Number(data.expeditionBoost ?? base.expeditionBoost) || 0,
-            offlineBoost: Number(data.offlineBoost ?? base.offlineBoost) || 1,
+            upgradeCost: Math.max(0, Number(data.upgradeCost ?? base.upgradeCost) || 50),
+            zooIncome: Math.max(0, Number(data.zooIncome)) || derivedZooIncome,
+            expeditionBoost: Math.max(0, Number(data.expeditionBoost ?? base.expeditionBoost) || 0),
+            offlineBoost: Math.max(1, Number(data.offlineBoost ?? base.offlineBoost) || 1),
             lastLogin: Number(data.lastLogin ?? base.lastLogin) || Date.now(),
-            boost2xActiveUntil: this.normalizeBoostTimestamp(data.boost2xActiveUntil ?? base.boost2xActiveUntil),
-            animals: this.normalizeAnimals(data.animals || {}),
+            boost2xActiveUntil,
+            animals,
             boxes: {
-                common: Number(data.boxes?.common) || 0,
-                rare: Number(data.boxes?.rare) || 0,
-                epic: Number(data.boxes?.epic) || 0,
-                legendary: Number(data.boxes?.legendary) || 0
+                common: Math.max(0, Number(data.boxes?.common) || 0),
+                rare: Math.max(0, Number(data.boxes?.rare) || 0),
+                epic: Math.max(0, Number(data.boxes?.epic) || 0),
+                legendary: Math.max(0, Number(data.boxes?.legendary) || 0)
             },
-            expedition: data.expedition || null
+            expedition: this.normalizeExpedition(data.expedition)
         };
     },
 
@@ -180,12 +221,21 @@ window.CryptoZoo.api = {
             CryptoZoo.state = this.normalizeState(CryptoZoo.state);
         }
 
+        if (CryptoZoo.gameplay?.recalculateProgress) {
+            CryptoZoo.gameplay.recalculateProgress();
+        }
+
         return CryptoZoo.state;
     },
 
     async savePlayer() {
         const payload = this.getSavePayload();
         CryptoZoo.state = this.normalizeState(payload);
+
+        if (CryptoZoo.gameplay?.recalculateProgress) {
+            CryptoZoo.gameplay.recalculateProgress();
+        }
+
         localStorage.setItem("cryptozoo_save", JSON.stringify(CryptoZoo.state));
         return CryptoZoo.state;
     },
@@ -206,4 +256,4 @@ window.CryptoZoo.api = {
             return [];
         }
     }
-}; 
+};
