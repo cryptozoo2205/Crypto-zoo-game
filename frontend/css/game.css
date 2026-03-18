@@ -40,7 +40,13 @@
     padding: 0;
     outline: none;
     background-color: rgba(78, 224, 112, 0.18);
-    background-image: url("../assets/buttons/tap_button_main.png");
+    background-image:
+        url("../assets/buttons/tap_button_main.png"),
+        url("../assets/buttons/tap_button.png"),
+        url("../assets/buttons/tap.png"),
+        url("../assets/tap_button_main.png"),
+        url("../assets/tap_button.png"),
+        url("../assets/tap.png");
     background-position: center center;
     background-size: contain;
     background-repeat: no-repeat;
