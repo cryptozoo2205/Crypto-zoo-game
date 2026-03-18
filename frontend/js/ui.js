@@ -88,14 +88,13 @@ CryptoZoo.ui = {
         const area = tapButton.parentElement;
         area.style.position = "relative";
 
-        const baseClickValue =
+        const clickValue =
+            CryptoZoo.gameplay?.getEffectiveCoinsPerClick?.(1) ||
             Number(CryptoZoo.state?.coinsPerClick) ||
             Number(CryptoZoo.config?.clickValue) ||
             1;
 
-        const multiplier = CryptoZoo.gameplay?.getBoost2xMultiplier?.() || 1;
-        const clickValue = baseClickValue * multiplier;
-        const boostActive = multiplier > 1;
+        const boostActive = (CryptoZoo.gameplay?.getBoost2xMultiplier?.() || 1) > 1;
 
         const pop = document.createElement("div");
         pop.className = `coin-pop${boostActive ? " boost-pop" : ""}`;
@@ -362,15 +361,23 @@ CryptoZoo.ui = {
     renderHome() {
         const state = CryptoZoo.state || {};
         const animals = state.animals || {};
-        const multiplier = CryptoZoo.gameplay?.getBoost2xMultiplier?.() || 1;
+
+        const effectiveCoinsPerClick =
+            CryptoZoo.gameplay?.getEffectiveCoinsPerClick?.(1) ||
+            Number(state.coinsPerClick) ||
+            1;
+
+        const effectiveZooIncome =
+            CryptoZoo.gameplay?.getEffectiveZooIncome?.() ??
+            ((Number(state.zooIncome) || 0) * (CryptoZoo.gameplay?.getBoost2xMultiplier?.() || 1));
 
         this.updateText("homeCoins", CryptoZoo.formatNumber(state.coins || 0));
         this.updateText("homeGems", CryptoZoo.formatNumber(state.gems || 0));
         this.updateText("homeRewardBalance", CryptoZoo.formatNumber(state.rewardBalance || 0));
         this.updateText("homeLevel", CryptoZoo.formatNumber(state.level || 1));
-        this.updateText("homeCoinsPerClick", CryptoZoo.formatNumber((state.coinsPerClick || 1) * multiplier));
-        this.updateText("homeZooIncomeStat", CryptoZoo.formatNumber((state.zooIncome || 0) * multiplier));
-        this.updateText("homeIncomeStripValue", CryptoZoo.formatNumber((state.zooIncome || 0) * multiplier));
+        this.updateText("homeCoinsPerClick", CryptoZoo.formatNumber(effectiveCoinsPerClick));
+        this.updateText("homeZooIncomeStat", CryptoZoo.formatNumber(effectiveZooIncome));
+        this.updateText("homeIncomeStripValue", CryptoZoo.formatNumber(effectiveZooIncome));
 
         this.updateText("homeMonkeyCount", CryptoZoo.formatNumber(animals.monkey?.count || 0));
         this.updateText("homeMonkeyLevel", CryptoZoo.formatNumber(animals.monkey?.level || 1));
@@ -385,14 +392,22 @@ CryptoZoo.ui = {
 
     renderTopHiddenStats() {
         const state = CryptoZoo.state || {};
-        const multiplier = CryptoZoo.gameplay?.getBoost2xMultiplier?.() || 1;
+
+        const effectiveCoinsPerClick =
+            CryptoZoo.gameplay?.getEffectiveCoinsPerClick?.(1) ||
+            Number(state.coinsPerClick) ||
+            1;
+
+        const effectiveZooIncome =
+            CryptoZoo.gameplay?.getEffectiveZooIncome?.() ??
+            ((Number(state.zooIncome) || 0) * (CryptoZoo.gameplay?.getBoost2xMultiplier?.() || 1));
 
         this.updateText("coins", CryptoZoo.formatNumber(state.coins || 0));
         this.updateText("gems", CryptoZoo.formatNumber(state.gems || 0));
         this.updateText("rewardBalance", CryptoZoo.formatNumber(state.rewardBalance || 0));
         this.updateText("level", CryptoZoo.formatNumber(state.level || 1));
-        this.updateText("coinsPerClick", CryptoZoo.formatNumber((state.coinsPerClick || 1) * multiplier));
-        this.updateText("zooIncome", CryptoZoo.formatNumber((state.zooIncome || 0) * multiplier));
+        this.updateText("coinsPerClick", CryptoZoo.formatNumber(effectiveCoinsPerClick));
+        this.updateText("zooIncome", CryptoZoo.formatNumber(effectiveZooIncome));
     },
 
     renderZooList() {
@@ -587,4 +602,4 @@ CryptoZoo.ui = {
         this.renderBoxes();
         this.renderRanking();
     }
-}; 
+};
