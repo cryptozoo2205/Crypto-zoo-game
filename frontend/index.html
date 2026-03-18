@@ -19,14 +19,29 @@
     <div id="loading-screen">
         <div class="loading-visual">
             <div class="loading-image-wrap">
-                <img src="./assets/loading/loading_main.png" alt="Crypto Zoo Loading" class="loading-image">
+                <img src="./assets/loading/loading_main.png" alt="" class="loading-image">
             </div>
         </div>
     </div>
 
     <div id="app">
         <header class="top-bar">
-            <img src="./assets/ui/top_bar_bg.png" alt="Crypto Zoo Top Bar" class="top-bar-image">
+            <div class="top-bar-banner">
+                <div class="top-bar-fallback">
+                    <div class="top-bar-left">
+                        <div class="top-avatar"></div>
+                        <div class="top-user-meta">
+                            <div class="top-user-name">Crypto Zoo</div>
+                            <div class="top-user-status">● Online</div>
+                        </div>
+                    </div>
+
+                    <div class="top-bar-right">
+                        <button class="top-action-btn" type="button" id="topTelegramBtn">✈</button>
+                        <button class="top-action-btn" type="button" id="topSettingsBtn">⚙</button>
+                    </div>
+                </div>
+            </div>
         </header>
 
         <main id="game">
@@ -53,20 +68,20 @@
                             <div class="home-stat-value" id="homeLevel">1</div>
                         </div>
 
-                        <div class="home-stat-box">
+                        <div class="home-stat-box home-stat-box-wide">
                             <div class="home-stat-title">Za klik</div>
                             <div class="home-stat-value" id="homeCoinsPerClick">1</div>
-                        </div>
-
-                        <div class="home-stat-box">
-                            <div class="home-stat-title">Dochód / sek</div>
-                            <div class="home-stat-value" id="homeZooIncome">0</div>
                         </div>
                     </div>
 
                     <div class="tap-area">
                         <div class="tap-glow"></div>
                         <button id="tapButton" class="tap-button" type="button" aria-label="Tap"></button>
+                    </div>
+
+                    <div class="home-tap-caption">
+                        <div class="home-tap-title">UZYSKAJ MONETY</div>
+                        <div class="home-tap-subtitle">Klikaj i rozwijaj swoje zoo</div>
                     </div>
 
                     <div class="home-income-strip">
@@ -95,6 +110,10 @@
                                     Ilość: <span id="homeMonkeyCount">0</span><br>
                                     Lvl: <span id="homeMonkeyLevel">1</span>
                                 </div>
+                                <div class="home-zoo-preview-actions">
+                                    <button id="homeBuyMonkeyBtn" type="button">Kup</button>
+                                    <button id="homeUpgradeMonkeyBtn" type="button">Ulepsz</button>
+                                </div>
                             </div>
 
                             <div class="home-zoo-preview-card">
@@ -104,6 +123,10 @@
                                     Ilość: <span id="homePandaCount">0</span><br>
                                     Lvl: <span id="homePandaLevel">1</span>
                                 </div>
+                                <div class="home-zoo-preview-actions">
+                                    <button id="homeBuyPandaBtn" type="button">Kup</button>
+                                    <button id="homeUpgradePandaBtn" type="button">Ulepsz</button>
+                                </div>
                             </div>
 
                             <div class="home-zoo-preview-card">
@@ -112,6 +135,10 @@
                                 <div class="home-zoo-preview-meta">
                                     Ilość: <span id="homeLionCount">0</span><br>
                                     Lvl: <span id="homeLionLevel">1</span>
+                                </div>
+                                <div class="home-zoo-preview-actions">
+                                    <button id="homeBuyLionBtn" type="button">Kup</button>
+                                    <button id="homeUpgradeLionBtn" type="button">Ulepsz</button>
                                 </div>
                             </div>
                         </div>
@@ -139,6 +166,13 @@
             <section id="screen-shop" class="screen hidden">
                 <div class="panel card">
                     <h2>🛒 Shop</h2>
+
+                    <div class="shop-item boost-shop-card" id="boostShopCard">
+                        <h3>⚡ X2 Boost</h3>
+                        <div>Przejściowo aktywowany z głównego ekranu przez sklep.</div>
+                        <div>Pełna logika zakupu boosta będzie podpięta w następnym kroku.</div>
+                    </div>
+
                     <div id="shopList"></div>
 
                     <h3 style="margin-top: 20px;">🎁 Boxes</h3>
