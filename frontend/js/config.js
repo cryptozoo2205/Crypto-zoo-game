@@ -7,89 +7,89 @@ CryptoZoo.config = {
         monkey: {
             name: "Monkey",
             asset: "monkey",
-            buyCost: 40,
+            buyCost: 120,
             baseIncome: 1
         },
         panda: {
             name: "Panda",
             asset: "panda",
-            buyCost: 180,
-            baseIncome: 3
+            buyCost: 650,
+            baseIncome: 4
         },
         lion: {
             name: "Lion",
             asset: "lion",
-            buyCost: 650,
-            baseIncome: 8
+            buyCost: 2400,
+            baseIncome: 12
         },
         tiger: {
             name: "Tiger",
             asset: "tiger",
-            buyCost: 1800,
-            baseIncome: 18
+            buyCost: 8000,
+            baseIncome: 30
         },
         elephant: {
             name: "Elephant",
             asset: "elephant",
-            buyCost: 5200,
-            baseIncome: 42
+            buyCost: 20000,
+            baseIncome: 85
         },
         giraffe: {
             name: "Giraffe",
             asset: "giraffe",
-            buyCost: 14000,
-            baseIncome: 95
+            buyCost: 50000,
+            baseIncome: 180
         },
         zebra: {
             name: "Zebra",
             asset: "zebra",
-            buyCost: 36000,
-            baseIncome: 210
+            buyCost: 120000,
+            baseIncome: 420
         },
         hippo: {
             name: "Hippo",
             asset: "hippo",
-            buyCost: 92000,
-            baseIncome: 470
+            buyCost: 280000,
+            baseIncome: 900
         },
         penguin: {
             name: "Penguin",
             asset: "penguin",
-            buyCost: 240000,
-            baseIncome: 980
+            buyCost: 600000,
+            baseIncome: 1600
         },
         bear: {
             name: "Bear",
             asset: "bear",
-            buyCost: 620000,
-            baseIncome: 2100
+            buyCost: 1200000,
+            baseIncome: 3200
         },
         crocodile: {
             name: "Crocodile",
             asset: "crocodile",
-            buyCost: 1600000,
-            baseIncome: 4500
+            buyCost: 2500000,
+            baseIncome: 6000
         },
         kangaroo: {
             name: "Kangaroo",
             asset: "kangaroo",
-            buyCost: 4200000,
-            baseIncome: 9500
+            buyCost: 5500000,
+            baseIncome: 12000
         },
         wolf: {
             name: "Wolf",
             asset: "wolf",
             buyCost: 11000000,
-            baseIncome: 20000
+            baseIncome: 22000
         }
     },
 
     boxes: {
         common: {
-            buyCoins: 900,
+            buyCoins: 1000,
             buyGems: 0,
-            coinMin: 180,
-            coinMax: 1100,
+            coinMin: 250,
+            coinMax: 1500,
             gemsMin: 0,
             gemsMax: 1,
             rewardMax: 0
@@ -97,29 +97,29 @@ CryptoZoo.config = {
         rare: {
             buyCoins: 0,
             buyGems: 5,
-            coinMin: 1000,
-            coinMax: 4200,
+            coinMin: 1500,
+            coinMax: 6000,
             gemsMin: 1,
-            gemsMax: 3,
+            gemsMax: 4,
             rewardMax: 0
         },
         epic: {
             buyCoins: 0,
             buyGems: 15,
-            coinMin: 4500,
-            coinMax: 14000,
-            gemsMin: 2,
-            gemsMax: 6,
-            rewardMax: 0.15
+            coinMin: 6000,
+            coinMax: 20000,
+            gemsMin: 3,
+            gemsMax: 8,
+            rewardMax: 0.25
         },
         legendary: {
             buyCoins: 0,
             buyGems: 40,
-            coinMin: 14000,
-            coinMax: 38000,
-            gemsMin: 6,
-            gemsMax: 14,
-            rewardMax: 0.5
+            coinMin: 20000,
+            coinMax: 60000,
+            gemsMin: 8,
+            gemsMax: 20,
+            rewardMax: 1
         }
     },
 
@@ -128,72 +128,72 @@ CryptoZoo.config = {
             id: "forest",
             name: "Magic Forest",
             duration: 300,
-            baseCoins: 500,
+            baseCoins: 800,
             baseGems: 1,
-            rareChance: 0.22,
-            epicChance: 0.06
+            rareChance: 0.25,
+            epicChance: 0.08
         },
         {
             id: "river",
             name: "Crystal River",
             duration: 900,
-            baseCoins: 2200,
-            baseGems: 2,
-            rareChance: 0.28,
-            epicChance: 0.09
+            baseCoins: 3000,
+            baseGems: 3,
+            rareChance: 0.3,
+            epicChance: 0.1
         },
         {
             id: "volcano",
             name: "Golden Volcano",
             duration: 1800,
-            baseCoins: 6500,
-            baseGems: 5,
-            rareChance: 0.32,
-            epicChance: 0.11
+            baseCoins: 8000,
+            baseGems: 7,
+            rareChance: 0.35,
+            epicChance: 0.12
         }
     ],
 
     shopItems: [
         {
             id: "click1",
-            name: "Click Upgrade I",
+            name: "Click Upgrade",
             desc: "+1 coin per click",
-            price: 150,
+            price: 250,
             type: "click"
         },
         {
             id: "click2",
-            name: "Click Upgrade II",
+            name: "Strong Finger",
             desc: "+1 coin per click",
-            price: 700,
+            price: 1250,
             type: "click"
         },
         {
             id: "income1",
             name: "Zoo Manager",
             desc: "+25% zoo income",
-            price: 1800,
+            price: 3000,
             type: "income"
         },
         {
             id: "income2",
             name: "VIP Caretaker",
             desc: "+25% zoo income",
-            price: 6500,
+            price: 12000,
             type: "income"
         },
         {
             id: "expedition1",
             name: "Better Expedition Gear",
             desc: "+20% expedition rewards",
-            price: 3200,
+            price: 5000,
             type: "expedition"
         },
         {
             id: "offline1",
             name: "Offline Booster",
             desc: "Better offline income",
-            price: 5000,
+            price: 8000,
             type: "offline"
         }
     ]
@@ -201,10 +201,6 @@ CryptoZoo.config = {
 
 CryptoZoo.formatNumber = function (value) {
     const num = Number(value) || 0;
-
-    if (num >= 1000000000000) {
-        return (num / 1000000000000).toFixed(num >= 10000000000000 ? 0 : 1).replace(/\.0$/, "") + "T";
-    }
 
     if (num >= 1000000000) {
         return (num / 1000000000).toFixed(num >= 10000000000 ? 0 : 1).replace(/\.0$/, "") + "B";
