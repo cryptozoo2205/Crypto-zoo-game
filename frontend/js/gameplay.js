@@ -95,7 +95,7 @@ CryptoZoo.gameplay = {
             CryptoZoo.ui?.showToast?.(
                 `Boost już aktywny: ${CryptoZoo.ui?.formatTimeLeft?.(this.getBoost2xTimeLeft()) || "00:00:00"}`
             );
-            CryptoZoo.ui?.render?.();
+            CryptoZoo.ui?.renderBoostStatus?.();
             return true;
         }
 
@@ -108,9 +108,9 @@ CryptoZoo.gameplay = {
         CryptoZoo.state.boost2xActiveUntil = Date.now() + boostDurationMs;
 
         CryptoZoo.api?.savePlayer?.();
-        this.showScreen("game");
         CryptoZoo.ui?.render?.();
         CryptoZoo.ui?.showToast?.("X2 Boost aktywowany");
+
         return true;
     },
 
@@ -119,7 +119,11 @@ CryptoZoo.gameplay = {
         if (!btn) return;
 
         btn.onclick = () => {
-            this.activateBoost2x();
+            const activated = this.activateBoost2x();
+
+            if (activated) {
+                this.showScreen("game");
+            }
         };
     },
 
@@ -426,9 +430,11 @@ CryptoZoo.gameplay = {
             if (activeUntil > 0 && activeUntil <= Date.now()) {
                 CryptoZoo.state.boost2xActiveUntil = 0;
                 CryptoZoo.api?.savePlayer?.();
+                CryptoZoo.ui?.showToast?.("X2 Boost zakończony");
             }
 
             CryptoZoo.ui?.renderBoostStatus?.();
+            CryptoZoo.ui?.renderHome?.();
         }, 1000);
     },
 
