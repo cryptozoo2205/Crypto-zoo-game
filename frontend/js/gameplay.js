@@ -4,13 +4,16 @@ CryptoZoo.gameplay = {
     activeScreen: "game",
     expeditionTimerStarted: false,
     incomeTimerStarted: false,
+    boostTimerStarted: false,
 
     init() {
         this.ensureState();
         this.bindNavigation();
         this.bindTap();
+        this.bindBoostShopButton();
         this.startIncomeTimer();
         this.startExpeditionTimer();
+        this.startBoostTimer();
 
         const lastScreen = sessionStorage.getItem("cryptozoo_last_screen") || "game";
         this.showScreen(lastScreen);
@@ -46,6 +49,46 @@ CryptoZoo.gameplay = {
         if (typeof CryptoZoo.state.expeditionBoost !== "number") CryptoZoo.state.expeditionBoost = Number(CryptoZoo.state.expeditionBoost) || 0;
         if (typeof CryptoZoo.state.offlineBoost !== "number") CryptoZoo.state.offlineBoost = Number(CryptoZoo.state.offlineBoost) || 1;
         if (typeof CryptoZoo.state.xp !== "number") CryptoZoo.state.xp = Number(CryptoZoo.state.xp) || 0;
+        if (typeof CryptoZoo.state.boost2xActiveUntil !== "number") CryptoZoo.state.boost2xActiveUntil = Number(CryptoZoo.state.boost2xActiveUntil) || 0;
+    },
+
+    isBoost2xActive() {
+        return (Number(CryptoZoo.state.boost2xActiveUntil) || 0) > Date.now();
+    },
+
+    getBoost2xMultiplier() {
+        return this.isBoost2xActive() ? 2 : 1;
+    },
+
+    getBoost2xTimeLeft() {
+        const leftMs = (Number(CryptoZoo.state.boost2xActiveUntil) || 0) - Date.now();
+        return Math.max(0, Math.floor(leftMs / 1000));
+    },
+
+    activateBoost2x() {
+        const boostCostGems = 25;
+        const boostDurationMs = 10 * 60 * 1000;
+
+        if ((Number(CryptoZoo.state.gems) || 0) < boostCostGems) {
+            CryptoZoo.ui?.showToast?.("Za mało gems");
+            return;
+        }
+
+        CryptoZoo.state.gems -= boostCostGems;
+        CryptoZoo.state.boost2xActiveUntil = Date.now() + boostDurationMs;
+
+        CryptoZoo.ui?.render?.();
+        CryptoZoo.api?.savePlayer?.();
+        CryptoZoo.ui?.showToast?.("X2 Boost aktywowany");
+    },
+
+    bindBoostShopButton() {
+        const btn = document.getElementById("buyBoostBtn");
+        if (!btn) return;
+
+        btn.onclick = () => {
+            this.activateBoost2x();
+        };
     },
 
     bindNavigation() {
@@ -96,6 +139,10 @@ CryptoZoo.gameplay = {
         if (screenName === "missions") {
             CryptoZoo.ui?.renderExpeditions?.();
         }
+
+        if (screenName === "shop") {
+            this.bindBoostShopButton();
+        }
     },
 
     bindTap() {
@@ -103,10 +150,12 @@ CryptoZoo.gameplay = {
         if (!tapButton) return;
 
         tapButton.onclick = () => {
-            const clickValue =
+            const baseClickValue =
                 Number(CryptoZoo.state?.coinsPerClick) ||
                 Number(CryptoZoo.config?.clickValue) ||
                 1;
+
+            const clickValue = baseClickValue * this.getBoost2xMultiplier();
 
             CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + clickValue;
             CryptoZoo.state.xp = (Number(CryptoZoo.state.xp) || 0) + 1;
@@ -317,8 +366,10 @@ CryptoZoo.gameplay = {
         this.incomeTimerStarted = true;
 
         setInterval(() => {
-            const income = Number(CryptoZoo.state?.zooIncome) || 0;
-            if (income <= 0) return;
+            const baseIncome = Number(CryptoZoo.state?.zooIncome) || 0;
+            if (baseIncome <= 0) return;
+
+            const income = baseIncome * this.getBoost2xMultiplier();
 
             CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + income;
             CryptoZoo.state.xp = (Number(CryptoZoo.state.xp) || 0) + 1;
@@ -327,6 +378,16 @@ CryptoZoo.gameplay = {
 
             CryptoZoo.ui?.render?.();
             CryptoZoo.api?.savePlayer?.();
+        }, 1000);
+    },
+
+    startBoostTimer() {
+        if (this.boostTimerStarted) return;
+        this.boostTimerStarted = true;
+
+        setInterval(() => {
+            if (!this.isBoost2xActive()) return;
+            CryptoZoo.ui?.render?.();
         }, 1000);
     },
 
