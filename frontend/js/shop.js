@@ -15,4 +15,4 @@ CryptoZoo.shop = {
             };
         });
     }
-};
+}; 
