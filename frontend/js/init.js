@@ -148,4 +148,4 @@ document.addEventListener("DOMContentLoaded", function () {
     if (typeof CryptoZoo.init === "function") {
         CryptoZoo.init();
     }
-});
+}); 
