@@ -69,9 +69,14 @@ CryptoZoo.gameplay = {
         const boostCostGems = 1;
         const boostDurationMs = 10 * 60 * 1000;
 
+        if (this.isBoost2xActive()) {
+            CryptoZoo.ui?.showToast?.(`Boost już aktywny: ${CryptoZoo.ui?.formatTimeLeft?.(this.getBoost2xTimeLeft())}`);
+            return true;
+        }
+
         if ((Number(CryptoZoo.state.gems) || 0) < boostCostGems) {
             CryptoZoo.ui?.showToast?.("Za mało gems");
-            return;
+            return false;
         }
 
         CryptoZoo.state.gems -= boostCostGems;
@@ -80,6 +85,7 @@ CryptoZoo.gameplay = {
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
         CryptoZoo.ui?.showToast?.("X2 Boost aktywowany");
+        return true;
     },
 
     bindBoostShopButton() {
@@ -386,6 +392,13 @@ CryptoZoo.gameplay = {
         this.boostTimerStarted = true;
 
         setInterval(() => {
+            const activeUntil = Number(CryptoZoo.state?.boost2xActiveUntil) || 0;
+
+            if (activeUntil > 0 && activeUntil <= Date.now()) {
+                CryptoZoo.state.boost2xActiveUntil = 0;
+                CryptoZoo.api?.savePlayer?.();
+            }
+
             CryptoZoo.ui?.render?.();
         }, 1000);
     },
