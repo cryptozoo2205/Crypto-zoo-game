@@ -6,6 +6,7 @@ CryptoZoo.gameplay = {
     incomeTimerStarted: false,
     boostTimerStarted: false,
     suppressClickUntil: 0,
+    touchTapLock: false,
 
     init() {
         this.ensureState();
@@ -227,14 +228,15 @@ CryptoZoo.gameplay = {
     },
 
     handleTap(tapCount = 1) {
-        const clickValue = this.getEffectiveCoinsPerClick(tapCount);
+        const safeTapCount = this.getTapCountFromTouches(tapCount);
+        const clickValue = this.getEffectiveCoinsPerClick(safeTapCount);
 
         CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + clickValue;
-        CryptoZoo.state.xp = (Number(CryptoZoo.state.xp) || 0) + Math.max(1, this.getTapCountFromTouches(tapCount));
+        CryptoZoo.state.xp = (Number(CryptoZoo.state.xp) || 0) + safeTapCount;
 
         this.recalculateLevel();
 
-        CryptoZoo.ui?.animateCoin?.();
+        CryptoZoo.ui?.animateCoin?.(safeTapCount);
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
     },
@@ -243,7 +245,11 @@ CryptoZoo.gameplay = {
         const tapButton = document.getElementById("tapButton");
         if (!tapButton) return;
 
-        tapButton.onclick = () => {
+        tapButton.onclick = (event) => {
+            if (event) {
+                event.preventDefault();
+            }
+
             if (Date.now() < this.suppressClickUntil) {
                 return;
             }
@@ -254,14 +260,27 @@ CryptoZoo.gameplay = {
         tapButton.addEventListener(
             "touchstart",
             (event) => {
+                if (this.touchTapLock) {
+                    event.preventDefault();
+                    return;
+                }
+
                 const touches = this.getTapCountFromTouches(event.touches?.length || 1);
 
-                this.suppressClickUntil = Date.now() + 450;
+                this.touchTapLock = true;
+                this.suppressClickUntil = Date.now() + 700;
                 event.preventDefault();
                 this.handleTap(touches);
             },
             { passive: false }
         );
+
+        const unlockTouchTap = () => {
+            this.touchTapLock = false;
+        };
+
+        tapButton.addEventListener("touchend", unlockTouchTap, { passive: true });
+        tapButton.addEventListener("touchcancel", unlockTouchTap, { passive: true });
     },
 
     bindAnimalButtons() {
