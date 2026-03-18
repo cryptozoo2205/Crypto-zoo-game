@@ -1,26 +1,29 @@
+
 #screen-zoo .panel.card {
     display: flex;
     flex-direction: column;
     gap: 14px;
+    padding-bottom: calc(var(--menu-height) + var(--menu-gap) + 18px);
 }
 
 #zooList {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    padding-bottom: 6px;
 }
 
 .animal-row {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     gap: 14px;
     min-width: 0;
-    background: linear-gradient(180deg, rgba(37, 50, 88, 0.62) 0%, rgba(26, 37, 68, 0.72) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 22px;
+    background: linear-gradient(180deg, rgba(37, 50, 88, 0.56) 0%, rgba(26, 37, 68, 0.66) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 20px;
     padding: 12px;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.16);
 }
 
 .animal-left {
@@ -32,25 +35,25 @@
 }
 
 .animal-icon {
-    width: 72px;
-    height: 72px;
-    border-radius: 18px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%);
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.03) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
     flex-shrink: 0;
     box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.06),
-        0 8px 18px rgba(0,0,0,0.16);
+        inset 0 1px 0 rgba(255,255,255,0.05),
+        0 6px 14px rgba(0,0,0,0.12);
 }
 
 .animal-icon img {
-    width: 64px;
-    height: 64px;
+    width: 50px;
+    height: 50px;
     object-fit: contain;
-    filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.18));
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.14));
 }
 
 .animal-text {
@@ -60,8 +63,8 @@
 
 .animal-name {
     margin: 0 0 4px;
-    font-size: 18px;
-    font-weight: 800;
+    font-size: 17px;
+    font-weight: 900;
     line-height: 1.05;
     color: #ffffff;
     overflow-wrap: anywhere;
@@ -70,36 +73,38 @@
 .animal-desc,
 .animal-owned {
     margin: 0;
-    font-size: 13px;
+    font-size: 12px;
     line-height: 1.35;
     color: rgba(255, 255, 255, 0.84);
     overflow-wrap: anywhere;
 }
 
 .animal-owned {
-    margin-top: 2px;
-    font-weight: 700;
+    margin-top: 3px;
+    font-weight: 800;
     color: #d9f6b2;
 }
 
 .animal-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: 132px;
-    min-width: 132px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    width: 196px;
+    min-width: 196px;
     flex-shrink: 0;
 }
 
 .animal-actions button {
+    min-width: 0;
     border: none;
-    border-radius: 16px;
-    min-height: 44px;
-    padding: 10px 8px;
-    font-size: 14px;
-    font-weight: 800;
+    border-radius: 14px;
+    min-height: 42px;
+    padding: 8px 10px;
+    font-size: 13px;
+    font-weight: 900;
+    line-height: 1.15;
     cursor: pointer;
-    transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+    transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
 }
 
 .animal-actions button:active {
@@ -109,29 +114,38 @@
 .animal-actions button:first-child {
     color: #ffffff;
     background: linear-gradient(180deg, #41cf88 0%, #23a86b 100%);
-    box-shadow: 0 8px 18px rgba(39, 185, 110, 0.28);
+    box-shadow: 0 8px 16px rgba(39, 185, 110, 0.22);
 }
 
 .animal-actions button:last-child {
     color: #ffffff;
-    background: linear-gradient(180deg, rgba(73, 91, 138, 0.95) 0%, rgba(56, 71, 110, 0.95) 100%);
-    box-shadow: 0 8px 18px rgba(19, 29, 58, 0.28);
+    background: linear-gradient(180deg, rgba(92, 109, 162, 0.96) 0%, rgba(66, 82, 128, 0.96) 100%);
+    box-shadow: 0 8px 16px rgba(19, 29, 58, 0.22);
+}
+
+.animal-actions button:hover {
+    filter: brightness(1.03);
 }
 
 @media (max-width: 640px) {
+    #screen-zoo .panel.card {
+        padding-bottom: calc(var(--menu-height) + var(--menu-gap) + 16px);
+    }
+
     .animal-row {
         gap: 12px;
+        padding: 11px;
     }
 
     .animal-icon {
-        width: 64px;
-        height: 64px;
-        border-radius: 16px;
+        width: 58px;
+        height: 58px;
+        border-radius: 14px;
     }
 
     .animal-icon img {
-        width: 56px;
-        height: 56px;
+        width: 46px;
+        height: 46px;
     }
 
     .animal-name {
@@ -144,17 +158,22 @@
     }
 
     .animal-actions {
-        width: 124px;
-        min-width: 124px;
+        width: 180px;
+        min-width: 180px;
+        gap: 7px;
     }
 
     .animal-actions button {
-        min-height: 42px;
-        font-size: 13px;
+        min-height: 40px;
+        font-size: 12px;
     }
 }
 
 @media (max-width: 520px) {
+    #screen-zoo .panel.card {
+        padding-bottom: calc(var(--menu-height) + var(--menu-gap) + 14px);
+    }
+
     .animal-row {
         flex-direction: column;
         align-items: stretch;
@@ -164,18 +183,19 @@
     }
 
     .animal-left {
-        align-items: flex-start;
+        align-items: center;
+        gap: 10px;
     }
 
     .animal-icon {
-        width: 58px;
-        height: 58px;
+        width: 56px;
+        height: 56px;
         border-radius: 14px;
     }
 
     .animal-icon img {
-        width: 50px;
-        height: 50px;
+        width: 44px;
+        height: 44px;
     }
 
     .animal-name {
@@ -190,26 +210,29 @@
     .animal-actions {
         width: 100%;
         min-width: 0;
-        display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
     }
 
     .animal-actions button {
-        min-height: 42px;
-        border-radius: 13px;
-        font-size: 13px;
+        min-height: 40px;
+        border-radius: 12px;
+        font-size: 12px;
     }
 }
 
 @media (max-width: 380px) {
+    #screen-zoo .panel.card {
+        padding-bottom: calc(var(--menu-height) + var(--menu-gap) + 12px);
+    }
+
     .animal-row {
         padding: 10px;
         border-radius: 16px;
     }
 
     .animal-left {
-        gap: 10px;
+        align-items: flex-start;
     }
 
     .animal-icon {
@@ -218,8 +241,8 @@
     }
 
     .animal-icon img {
-        width: 44px;
-        height: 44px;
+        width: 40px;
+        height: 40px;
     }
 
     .animal-name {
@@ -236,7 +259,7 @@
     }
 
     .animal-actions button {
-        min-height: 40px;
+        min-height: 38px;
         font-size: 12px;
     }
 }
