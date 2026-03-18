@@ -4,117 +4,175 @@
     }
 }
 
-@media (max-width: 520px) {
-    #app {
-        max-width: 100%;
-        padding-left: 8px;
-        padding-right: 8px;
-        padding-bottom: 100px;
-    }
-
-    .menu {
-        max-width: 100%;
-        border-radius: 16px 16px 0 0;
-    }
-
-    .top-bar h1 {
-        font-size: 36px;
-    }
-
-    .stat-box {
-        padding: 10px 10px;
-    }
-
-    .stat-value {
-        font-size: 18px;
+@media (min-width: 768px) {
+    :root {
+        --app-max-width: 640px;
+        --menu-height: 96px;
     }
 
     .panel.card {
-        border-radius: 20px;
-        padding: 14px;
+        padding: 18px;
     }
 
-    .panel.card h2 {
-        font-size: 22px;
+    .home-stats-panel {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
-    .tap-area {
-        min-height: 270px;
+    .home-stat-box-wide {
+        grid-column: span 3;
     }
 
-    .tap-glow {
-        width: 200px;
-        height: 200px;
+    .home-zoo-preview-list {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    #app {
+        width: 100%;
     }
 
-    .tap-button {
-        width: 168px;
-        height: 168px;
+    .menu {
+        max-width: none;
     }
 
-    .tap-button::before {
-        font-size: 72px;
+    .home-stats-panel {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .game-income-row {
+    .home-stat-box-wide {
+        grid-column: 1 / -1;
+    }
+
+    #screen-zoo .panel.card,
+    #screen-shop .panel.card,
+    #screen-missions .panel.card,
+    #screen-minigames .panel.card,
+    #screen-ranking .panel.card {
+        overflow: hidden;
+    }
+
+    #screen-minigames .panel.card {
+        padding-bottom: 16px;
+    }
+
+    #minigamesWrap {
+        width: 100%;
+        min-width: 0;
+    }
+
+    #wheelGame,
+    #memoryGame {
+        width: 100%;
+        min-width: 0;
+    }
+
+    #wheelGame > div:first-of-type {
+        width: min(100%, 260px) !important;
+        height: auto !important;
+        aspect-ratio: 1 / 1;
+        margin: 0 auto 16px auto !important;
+    }
+
+    #wheel {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    #wheelPointer {
+        top: -10px !important;
+        font-size: 24px !important;
+    }
+
+    #memoryBoard {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+        width: min(100%, 320px);
+    }
+
+    #memoryBoard > * {
+        min-width: 0;
+    }
+
+    #rankingList,
+    #missionsList,
+    #shopList,
+    #zooList,
+    #boxesList {
+        min-width: 0;
+    }
+
+    .animal-row,
+    .shop-item,
+    .expedition-card,
+    #rankingList li {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .animal-row {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .animal-left,
+    .animal-text,
+    .animal-actions {
+        min-width: 0;
+    }
+
+    .animal-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .boxes {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .boxes button {
+        min-width: 0;
+    }
+}
+
+@media (max-width: 420px) {
+    #memoryBoard {
+        width: min(100%, 296px);
+        gap: 7px !important;
+    }
+
+    .boxes {
         grid-template-columns: 1fr;
-    }
-
-    .menu button {
-        min-height: 52px;
-        font-size: 9px;
-        border-radius: 12px;
-    }
-
-    .loading-title {
-        font-size: 34px;
-    }
-
-    .loading-subtitle {
-        font-size: 18px;
-    }
-
-    .loading-logo-wrap {
-        width: 150px;
-        height: 150px;
-    }
-
-    .loading-logo-core {
-        font-size: 58px;
     }
 }
 
 @media (max-width: 380px) {
-    .top-bar h1 {
-        font-size: 30px;
+    .home-stats-panel {
+        grid-template-columns: 1fr;
     }
 
-    .paw-row {
-        font-size: 16px;
+    .home-stat-box-wide {
+        grid-column: auto;
     }
 
-    .stat-label {
-        font-size: 11px;
+    #wheelGame > div:first-of-type {
+        width: min(100%, 236px) !important;
     }
 
-    .stat-value {
-        font-size: 16px;
+    #wheelPointer {
+        font-size: 22px !important;
     }
 
-    .tap-button {
-        width: 154px;
-        height: 154px;
+    #memoryBoard {
+        width: min(100%, 272px);
+        gap: 6px !important;
     }
 
-    .tap-button::before {
-        font-size: 64px;
-    }
-
-    .loading-title {
-        font-size: 30px;
-    }
-
-    .loading-percent {
-        font-size: 24px;
+    .animal-actions {
+        grid-template-columns: 1fr;
     }
 }
