@@ -73,17 +73,7 @@
     cursor: pointer;
     padding: 0;
     outline: none;
-    background-color: rgba(78, 224, 112, 0.18);
-    background-image:
-        url("../assets/buttons/tap_button_main.png"),
-        url("../assets/buttons/tap_button.png"),
-        url("../assets/buttons/tap.png"),
-        url("../assets/tap_button_main.png"),
-        url("../assets/tap_button.png"),
-        url("../assets/tap.png");
-    background-position: center center;
-    background-size: contain;
-    background-repeat: no-repeat;
+    background: url("../assets/buttons/tap_button_main.png") center center / contain no-repeat;
     box-shadow:
         0 0 0 10px rgba(255,255,255,0.03),
         0 0 28px rgba(91, 255, 110, 0.16),
@@ -102,16 +92,10 @@
 }
 
 .tap-button::after {
-    content: "🐾";
+    content: "";
     position: absolute;
     inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 52px;
-    color: rgba(255,255,255,0.20);
     pointer-events: none;
-    transition: transform 0.12s ease, opacity 0.12s ease;
 }
 
 .tap-button:active {
@@ -466,10 +450,6 @@
         height: 142px;
     }
 
-    .tap-button::after {
-        font-size: 42px;
-    }
-
     .home-tap-caption {
         margin-top: -2px;
         margin-bottom: 6px;
@@ -543,10 +523,6 @@
         height: 132px;
     }
 
-    .tap-button::after {
-        font-size: 38px;
-    }
-
     .home-tap-title {
         font-size: 17px;
     }
@@ -565,8 +541,6 @@
 ========================= */
 
 .tap-button.boost-active {
-    background-color: rgba(255, 200, 0, 0.18);
-
     box-shadow:
         0 0 0 10px rgba(255,255,255,0.04),
         0 0 30px rgba(255, 208, 0, 0.35),
@@ -583,13 +557,6 @@
         rgba(255, 200, 0, 0.15) 55%,
         rgba(255, 200, 0, 0) 100%
     );
-}
-
-.tap-button.boost-active::after {
-    color: rgba(255, 230, 120, 0.45);
-    text-shadow:
-        0 0 12px rgba(255, 220, 120, 0.35),
-        0 0 22px rgba(255, 200, 0, 0.25);
 }
 
 @keyframes tapBoostPulse {
