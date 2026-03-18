@@ -21,6 +21,7 @@ CryptoZoo.gameplay = {
         this.recalculateProgress();
         this.bindAnimalButtons();
         this.bindShopButtons();
+        CryptoZoo.ui?.render?.();
     },
 
     ensureState() {
@@ -63,11 +64,7 @@ CryptoZoo.gameplay = {
             return 0;
         }
 
-        /*
-            Fix dla przypadków, gdy backend / storage zwraca timestamp w sekundach
-            zamiast w milisekundach.
-        */
-        if (safeValue > 0 && safeValue < 1000000000000) {
+        if (safeValue < 1000000000000) {
             safeValue *= 1000;
         }
 
@@ -77,7 +74,6 @@ CryptoZoo.gameplay = {
     isBoost2xActive() {
         const activeUntil = this.normalizeBoostTimestamp(CryptoZoo.state?.boost2xActiveUntil);
         CryptoZoo.state.boost2xActiveUntil = activeUntil;
-
         return activeUntil > Date.now();
     },
 
@@ -88,9 +84,7 @@ CryptoZoo.gameplay = {
     getBoost2xTimeLeft() {
         const activeUntil = this.normalizeBoostTimestamp(CryptoZoo.state?.boost2xActiveUntil);
         CryptoZoo.state.boost2xActiveUntil = activeUntil;
-
-        const leftMs = activeUntil - Date.now();
-        return Math.max(0, Math.floor(leftMs / 1000));
+        return Math.max(0, Math.floor((activeUntil - Date.now()) / 1000));
     },
 
     activateBoost2x() {
@@ -113,15 +107,10 @@ CryptoZoo.gameplay = {
         CryptoZoo.state.gems = (Number(CryptoZoo.state.gems) || 0) - boostCostGems;
         CryptoZoo.state.boost2xActiveUntil = Date.now() + boostDurationMs;
 
-        CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
-        CryptoZoo.ui?.showToast?.("X2 Boost aktywowany");
-
-        /*
-            Po kupieniu boosta wracamy na home, żeby od razu było widać aktywny timer.
-        */
         this.showScreen("game");
-
+        CryptoZoo.ui?.render?.();
+        CryptoZoo.ui?.showToast?.("X2 Boost aktywowany");
         return true;
     },
 
@@ -439,7 +428,7 @@ CryptoZoo.gameplay = {
                 CryptoZoo.api?.savePlayer?.();
             }
 
-            CryptoZoo.ui?.render?.();
+            CryptoZoo.ui?.renderBoostStatus?.();
         }, 1000);
     },
 
