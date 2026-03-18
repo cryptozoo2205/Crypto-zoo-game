@@ -19,7 +19,12 @@
     <div id="loading-screen">
         <div class="loading-visual">
             <div class="loading-image-wrap">
-                <img src="./assets/loading/loading_main.png" alt="" class="loading-image">
+                <img
+                    src="./assets/loading/loading_main.png"
+                    alt=""
+                    class="loading-image"
+                    onerror="if(!this.dataset.fallback1){this.dataset.fallback1='1';this.src='./assets/loading/loading.png';}else if(!this.dataset.fallback2){this.dataset.fallback2='1';this.src='./assets/loading.png';}else{this.style.display='none';}"
+                >
             </div>
         </div>
     </div>
@@ -27,6 +32,13 @@
     <div id="app">
         <header class="top-bar">
             <div class="top-bar-banner">
+                <img
+                    src="./assets/ui/top_bar_bg.png"
+                    alt=""
+                    class="top-bar-image"
+                    onerror="if(!this.dataset.fallback1){this.dataset.fallback1='1';this.src='./assets/ui/topbar.png';}else if(!this.dataset.fallback2){this.dataset.fallback2='1';this.src='./assets/top_bar_bg.png';}else if(!this.dataset.fallback3){this.dataset.fallback3='1';this.src='./assets/topbar.png';}else{this.style.display='none';this.parentElement.classList.add('top-bar-banner-fallback-only');}"
+                >
+
                 <div class="top-bar-fallback">
                     <div class="top-bar-left">
                         <div class="top-avatar"></div>
@@ -144,7 +156,6 @@
                         </div>
                     </div>
 
-                    <!-- legacy hidden targets -->
                     <div style="display:none;">
                         <span id="coins">0</span>
                         <span id="gems">0</span>
