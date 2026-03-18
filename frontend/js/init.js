@@ -10,6 +10,42 @@ CryptoZoo.init = async function () {
     const loadingStartTime = Date.now();
     const minimumLoadingTime = 2200;
 
+    const setViewportVars = function () {
+        const appHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        document.documentElement.style.setProperty("--app-height", `${appHeight}px`);
+    };
+
+    const setupResponsiveEnvironment = function () {
+        setViewportVars();
+
+        if (!window.__cryptoZooViewportBound) {
+            window.__cryptoZooViewportBound = true;
+
+            window.addEventListener("resize", setViewportVars);
+            window.addEventListener("orientationchange", setViewportVars);
+
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener("resize", setViewportVars);
+            }
+        }
+
+        if (window.Telegram && window.Telegram.WebApp) {
+            document.body.classList.add("telegram-webapp");
+
+            try {
+                window.Telegram.WebApp.ready();
+            } catch (error) {
+                console.warn("Telegram WebApp ready error:", error);
+            }
+
+            try {
+                window.Telegram.WebApp.expand();
+            } catch (error) {
+                console.warn("Telegram WebApp expand error:", error);
+            }
+        }
+    };
+
     const setLoading = function (value) {
         const safeValue = Math.max(0, Math.min(100, Number(value) || 0));
 
@@ -40,6 +76,7 @@ CryptoZoo.init = async function () {
     };
 
     try {
+        setupResponsiveEnvironment();
         setLoading(8);
 
         CryptoZoo.state = CryptoZoo.state || {};
@@ -60,6 +97,7 @@ CryptoZoo.init = async function () {
         }
 
         CryptoZoo.telegram?.init?.();
+        setViewportVars();
 
         await new Promise((resolve) => setTimeout(resolve, 180));
         setLoading(35);
@@ -69,6 +107,7 @@ CryptoZoo.init = async function () {
         }
 
         CryptoZoo.dom?.cacheElements?.();
+        setViewportVars();
 
         await new Promise((resolve) => setTimeout(resolve, 180));
         setLoading(52);
@@ -77,7 +116,6 @@ CryptoZoo.init = async function () {
         CryptoZoo.shop?.init?.();
         CryptoZoo.minigames?.init?.();
 
-        // 🔥 NAJWAŻNIEJSZE
         CryptoZoo.gameplay?.init?.();
         console.log("✅ gameplay init OK");
 
@@ -87,7 +125,6 @@ CryptoZoo.init = async function () {
         CryptoZoo.ui?.render?.();
         console.log("✅ ui render OK");
 
-        // 🔥 FIX: STAŁY RENDER LOOP (usuwa problem "zamrożonej gry")
         if (!window.__cryptoZooRenderLoopStarted) {
             window.__cryptoZooRenderLoopStarted = true;
 
