@@ -5,8 +5,10 @@
     transform: translateX(-50%);
     z-index: 1200;
 
-    width: calc(100% - (max(var(--app-side-padding), var(--safe-left)) + max(var(--app-side-padding), var(--safe-right))));
-    max-width: var(--app-max-width);
+    width: min(
+        calc(100vw - (max(var(--app-side-padding), var(--safe-left)) + max(var(--app-side-padding), var(--safe-right)))),
+        var(--app-max-width)
+    );
 
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
