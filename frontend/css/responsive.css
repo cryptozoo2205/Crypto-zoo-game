@@ -8,6 +8,7 @@
     :root {
         --app-max-width: 640px;
         --menu-height: 96px;
+        --content-bottom-space: calc(var(--menu-height) + var(--menu-gap) + var(--menu-safe-bottom) + 20px);
     }
 
     .panel.card {
@@ -34,10 +35,6 @@
 @media (max-width: 520px) {
     #app {
         width: 100%;
-    }
-
-    .menu {
-        max-width: none;
     }
 
     .home-stats-panel {
