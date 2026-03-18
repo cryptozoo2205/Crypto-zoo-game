@@ -154,26 +154,61 @@ CryptoZoo.ui = {
         document.getElementById(id)?.addEventListener("click", handler);
     },
 
+    goToBoostShop() {
+        const shopButton = document.querySelector('[data-nav="shop"]');
+
+        if (shopButton) {
+            shopButton.click();
+        } else if (CryptoZoo.gameplay?.showScreen) {
+            CryptoZoo.gameplay.showScreen("shop");
+        }
+
+        const boostCard = document.getElementById("boostShopCard");
+        if (boostCard) {
+            setTimeout(() => {
+                boostCard.scrollIntoView({ behavior: "smooth", block: "center" });
+            }, 150);
+        }
+    },
+
     bindHomeButtons() {
         const boostBtn = document.getElementById("homeBoostBtn");
         if (boostBtn && !boostBtn.dataset.bound) {
             boostBtn.dataset.bound = "1";
             boostBtn.addEventListener("click", () => {
-                const shopButton = document.querySelector('[data-nav="shop"]');
-                if (shopButton) {
-                    shopButton.click();
-                } else if (CryptoZoo.gameplay?.showScreen) {
-                    CryptoZoo.gameplay.showScreen("shop");
+                const gameplay = CryptoZoo.gameplay;
+                const state = CryptoZoo.state || {};
+                const gems = Number(state.gems) || 0;
+
+                if (gameplay?.isBoost2xActive?.()) {
+                    const left = gameplay.getBoost2xTimeLeft?.() || 0;
+                    this.showToast(`Boost aktywny: ${this.formatTimeLeft(left)}`);
+                    return;
                 }
 
-                const boostCard = document.getElementById("boostShopCard");
-                if (boostCard) {
-                    setTimeout(() => {
-                        boostCard.scrollIntoView({ behavior: "smooth", block: "center" });
-                    }, 150);
+                if (gems >= 1) {
+                    gameplay?.activateBoost2x?.();
+                    return;
                 }
 
-                this.showToast("Sekcja X2 Boost jest w sklepie");
+                this.goToBoostShop();
+                this.showToast("Potrzebujesz 1 gema na X2 Boost");
+            });
+        }
+
+        const boostInfoBtn = document.getElementById("homeBoostInfoBtn");
+        if (boostInfoBtn && !boostInfoBtn.dataset.bound) {
+            boostInfoBtn.dataset.bound = "1";
+            boostInfoBtn.addEventListener("click", () => {
+                const gameplay = CryptoZoo.gameplay;
+
+                if (gameplay?.isBoost2xActive?.()) {
+                    const left = gameplay.getBoost2xTimeLeft?.() || 0;
+                    this.showToast(`Boost aktywny: ${this.formatTimeLeft(left)}`);
+                    return;
+                }
+
+                this.goToBoostShop();
             });
         }
 
@@ -221,15 +256,31 @@ CryptoZoo.ui = {
         if (settingsBtn && !settingsBtn.dataset.bound) {
             settingsBtn.dataset.bound = "1";
             settingsBtn.addEventListener("click", () => {
-                this.showToast("Settings w przygotowaniu");
+                this.showToast("Settings panel w przygotowaniu");
             });
         }
 
-        const telegramBtn = document.getElementById("topTelegramBtn");
-        if (telegramBtn && !telegramBtn.dataset.bound) {
-            telegramBtn.dataset.bound = "1";
-            telegramBtn.addEventListener("click", () => {
-                this.showToast("Telegram w przygotowaniu");
+        const eventsBtn = document.getElementById("topEventsBtn");
+        if (eventsBtn && !eventsBtn.dataset.bound) {
+            eventsBtn.dataset.bound = "1";
+            eventsBtn.addEventListener("click", () => {
+                this.showToast("Events i gwiazdki będą dodane w kolejnym etapie");
+            });
+        }
+
+        const dailyBtn = document.getElementById("homeDailyBtn");
+        if (dailyBtn && !dailyBtn.dataset.bound) {
+            dailyBtn.dataset.bound = "1";
+            dailyBtn.addEventListener("click", () => {
+                this.showToast("Daily Reward w przygotowaniu");
+            });
+        }
+
+        const homeEventsBtn = document.getElementById("homeEventsBtn");
+        if (homeEventsBtn && !homeEventsBtn.dataset.bound) {
+            homeEventsBtn.dataset.bound = "1";
+            homeEventsBtn.addEventListener("click", () => {
+                this.showToast("Events będą dodane w kolejnym etapie");
             });
         }
     },
@@ -252,7 +303,7 @@ CryptoZoo.ui = {
         }
 
         if (isActive) {
-            const text = `⚡ Aktywny • ${this.formatTimeLeft(left)}`;
+            const text = `Aktywny • ${this.formatTimeLeft(left)}`;
 
             if (homeStatus) {
                 homeStatus.textContent = text;
@@ -260,7 +311,7 @@ CryptoZoo.ui = {
             }
 
             if (shopStatus) {
-                shopStatus.textContent = text;
+                shopStatus.textContent = `⚡ Aktywny • ${this.formatTimeLeft(left)}`;
             }
 
             if (buyBtn) {
@@ -321,6 +372,7 @@ CryptoZoo.ui = {
         this.updateText("homeLevel", CryptoZoo.formatNumber(state.level || 1));
         this.updateText("homeCoinsPerClick", CryptoZoo.formatNumber((state.coinsPerClick || 1) * multiplier));
         this.updateText("homeIncomeStripValue", CryptoZoo.formatNumber((state.zooIncome || 0) * multiplier));
+        this.updateText("homeZooIncomeStat", CryptoZoo.formatNumber((state.zooIncome || 0) * multiplier));
 
         this.updateText("homeMonkeyCount", CryptoZoo.formatNumber(animals.monkey?.count || 0));
         this.updateText("homeMonkeyLevel", CryptoZoo.formatNumber(animals.monkey?.level || 1));
