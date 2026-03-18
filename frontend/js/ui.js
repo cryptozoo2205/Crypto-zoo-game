@@ -212,35 +212,27 @@ CryptoZoo.ui = {
             });
         }
 
-        const quickShopBtn = document.getElementById("homeQuickShopBtn");
-        if (quickShopBtn && !quickShopBtn.dataset.bound) {
-            quickShopBtn.dataset.bound = "1";
-            quickShopBtn.addEventListener("click", () => {
-                CryptoZoo.gameplay?.showScreen?.("shop");
+        const homeDailyBtn = document.getElementById("homeDailyBtn");
+        if (homeDailyBtn && !homeDailyBtn.dataset.bound) {
+            homeDailyBtn.dataset.bound = "1";
+            homeDailyBtn.addEventListener("click", () => {
+                this.showToast("Daily Reward w przygotowaniu");
             });
         }
 
-        const quickZooBtn = document.getElementById("homeQuickZooBtn");
-        if (quickZooBtn && !quickZooBtn.dataset.bound) {
-            quickZooBtn.dataset.bound = "1";
-            quickZooBtn.addEventListener("click", () => {
-                CryptoZoo.gameplay?.showScreen?.("zoo");
+        const homeEventsBtn = document.getElementById("homeEventsBtn");
+        if (homeEventsBtn && !homeEventsBtn.dataset.bound) {
+            homeEventsBtn.dataset.bound = "1";
+            homeEventsBtn.addEventListener("click", () => {
+                this.showToast("Eventy w przygotowaniu");
             });
         }
 
-        const quickRankingBtn = document.getElementById("homeQuickRankingBtn");
-        if (quickRankingBtn && !quickRankingBtn.dataset.bound) {
-            quickRankingBtn.dataset.bound = "1";
-            quickRankingBtn.addEventListener("click", () => {
-                CryptoZoo.gameplay?.showScreen?.("ranking");
-            });
-        }
-
-        const featureBtn = document.getElementById("homeFeatureBtn");
-        if (featureBtn && !featureBtn.dataset.bound) {
-            featureBtn.dataset.bound = "1";
-            featureBtn.addEventListener("click", () => {
-                this.showToast("Daily / Event system w przygotowaniu");
+        const homeBoostInfoBtn = document.getElementById("homeBoostInfoBtn");
+        if (homeBoostInfoBtn && !homeBoostInfoBtn.dataset.bound) {
+            homeBoostInfoBtn.dataset.bound = "1";
+            homeBoostInfoBtn.addEventListener("click", () => {
+                this.goToBoostShop();
             });
         }
 
@@ -302,7 +294,6 @@ CryptoZoo.ui = {
         const homeBtn = document.getElementById("homeBoostBtn");
         const incomeStrip = document.querySelector(".home-income-strip");
         const tapButton = document.getElementById("tapButton");
-        const featureText = document.getElementById("homeFeatureText");
 
         if (homeStatus) {
             homeStatus.className = "home-boost-status";
@@ -338,10 +329,6 @@ CryptoZoo.ui = {
             if (tapButton) {
                 tapButton.classList.add("boost-active");
             }
-
-            if (featureText) {
-                featureText.textContent = `X2 Boost aktywny. Pozostały czas: ${timeText}.`;
-            }
         } else {
             if (homeStatus) {
                 homeStatus.textContent = "Nieaktywny";
@@ -369,10 +356,6 @@ CryptoZoo.ui = {
             if (tapButton) {
                 tapButton.classList.remove("boost-active");
             }
-
-            if (featureText) {
-                featureText.textContent = "Wkrótce: daily reward, eventy i specjalne bonusy.";
-            }
         }
     },
 
@@ -386,6 +369,7 @@ CryptoZoo.ui = {
         this.updateText("homeRewardBalance", CryptoZoo.formatNumber(state.rewardBalance || 0));
         this.updateText("homeLevel", CryptoZoo.formatNumber(state.level || 1));
         this.updateText("homeCoinsPerClick", CryptoZoo.formatNumber((state.coinsPerClick || 1) * multiplier));
+        this.updateText("homeZooIncomeStat", CryptoZoo.formatNumber((state.zooIncome || 0) * multiplier));
         this.updateText("homeIncomeStripValue", CryptoZoo.formatNumber((state.zooIncome || 0) * multiplier));
 
         this.updateText("homeMonkeyCount", CryptoZoo.formatNumber(animals.monkey?.count || 0));
