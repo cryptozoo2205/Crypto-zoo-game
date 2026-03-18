@@ -13,13 +13,14 @@ CryptoZoo.ui = {
             toast.style.left = "50%";
             toast.style.bottom = "96px";
             toast.style.transform = "translateX(-50%)";
-            toast.style.background = "rgba(10, 18, 35, 0.92)";
+            toast.style.background = "rgba(10, 18, 35, 0.96)";
             toast.style.color = "#ffffff";
             toast.style.padding = "12px 18px";
             toast.style.borderRadius = "14px";
-            toast.style.zIndex = "2000";
+            toast.style.zIndex = "99999";
             toast.style.display = "none";
-            toast.style.boxShadow = "0 8px 28px rgba(0, 0, 0, 0.28)";
+            toast.style.fontWeight = "800";
+            toast.style.boxShadow = "0 8px 28px rgba(0, 0, 0, 0.32)";
             toast.style.border = "1px solid rgba(255,255,255,0.08)";
             document.body.appendChild(toast);
         }
@@ -40,10 +41,13 @@ CryptoZoo.ui = {
         const area = tapButton.parentElement;
         area.style.position = "relative";
 
-        const clickValue =
+        const baseClickValue =
             Number(CryptoZoo.state?.coinsPerClick) ||
             Number(CryptoZoo.config?.clickValue) ||
             1;
+
+        const multiplier = CryptoZoo.gameplay?.getBoost2xMultiplier?.() || 1;
+        const clickValue = baseClickValue * multiplier;
 
         const pop = document.createElement("div");
         pop.className = "coin-pop";
@@ -172,23 +176,50 @@ CryptoZoo.ui = {
         }
     },
 
+    renderBoostStatus() {
+        const isActive = CryptoZoo.gameplay?.isBoost2xActive?.();
+        const left = CryptoZoo.gameplay?.getBoost2xTimeLeft?.() || 0;
+        const homeStatus = document.getElementById("homeBoostStatus");
+        const shopStatus = document.getElementById("boostShopStatus");
+        const buyBtn = document.getElementById("buyBoostBtn");
+
+        if (isActive) {
+            const text = `Aktywny: ${this.formatTimeLeft(left)}`;
+
+            if (homeStatus) homeStatus.textContent = text;
+            if (shopStatus) shopStatus.textContent = text;
+            if (buyBtn) {
+                buyBtn.disabled = true;
+                buyBtn.textContent = "Boost aktywny";
+            }
+        } else {
+            if (homeStatus) homeStatus.textContent = "Nieaktywny";
+            if (shopStatus) shopStatus.textContent = "Nieaktywny";
+            if (buyBtn) {
+                buyBtn.disabled = false;
+                buyBtn.textContent = "Kup X2 Boost";
+            }
+        }
+    },
+
     renderHomeOverview() {
         const state = CryptoZoo.state || {};
         const animals = state.animals || {};
+        const multiplier = CryptoZoo.gameplay?.getBoost2xMultiplier?.() || 1;
 
         this.updateText("coins", CryptoZoo.formatNumber(state.coins || 0));
         this.updateText("gems", CryptoZoo.formatNumber(state.gems || 0));
         this.updateText("rewardBalance", CryptoZoo.formatNumber(state.rewardBalance || 0));
         this.updateText("level", CryptoZoo.formatNumber(state.level || 1));
-        this.updateText("coinsPerClick", CryptoZoo.formatNumber(state.coinsPerClick || 1));
-        this.updateText("zooIncome", CryptoZoo.formatNumber(state.zooIncome || 0));
+        this.updateText("coinsPerClick", CryptoZoo.formatNumber((state.coinsPerClick || 1) * multiplier));
+        this.updateText("zooIncome", CryptoZoo.formatNumber((state.zooIncome || 0) * multiplier));
 
         this.updateText("homeCoins", CryptoZoo.formatNumber(state.coins || 0));
         this.updateText("homeGems", CryptoZoo.formatNumber(state.gems || 0));
         this.updateText("homeRewardBalance", CryptoZoo.formatNumber(state.rewardBalance || 0));
         this.updateText("homeLevel", CryptoZoo.formatNumber(state.level || 1));
-        this.updateText("homeCoinsPerClick", CryptoZoo.formatNumber(state.coinsPerClick || 1));
-        this.updateText("homeIncomeStripValue", CryptoZoo.formatNumber(state.zooIncome || 0));
+        this.updateText("homeCoinsPerClick", CryptoZoo.formatNumber((state.coinsPerClick || 1) * multiplier));
+        this.updateText("homeIncomeStripValue", CryptoZoo.formatNumber((state.zooIncome || 0) * multiplier));
 
         this.updateText("homeMonkeyCount", CryptoZoo.formatNumber(animals.monkey?.count || 0));
         this.updateText("homeMonkeyLevel", CryptoZoo.formatNumber(animals.monkey?.level || 1));
@@ -200,6 +231,7 @@ CryptoZoo.ui = {
         this.updateText("homeLionLevel", CryptoZoo.formatNumber(animals.lion?.level || 1));
 
         this.bindHomeButtons();
+        this.renderBoostStatus();
     },
 
     renderZooList() {
