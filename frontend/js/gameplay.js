@@ -49,11 +49,36 @@ CryptoZoo.gameplay = {
         if (typeof CryptoZoo.state.expeditionBoost !== "number") CryptoZoo.state.expeditionBoost = Number(CryptoZoo.state.expeditionBoost) || 0;
         if (typeof CryptoZoo.state.offlineBoost !== "number") CryptoZoo.state.offlineBoost = Number(CryptoZoo.state.offlineBoost) || 1;
         if (typeof CryptoZoo.state.xp !== "number") CryptoZoo.state.xp = Number(CryptoZoo.state.xp) || 0;
-        if (typeof CryptoZoo.state.boost2xActiveUntil !== "number") CryptoZoo.state.boost2xActiveUntil = Number(CryptoZoo.state.boost2xActiveUntil) || 0;
+        if (typeof CryptoZoo.state.boost2xActiveUntil !== "number") {
+            CryptoZoo.state.boost2xActiveUntil = Number(CryptoZoo.state.boost2xActiveUntil) || 0;
+        }
+
+        CryptoZoo.state.boost2xActiveUntil = this.normalizeBoostTimestamp(CryptoZoo.state.boost2xActiveUntil);
+    },
+
+    normalizeBoostTimestamp(value) {
+        let safeValue = Number(value) || 0;
+
+        if (safeValue <= 0) {
+            return 0;
+        }
+
+        /*
+            Fix dla przypadków, gdy backend / storage zwraca timestamp w sekundach
+            zamiast w milisekundach.
+        */
+        if (safeValue > 0 && safeValue < 1000000000000) {
+            safeValue *= 1000;
+        }
+
+        return safeValue;
     },
 
     isBoost2xActive() {
-        return (Number(CryptoZoo.state.boost2xActiveUntil) || 0) > Date.now();
+        const activeUntil = this.normalizeBoostTimestamp(CryptoZoo.state?.boost2xActiveUntil);
+        CryptoZoo.state.boost2xActiveUntil = activeUntil;
+
+        return activeUntil > Date.now();
     },
 
     getBoost2xMultiplier() {
@@ -61,7 +86,10 @@ CryptoZoo.gameplay = {
     },
 
     getBoost2xTimeLeft() {
-        const leftMs = (Number(CryptoZoo.state.boost2xActiveUntil) || 0) - Date.now();
+        const activeUntil = this.normalizeBoostTimestamp(CryptoZoo.state?.boost2xActiveUntil);
+        CryptoZoo.state.boost2xActiveUntil = activeUntil;
+
+        const leftMs = activeUntil - Date.now();
         return Math.max(0, Math.floor(leftMs / 1000));
     },
 
@@ -70,7 +98,10 @@ CryptoZoo.gameplay = {
         const boostDurationMs = 10 * 60 * 1000;
 
         if (this.isBoost2xActive()) {
-            CryptoZoo.ui?.showToast?.(`Boost już aktywny: ${CryptoZoo.ui?.formatTimeLeft?.(this.getBoost2xTimeLeft())}`);
+            CryptoZoo.ui?.showToast?.(
+                `Boost już aktywny: ${CryptoZoo.ui?.formatTimeLeft?.(this.getBoost2xTimeLeft()) || "00:00:00"}`
+            );
+            CryptoZoo.ui?.render?.();
             return true;
         }
 
@@ -79,12 +110,18 @@ CryptoZoo.gameplay = {
             return false;
         }
 
-        CryptoZoo.state.gems -= boostCostGems;
+        CryptoZoo.state.gems = (Number(CryptoZoo.state.gems) || 0) - boostCostGems;
         CryptoZoo.state.boost2xActiveUntil = Date.now() + boostDurationMs;
 
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
         CryptoZoo.ui?.showToast?.("X2 Boost aktywowany");
+
+        /*
+            Po kupieniu boosta wracamy na home, żeby od razu było widać aktywny timer.
+        */
+        this.showScreen("game");
+
         return true;
     },
 
@@ -149,6 +186,8 @@ CryptoZoo.gameplay = {
         if (screenName === "shop") {
             this.bindBoostShopButton();
         }
+
+        CryptoZoo.ui?.render?.();
     },
 
     bindTap() {
@@ -392,7 +431,8 @@ CryptoZoo.gameplay = {
         this.boostTimerStarted = true;
 
         setInterval(() => {
-            const activeUntil = Number(CryptoZoo.state?.boost2xActiveUntil) || 0;
+            const activeUntil = this.normalizeBoostTimestamp(CryptoZoo.state?.boost2xActiveUntil);
+            CryptoZoo.state.boost2xActiveUntil = activeUntil;
 
             if (activeUntil > 0 && activeUntil <= Date.now()) {
                 CryptoZoo.state.boost2xActiveUntil = 0;
