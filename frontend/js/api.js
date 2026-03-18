@@ -206,4 +206,4 @@ window.CryptoZoo.api = {
             return [];
         }
     }
-};
+}; 
