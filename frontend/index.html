@@ -23,7 +23,7 @@
                     src="./assets/loading/loading_main.png"
                     alt=""
                     class="loading-image"
-                    onerror="if(!this.dataset.fallback1){this.dataset.fallback1='1';this.src='./assets/loading/loading.png';}else if(!this.dataset.fallback2){this.dataset.fallback2='1';this.src='./assets/loading.png';}else{this.style.display='none';}"
+                    onerror="this.style.display='none';"
                 >
             </div>
         </div>
@@ -36,7 +36,7 @@
                     src="./assets/ui/top_bar_bg.png"
                     alt=""
                     class="top-bar-image"
-                    onerror="if(!this.dataset.fallback1){this.dataset.fallback1='1';this.src='./assets/ui/topbar.png';}else if(!this.dataset.fallback2){this.dataset.fallback2='1';this.src='./assets/top_bar_bg.png';}else if(!this.dataset.fallback3){this.dataset.fallback3='1';this.src='./assets/topbar.png';}else{this.style.display='none';this.parentElement.classList.add('top-bar-banner-fallback-only');}"
+                    onerror="this.style.display='none';"
                 >
 
                 <div class="top-bar-fallback">
@@ -105,7 +105,7 @@
                         <div class="home-boost-right">
                             <div class="home-boost-title">⚡ X2 Boost</div>
                             <button id="homeBoostBtn" class="home-boost-button" type="button">Aktywuj</button>
-                            <div id="homeBoostStatus" style="margin-top:6px; font-size:11px; color:rgba(255,255,255,0.72);"></div>
+                            <div id="homeBoostStatus" class="home-boost-status">Nieaktywny</div>
                         </div>
                     </div>
 
@@ -183,7 +183,7 @@
                         <h3>⚡ X2 Boost</h3>
                         <div>Podwaja klik i dochód zoo przez 10 minut.</div>
                         <div style="margin-top:6px;">Koszt: <strong>25 gems</strong></div>
-                        <div id="boostShopStatus" style="margin-top:6px;"></div>
+                        <div id="boostShopStatus" style="margin-top:6px;">Nieaktywny</div>
                         <button id="buyBoostBtn" type="button" style="margin-top:10px;">Kup X2 Boost</button>
                     </div>
 
