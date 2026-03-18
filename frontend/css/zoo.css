@@ -15,6 +15,7 @@
     justify-content: space-between;
     align-items: center;
     gap: 14px;
+    min-width: 0;
     background: linear-gradient(180deg, rgba(37, 50, 88, 0.62) 0%, rgba(26, 37, 68, 0.72) 100%);
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 22px;
@@ -27,7 +28,7 @@
     align-items: center;
     gap: 12px;
     min-width: 0;
-    flex: 1;
+    flex: 1 1 auto;
 }
 
 .animal-icon {
@@ -54,7 +55,7 @@
 
 .animal-text {
     min-width: 0;
-    flex: 1;
+    flex: 1 1 auto;
 }
 
 .animal-name {
@@ -63,6 +64,7 @@
     font-weight: 800;
     line-height: 1.05;
     color: #ffffff;
+    overflow-wrap: anywhere;
 }
 
 .animal-desc,
@@ -71,6 +73,7 @@
     font-size: 13px;
     line-height: 1.35;
     color: rgba(255, 255, 255, 0.84);
+    overflow-wrap: anywhere;
 }
 
 .animal-owned {
@@ -84,6 +87,7 @@
     flex-direction: column;
     gap: 10px;
     width: 132px;
+    min-width: 132px;
     flex-shrink: 0;
 }
 
@@ -91,6 +95,7 @@
     border: none;
     border-radius: 16px;
     min-height: 44px;
+    padding: 10px 8px;
     font-size: 14px;
     font-weight: 800;
     cursor: pointer;
@@ -111,4 +116,127 @@
     color: #ffffff;
     background: linear-gradient(180deg, rgba(73, 91, 138, 0.95) 0%, rgba(56, 71, 110, 0.95) 100%);
     box-shadow: 0 8px 18px rgba(19, 29, 58, 0.28);
+}
+
+@media (max-width: 640px) {
+    .animal-row {
+        gap: 12px;
+    }
+
+    .animal-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+    }
+
+    .animal-icon img {
+        width: 56px;
+        height: 56px;
+    }
+
+    .animal-name {
+        font-size: 16px;
+    }
+
+    .animal-desc,
+    .animal-owned {
+        font-size: 12px;
+    }
+
+    .animal-actions {
+        width: 124px;
+        min-width: 124px;
+    }
+
+    .animal-actions button {
+        min-height: 42px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 520px) {
+    .animal-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        padding: 11px;
+        border-radius: 18px;
+    }
+
+    .animal-left {
+        align-items: flex-start;
+    }
+
+    .animal-icon {
+        width: 58px;
+        height: 58px;
+        border-radius: 14px;
+    }
+
+    .animal-icon img {
+        width: 50px;
+        height: 50px;
+    }
+
+    .animal-name {
+        font-size: 15px;
+    }
+
+    .animal-desc,
+    .animal-owned {
+        font-size: 12px;
+    }
+
+    .animal-actions {
+        width: 100%;
+        min-width: 0;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .animal-actions button {
+        min-height: 42px;
+        border-radius: 13px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 380px) {
+    .animal-row {
+        padding: 10px;
+        border-radius: 16px;
+    }
+
+    .animal-left {
+        gap: 10px;
+    }
+
+    .animal-icon {
+        width: 52px;
+        height: 52px;
+    }
+
+    .animal-icon img {
+        width: 44px;
+        height: 44px;
+    }
+
+    .animal-name {
+        font-size: 14px;
+    }
+
+    .animal-desc,
+    .animal-owned {
+        font-size: 11px;
+    }
+
+    .animal-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .animal-actions button {
+        min-height: 40px;
+        font-size: 12px;
+    }
 }
