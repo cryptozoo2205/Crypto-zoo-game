@@ -129,79 +129,14 @@ CryptoZoo.ui = {
                 }
             });
         }
-    },
 
-    renderBoostStatus() {
-        const isActive = CryptoZoo.gameplay?.isBoost2xActive?.();
-        const left = CryptoZoo.gameplay?.getBoost2xTimeLeft?.() || 0;
+        const animalActions = [
+            { buyId: "homeBuyMonkeyBtn", upgradeId: "homeUpgradeMonkeyBtn", type: "monkey" },
+            { buyId: "homeBuyPandaBtn", upgradeId: "homeUpgradePandaBtn", type: "panda" },
+            { buyId: "homeBuyLionBtn", upgradeId: "homeUpgradeLionBtn", type: "lion" }
+        ];
 
-        const homeStatus = document.getElementById("homeBoostStatus");
-        const shopStatus = document.getElementById("boostShopStatus");
-        const buyBtn = document.getElementById("buyBoostBtn");
-        const homeBtn = document.getElementById("homeBoostBtn");
-        const incomeStrip = document.querySelector(".home-income-strip");
-        const tapButton = document.getElementById("tapButton");
-
-        if (homeStatus) homeStatus.className = "home-boost-status";
-
-        if (isActive) {
-            const text = `⚡ X2 ACTIVE • ${this.formatTimeLeft(left)}`;
-
-            if (homeStatus) {
-                homeStatus.textContent = text;
-                homeStatus.classList.add("boost-active");
-            }
-
-            if (shopStatus) shopStatus.textContent = text;
-
-            if (buyBtn) {
-                buyBtn.disabled = true;
-                buyBtn.textContent = "Boost aktywny";
-            }
-
-            if (homeBtn) homeBtn.classList.add("boost-active");
-            if (incomeStrip) incomeStrip.classList.add("boost-active");
-
-            // 🔥 TAP BUTTON GLOW
-            if (tapButton) tapButton.classList.add("boost-active");
-
-        } else {
-            if (homeStatus) {
-                homeStatus.textContent = "Nieaktywny";
-                homeStatus.classList.remove("boost-active");
-            }
-
-            if (shopStatus) shopStatus.textContent = "Nieaktywny";
-
-            if (buyBtn) {
-                buyBtn.disabled = false;
-                buyBtn.textContent = "Kup X2 Boost";
-            }
-
-            if (homeBtn) homeBtn.classList.remove("boost-active");
-            if (incomeStrip) incomeStrip.classList.remove("boost-active");
-
-            // ❌ usuń glow
-            if (tapButton) tapButton.classList.remove("boost-active");
-        }
-    },
-
-    renderHomeOverview() {
-        const state = CryptoZoo.state || {};
-        const multiplier = CryptoZoo.gameplay?.getBoost2xMultiplier?.() || 1;
-
-        this.updateText("homeCoins", CryptoZoo.formatNumber(state.coins || 0));
-        this.updateText("homeGems", CryptoZoo.formatNumber(state.gems || 0));
-        this.updateText("homeRewardBalance", CryptoZoo.formatNumber(state.rewardBalance || 0));
-        this.updateText("homeLevel", CryptoZoo.formatNumber(state.level || 1));
-        this.updateText("homeCoinsPerClick", CryptoZoo.formatNumber((state.coinsPerClick || 1) * multiplier));
-        this.updateText("homeIncomeStripValue", CryptoZoo.formatNumber((state.zooIncome || 0) * multiplier));
-
-        this.bindHomeButtons();
-        this.renderBoostStatus();
-    },
-
-    render() {
-        this.renderHomeOverview();
-    }
-};
+        animalActions.forEach((item) => {
+            const buyBtn = document.getElementById(item.buyId);
+            if (buyBtn && !buyBtn.dataset.bound) {
+                buyBtn.dataset.bound =
