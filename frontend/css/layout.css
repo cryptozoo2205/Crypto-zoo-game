@@ -1,13 +1,12 @@
 .top-bar {
     width: 100%;
-    margin: 10px auto 8px;
+    margin: 0;
 }
 
 .top-bar-banner {
     position: relative;
     width: 100%;
     min-height: 82px;
-    margin-bottom: 10px;
     border-radius: 20px;
     overflow: hidden;
     background: linear-gradient(180deg, rgba(12, 18, 32, 0.82) 0%, rgba(10, 16, 28, 0.90) 100%);
@@ -51,6 +50,7 @@
     align-items: center;
     gap: 10px;
     min-width: 0;
+    flex: 1 1 auto;
 }
 
 .top-avatar {
@@ -72,6 +72,9 @@
     font-weight: 900;
     color: #ffffff;
     line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .top-user-status {
@@ -79,6 +82,9 @@
     font-size: 11px;
     color: #5df08a;
     line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .top-bar-right {
@@ -108,7 +114,9 @@
 
 main#game {
     width: 100%;
-    padding-bottom: 86px;
+    min-width: 0;
+    flex: 1 1 auto;
+    padding-bottom: 0;
 }
 
 #screen-game,
@@ -118,6 +126,7 @@ main#game {
 #screen-minigames,
 #screen-ranking {
     width: 100%;
+    min-width: 0;
 }
 
 .home-stats-panel {
@@ -172,6 +181,7 @@ main#game {
     color: #ffffff;
     line-height: 1.1;
     word-break: break-word;
+    overflow-wrap: anywhere;
 }
 
 .home-zoo-preview {
@@ -197,12 +207,14 @@ main#game {
     justify-content: space-between;
     gap: 10px;
     margin-bottom: 10px;
+    min-width: 0;
 }
 
 .home-zoo-preview-title {
     font-size: 17px;
     font-weight: 900;
     color: #ffffff;
+    min-width: 0;
 }
 
 .home-zoo-preview-button {
@@ -214,6 +226,7 @@ main#game {
     color: #1a1a1a;
     background: linear-gradient(180deg, #ffe27a 0%, #ffbf00 100%);
     box-shadow: 0 8px 16px rgba(255, 191, 0, 0.16);
+    flex: 0 0 auto;
 }
 
 .home-zoo-preview-list {
@@ -223,6 +236,7 @@ main#game {
 }
 
 .home-zoo-preview-card {
+    min-width: 0;
     background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.03) 100%);
     border: 1px solid rgba(255,255,255,0.06);
     border-radius: 16px;
@@ -250,6 +264,7 @@ main#game {
     color: rgba(255,255,255,0.78);
     line-height: 1.3;
     margin-bottom: 6px;
+    word-break: break-word;
 }
 
 .home-zoo-preview-actions {
@@ -265,6 +280,7 @@ main#game {
     font-size: 10px;
     font-weight: 800;
     cursor: pointer;
+    min-width: 0;
 }
 
 .home-zoo-preview-actions button:first-child {
@@ -278,13 +294,8 @@ main#game {
 }
 
 @media (max-width: 520px) {
-    .top-bar {
-        margin: 8px auto 6px;
-    }
-
     .top-bar-banner {
         min-height: 74px;
-        margin-bottom: 8px;
         border-radius: 18px;
     }
 
@@ -312,10 +323,6 @@ main#game {
         font-size: 15px;
     }
 
-    main#game {
-        padding-bottom: 78px;
-    }
-
     .home-stats-panel {
         gap: 8px;
         margin-bottom: 8px;
@@ -340,11 +347,16 @@ main#game {
         margin-top: 8px;
     }
 
+    .home-zoo-preview-head {
+        flex-wrap: wrap;
+    }
+
     .home-zoo-preview-title {
         font-size: 15px;
     }
 
     .home-zoo-preview-button {
+        width: 100%;
         padding: 8px 11px;
         font-size: 12px;
     }
@@ -377,5 +389,52 @@ main#game {
         padding: 6px 4px;
         font-size: 9px;
         border-radius: 9px;
+    }
+}
+
+@media (max-width: 380px) {
+    .top-bar-banner {
+        min-height: 70px;
+        border-radius: 16px;
+    }
+
+    .top-bar-fallback {
+        min-height: 70px;
+        padding: 8px;
+    }
+
+    .top-bar-left {
+        gap: 8px;
+    }
+
+    .top-avatar {
+        width: 34px;
+        height: 34px;
+    }
+
+    .top-bar-right {
+        gap: 6px;
+    }
+
+    .top-action-btn {
+        width: 34px;
+        height: 34px;
+        font-size: 14px;
+    }
+
+    .home-stats-panel {
+        grid-template-columns: 1fr;
+    }
+
+    .home-stat-box-wide {
+        grid-column: auto;
+    }
+
+    .home-zoo-preview-list {
+        grid-template-columns: 1fr;
+    }
+
+    .home-zoo-preview-card {
+        padding: 10px;
     }
 }
