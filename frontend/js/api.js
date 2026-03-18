@@ -56,6 +56,7 @@ window.CryptoZoo.api = {
             expeditionBoost: 0,
             offlineBoost: 1,
             lastLogin: Date.now(),
+            boost2xActiveUntil: 0,
             animals: {
                 monkey: { count: 0, level: 1 },
                 panda: { count: 0, level: 1 },
@@ -97,6 +98,20 @@ window.CryptoZoo.api = {
         return result;
     },
 
+    normalizeBoostTimestamp(value) {
+        let safeValue = Number(value) || 0;
+
+        if (safeValue <= 0) {
+            return 0;
+        }
+
+        if (safeValue < 1000000000000) {
+            safeValue *= 1000;
+        }
+
+        return safeValue;
+    },
+
     normalizeState(raw) {
         const base = this.getDefaultState();
         const data = raw || {};
@@ -115,6 +130,7 @@ window.CryptoZoo.api = {
             expeditionBoost: Number(data.expeditionBoost ?? base.expeditionBoost) || 0,
             offlineBoost: Number(data.offlineBoost ?? base.offlineBoost) || 1,
             lastLogin: Number(data.lastLogin ?? base.lastLogin) || Date.now(),
+            boost2xActiveUntil: this.normalizeBoostTimestamp(data.boost2xActiveUntil ?? base.boost2xActiveUntil),
             animals: this.normalizeAnimals(data.animals || {}),
             boxes: {
                 common: Number(data.boxes?.common) || 0,
@@ -143,6 +159,7 @@ window.CryptoZoo.api = {
             expeditionBoost: state.expeditionBoost,
             offlineBoost: state.offlineBoost,
             lastLogin: Date.now(),
+            boost2xActiveUntil: state.boost2xActiveUntil,
             animals: state.animals,
             boxes: state.boxes,
             expedition: state.expedition
