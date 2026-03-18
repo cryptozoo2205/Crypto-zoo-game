@@ -587,4 +587,4 @@ CryptoZoo.ui = {
         this.renderBoxes();
         this.renderRanking();
     }
-};
+}; 
