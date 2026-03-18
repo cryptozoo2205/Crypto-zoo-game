@@ -39,11 +39,7 @@
     align-items: center;
     justify-content: center;
 
-    background: linear-gradient(
-        180deg,
-        rgba(255,255,255,0.04) 0%,
-        rgba(255,255,255,0.02) 100%
-    );
+    background: rgba(255,255,255,0.06);
     box-shadow:
         inset 0 1px 0 rgba(255,255,255,0.04),
         0 8px 18px rgba(0,0,0,0.18);
@@ -71,14 +67,17 @@
 }
 
 .menu-icon {
-    max-width: 44px;
-    max-height: 44px;
+    max-width: 36px;
+    max-height: 36px;
     width: auto;
     height: auto;
     display: block;
     object-fit: contain;
     pointer-events: none;
     user-select: none;
+
+    /* tymczasowy hack na białe tło */
+    mix-blend-mode: multiply;
 }
 
 @media (max-width: 520px) {
@@ -96,7 +95,7 @@
     }
 
     .menu-icon {
-        max-width: 38px;
-        max-height: 38px;
+        max-width: 32px;
+        max-height: 32px;
     }
 }
