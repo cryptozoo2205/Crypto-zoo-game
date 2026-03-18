@@ -80,6 +80,7 @@
         0 14px 30px rgba(0, 0, 0, 0.22);
     transition: transform 0.10s ease, filter 0.10s ease, box-shadow 0.14s ease;
     overflow: visible;
+    flex: 0 0 auto;
 }
 
 .tap-button::before {
@@ -390,6 +391,8 @@
     font-weight: 800;
     color: rgba(255,255,255,0.76);
     background: rgba(255,255,255,0.05);
+    max-width: 100%;
+    overflow-wrap: anywhere;
 }
 
 .home-boost-status.boost-active {
@@ -402,6 +405,7 @@
     content: "⚡";
     font-size: 12px;
     line-height: 1;
+    flex: 0 0 auto;
 }
 
 @keyframes boostPulse {
@@ -422,6 +426,39 @@
         box-shadow:
             0 8px 18px rgba(255, 191, 0, 0.22),
             0 0 14px rgba(255, 208, 0, 0.12);
+    }
+}
+
+@media (max-width: 767px) {
+    .tap-area {
+        min-height: 196px;
+    }
+
+    .tap-area::before {
+        width: 248px;
+        height: 248px;
+    }
+
+    .tap-glow {
+        width: 206px;
+        height: 206px;
+    }
+
+    .tap-button {
+        width: 132px;
+        height: 132px;
+    }
+
+    .home-tap-title {
+        font-size: 21px;
+    }
+
+    .home-tap-subtitle {
+        font-size: 12px;
+    }
+
+    .home-income-value {
+        font-size: 19px;
     }
 }
 
@@ -487,6 +524,10 @@
         font-size: 18px;
     }
 
+    .home-boost-right {
+        min-width: 0;
+    }
+
     .home-boost-title {
         font-size: 10px;
         margin-bottom: 4px;
@@ -502,6 +543,35 @@
         display: inline-flex;
         margin-top: 6px;
         font-size: 10px;
+    }
+}
+
+@media (max-width: 420px) {
+    .tap-area {
+        min-height: 176px;
+    }
+
+    .tap-area::before {
+        width: 214px;
+        height: 214px;
+    }
+
+    .tap-glow {
+        width: 178px;
+        height: 178px;
+    }
+
+    .tap-button {
+        width: 116px;
+        height: 116px;
+    }
+
+    .home-tap-title {
+        font-size: 19px;
+    }
+
+    .home-income-strip {
+        padding: 10px 11px;
     }
 }
 
