@@ -86,7 +86,9 @@ CryptoZoo.ui = {
         area.style.position = "relative";
 
         const baseClickValue =
-            Number(CryptoZoo.state?.coinsPerClick) || 1;
+            Number(CryptoZoo.state?.coinsPerClick) ||
+            Number(CryptoZoo.config?.clickValue) ||
+            1;
 
         const multiplier = CryptoZoo.gameplay?.getBoost2xMultiplier?.() || 1;
         const clickValue = baseClickValue * multiplier;
@@ -127,7 +129,9 @@ CryptoZoo.ui = {
 
     updateText(id, value) {
         const el = document.getElementById(id);
-        if (el) el.textContent = value;
+        if (el) {
+            el.textContent = value;
+        }
     },
 
     formatTimeLeft(seconds) {
@@ -177,7 +181,10 @@ CryptoZoo.ui = {
                 const zooButton = document.querySelector('[data-nav="zoo"]');
                 if (zooButton) {
                     zooButton.click();
-                } else if (CryptoZoo.gameplay?.showScreen) {
+                    return;
+                }
+
+                if (CryptoZoo.gameplay?.showScreen) {
                     CryptoZoo.gameplay.showScreen("zoo");
                 }
             });
@@ -206,11 +213,29 @@ CryptoZoo.ui = {
                 });
             }
         });
+
+        const settingsBtn = document.getElementById("topSettingsBtn");
+        if (settingsBtn && !settingsBtn.dataset.bound) {
+            settingsBtn.dataset.bound = "1";
+            settingsBtn.addEventListener("click", () => {
+                this.showToast("Settings w przygotowaniu");
+            });
+        }
+
+        const telegramBtn = document.getElementById("topTelegramBtn");
+        if (telegramBtn && !telegramBtn.dataset.bound) {
+            telegramBtn.dataset.bound = "1";
+            telegramBtn.addEventListener("click", () => {
+                this.showToast("Telegram w przygotowaniu");
+            });
+        }
     },
 
     renderBoostStatus() {
-        const isActive = CryptoZoo.gameplay?.isBoost2xActive?.();
-        const left = CryptoZoo.gameplay?.getBoost2xTimeLeft?.() || 0;
+        const activeUntil = Number(CryptoZoo.state?.boost2xActiveUntil) || 0;
+        const now = Date.now();
+        const isActive = activeUntil > now;
+        const left = Math.max(0, Math.floor((activeUntil - now) / 1000));
 
         const homeStatus = document.getElementById("homeBoostStatus");
         const shopStatus = document.getElementById("boostShopStatus");
@@ -219,10 +244,12 @@ CryptoZoo.ui = {
         const incomeStrip = document.querySelector(".home-income-strip");
         const tapButton = document.getElementById("tapButton");
 
-        if (homeStatus) homeStatus.className = "home-boost-status";
+        if (homeStatus) {
+            homeStatus.className = "home-boost-status";
+        }
 
         if (isActive) {
-            const text = `⚡ X2 ACTIVE • ${this.formatTimeLeft(left)}`;
+            const text = `⚡ Aktywny • ${this.formatTimeLeft(left)}`;
 
             if (homeStatus) {
                 homeStatus.textContent = text;
@@ -238,9 +265,18 @@ CryptoZoo.ui = {
                 buyBtn.textContent = "Boost aktywny";
             }
 
-            if (homeBtn) homeBtn.classList.add("boost-active");
-            if (incomeStrip) incomeStrip.classList.add("boost-active");
-            if (tapButton) tapButton.classList.add("boost-active");
+            if (homeBtn) {
+                homeBtn.classList.add("boost-active");
+                homeBtn.textContent = "Aktywny";
+            }
+
+            if (incomeStrip) {
+                incomeStrip.classList.add("boost-active");
+            }
+
+            if (tapButton) {
+                tapButton.classList.add("boost-active");
+            }
         } else {
             if (homeStatus) {
                 homeStatus.textContent = "Nieaktywny";
@@ -256,9 +292,18 @@ CryptoZoo.ui = {
                 buyBtn.textContent = "Kup X2 Boost";
             }
 
-            if (homeBtn) homeBtn.classList.remove("boost-active");
-            if (incomeStrip) incomeStrip.classList.remove("boost-active");
-            if (tapButton) tapButton.classList.remove("boost-active");
+            if (homeBtn) {
+                homeBtn.classList.remove("boost-active");
+                homeBtn.textContent = "Aktywuj";
+            }
+
+            if (incomeStrip) {
+                incomeStrip.classList.remove("boost-active");
+            }
+
+            if (tapButton) {
+                tapButton.classList.remove("boost-active");
+            }
         }
     },
 
