@@ -5,22 +5,25 @@ CryptoZoo.gameplay = {
     expeditionTimerStarted: false,
     incomeTimerStarted: false,
     boostTimerStarted: false,
+    suppressClickUntil: 0,
 
     init() {
         this.ensureState();
+        this.recalculateProgress();
         this.bindNavigation();
         this.bindTap();
         this.bindBoostShopButton();
-        this.startIncomeTimer();
-        this.startExpeditionTimer();
-        this.startBoostTimer();
 
         const lastScreen = sessionStorage.getItem("cryptozoo_last_screen") || "game";
         this.showScreen(lastScreen);
 
-        this.recalculateProgress();
         this.bindAnimalButtons();
         this.bindShopButtons();
+
+        this.startIncomeTimer();
+        this.startExpeditionTimer();
+        this.startBoostTimer();
+
         CryptoZoo.ui?.render?.();
     },
 
@@ -45,7 +48,7 @@ CryptoZoo.gameplay = {
         if (typeof CryptoZoo.state.gems !== "number") CryptoZoo.state.gems = Number(CryptoZoo.state.gems) || 0;
         if (typeof CryptoZoo.state.rewardBalance !== "number") CryptoZoo.state.rewardBalance = Number(CryptoZoo.state.rewardBalance) || 0;
         if (typeof CryptoZoo.state.level !== "number") CryptoZoo.state.level = Number(CryptoZoo.state.level) || 1;
-        if (typeof CryptoZoo.state.coinsPerClick !== "number") CryptoZoo.state.coinsPerClick = Number(CryptoZoo.state.coinsPerClick) || 1;
+        if (typeof CryptoZoo.state.coinsPerClick !== "number") CryptoZoo.state.coinsPerClick = Math.max(1, Number(CryptoZoo.state.coinsPerClick) || 1);
         if (typeof CryptoZoo.state.zooIncome !== "number") CryptoZoo.state.zooIncome = Number(CryptoZoo.state.zooIncome) || 0;
         if (typeof CryptoZoo.state.expeditionBoost !== "number") CryptoZoo.state.expeditionBoost = Number(CryptoZoo.state.expeditionBoost) || 0;
         if (typeof CryptoZoo.state.offlineBoost !== "number") CryptoZoo.state.offlineBoost = Number(CryptoZoo.state.offlineBoost) || 1;
@@ -71,10 +74,17 @@ CryptoZoo.gameplay = {
         return safeValue;
     },
 
+    normalizeBoostState() {
+        CryptoZoo.state.boost2xActiveUntil = this.normalizeBoostTimestamp(CryptoZoo.state?.boost2xActiveUntil);
+
+        if (CryptoZoo.state.boost2xActiveUntil > 0 && CryptoZoo.state.boost2xActiveUntil <= Date.now()) {
+            CryptoZoo.state.boost2xActiveUntil = 0;
+        }
+    },
+
     isBoost2xActive() {
-        const activeUntil = this.normalizeBoostTimestamp(CryptoZoo.state?.boost2xActiveUntil);
-        CryptoZoo.state.boost2xActiveUntil = activeUntil;
-        return activeUntil > Date.now();
+        this.normalizeBoostState();
+        return (Number(CryptoZoo.state?.boost2xActiveUntil) || 0) > Date.now();
     },
 
     getBoost2xMultiplier() {
@@ -82,9 +92,43 @@ CryptoZoo.gameplay = {
     },
 
     getBoost2xTimeLeft() {
-        const activeUntil = this.normalizeBoostTimestamp(CryptoZoo.state?.boost2xActiveUntil);
-        CryptoZoo.state.boost2xActiveUntil = activeUntil;
-        return Math.max(0, Math.floor((activeUntil - Date.now()) / 1000));
+        this.normalizeBoostState();
+        return Math.max(0, Math.floor(((Number(CryptoZoo.state?.boost2xActiveUntil) || 0) - Date.now()) / 1000));
+    },
+
+    getTapCountFromTouches(touchCount) {
+        const safeCount = Number(touchCount) || 1;
+        return Math.max(1, Math.min(3, safeCount));
+    },
+
+    getBaseCoinsPerClick() {
+        return Math.max(
+            1,
+            Number(CryptoZoo.state?.coinsPerClick) ||
+            Number(CryptoZoo.config?.clickValue) ||
+            1
+        );
+    },
+
+    getEffectiveCoinsPerClick(tapCount = 1) {
+        const touches = this.getTapCountFromTouches(tapCount);
+        return this.getBaseCoinsPerClick() * this.getBoost2xMultiplier() * touches;
+    },
+
+    getBaseZooIncome() {
+        this.recalculateZooIncome();
+        return Math.max(0, Number(CryptoZoo.state?.zooIncome) || 0);
+    },
+
+    getEffectiveZooIncome() {
+        return this.getBaseZooIncome() * this.getBoost2xMultiplier();
+    },
+
+    persistAndRender() {
+        this.normalizeBoostState();
+        this.recalculateProgress();
+        CryptoZoo.ui?.render?.();
+        CryptoZoo.api?.savePlayer?.();
     },
 
     activateBoost2x() {
@@ -95,7 +139,7 @@ CryptoZoo.gameplay = {
             CryptoZoo.ui?.showToast?.(
                 `Boost już aktywny: ${CryptoZoo.ui?.formatTimeLeft?.(this.getBoost2xTimeLeft()) || "00:00:00"}`
             );
-            CryptoZoo.ui?.renderBoostStatus?.();
+            CryptoZoo.ui?.render?.();
             return true;
         }
 
@@ -107,8 +151,7 @@ CryptoZoo.gameplay = {
         CryptoZoo.state.gems = (Number(CryptoZoo.state.gems) || 0) - boostCostGems;
         CryptoZoo.state.boost2xActiveUntil = Date.now() + boostDurationMs;
 
-        CryptoZoo.api?.savePlayer?.();
-        CryptoZoo.ui?.render?.();
+        this.persistAndRender();
         CryptoZoo.ui?.showToast?.("X2 Boost aktywowany");
 
         return true;
@@ -183,27 +226,42 @@ CryptoZoo.gameplay = {
         CryptoZoo.ui?.render?.();
     },
 
+    handleTap(tapCount = 1) {
+        const clickValue = this.getEffectiveCoinsPerClick(tapCount);
+
+        CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + clickValue;
+        CryptoZoo.state.xp = (Number(CryptoZoo.state.xp) || 0) + Math.max(1, this.getTapCountFromTouches(tapCount));
+
+        this.recalculateLevel();
+
+        CryptoZoo.ui?.animateCoin?.();
+        CryptoZoo.ui?.render?.();
+        CryptoZoo.api?.savePlayer?.();
+    },
+
     bindTap() {
         const tapButton = document.getElementById("tapButton");
         if (!tapButton) return;
 
         tapButton.onclick = () => {
-            const baseClickValue =
-                Number(CryptoZoo.state?.coinsPerClick) ||
-                Number(CryptoZoo.config?.clickValue) ||
-                1;
+            if (Date.now() < this.suppressClickUntil) {
+                return;
+            }
 
-            const clickValue = baseClickValue * this.getBoost2xMultiplier();
-
-            CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + clickValue;
-            CryptoZoo.state.xp = (Number(CryptoZoo.state.xp) || 0) + 1;
-
-            this.recalculateLevel();
-
-            CryptoZoo.ui?.animateCoin?.();
-            CryptoZoo.ui?.render?.();
-            CryptoZoo.api?.savePlayer?.();
+            this.handleTap(1);
         };
+
+        tapButton.addEventListener(
+            "touchstart",
+            (event) => {
+                const touches = this.getTapCountFromTouches(event.touches?.length || 1);
+
+                this.suppressClickUntil = Date.now() + 450;
+                event.preventDefault();
+                this.handleTap(touches);
+            },
+            { passive: false }
+        );
     },
 
     bindAnimalButtons() {
@@ -290,10 +348,7 @@ CryptoZoo.gameplay = {
         }
 
         this.applyLevelDropBySpend(price, coinsBeforeSpend);
-        this.recalculateProgress();
-
-        CryptoZoo.ui?.render?.();
-        CryptoZoo.api?.savePlayer?.();
+        this.persistAndRender();
         CryptoZoo.ui?.showToast?.(`Kupiono ${item.name}`);
     },
 
@@ -317,10 +372,7 @@ CryptoZoo.gameplay = {
         CryptoZoo.state.animals[type].count += 1;
 
         this.applyLevelDropBySpend(buyCost, coinsBeforeSpend);
-        this.recalculateProgress();
-
-        CryptoZoo.ui?.render?.();
-        CryptoZoo.api?.savePlayer?.();
+        this.persistAndRender();
         CryptoZoo.ui?.showToast?.(`Kupiono ${config.name}`);
     },
 
@@ -352,10 +404,7 @@ CryptoZoo.gameplay = {
         animal.level += 1;
 
         this.applyLevelDropBySpend(cost, coinsBeforeSpend);
-        this.recalculateProgress();
-
-        CryptoZoo.ui?.render?.();
-        CryptoZoo.api?.savePlayer?.();
+        this.persistAndRender();
         CryptoZoo.ui?.showToast?.(`Ulepszono ${config.name}`);
     },
 
@@ -397,6 +446,7 @@ CryptoZoo.gameplay = {
     recalculateProgress() {
         this.recalculateZooIncome();
         this.recalculateLevel();
+        this.normalizeBoostState();
     },
 
     startIncomeTimer() {
@@ -404,8 +454,13 @@ CryptoZoo.gameplay = {
         this.incomeTimerStarted = true;
 
         setInterval(() => {
+            this.recalculateProgress();
+
             const baseIncome = Number(CryptoZoo.state?.zooIncome) || 0;
-            if (baseIncome <= 0) return;
+            if (baseIncome <= 0) {
+                CryptoZoo.ui?.renderHome?.();
+                return;
+            }
 
             const income = baseIncome * this.getBoost2xMultiplier();
 
@@ -424,17 +479,15 @@ CryptoZoo.gameplay = {
         this.boostTimerStarted = true;
 
         setInterval(() => {
-            const activeUntil = this.normalizeBoostTimestamp(CryptoZoo.state?.boost2xActiveUntil);
-            CryptoZoo.state.boost2xActiveUntil = activeUntil;
+            const wasActive = (Number(CryptoZoo.state?.boost2xActiveUntil) || 0) > 0;
+            this.normalizeBoostState();
+            const isActiveNow = (Number(CryptoZoo.state?.boost2xActiveUntil) || 0) > Date.now();
 
-            if (activeUntil > 0 && activeUntil <= Date.now()) {
-                CryptoZoo.state.boost2xActiveUntil = 0;
+            if (wasActive && !isActiveNow && (Number(CryptoZoo.state?.boost2xActiveUntil) || 0) === 0) {
                 CryptoZoo.api?.savePlayer?.();
-                CryptoZoo.ui?.showToast?.("X2 Boost zakończony");
             }
 
-            CryptoZoo.ui?.renderBoostStatus?.();
-            CryptoZoo.ui?.renderHome?.();
+            CryptoZoo.ui?.render?.();
         }, 1000);
     },
 
