@@ -8,6 +8,7 @@
 }
 
 #rankingList li {
+    min-width: 0;
     background: linear-gradient(180deg, rgba(20, 28, 45, 0.64) 0%, rgba(13, 19, 31, 0.76) 100%);
     border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 18px;
@@ -17,5 +18,33 @@
     color: #ffffff;
     line-height: 1.35;
     word-break: break-word;
+    overflow-wrap: anywhere;
     box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+}
+
+@media (max-width: 640px) {
+    #rankingList li {
+        font-size: 15px;
+        padding: 13px;
+    }
+}
+
+@media (max-width: 520px) {
+    #rankingList {
+        gap: 8px;
+    }
+
+    #rankingList li {
+        border-radius: 16px;
+        padding: 12px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 380px) {
+    #rankingList li {
+        border-radius: 14px;
+        padding: 10px;
+        font-size: 13px;
+    }
 }
