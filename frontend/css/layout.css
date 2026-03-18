@@ -34,7 +34,7 @@
     z-index: 2;
     display: none;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 10px;
     min-height: 82px;
     padding: 10px 12px;
@@ -95,25 +95,49 @@
     text-overflow: ellipsis;
 }
 
-.top-bar-right {
+.top-bar-overlay-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 3;
     display: flex;
     align-items: center;
     gap: 8px;
-    flex: 0 0 auto;
 }
 
-.top-action-btn {
+.top-icon-chip {
     width: 40px;
     height: 40px;
     border: none;
     border-radius: 50%;
     cursor: pointer;
-    font-size: 17px;
+    font-size: 18px;
+    font-weight: 900;
     color: #ffffff;
-    background: rgba(255,255,255,0.08);
+    background: rgba(10, 18, 35, 0.42);
+    border: 1px solid rgba(255,255,255,0.12);
     box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.05),
-        0 6px 14px rgba(0, 0, 0, 0.18);
+        inset 0 1px 0 rgba(255,255,255,0.08),
+        0 8px 18px rgba(0, 0, 0, 0.20);
+    backdrop-filter: blur(10px);
+    transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease, opacity 0.16s ease;
+    animation: topIconFloat 2.8s ease-in-out infinite;
+}
+
+.top-icon-chip:active {
+    transform: scale(0.94);
+}
+
+.top-icon-chip:hover {
+    filter: brightness(1.06);
+}
+
+.top-icon-chip-star {
+    animation-delay: 0s;
+}
+
+.top-icon-chip-settings {
+    animation-delay: 0.2s;
 }
 
 .stats-panel {
@@ -140,14 +164,18 @@ main#game {
 .home-stats-panel {
     width: 100%;
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    margin: 0 0 10px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0 0 12px;
 }
 
 .home-stat-box {
     position: relative;
     min-width: 0;
+    min-height: 74px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     background: linear-gradient(
         180deg,
         rgba(24, 33, 58, 0.96) 0%,
@@ -155,7 +183,7 @@ main#game {
     );
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 18px;
-    padding: 12px;
+    padding: 10px 12px;
     box-shadow:
         0 14px 24px rgba(0, 0, 0, 0.18),
         inset 0 1px 0 rgba(255,255,255,0.05);
@@ -172,7 +200,7 @@ main#game {
 }
 
 .home-stat-box-wide {
-    grid-column: 1 / -1;
+    grid-column: auto;
 }
 
 .home-stat-title {
@@ -301,6 +329,97 @@ main#game {
     background: linear-gradient(180deg, rgba(73, 91, 138, 0.95) 0%, rgba(56, 71, 110, 0.95) 100%);
 }
 
+.home-quick-panel {
+    width: 100%;
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+}
+
+.home-quick-card {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+    padding: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+    color: #ffffff;
+    background: linear-gradient(
+        180deg,
+        rgba(18, 28, 48, 0.94) 0%,
+        rgba(10, 17, 31, 0.94) 100%
+    );
+    box-shadow:
+        0 12px 22px rgba(0, 0, 0, 0.18),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+    transition: transform 0.14s ease, box-shadow 0.14s ease, filter 0.14s ease;
+}
+
+.home-quick-card:active {
+    transform: scale(0.985);
+}
+
+.home-quick-card:hover {
+    filter: brightness(1.03);
+}
+
+.home-quick-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    background: rgba(255,255,255,0.06);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+.home-quick-text {
+    min-width: 0;
+}
+
+.home-quick-title {
+    font-size: 14px;
+    font-weight: 900;
+    color: #ffffff;
+    line-height: 1.1;
+}
+
+.home-quick-subtitle {
+    margin-top: 4px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.72);
+    line-height: 1.25;
+}
+
+@keyframes topIconFloat {
+    0% {
+        transform: translateY(0);
+        box-shadow:
+            inset 0 1px 0 rgba(255,255,255,0.08),
+            0 8px 18px rgba(0, 0, 0, 0.20);
+    }
+    50% {
+        transform: translateY(-2px);
+        box-shadow:
+            inset 0 1px 0 rgba(255,255,255,0.08),
+            0 12px 22px rgba(0, 0, 0, 0.24);
+    }
+    100% {
+        transform: translateY(0);
+        box-shadow:
+            inset 0 1px 0 rgba(255,255,255,0.08),
+            0 8px 18px rgba(0, 0, 0, 0.20);
+    }
+}
+
 @media (max-width: 520px) {
     .top-bar-banner {
         min-height: 74px;
@@ -325,18 +444,26 @@ main#game {
         font-size: 10px;
     }
 
-    .top-action-btn {
+    .top-bar-overlay-actions {
+        top: 8px;
+        right: 8px;
+        gap: 6px;
+    }
+
+    .top-icon-chip {
         width: 36px;
         height: 36px;
-        font-size: 15px;
+        font-size: 16px;
     }
 
     .home-stats-panel {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
         margin-bottom: 8px;
     }
 
     .home-stat-box {
+        min-height: 68px;
         padding: 10px;
         border-radius: 16px;
     }
@@ -398,6 +525,27 @@ main#game {
         font-size: 9px;
         border-radius: 9px;
     }
+
+    .home-quick-card {
+        padding: 10px;
+        border-radius: 16px;
+        gap: 10px;
+    }
+
+    .home-quick-icon {
+        width: 38px;
+        height: 38px;
+        font-size: 20px;
+        border-radius: 12px;
+    }
+
+    .home-quick-title {
+        font-size: 13px;
+    }
+
+    .home-quick-subtitle {
+        font-size: 10px;
+    }
 }
 
 @media (max-width: 380px) {
@@ -420,22 +568,20 @@ main#game {
         height: 34px;
     }
 
-    .top-bar-right {
-        gap: 6px;
+    .top-bar-overlay-actions {
+        top: 7px;
+        right: 7px;
+        gap: 5px;
     }
 
-    .top-action-btn {
+    .top-icon-chip {
         width: 34px;
         height: 34px;
-        font-size: 14px;
+        font-size: 15px;
     }
 
     .home-stats-panel {
-        grid-template-columns: 1fr;
-    }
-
-    .home-stat-box-wide {
-        grid-column: auto;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .home-zoo-preview-list {
