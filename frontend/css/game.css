@@ -3,36 +3,37 @@
     border: none !important;
     box-shadow: none !important;
     backdrop-filter: none !important;
-    padding: 0 0 20px !important;
+    padding: 0 0 10px !important;
 }
 
 .tap-area {
     width: 100%;
-    min-height: 230px;
+    min-height: 180px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    padding: 10px 0 2px;
+    padding: 0;
+    margin-top: -6px;
     overflow: visible;
 }
 
 .tap-glow {
     position: absolute;
-    width: 290px;
-    height: 290px;
+    width: 230px;
+    height: 230px;
     border-radius: 50%;
     background:
         radial-gradient(circle, rgba(112, 255, 120, 0.26) 0%, rgba(112, 255, 120, 0.10) 45%, rgba(112, 255, 120, 0) 72%);
-    filter: blur(16px);
+    filter: blur(14px);
     animation: tapPulse 2.2s ease-in-out infinite;
 }
 
 .tap-button {
     position: relative;
     z-index: 2;
-    width: 210px;
-    height: 210px;
+    width: 170px;
+    height: 170px;
     display: block;
     border: none;
     border-radius: 50%;
@@ -51,8 +52,8 @@
     background-size: contain;
     background-repeat: no-repeat;
     box-shadow:
-        0 0 0 12px rgba(255,255,255,0.03),
-        0 0 34px rgba(91, 255, 110, 0.18);
+        0 0 0 10px rgba(255,255,255,0.03),
+        0 0 28px rgba(91, 255, 110, 0.16);
     transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
 }
 
@@ -72,7 +73,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 64px;
+    font-size: 52px;
     color: rgba(255,255,255,0.20);
     pointer-events: none;
 }
@@ -84,21 +85,21 @@
 
 .home-tap-caption {
     text-align: center;
-    margin-top: 4px;
-    margin-bottom: 14px;
+    margin-top: 0;
+    margin-bottom: 8px;
 }
 
 .home-tap-title {
-    font-size: 25px;
+    font-size: 22px;
     font-weight: 900;
     color: #ffffff;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.4px;
     text-shadow: 0 3px 10px rgba(0,0,0,0.28);
 }
 
 .home-tap-subtitle {
-    margin-top: 5px;
-    font-size: 13px;
+    margin-top: 3px;
+    font-size: 12px;
     color: rgba(255,255,255,0.76);
 }
 
@@ -156,21 +157,21 @@
 
 .home-income-strip {
     width: 100%;
-    margin-top: 8px;
-    padding: 14px 16px;
+    margin-top: 4px;
+    padding: 12px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 10px;
     background: linear-gradient(
         180deg,
         rgba(20, 29, 49, 0.92) 0%,
         rgba(11, 18, 34, 0.92) 100%
     );
     border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 20px;
+    border-radius: 18px;
     box-shadow:
-        0 14px 24px rgba(0, 0, 0, 0.18),
+        0 12px 20px rgba(0, 0, 0, 0.16),
         inset 0 1px 0 rgba(255,255,255,0.05);
     backdrop-filter: blur(8px);
 }
@@ -180,13 +181,13 @@
 }
 
 .home-income-label {
-    font-size: 11px;
+    font-size: 10px;
     color: rgba(255,255,255,0.74);
     margin-bottom: 4px;
 }
 
 .home-income-value {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 900;
     color: #6cff7d;
     line-height: 1.1;
@@ -199,17 +200,18 @@
 }
 
 .home-boost-title {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
     color: #ffffff;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
 }
 
 .home-boost-button {
     border: none;
-    border-radius: 14px;
-    padding: 11px 16px;
+    border-radius: 13px;
+    padding: 10px 14px;
     font-weight: 900;
+    font-size: 14px;
     cursor: pointer;
     color: #1a1a1a;
     background: linear-gradient(180deg, #ffe27a 0%, #ffbf00 100%);
@@ -226,31 +228,41 @@
 }
 
 @media (max-width: 520px) {
+    .game-main-card {
+        padding: 0 0 6px !important;
+    }
+
     .tap-area {
-        min-height: 190px;
-        padding: 6px 0 2px;
+        min-height: 150px;
+        padding: 0;
+        margin-top: -10px;
     }
 
     .tap-glow {
-        width: 220px;
-        height: 220px;
+        width: 190px;
+        height: 190px;
     }
 
     .tap-button {
-        width: 160px;
-        height: 160px;
+        width: 138px;
+        height: 138px;
     }
 
     .tap-button::after {
-        font-size: 50px;
+        font-size: 42px;
+    }
+
+    .home-tap-caption {
+        margin-top: -2px;
+        margin-bottom: 6px;
     }
 
     .home-tap-title {
-        font-size: 20px;
+        font-size: 18px;
     }
 
     .home-tap-subtitle {
-        font-size: 12px;
+        font-size: 11px;
     }
 
     .coin-pop {
@@ -258,8 +270,9 @@
     }
 
     .home-income-strip {
-        padding: 12px;
-        border-radius: 18px;
+        margin-top: 2px;
+        padding: 10px 12px;
+        border-radius: 16px;
         flex-direction: column;
         align-items: stretch;
     }
@@ -271,10 +284,17 @@
     }
 
     .home-income-value {
-        font-size: 17px;
+        font-size: 16px;
+    }
+
+    .home-boost-title {
+        font-size: 10px;
+        margin-bottom: 4px;
     }
 
     .home-boost-button {
         width: 100%;
+        padding: 9px 12px;
+        font-size: 13px;
     }
 }
