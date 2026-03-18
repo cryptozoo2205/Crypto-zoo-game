@@ -120,22 +120,22 @@ main#game {
     width: 100%;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    margin: 0 0 14px;
+    gap: 12px;
+    margin: 0 0 16px;
 }
 
 .home-stat-box {
     min-width: 0;
     background: linear-gradient(
         180deg,
-        rgba(18, 26, 44, 0.82) 0%,
-        rgba(12, 18, 32, 0.88) 100%
+        rgba(22, 30, 52, 0.92) 0%,
+        rgba(13, 20, 37, 0.92) 100%
     );
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 18px;
-    padding: 12px;
+    border-radius: 20px;
+    padding: 14px;
     box-shadow:
-        0 12px 22px rgba(0, 0, 0, 0.18),
+        0 14px 24px rgba(0, 0, 0, 0.18),
         inset 0 1px 0 rgba(255,255,255,0.05);
     backdrop-filter: blur(8px);
 }
@@ -146,12 +146,14 @@ main#game {
 
 .home-stat-title {
     font-size: 11px;
-    color: rgba(255,255,255,0.72);
-    margin-bottom: 6px;
+    color: rgba(255,255,255,0.70);
+    margin-bottom: 7px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
 .home-stat-value {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 900;
     color: #ffffff;
     line-height: 1.1;
@@ -160,17 +162,17 @@ main#game {
 
 .home-zoo-preview {
     width: 100%;
-    margin-top: 14px;
+    margin-top: 16px;
     background: linear-gradient(
         180deg,
-        rgba(18, 26, 44, 0.72) 0%,
-        rgba(12, 18, 32, 0.82) 100%
+        rgba(20, 29, 49, 0.90) 0%,
+        rgba(11, 18, 34, 0.92) 100%
     );
     border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 20px;
+    border-radius: 22px;
     padding: 14px;
     box-shadow:
-        0 12px 22px rgba(0, 0, 0, 0.16),
+        0 14px 24px rgba(0, 0, 0, 0.18),
         inset 0 1px 0 rgba(255,255,255,0.04);
     backdrop-filter: blur(8px);
 }
@@ -206,9 +208,9 @@ main#game {
 }
 
 .home-zoo-preview-card {
-    background: rgba(255,255,255,0.04);
+    background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.03) 100%);
     border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 16px;
+    border-radius: 18px;
     padding: 10px 8px;
     text-align: center;
 }
@@ -291,12 +293,12 @@ main#game {
     }
 
     .home-stats-panel {
-        gap: 8px;
+        gap: 10px;
     }
 
     .home-stat-box {
-        padding: 10px;
-        border-radius: 16px;
+        padding: 11px;
+        border-radius: 18px;
     }
 
     .home-stat-title {
@@ -304,7 +306,7 @@ main#game {
     }
 
     .home-stat-value {
-        font-size: 16px;
+        font-size: 17px;
     }
 
     .home-zoo-preview {
