@@ -8,19 +8,19 @@
 
 .tap-area {
     width: 100%;
-    min-height: 200px;
+    min-height: 210px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    padding: 6px 0 4px;
+    padding: 10px 0 6px;
     overflow: visible;
 }
 
 .tap-glow {
     position: absolute;
-    width: 250px;
-    height: 250px;
+    width: 260px;
+    height: 260px;
     border-radius: 50%;
     background:
         radial-gradient(circle, rgba(112, 255, 120, 0.22) 0%, rgba(112, 255, 120, 0.08) 48%, rgba(112, 255, 120, 0) 72%);
@@ -31,8 +31,8 @@
 .tap-button {
     position: relative;
     z-index: 2;
-    width: 180px;
-    height: 180px;
+    width: 190px;
+    height: 190px;
     display: block;
     border: none;
     border-radius: 50%;
@@ -85,11 +85,11 @@
 .home-tap-caption {
     text-align: center;
     margin-top: 2px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 .home-tap-title {
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 900;
     color: #ffffff;
     letter-spacing: 0.5px;
@@ -227,18 +227,18 @@
 
 @media (max-width: 520px) {
     .tap-area {
-        min-height: 170px;
-        padding: 4px 0 2px;
+        min-height: 180px;
+        padding: 6px 0 2px;
     }
 
     .tap-glow {
-        width: 200px;
-        height: 200px;
+        width: 210px;
+        height: 210px;
     }
 
     .tap-button {
-        width: 145px;
-        height: 145px;
+        width: 150px;
+        height: 150px;
     }
 
     .tap-button::after {
@@ -246,7 +246,7 @@
     }
 
     .home-tap-title {
-        font-size: 18px;
+        font-size: 20px;
     }
 
     .home-tap-subtitle {
