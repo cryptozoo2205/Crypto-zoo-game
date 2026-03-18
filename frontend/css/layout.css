@@ -32,7 +32,7 @@
 .top-bar-fallback {
     position: relative;
     z-index: 2;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
@@ -43,6 +43,14 @@
 
 .top-bar-banner-fallback-only .top-bar-image {
     display: none;
+}
+
+.top-bar-image-loaded .top-bar-fallback {
+    display: none;
+}
+
+.top-bar-banner-fallback-only .top-bar-fallback {
+    display: flex;
 }
 
 .top-bar-left {
