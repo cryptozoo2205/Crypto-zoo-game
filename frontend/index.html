@@ -59,11 +59,15 @@
                             <div class="top-user-status">● Online</div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="top-bar-right">
-                        <button class="top-action-btn" type="button" id="topTelegramBtn">✈</button>
-                        <button class="top-action-btn" type="button" id="topSettingsBtn">⚙</button>
-                    </div>
+                <div class="top-bar-overlay-actions">
+                    <button class="top-icon-chip top-icon-chip-star" type="button" id="topEventsBtn" aria-label="Events">
+                        ✦
+                    </button>
+                    <button class="top-icon-chip top-icon-chip-settings" type="button" id="topSettingsBtn" aria-label="Settings">
+                        ⚙
+                    </button>
                 </div>
             </div>
         </header>
@@ -92,9 +96,14 @@
                             <div class="home-stat-value" id="homeLevel">1</div>
                         </div>
 
-                        <div class="home-stat-box home-stat-box-wide">
+                        <div class="home-stat-box">
                             <div class="home-stat-title">Za klik</div>
                             <div class="home-stat-value" id="homeCoinsPerClick">1</div>
+                        </div>
+
+                        <div class="home-stat-box">
+                            <div class="home-stat-title">Zoo / sek</div>
+                            <div class="home-stat-value" id="homeZooIncomeStat">0</div>
                         </div>
                     </div>
 
@@ -167,6 +176,32 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="home-quick-panel">
+                        <button id="homeDailyBtn" class="home-quick-card" type="button">
+                            <div class="home-quick-icon">🎁</div>
+                            <div class="home-quick-text">
+                                <div class="home-quick-title">Daily Reward</div>
+                                <div class="home-quick-subtitle">W przygotowaniu</div>
+                            </div>
+                        </button>
+
+                        <button id="homeEventsBtn" class="home-quick-card" type="button">
+                            <div class="home-quick-icon">⭐</div>
+                            <div class="home-quick-text">
+                                <div class="home-quick-title">Events</div>
+                                <div class="home-quick-subtitle">Nowe eventy wkrótce</div>
+                            </div>
+                        </button>
+
+                        <button id="homeBoostInfoBtn" class="home-quick-card" type="button">
+                            <div class="home-quick-icon">⚡</div>
+                            <div class="home-quick-text">
+                                <div class="home-quick-title">Boost Center</div>
+                                <div class="home-quick-subtitle">Kup lub aktywuj X2</div>
+                            </div>
+                        </button>
                     </div>
 
                     <div style="display:none;">
