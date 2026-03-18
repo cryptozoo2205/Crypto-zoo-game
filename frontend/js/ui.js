@@ -34,24 +34,77 @@ CryptoZoo.ui = {
         }, 1800);
     },
 
+    createTapFlash(area) {
+        const flash = document.createElement("div");
+        flash.className = "tap-flash";
+        area.appendChild(flash);
+
+        requestAnimationFrame(() => {
+            flash.classList.add("animate");
+        });
+
+        setTimeout(() => {
+            flash.remove();
+        }, 320);
+    },
+
+    createTapSparks(area, boostActive) {
+        const sparkCount = boostActive ? 8 : 4;
+
+        for (let i = 0; i < sparkCount; i += 1) {
+            const spark = document.createElement("div");
+            spark.className = "tap-spark";
+
+            const angle = (Math.PI * 2 * i) / sparkCount;
+            const distance = boostActive ? 52 + Math.random() * 18 : 34 + Math.random() * 12;
+
+            const x = Math.cos(angle) * distance;
+            const y = Math.sin(angle) * distance;
+
+            spark.style.left = "50%";
+            spark.style.top = "50%";
+            spark.style.setProperty("--sparkX", `${x}px`);
+            spark.style.setProperty("--sparkY", `${y}px`);
+
+            area.appendChild(spark);
+
+            requestAnimationFrame(() => {
+                spark.classList.add("animate");
+            });
+
+            setTimeout(() => {
+                spark.remove();
+            }, 720);
+        }
+    },
+
     animateCoin() {
         const tapButton = document.getElementById("tapButton");
         if (!tapButton || !tapButton.parentElement) return;
 
         const area = tapButton.parentElement;
+        area.style.position = "relative";
 
         const baseClickValue =
             Number(CryptoZoo.state?.coinsPerClick) || 1;
 
         const multiplier = CryptoZoo.gameplay?.getBoost2xMultiplier?.() || 1;
         const clickValue = baseClickValue * multiplier;
+        const boostActive = multiplier > 1;
 
         const pop = document.createElement("div");
-        pop.className = "coin-pop";
+        pop.className = `coin-pop${boostActive ? " boost-pop" : ""}`;
         pop.textContent = "+" + CryptoZoo.formatNumber(clickValue);
+
+        const offsetX = Math.floor(Math.random() * 80) - 40;
+        const offsetY = boostActive
+            ? -110 - Math.floor(Math.random() * 26)
+            : -90 - Math.floor(Math.random() * 20);
 
         pop.style.left = "50%";
         pop.style.top = "50%";
+        pop.style.setProperty("--moveX", offsetX + "px");
+        pop.style.setProperty("--moveY", offsetY + "px");
 
         area.appendChild(pop);
 
@@ -59,68 +112,22 @@ CryptoZoo.ui = {
             pop.classList.add("animate");
         });
 
+        tapButton.classList.add("tap-hit");
+        setTimeout(() => {
+            tapButton.classList.remove("tap-hit");
+        }, 120);
+
+        this.createTapFlash(area);
+        this.createTapSparks(area, boostActive);
+
         setTimeout(() => {
             pop.remove();
-        }, 900);
+        }, 980);
     },
 
     updateText(id, value) {
         const el = document.getElementById(id);
         if (el) el.textContent = value;
-    },
-
-    renderBoostStatus() {
-        const isActive = CryptoZoo.gameplay?.isBoost2xActive?.();
-        const left = CryptoZoo.gameplay?.getBoost2xTimeLeft?.() || 0;
-
-        const homeStatus = document.getElementById("homeBoostStatus");
-        const shopStatus = document.getElementById("boostShopStatus");
-        const buyBtn = document.getElementById("buyBoostBtn");
-        const homeBtn = document.getElementById("homeBoostBtn");
-        const incomeStrip = document.querySelector(".home-income-strip");
-        const tapButton = document.getElementById("tapButton");
-
-        if (homeStatus) homeStatus.className = "home-boost-status";
-
-        if (isActive) {
-            const text = `⚡ X2 ACTIVE • ${this.formatTimeLeft(left)}`;
-
-            if (homeStatus) {
-                homeStatus.textContent = text;
-                homeStatus.classList.add("boost-active");
-            }
-
-            if (shopStatus) {
-                shopStatus.textContent = text;
-            }
-
-            if (buyBtn) {
-                buyBtn.disabled = true;
-                buyBtn.textContent = "Boost aktywny";
-            }
-
-            if (homeBtn) homeBtn.classList.add("boost-active");
-            if (incomeStrip) incomeStrip.classList.add("boost-active");
-            if (tapButton) tapButton.classList.add("boost-active");
-        } else {
-            if (homeStatus) {
-                homeStatus.textContent = "Nieaktywny";
-                homeStatus.classList.remove("boost-active");
-            }
-
-            if (shopStatus) {
-                shopStatus.textContent = "Nieaktywny";
-            }
-
-            if (buyBtn) {
-                buyBtn.disabled = false;
-                buyBtn.textContent = "Kup X2 Boost";
-            }
-
-            if (homeBtn) homeBtn.classList.remove("boost-active");
-            if (incomeStrip) incomeStrip.classList.remove("boost-active");
-            if (tapButton) tapButton.classList.remove("boost-active");
-        }
     },
 
     formatTimeLeft(seconds) {
@@ -134,6 +141,10 @@ CryptoZoo.ui = {
             String(minutes).padStart(2, "0"),
             String(secs).padStart(2, "0")
         ].join(":");
+    },
+
+    bindClick(id, handler) {
+        document.getElementById(id)?.addEventListener("click", handler);
     },
 
     bindHomeButtons() {
@@ -195,6 +206,60 @@ CryptoZoo.ui = {
                 });
             }
         });
+    },
+
+    renderBoostStatus() {
+        const isActive = CryptoZoo.gameplay?.isBoost2xActive?.();
+        const left = CryptoZoo.gameplay?.getBoost2xTimeLeft?.() || 0;
+
+        const homeStatus = document.getElementById("homeBoostStatus");
+        const shopStatus = document.getElementById("boostShopStatus");
+        const buyBtn = document.getElementById("buyBoostBtn");
+        const homeBtn = document.getElementById("homeBoostBtn");
+        const incomeStrip = document.querySelector(".home-income-strip");
+        const tapButton = document.getElementById("tapButton");
+
+        if (homeStatus) homeStatus.className = "home-boost-status";
+
+        if (isActive) {
+            const text = `⚡ X2 ACTIVE • ${this.formatTimeLeft(left)}`;
+
+            if (homeStatus) {
+                homeStatus.textContent = text;
+                homeStatus.classList.add("boost-active");
+            }
+
+            if (shopStatus) {
+                shopStatus.textContent = text;
+            }
+
+            if (buyBtn) {
+                buyBtn.disabled = true;
+                buyBtn.textContent = "Boost aktywny";
+            }
+
+            if (homeBtn) homeBtn.classList.add("boost-active");
+            if (incomeStrip) incomeStrip.classList.add("boost-active");
+            if (tapButton) tapButton.classList.add("boost-active");
+        } else {
+            if (homeStatus) {
+                homeStatus.textContent = "Nieaktywny";
+                homeStatus.classList.remove("boost-active");
+            }
+
+            if (shopStatus) {
+                shopStatus.textContent = "Nieaktywny";
+            }
+
+            if (buyBtn) {
+                buyBtn.disabled = false;
+                buyBtn.textContent = "Kup X2 Boost";
+            }
+
+            if (homeBtn) homeBtn.classList.remove("boost-active");
+            if (incomeStrip) incomeStrip.classList.remove("boost-active");
+            if (tapButton) tapButton.classList.remove("boost-active");
+        }
     },
 
     renderHome() {
@@ -413,10 +478,6 @@ CryptoZoo.ui = {
             console.error("Ranking render error:", error);
             rankingList.innerHTML = "<li>Błąd ładowania rankingu</li>";
         }
-    },
-
-    bindClick(id, handler) {
-        document.getElementById(id)?.addEventListener("click", handler);
     },
 
     render() {
