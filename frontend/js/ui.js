@@ -238,9 +238,7 @@ CryptoZoo.ui = {
         const statusText = "● Online";
 
         this.updateText("topPlayerName", username);
-        this.updateText("topPlayerNameOverlay", username);
         this.updateText("topPlayerStatus", statusText);
-        this.updateText("topPlayerStatusOverlay", statusText);
     },
 
     openProfileModal() {
@@ -249,7 +247,7 @@ CryptoZoo.ui = {
 
         const username = this.getProfileUsername();
         const subtitle = this.getProfileSubtitle();
-        const { totalAnimals, unlockedSpecies } = this.getAnimalsSummary();
+        const summary = this.getAnimalsSummary();
         const boxesTotal = this.getBoxesTotal();
 
         const boostActive = CryptoZoo.gameplay?.isBoost2xActive?.() || false;
@@ -260,8 +258,8 @@ CryptoZoo.ui = {
 
         this.updateText("profileName", username);
         this.updateText("profileSubtitle", subtitle);
-        this.updateText("profileAnimalsTotal", CryptoZoo.formatNumber(totalAnimals));
-        this.updateText("profileSpeciesUnlocked", CryptoZoo.formatNumber(unlockedSpecies));
+        this.updateText("profileAnimalsTotal", CryptoZoo.formatNumber(summary.totalAnimals));
+        this.updateText("profileSpeciesUnlocked", CryptoZoo.formatNumber(summary.unlockedSpecies));
         this.updateText("profileBoxesTotal", CryptoZoo.formatNumber(boxesTotal));
         this.updateText("profileRankingPlace", this.getCurrentPlayerRankingPlace());
         this.updateText("profileBoostStatus", boostLabel);
@@ -279,17 +277,13 @@ CryptoZoo.ui = {
     },
 
     bindProfileModal() {
-        const openIds = ["topProfileBtn", "topProfileBtnOverlay"];
-
-        openIds.forEach((id) => {
-            const btn = document.getElementById(id);
-            if (btn && !btn.dataset.bound) {
-                btn.dataset.bound = "1";
-                btn.addEventListener("click", () => {
-                    this.openProfileModal();
-                });
-            }
-        });
+        const openBtn = document.getElementById("topProfileBtn");
+        if (openBtn && !openBtn.dataset.bound) {
+            openBtn.dataset.bound = "1";
+            openBtn.addEventListener("click", () => {
+                this.openProfileModal();
+            });
+        }
 
         const closeBtn = document.getElementById("closeProfileBtn");
         if (closeBtn && !closeBtn.dataset.bound) {
@@ -397,27 +391,21 @@ CryptoZoo.ui = {
             }
         });
 
-        const settingsIds = ["topSettingsBtn", "topSettingsBtnFallback"];
-        settingsIds.forEach((id) => {
-            const btn = document.getElementById(id);
-            if (btn && !btn.dataset.bound) {
-                btn.dataset.bound = "1";
-                btn.addEventListener("click", () => {
-                    this.showToast("Settings panel będzie dodany w następnym etapie");
-                });
-            }
-        });
+        const settingsBtn = document.getElementById("topSettingsBtn");
+        if (settingsBtn && !settingsBtn.dataset.bound) {
+            settingsBtn.dataset.bound = "1";
+            settingsBtn.addEventListener("click", () => {
+                this.showToast("Settings panel będzie dodany w następnym etapie");
+            });
+        }
 
-        const eventsIds = ["topEventsBtn", "topEventsBtnFallback"];
-        eventsIds.forEach((id) => {
-            const btn = document.getElementById(id);
-            if (btn && !btn.dataset.bound) {
-                btn.dataset.bound = "1";
-                btn.addEventListener("click", () => {
-                    this.showToast("Eventy / daily rewards w przygotowaniu");
-                });
-            }
-        });
+        const eventsBtn = document.getElementById("topEventsBtn");
+        if (eventsBtn && !eventsBtn.dataset.bound) {
+            eventsBtn.dataset.bound = "1";
+            eventsBtn.addEventListener("click", () => {
+                this.showToast("Eventy / daily rewards w przygotowaniu");
+            });
+        }
     },
 
     renderBoostStatus() {
@@ -456,7 +444,7 @@ CryptoZoo.ui = {
 
             if (homeBtn) {
                 homeBtn.classList.add("boost-active");
-                homeBtn.textContent = "Aktywuj";
+                homeBtn.textContent = "Aktywny";
             }
 
             if (incomeStrip) {
@@ -634,22 +622,22 @@ CryptoZoo.ui = {
         const expeditions = CryptoZoo.config?.expeditions || [];
 
         container.innerHTML = expeditions.map((exp) => `
-            <div class="expedition-card">
-                <h3>${exp.name}</h3>
-                <div>Czas: ${this.formatTimeLeft(exp.duration)}</div>
-                <div>
-                    Nagroda bazowa:
-                    ${CryptoZoo.formatNumber(exp.baseCoins)} coins +
-                    ${CryptoZoo.formatNumber(exp.baseGems)} gems
+                <div class="expedition-card">
+                    <h3>${exp.name}</h3>
+                    <div>Czas: ${this.formatTimeLeft(exp.duration)}</div>
+                    <div>
+                        Nagroda bazowa:
+                        ${CryptoZoo.formatNumber(exp.baseCoins)} coins +
+                        ${CryptoZoo.formatNumber(exp.baseGems)} gems
+                    </div>
+                    <div>
+                        Szansa na bonus:
+                        Rare ${(exp.rareChance * 100).toFixed(0)}% /
+                        Epic ${(exp.epicChance * 100).toFixed(0)}%
+                    </div>
+                    <button id="start-expedition-${exp.id}" type="button">Start</button>
                 </div>
-                <div>
-                    Szansa na bonus:
-                    Rare ${(exp.rareChance * 100).toFixed(0)}% /
-                    Epic ${(exp.epicChance * 100).toFixed(0)}%
-                </div>
-                <button id="start-expedition-${exp.id}" type="button">Start</button>
-            </div>
-        `).join("");
+            `).join("");
 
         expeditions.forEach((exp) => {
             this.bindClick(`start-expedition-${exp.id}`, () => {
