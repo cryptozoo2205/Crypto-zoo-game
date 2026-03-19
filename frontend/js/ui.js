@@ -182,10 +182,8 @@ CryptoZoo.ui = {
             localStorage.getItem("telegramFirstName") ||
             "Gracz";
 
-        const statusText = "● Online";
-
         this.updateText("topPlayerName", username);
-        this.updateText("topPlayerStatus", statusText);
+        this.updateText("topPlayerStatus", "● Online");
     },
 
     bindHomeButtons() {
@@ -281,12 +279,7 @@ CryptoZoo.ui = {
         if (settingsBtn && !settingsBtn.dataset.bound) {
             settingsBtn.dataset.bound = "1";
             settingsBtn.addEventListener("click", () => {
-                if (CryptoZoo.uiSettings?.openSettingsModal) {
-                    CryptoZoo.uiSettings.openSettingsModal();
-                    return;
-                }
-
-                this.showToast("Settings panel będzie dodany w następnym etapie");
+                CryptoZoo.uiSettings?.openSettingsModal?.();
             });
         }
 
@@ -316,8 +309,7 @@ CryptoZoo.ui = {
         }
 
         if (isActive) {
-            const timeText = this.formatTimeLeft(left);
-            const text = `⚡ Aktywny • ${timeText}`;
+            const text = `⚡ Aktywny • ${this.formatTimeLeft(left)}`;
 
             if (homeStatus) {
                 homeStatus.textContent = text;
