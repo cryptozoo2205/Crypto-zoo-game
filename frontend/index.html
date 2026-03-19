@@ -42,32 +42,28 @@
 
     <div id="app">
         <header class="top-bar">
-            <div class="top-bar-banner">
-                <img
-                    src="./assets/ui/top_bar_bg.png"
-                    alt=""
-                    class="top-bar-image"
-                    onload="this.parentElement.classList.add('top-bar-image-loaded')"
-                    onerror="this.parentElement.classList.add('top-bar-banner-fallback-only'); this.style.display='none';"
-                >
-
-                <div class="top-bar-fallback">
+            <div class="top-bar-shell">
+                <div class="top-bar-main">
                     <div class="top-bar-left">
-                        <div class="top-avatar"></div>
+                        <button class="top-profile-trigger" type="button" id="topProfileBtn" aria-label="Profil gracza">
+                            <div class="top-avatar"></div>
+                            <span class="top-profile-ring"></span>
+                        </button>
+
                         <div class="top-user-meta">
-                            <div class="top-user-name">Crypto Zoo</div>
-                            <div class="top-user-status">● Online</div>
+                            <div class="top-user-name" id="topPlayerName">Crypto Zoo</div>
+                            <div class="top-user-status" id="topPlayerStatus">● Online</div>
                         </div>
                     </div>
-                </div>
 
-                <div class="top-bar-overlay-actions">
-                    <button class="top-icon-chip top-icon-chip-star" type="button" id="topEventsBtn" aria-label="Events">
-                        ✦
-                    </button>
-                    <button class="top-icon-chip top-icon-chip-settings" type="button" id="topSettingsBtn" aria-label="Settings">
-                        ⚙
-                    </button>
+                    <div class="top-bar-overlay-actions">
+                        <button class="top-icon-chip top-icon-chip-star" type="button" id="topEventsBtn" aria-label="Events">
+                            ✦
+                        </button>
+                        <button class="top-icon-chip top-icon-chip-settings" type="button" id="topSettingsBtn" aria-label="Settings">
+                            ⚙
+                        </button>
+                    </div>
                 </div>
             </div>
         </header>
@@ -363,6 +359,52 @@
         </footer>
     </div>
 
+    <div id="profileModal" class="profile-modal hidden">
+        <div class="profile-backdrop" id="profileBackdrop"></div>
+
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar"></div>
+
+                <div class="profile-user-meta">
+                    <div class="profile-name" id="profileName">Gracz</div>
+                    <div class="profile-subtitle" id="profileSubtitle">@username</div>
+                </div>
+            </div>
+
+            <div class="profile-grid">
+                <div class="profile-box">
+                    <div class="profile-box-label">Animals</div>
+                    <div class="profile-box-value" id="profileAnimalsTotal">0</div>
+                </div>
+
+                <div class="profile-box">
+                    <div class="profile-box-label">Species</div>
+                    <div class="profile-box-value" id="profileSpeciesUnlocked">0</div>
+                </div>
+
+                <div class="profile-box">
+                    <div class="profile-box-label">Boxes</div>
+                    <div class="profile-box-value" id="profileBoxesTotal">0</div>
+                </div>
+
+                <div class="profile-box">
+                    <div class="profile-box-label">Ranking</div>
+                    <div class="profile-box-value" id="profileRankingPlace">#-</div>
+                </div>
+            </div>
+
+            <div class="profile-boost-row">
+                <div class="profile-boost-left">
+                    <div class="profile-boost-label">Boost status</div>
+                    <div class="profile-boost-value" id="profileBoostStatus">Nieaktywny</div>
+                </div>
+            </div>
+
+            <button id="closeProfileBtn" class="profile-close-btn" type="button">Zamknij</button>
+        </div>
+    </div>
+
     <script src="./js/config.js"></script>
     <script src="./js/state.js"></script>
     <script src="./js/dom.js"></script>
@@ -375,4 +417,4 @@
     <script src="./js/gameplay.js"></script>
     <script src="./js/init.js"></script>
 </body>
-</html> 
+</html>
