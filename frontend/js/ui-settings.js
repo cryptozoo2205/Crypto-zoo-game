@@ -42,6 +42,24 @@ CryptoZoo.uiSettings = {
         return safeSettings;
     },
 
+    applySettings(settings) {
+        const safeSettings = settings || this.getSettings();
+
+        document.documentElement.setAttribute("lang", safeSettings.language);
+        document.documentElement.dataset.gameLanguage = safeSettings.language;
+        document.documentElement.dataset.gameSound = safeSettings.sound ? "on" : "off";
+
+        CryptoZoo.settings = CryptoZoo.settings || {};
+        CryptoZoo.settings.language = safeSettings.language;
+        CryptoZoo.settings.sound = safeSettings.sound;
+    },
+
+    initSettings() {
+        const settings = this.getSettings();
+        this.applySettings(settings);
+        this.refreshSettingsModalData();
+    },
+
     getLanguageLabel(language) {
         return language === "en" ? "English" : "Polski";
     },
@@ -61,6 +79,38 @@ CryptoZoo.uiSettings = {
         CryptoZoo.ui?.updateText?.(
             "settingsSoundValue",
             this.getSoundLabel(settings.sound)
+        );
+    },
+
+    toggleLanguage() {
+        const current = this.getSettings();
+        const next = {
+            ...current,
+            language: current.language === "pl" ? "en" : "pl"
+        };
+
+        const saved = this.saveSettings(next);
+        this.applySettings(saved);
+        this.refreshSettingsModalData();
+
+        CryptoZoo.ui?.showToast?.(
+            saved.language === "en" ? "Language: English" : "Język: Polski"
+        );
+    },
+
+    toggleSound() {
+        const current = this.getSettings();
+        const next = {
+            ...current,
+            sound: !current.sound
+        };
+
+        const saved = this.saveSettings(next);
+        this.applySettings(saved);
+        this.refreshSettingsModalData();
+
+        CryptoZoo.ui?.showToast?.(
+            saved.sound ? "Dźwięki: ON" : "Dźwięki: OFF"
         );
     },
 
@@ -92,5 +142,29 @@ CryptoZoo.uiSettings = {
                 this.closeSettingsModal();
             });
         }
+
+        const languageValue = document.getElementById("settingsLanguageValue");
+        const languageBox = languageValue?.closest(".profile-box");
+
+        if (languageBox && !languageBox.dataset.bound) {
+            languageBox.dataset.bound = "1";
+            languageBox.style.cursor = "pointer";
+            languageBox.addEventListener("click", () => {
+                this.toggleLanguage();
+            });
+        }
+
+        const soundValue = document.getElementById("settingsSoundValue");
+        const soundBox = soundValue?.closest(".profile-box");
+
+        if (soundBox && !soundBox.dataset.bound) {
+            soundBox.dataset.bound = "1";
+            soundBox.style.cursor = "pointer";
+            soundBox.addEventListener("click", () => {
+                this.toggleSound();
+            });
+        }
     }
 };
+
+CryptoZoo.uiSettings.initSettings();
