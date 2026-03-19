@@ -405,6 +405,42 @@
         </div>
     </div>
 
+    <div id="settingsModal" class="profile-modal hidden">
+        <div class="profile-backdrop" id="settingsBackdrop"></div>
+
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar"></div>
+
+                <div class="profile-user-meta">
+                    <div class="profile-name">Settings</div>
+                    <div class="profile-subtitle">Ustawienia gry i interfejsu</div>
+                </div>
+            </div>
+
+            <div class="profile-grid">
+                <div class="profile-box">
+                    <div class="profile-box-label">Language</div>
+                    <div class="profile-box-value" id="settingsLanguageValue">Polski</div>
+                </div>
+
+                <div class="profile-box">
+                    <div class="profile-box-label">Sounds</div>
+                    <div class="profile-box-value" id="settingsSoundValue">ON</div>
+                </div>
+            </div>
+
+            <div class="profile-boost-row">
+                <div class="profile-boost-left">
+                    <div class="profile-boost-label">Status</div>
+                    <div class="profile-boost-value">Panel settings jest gotowy pod następny etap</div>
+                </div>
+            </div>
+
+            <button id="closeSettingsBtn" class="profile-close-btn" type="button">Zamknij</button>
+        </div>
+    </div>
+
     <script src="./js/config.js"></script>
     <script src="./js/state.js"></script>
     <script src="./js/dom.js"></script>
