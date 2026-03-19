@@ -1,171 +1,163 @@
+/* ============================= */
+/* 🔥 RANKING SCREEN BASE */
+/* ============================= */
+
+#screen-ranking {
+    padding: 16px;
+}
+
 #rankingList {
     list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
     padding: 0;
     margin: 0;
 }
 
-#rankingList li {
-    word-break: break-word;
-}
+/* ============================= */
+/* 🔥 ROW */
+/* ============================= */
 
 .ranking-row {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    background: linear-gradient(180deg, rgba(20, 28, 45, 0.64) 0%, rgba(13, 19, 31, 0.76) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 18px;
-    padding: 14px 14px;
-    color: #ffffff;
-    line-height: 1.35;
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+    align-items: center;
+
+    padding: 14px 16px;
+    margin-bottom: 10px;
+
+    border-radius: 14px;
+    background: rgba(15, 23, 42, 0.9);
+
+    border: 1px solid rgba(255,255,255,0.06);
+
+    transition: all 0.2s ease;
 }
 
-.ranking-row-current {
-    border-color: rgba(255, 201, 71, 0.34);
-    box-shadow:
-        0 8px 18px rgba(0, 0, 0, 0.14),
-        0 0 18px rgba(255, 191, 0, 0.12);
-    background: linear-gradient(180deg, rgba(48, 40, 18, 0.76) 0%, rgba(23, 20, 11, 0.82) 100%);
+/* hover (PC) */
+.ranking-row:hover {
+    transform: translateY(-1px);
+    background: rgba(20, 30, 60, 0.95);
 }
 
-.ranking-row-left {
-    min-width: 0;
+/* ============================= */
+/* 🔥 LEFT SIDE */
+/* ============================= */
+
+.ranking-left {
     display: flex;
     align-items: center;
     gap: 12px;
-    flex: 1 1 auto;
 }
 
-.ranking-place {
-    width: 52px;
-    min-width: 52px;
-    height: 52px;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* badge miejsca */
+.ranking-badge {
     font-size: 18px;
     font-weight: 900;
-    background: rgba(255, 255, 255, 0.06);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    width: 36px;
+    text-align: center;
 }
 
-.ranking-user-block {
-    min-width: 0;
-    flex: 1 1 auto;
-}
-
-.ranking-user-line {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
-}
-
-.ranking-name {
-    font-size: 16px;
-    font-weight: 900;
-    color: #ffffff;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.ranking-you-badge {
-    flex: 0 0 auto;
-    padding: 3px 8px;
-    border-radius: 999px;
-    font-size: 10px;
-    font-weight: 900;
-    color: #1a1a1a;
-    background: linear-gradient(180deg, #ffe27a 0%, #ffbf00 100%);
-}
-
+/* meta */
 .ranking-meta {
-    margin-top: 4px;
-    font-size: 12px;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.74);
-    line-height: 1.3;
+    display: flex;
+    flex-direction: column;
 }
 
-.ranking-score {
-    flex: 0 0 auto;
-    text-align: right;
-    font-size: 18px;
-    font-weight: 900;
-    color: #ffffff;
-}
-
-.ranking-score span {
-    display: block;
-    margin-top: 2px;
-    font-size: 11px;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.68);
-}
-
-.ranking-empty {
-    background: linear-gradient(180deg, rgba(20, 28, 45, 0.64) 0%, rgba(13, 19, 31, 0.76) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 18px;
-    padding: 14px 14px;
-    font-size: 15px;
+/* username */
+.ranking-name {
+    font-size: 14px;
     font-weight: 800;
     color: #ffffff;
-    text-align: center;
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
 }
 
-@media (max-width: 520px) {
+/* lvl */
+.ranking-sub {
+    font-size: 12px;
+    opacity: 0.6;
+}
+
+/* ============================= */
+/* 🔥 SCORE */
+/* ============================= */
+
+.ranking-score {
+    font-size: 14px;
+    font-weight: 900;
+    color: #38bdf8;
+}
+
+/* ============================= */
+/* 🔥 TOP 3 SPECIAL */
+/* ============================= */
+
+.ranking-row:nth-child(1) {
+    border: 1px solid rgba(255, 215, 0, 0.5);
+    background: linear-gradient(
+        90deg,
+        rgba(255,215,0,0.12),
+        rgba(255,215,0,0.02)
+    );
+}
+
+.ranking-row:nth-child(2) {
+    border: 1px solid rgba(192, 192, 192, 0.4);
+}
+
+.ranking-row:nth-child(3) {
+    border: 1px solid rgba(205, 127, 50, 0.4);
+}
+
+/* ============================= */
+/* 🔥 CURRENT PLAYER (NAJWAŻNIEJSZE) */
+/* ============================= */
+
+.ranking-row.ranking-me {
+    border: 2px solid rgba(34, 197, 94, 0.8);
+    background: linear-gradient(
+        90deg,
+        rgba(34,197,94,0.12),
+        rgba(34,197,94,0.03)
+    );
+    box-shadow: 0 0 12px rgba(34,197,94,0.25);
+}
+
+/* username highlight */
+.ranking-row.ranking-me .ranking-name {
+    color: #4ade80;
+}
+
+/* ============================= */
+/* 🔥 BADGE "TY" */
+/* ============================= */
+
+.me-badge {
+    margin-left: 8px;
+    padding: 2px 8px;
+
+    border-radius: 999px;
+
+    font-size: 10px;
+    font-weight: 900;
+
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #ffffff;
+
+    box-shadow: 0 0 8px rgba(34,197,94,0.4);
+}
+
+/* ============================= */
+/* 🔥 MOBILE FIX */
+/* ============================= */
+
+@media (max-width: 480px) {
     .ranking-row {
         padding: 12px;
-        gap: 10px;
-        border-radius: 16px;
-    }
-
-    .ranking-place {
-        width: 44px;
-        min-width: 44px;
-        height: 44px;
-        border-radius: 14px;
-        font-size: 16px;
     }
 
     .ranking-name {
-        font-size: 14px;
-    }
-
-    .ranking-meta {
-        font-size: 11px;
+        font-size: 13px;
     }
 
     .ranking-score {
-        font-size: 16px;
-    }
-
-    .ranking-score span {
-        font-size: 10px;
-    }
-}
-
-@media (max-width: 380px) {
-    .ranking-row {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .ranking-row-left {
-        width: 100%;
-    }
-
-    .ranking-score {
-        text-align: left;
-        padding-left: 56px;
+        font-size: 13px;
     }
 }
