@@ -174,18 +174,6 @@ CryptoZoo.ui = {
         }
     },
 
-    renderTopBarProfile() {
-        const username =
-            CryptoZoo.uiProfile?.getProfileUsername?.() ||
-            CryptoZoo.api?.getUsername?.() ||
-            localStorage.getItem("telegramUsername") ||
-            localStorage.getItem("telegramFirstName") ||
-            "Gracz";
-
-        this.updateText("topPlayerName", username);
-        this.updateText("topPlayerStatus", "● Online");
-    },
-
     bindHomeButtons() {
         const boostBtn = document.getElementById("homeBoostBtn");
         if (boostBtn && !boostBtn.dataset.bound) {
@@ -309,7 +297,8 @@ CryptoZoo.ui = {
         }
 
         if (isActive) {
-            const text = `⚡ Aktywny • ${this.formatTimeLeft(left)}`;
+            const timeText = this.formatTimeLeft(left);
+            const text = `⚡ Aktywny • ${timeText}`;
 
             if (homeStatus) {
                 homeStatus.textContent = text;
@@ -395,7 +384,7 @@ CryptoZoo.ui = {
         this.updateText("homeLionCount", CryptoZoo.formatNumber(animals.lion?.count || 0));
         this.updateText("homeLionLevel", CryptoZoo.formatNumber(animals.lion?.level || 1));
 
-        this.renderTopBarProfile();
+        CryptoZoo.uiProfile?.renderTopBarProfile?.();
         CryptoZoo.uiProfile?.bindProfileModal?.();
         CryptoZoo.uiSettings?.bindSettingsModal?.();
         this.bindHomeButtons();
@@ -684,22 +673,7 @@ CryptoZoo.ui = {
             this.renderRanking(false);
         }
 
-        const profileModal = document.getElementById("profileModal");
-        if (
-            profileModal &&
-            !profileModal.classList.contains("hidden") &&
-            CryptoZoo.uiProfile?.refreshProfileModalData
-        ) {
-            CryptoZoo.uiProfile.refreshProfileModalData();
-        }
-
-        const settingsModal = document.getElementById("settingsModal");
-        if (
-            settingsModal &&
-            !settingsModal.classList.contains("hidden") &&
-            CryptoZoo.uiSettings?.refreshSettingsModalData
-        ) {
-            CryptoZoo.uiSettings.refreshSettingsModalData();
-        }
+        CryptoZoo.uiProfile?.refreshProfileModalData?.();
+        CryptoZoo.uiSettings?.refreshSettingsModalData?.();
     }
 };
