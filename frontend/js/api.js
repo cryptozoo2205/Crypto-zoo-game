@@ -4,10 +4,32 @@ window.CryptoZoo.api = {
     getApiBase() {
         const fromStorage = localStorage.getItem("cryptozoo_api_base");
         if (fromStorage) {
-            return fromStorage.replace(/\/+$/, "");
+            return String(fromStorage).replace(/\/+$/, "");
+        }
+
+        const fromConfig =
+            window.CryptoZoo?.config?.apiBase ||
+            window.CryptoZoo?.config?.API_BASE ||
+            window.CryptoZoo?.config?.backendUrl ||
+            window.CRYPTOZOO_API_BASE ||
+            "";
+
+        if (fromConfig) {
+            return String(fromConfig).replace(/\/+$/, "");
         }
 
         return "/api";
+    },
+
+    setApiBase(value) {
+        const safeValue = String(value || "").trim().replace(/\/+$/, "");
+
+        if (!safeValue) {
+            localStorage.removeItem("cryptozoo_api_base");
+            return;
+        }
+
+        localStorage.setItem("cryptozoo_api_base", safeValue);
     },
 
     getPlayerId() {
@@ -249,7 +271,10 @@ window.CryptoZoo.api = {
     },
 
     async request(path, options = {}) {
-        const response = await fetch(`${this.getApiBase()}${path}`, {
+        const apiBase = this.getApiBase();
+        const finalUrl = `${apiBase}${path}`;
+
+        const response = await fetch(finalUrl, {
             headers: {
                 "Content-Type": "application/json",
                 ...(options.headers || {})
@@ -258,7 +283,7 @@ window.CryptoZoo.api = {
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+            throw new Error(`HTTP ${response.status} for ${finalUrl}`);
         }
 
         const contentType = response.headers.get("content-type") || "";
@@ -373,6 +398,8 @@ window.CryptoZoo.api = {
                 row.isCurrentPlayer = row.telegramId === currentId;
             });
 
+            localStorage.setItem("cryptozoo_ranking_cache", JSON.stringify(safeRows));
+
             if (!safeRows.some((row) => row.isCurrentPlayer)) {
                 safeRows.push({
                     rank: safeRows.length + 1,
@@ -386,7 +413,23 @@ window.CryptoZoo.api = {
 
             return safeRows;
         } catch (error) {
-            console.warn("Backend ranking failed, fallback to local ranking:", error);
+            console.warn("Backend ranking failed, fallback to cached/local ranking:", error);
+
+            const cached = localStorage.getItem("cryptozoo_ranking_cache");
+            if (cached) {
+                try {
+                    const parsed = JSON.parse(cached);
+                    if (Array.isArray(parsed) && parsed.length) {
+                        return parsed.map((row, index) => ({
+                            ...this.normalizeRankingRow(row, index),
+                            isCurrentPlayer:
+                                String(row.telegramId || row.playerId || "") === currentId
+                        }));
+                    }
+                } catch (parseError) {
+                    console.error("Ranking cache parse error:", parseError);
+                }
+            }
 
             return [
                 {
