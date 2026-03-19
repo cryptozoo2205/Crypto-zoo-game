@@ -1,19 +1,19 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.config = {
-    clickValue: 0.2,
+    clickValue: 0.15,
 
     animals: {
         monkey: {
             name: "Monkey",
             asset: "monkey",
-            buyCost: 55,
+            buyCost: 70,
             baseIncome: 1
         },
         panda: {
             name: "Panda",
             asset: "panda",
-            buyCost: 180,
+            buyCost: 260,
             baseIncome: 4
         },
         lion: {
@@ -25,61 +25,61 @@ CryptoZoo.config = {
         tiger: {
             name: "Tiger",
             asset: "tiger",
-            buyCost: 1400,
+            buyCost: 1800,
             baseIncome: 30
         },
         elephant: {
             name: "Elephant",
             asset: "elephant",
-            buyCost: 4200,
+            buyCost: 5000,
             baseIncome: 85
         },
         giraffe: {
             name: "Giraffe",
             asset: "giraffe",
-            buyCost: 11000,
+            buyCost: 13000,
             baseIncome: 180
         },
         zebra: {
             name: "Zebra",
             asset: "zebra",
-            buyCost: 26000,
+            buyCost: 30000,
             baseIncome: 420
         },
         hippo: {
             name: "Hippo",
             asset: "hippo",
-            buyCost: 62000,
+            buyCost: 70000,
             baseIncome: 900
         },
         penguin: {
             name: "Penguin",
             asset: "penguin",
-            buyCost: 145000,
+            buyCost: 160000,
             baseIncome: 1600
         },
         bear: {
             name: "Bear",
             asset: "bear",
-            buyCost: 330000,
+            buyCost: 360000,
             baseIncome: 3200
         },
         crocodile: {
             name: "Crocodile",
             asset: "crocodile",
-            buyCost: 720000,
+            buyCost: 800000,
             baseIncome: 6000
         },
         kangaroo: {
             name: "Kangaroo",
             asset: "kangaroo",
-            buyCost: 1600000,
+            buyCost: 1800000,
             baseIncome: 12000
         },
         wolf: {
             name: "Wolf",
             asset: "wolf",
-            buyCost: 3500000,
+            buyCost: 4000000,
             baseIncome: 22000
         }
     },
