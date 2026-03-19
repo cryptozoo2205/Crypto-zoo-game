@@ -175,9 +175,14 @@ CryptoZoo.ui = {
     },
 
     getProfileUsername() {
+        const fromApi = CryptoZoo.api?.getUsername?.();
+        if (fromApi && String(fromApi).trim()) {
+            return String(fromApi).trim();
+        }
+
         return (
-            CryptoZoo.api?.getUsername?.() ||
             localStorage.getItem("telegramUsername") ||
+            localStorage.getItem("telegramFirstName") ||
             "Gracz"
         );
     },
@@ -188,7 +193,12 @@ CryptoZoo.ui = {
             return "@" + username;
         }
 
-        const playerId = CryptoZoo.api?.getPlayerId?.() || "Brak ID";
+        const playerId = String(CryptoZoo.api?.getPlayerId?.() || "Brak ID");
+
+        if (playerId === "local-player") {
+            return "Tryb lokalny";
+        }
+
         return "ID: " + playerId;
     },
 
@@ -223,8 +233,13 @@ CryptoZoo.ui = {
     },
 
     getCurrentPlayerRankingPlace() {
-        const ranking = Array.isArray(this.rankingCache) ? this.rankingCache : [];
         const currentId = String(CryptoZoo.api?.getPlayerId?.() || "");
+
+        if (currentId === "local-player") {
+            return "#1";
+        }
+
+        const ranking = Array.isArray(this.rankingCache) ? this.rankingCache : [];
 
         const index = ranking.findIndex((row) => {
             return String(row.telegramId || "") === currentId || row.isCurrentPlayer === true;
@@ -241,7 +256,7 @@ CryptoZoo.ui = {
         this.updateText("topPlayerStatus", statusText);
     },
 
-    openProfileModal() {
+    refreshProfileModalData() {
         const modal = document.getElementById("profileModal");
         if (!modal) return;
 
@@ -268,7 +283,13 @@ CryptoZoo.ui = {
         if (boostStatusEl) {
             boostStatusEl.classList.toggle("active", boostActive);
         }
+    },
 
+    openProfileModal() {
+        const modal = document.getElementById("profileModal");
+        if (!modal) return;
+
+        this.refreshProfileModalData();
         modal.classList.remove("hidden");
     },
 
@@ -798,6 +819,11 @@ CryptoZoo.ui = {
 
         if (CryptoZoo.gameplay?.activeScreen === "ranking") {
             this.renderRanking(false);
+        }
+
+        const profileModal = document.getElementById("profileModal");
+        if (profileModal && !profileModal.classList.contains("hidden")) {
+            this.refreshProfileModalData();
         }
     }
 };
