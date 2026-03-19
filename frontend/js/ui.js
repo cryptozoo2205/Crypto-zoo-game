@@ -2,6 +2,10 @@ window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.ui = {
     toastTimeout: null,
+    rankingCache: null,
+    rankingLoading: false,
+    rankingLastFetchAt: 0,
+    rankingCacheTtl: 15000,
 
     showToast(message) {
         let toast = document.getElementById("toast");
@@ -569,50 +573,95 @@ CryptoZoo.ui = {
         });
     },
 
-    async renderRanking() {
+    renderRankingRows(rows) {
         const rankingList = document.getElementById("rankingList");
         if (!rankingList) return;
 
-        rankingList.innerHTML = "<li>Ładowanie rankingu...</li>";
+        const safeRanking = Array.isArray(rows) ? rows : [];
+
+        if (!safeRanking.length) {
+            rankingList.innerHTML = "<li>Brak danych rankingu</li>";
+            return;
+        }
+
+        rankingList.innerHTML = safeRanking.map((row, index) => {
+            const rank = Number(row.rank) || index + 1;
+            const username = row.username || row.name || "Gracz";
+            const coins = CryptoZoo.formatNumber(row.coins || 0);
+            const level = CryptoZoo.formatNumber(row.level || 1);
+            const currentClass = row.isCurrentPlayer ? " ranking-me" : "";
+            const badge =
+                rank === 1 ? "🥇" :
+                rank === 2 ? "🥈" :
+                rank === 3 ? "🥉" :
+                `#${rank}`;
+
+            return `
+                <li class="ranking-row${currentClass}">
+                    <div class="ranking-left">
+                        <div class="ranking-badge">${badge}</div>
+                        <div class="ranking-meta">
+                            <div class="ranking-name">${username}${row.isCurrentPlayer ? " (Ty)" : ""}</div>
+                            <div class="ranking-sub">Lvl ${level}</div>
+                        </div>
+                    </div>
+                    <div class="ranking-score">${coins}</div>
+                </li>
+            `;
+        }).join("");
+    },
+
+    async renderRanking(forceRefresh = false) {
+        const rankingList = document.getElementById("rankingList");
+        if (!rankingList) return;
+
+        const now = Date.now();
+        const cacheFresh =
+            this.rankingCache &&
+            (now - this.rankingLastFetchAt) < this.rankingCacheTtl;
+
+        if (!forceRefresh && cacheFresh) {
+            this.renderRankingRows(this.rankingCache);
+            return;
+        }
+
+        if (this.rankingLoading) {
+            if (this.rankingCache) {
+                this.renderRankingRows(this.rankingCache);
+            }
+            return;
+        }
+
+        this.rankingLoading = true;
+
+        if (!this.rankingCache) {
+            rankingList.innerHTML = "<li>Ładowanie rankingu...</li>";
+        }
 
         try {
             const ranking = await CryptoZoo.api?.loadRanking?.();
             const safeRanking = Array.isArray(ranking) ? ranking : [];
 
-            if (!safeRanking.length) {
-                rankingList.innerHTML = "<li>Brak danych rankingu</li>";
-                return;
-            }
+            this.rankingCache = safeRanking;
+            this.rankingLastFetchAt = Date.now();
 
-            rankingList.innerHTML = safeRanking.map((row, index) => {
-                const rank = Number(row.rank) || index + 1;
-                const username = row.username || row.name || "Gracz";
-                const coins = CryptoZoo.formatNumber(row.coins || 0);
-                const level = CryptoZoo.formatNumber(row.level || 1);
-                const currentClass = row.isCurrentPlayer ? " ranking-me" : "";
-                const badge =
-                    rank === 1 ? "🥇" :
-                    rank === 2 ? "🥈" :
-                    rank === 3 ? "🥉" :
-                    `#${rank}`;
-
-                return `
-                    <li class="ranking-row${currentClass}">
-                        <div class="ranking-left">
-                            <div class="ranking-badge">${badge}</div>
-                            <div class="ranking-meta">
-                                <div class="ranking-name">${username}${row.isCurrentPlayer ? " (Ty)" : ""}</div>
-                                <div class="ranking-sub">Lvl ${level}</div>
-                            </div>
-                        </div>
-                        <div class="ranking-score">${coins}</div>
-                    </li>
-                `;
-            }).join("");
+            this.renderRankingRows(safeRanking);
         } catch (error) {
             console.error("Ranking render error:", error);
-            rankingList.innerHTML = "<li>Błąd ładowania rankingu</li>";
+
+            if (this.rankingCache) {
+                this.renderRankingRows(this.rankingCache);
+            } else {
+                rankingList.innerHTML = "<li>Błąd ładowania rankingu</li>";
+            }
+        } finally {
+            this.rankingLoading = false;
         }
+    },
+
+    invalidateRankingCache() {
+        this.rankingCache = null;
+        this.rankingLastFetchAt = 0;
     },
 
     render() {
@@ -622,6 +671,9 @@ CryptoZoo.ui = {
         this.renderExpeditions();
         this.renderShopItems();
         this.renderBoxes();
-        this.renderRanking();
+
+        if (CryptoZoo.gameplay?.activeScreen === "ranking") {
+            this.renderRanking(false);
+        }
     }
 };
