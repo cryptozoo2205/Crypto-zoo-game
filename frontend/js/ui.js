@@ -281,6 +281,11 @@ CryptoZoo.ui = {
         if (settingsBtn && !settingsBtn.dataset.bound) {
             settingsBtn.dataset.bound = "1";
             settingsBtn.addEventListener("click", () => {
+                if (CryptoZoo.uiSettings?.openSettingsModal) {
+                    CryptoZoo.uiSettings.openSettingsModal();
+                    return;
+                }
+
                 this.showToast("Settings panel będzie dodany w następnym etapie");
             });
         }
@@ -400,6 +405,7 @@ CryptoZoo.ui = {
 
         this.renderTopBarProfile();
         CryptoZoo.uiProfile?.bindProfileModal?.();
+        CryptoZoo.uiSettings?.bindSettingsModal?.();
         this.bindHomeButtons();
         this.renderBoostStatus();
     },
@@ -693,6 +699,15 @@ CryptoZoo.ui = {
             CryptoZoo.uiProfile?.refreshProfileModalData
         ) {
             CryptoZoo.uiProfile.refreshProfileModalData();
+        }
+
+        const settingsModal = document.getElementById("settingsModal");
+        if (
+            settingsModal &&
+            !settingsModal.classList.contains("hidden") &&
+            CryptoZoo.uiSettings?.refreshSettingsModalData
+        ) {
+            CryptoZoo.uiSettings.refreshSettingsModalData();
         }
     }
 };
