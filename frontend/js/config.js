@@ -19,67 +19,67 @@ CryptoZoo.config = {
         lion: {
             name: "Lion",
             asset: "lion",
-            buyCost: 520,
+            buyCost: 750,
             baseIncome: 12
         },
         tiger: {
             name: "Tiger",
             asset: "tiger",
-            buyCost: 1800,
+            buyCost: 2200,
             baseIncome: 30
         },
         elephant: {
             name: "Elephant",
             asset: "elephant",
-            buyCost: 5000,
+            buyCost: 6500,
             baseIncome: 85
         },
         giraffe: {
             name: "Giraffe",
             asset: "giraffe",
-            buyCost: 13000,
+            buyCost: 16000,
             baseIncome: 180
         },
         zebra: {
             name: "Zebra",
             asset: "zebra",
-            buyCost: 30000,
+            buyCost: 38000,
             baseIncome: 420
         },
         hippo: {
             name: "Hippo",
             asset: "hippo",
-            buyCost: 70000,
+            buyCost: 90000,
             baseIncome: 900
         },
         penguin: {
             name: "Penguin",
             asset: "penguin",
-            buyCost: 160000,
+            buyCost: 200000,
             baseIncome: 1600
         },
         bear: {
             name: "Bear",
             asset: "bear",
-            buyCost: 360000,
+            buyCost: 450000,
             baseIncome: 3200
         },
         crocodile: {
             name: "Crocodile",
             asset: "crocodile",
-            buyCost: 800000,
+            buyCost: 1000000,
             baseIncome: 6000
         },
         kangaroo: {
             name: "Kangaroo",
             asset: "kangaroo",
-            buyCost: 1800000,
+            buyCost: 2200000,
             baseIncome: 12000
         },
         wolf: {
             name: "Wolf",
             asset: "wolf",
-            buyCost: 4000000,
+            buyCost: 5000000,
             baseIncome: 22000
         }
     },
