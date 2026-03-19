@@ -174,6 +174,140 @@ CryptoZoo.ui = {
         }
     },
 
+    getProfileUsername() {
+        return (
+            CryptoZoo.api?.getUsername?.() ||
+            localStorage.getItem("telegramUsername") ||
+            "Gracz"
+        );
+    },
+
+    getProfileSubtitle() {
+        const username = localStorage.getItem("telegramUsername");
+        if (username) {
+            return "@" + username;
+        }
+
+        const playerId = CryptoZoo.api?.getPlayerId?.() || "Brak ID";
+        return "ID: " + playerId;
+    },
+
+    getAnimalsSummary() {
+        const animals = CryptoZoo.state?.animals || {};
+        let totalAnimals = 0;
+        let unlockedSpecies = 0;
+
+        Object.keys(animals).forEach((type) => {
+            const count = Number(animals[type]?.count) || 0;
+            totalAnimals += count;
+
+            if (count > 0) {
+                unlockedSpecies += 1;
+            }
+        });
+
+        return {
+            totalAnimals,
+            unlockedSpecies
+        };
+    },
+
+    getBoxesTotal() {
+        const boxes = CryptoZoo.state?.boxes || {};
+        return (
+            (Number(boxes.common) || 0) +
+            (Number(boxes.rare) || 0) +
+            (Number(boxes.epic) || 0) +
+            (Number(boxes.legendary) || 0)
+        );
+    },
+
+    getCurrentPlayerRankingPlace() {
+        const ranking = Array.isArray(this.rankingCache) ? this.rankingCache : [];
+        const currentId = String(CryptoZoo.api?.getPlayerId?.() || "");
+
+        const index = ranking.findIndex((row) => {
+            return String(row.telegramId || "") === currentId || row.isCurrentPlayer === true;
+        });
+
+        return index >= 0 ? "#" + String(index + 1) : "#-";
+    },
+
+    renderTopBarProfile() {
+        const username = this.getProfileUsername();
+        const statusText = "● Online";
+
+        this.updateText("topPlayerName", username);
+        this.updateText("topPlayerNameOverlay", username);
+        this.updateText("topPlayerStatus", statusText);
+        this.updateText("topPlayerStatusOverlay", statusText);
+    },
+
+    openProfileModal() {
+        const modal = document.getElementById("profileModal");
+        if (!modal) return;
+
+        const username = this.getProfileUsername();
+        const subtitle = this.getProfileSubtitle();
+        const { totalAnimals, unlockedSpecies } = this.getAnimalsSummary();
+        const boxesTotal = this.getBoxesTotal();
+
+        const boostActive = CryptoZoo.gameplay?.isBoost2xActive?.() || false;
+        const boostLeft = CryptoZoo.gameplay?.getBoost2xTimeLeft?.() || 0;
+        const boostLabel = boostActive
+            ? `Aktywny • ${this.formatTimeLeft(boostLeft)}`
+            : "Nieaktywny";
+
+        this.updateText("profileName", username);
+        this.updateText("profileSubtitle", subtitle);
+        this.updateText("profileAnimalsTotal", CryptoZoo.formatNumber(totalAnimals));
+        this.updateText("profileSpeciesUnlocked", CryptoZoo.formatNumber(unlockedSpecies));
+        this.updateText("profileBoxesTotal", CryptoZoo.formatNumber(boxesTotal));
+        this.updateText("profileRankingPlace", this.getCurrentPlayerRankingPlace());
+        this.updateText("profileBoostStatus", boostLabel);
+
+        const boostStatusEl = document.getElementById("profileBoostStatus");
+        if (boostStatusEl) {
+            boostStatusEl.classList.toggle("active", boostActive);
+        }
+
+        modal.classList.remove("hidden");
+    },
+
+    closeProfileModal() {
+        document.getElementById("profileModal")?.classList.add("hidden");
+    },
+
+    bindProfileModal() {
+        const openIds = ["topProfileBtn", "topProfileBtnOverlay"];
+
+        openIds.forEach((id) => {
+            const btn = document.getElementById(id);
+            if (btn && !btn.dataset.bound) {
+                btn.dataset.bound = "1";
+                btn.addEventListener("click", () => {
+                    this.openProfileModal();
+                });
+            }
+        });
+
+        const closeBtn = document.getElementById("closeProfileBtn");
+        if (closeBtn && !closeBtn.dataset.bound) {
+            closeBtn.dataset.bound = "1";
+            closeBtn.addEventListener("click", () => {
+                this.closeProfileModal();
+            });
+        }
+
+        const backdrop = document.getElementById("profileBackdrop");
+        if (backdrop && !backdrop.dataset.bound) {
+            backdrop.dataset.bound = "1";
+            backdrop.addEventListener("click", () => {
+                this.closeProfileModal();
+            });
+        }
+    },
+
     bindHomeButtons() {
         const boostBtn = document.getElementById("homeBoostBtn");
         if (boostBtn && !boostBtn.dataset.bound) {
@@ -322,7 +456,7 @@ CryptoZoo.ui = {
 
             if (homeBtn) {
                 homeBtn.classList.add("boost-active");
-                homeBtn.textContent = "Aktywny";
+                homeBtn.textContent = "Aktywuj";
             }
 
             if (incomeStrip) {
@@ -390,6 +524,8 @@ CryptoZoo.ui = {
         this.updateText("homeLionCount", CryptoZoo.formatNumber(animals.lion?.count || 0));
         this.updateText("homeLionLevel", CryptoZoo.formatNumber(animals.lion?.level || 1));
 
+        this.renderTopBarProfile();
+        this.bindProfileModal();
         this.bindHomeButtons();
         this.renderBoostStatus();
     },
@@ -601,7 +737,7 @@ CryptoZoo.ui = {
                     <div class="ranking-left">
                         <div class="ranking-badge">${badge}</div>
                         <div class="ranking-meta">
-                            <div class="ranking-name">${username}${row.isCurrentPlayer ? " (Ty)" : ""}</div>
+                            <div class="ranking-name">${username}${row.isCurrentPlayer ? ' <span class="me-badge">TY</span>' : ""}</div>
                             <div class="ranking-sub">Lvl ${level}</div>
                         </div>
                     </div>
