@@ -123,6 +123,12 @@ window.CryptoZoo.api = {
                 kangaroo: { count: 0, level: 1 },
                 wolf: { count: 0, level: 1 }
             },
+            boxes: {
+                common: 0,
+                rare: 0,
+                epic: 0,
+                legendary: 0
+            },
             expedition: null
         };
     },
@@ -221,6 +227,12 @@ window.CryptoZoo.api = {
             lastDailyRewardAt: Math.max(0, Number(data.lastDailyRewardAt ?? base.lastDailyRewardAt) || 0),
             boost2xActiveUntil,
             animals,
+            boxes: {
+                common: Math.max(0, Number(data.boxes?.common) || 0),
+                rare: Math.max(0, Number(data.boxes?.rare) || 0),
+                epic: Math.max(0, Number(data.boxes?.epic) || 0),
+                legendary: Math.max(0, Number(data.boxes?.legendary) || 0)
+            },
             expedition: this.normalizeExpedition(data.expedition)
         };
     },
@@ -256,6 +268,7 @@ window.CryptoZoo.api = {
             lastDailyRewardAt: state.lastDailyRewardAt,
             boost2xActiveUntil: state.boost2xActiveUntil,
             animals: state.animals,
+            boxes: state.boxes,
             expedition: state.expedition
         };
     },
