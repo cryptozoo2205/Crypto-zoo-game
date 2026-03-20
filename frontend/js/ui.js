@@ -614,22 +614,22 @@ CryptoZoo.ui = {
         const expeditions = CryptoZoo.config?.expeditions || [];
 
         container.innerHTML = expeditions.map((exp) => `
-                <div class="expedition-card">
-                    <h3>${exp.name}</h3>
-                    <div>Czas: ${this.formatTimeLeft(exp.duration)}</div>
-                    <div>
-                        Nagroda bazowa:
-                        ${CryptoZoo.formatNumber(exp.baseCoins)} coins +
-                        ${CryptoZoo.formatNumber(exp.baseGems)} gems
-                    </div>
-                    <div>
-                        Szansa na bonus:
-                        Rare ${(exp.rareChance * 100).toFixed(0)}% /
-                        Epic ${(exp.epicChance * 100).toFixed(0)}%
-                    </div>
-                    <button id="start-expedition-${exp.id}" type="button">Start</button>
+            <div class="expedition-card">
+                <h3>${exp.name}</h3>
+                <div>Czas: ${this.formatTimeLeft(exp.duration)}</div>
+                <div>
+                    Nagroda bazowa:
+                    ${CryptoZoo.formatNumber(exp.baseCoins)} coins +
+                    ${CryptoZoo.formatNumber(exp.baseGems)} gems
                 </div>
-            `).join("");
+                <div>
+                    Szansa na bonus:
+                    Rare ${(exp.rareChance * 100).toFixed(0)}% /
+                    Epic ${(exp.epicChance * 100).toFixed(0)}%
+                </div>
+                <button id="start-expedition-${exp.id}" type="button">Start</button>
+            </div>
+        `).join("");
 
         expeditions.forEach((exp) => {
             this.bindClick(`start-expedition-${exp.id}`, () => {
@@ -684,7 +684,6 @@ CryptoZoo.ui = {
         buyButtons.forEach((button) => {
             button.onclick = () => {
                 const type = button.getAttribute("data-box-buy");
-                this.showToast(`klik buy ${type}`);
                 CryptoZoo.boxes?.buy?.(type);
             };
         });
@@ -692,7 +691,6 @@ CryptoZoo.ui = {
         openButtons.forEach((button) => {
             button.onclick = () => {
                 const type = button.getAttribute("data-box-open");
-                this.showToast(`klik open ${type}`);
                 CryptoZoo.boxes?.open?.(type);
             };
         });
