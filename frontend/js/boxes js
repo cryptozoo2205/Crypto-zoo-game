@@ -1,6 +1,41 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.boxes = {
+    init() {
+        if (window.__cryptoZooBoxesBound) return;
+        window.__cryptoZooBoxesBound = true;
+
+        document.addEventListener("click", (event) => {
+            const buyBtn = event.target.closest("[data-box-buy], [data-box-type]");
+            if (buyBtn) {
+                event.preventDefault();
+
+                const type =
+                    buyBtn.getAttribute("data-box-buy") ||
+                    buyBtn.getAttribute("data-box-type") ||
+                    "";
+
+                if (type) {
+                    this.buy(type);
+                }
+                return;
+            }
+
+            const openBtn = event.target.closest("[data-box-open], [id^='open-box-']");
+            if (openBtn) {
+                event.preventDefault();
+
+                const type =
+                    openBtn.getAttribute("data-box-open") ||
+                    String(openBtn.id || "").replace("open-box-", "");
+
+                if (type) {
+                    this.open(type);
+                }
+            }
+        });
+    },
+
     ensureState() {
         CryptoZoo.state = CryptoZoo.state || {};
 
@@ -35,15 +70,7 @@ CryptoZoo.boxes = {
         try {
             this.ensureState();
 
-            const config =
-                CryptoZoo.config &&
-                CryptoZoo.config.boxes &&
-                CryptoZoo.config.boxes[type]
-                    ? CryptoZoo.config.boxes[type]
-                    : null;
-
-            CryptoZoo.ui?.showToast?.(`BUY start ${type}`);
-
+            const config = CryptoZoo.config?.boxes?.[type] || null;
             if (!config) {
                 CryptoZoo.ui?.showToast?.("Błąd config boxa");
                 return;
@@ -72,9 +99,8 @@ CryptoZoo.boxes = {
             this.saveLocalState();
             CryptoZoo.ui?.render?.();
 
-            CryptoZoo.ui?.showToast?.(
-                `BUY done ${type} | boxes=${CryptoZoo.state.boxes[type]}`
-            );
+            CryptoZoo.api?.savePlayer?.();
+            CryptoZoo.ui?.showToast?.("Kupiono box");
         } catch (error) {
             console.error("Box buy error:", error);
             CryptoZoo.ui?.showToast?.("Błąd buy box");
@@ -86,21 +112,12 @@ CryptoZoo.boxes = {
             this.ensureState();
 
             const count = Number(CryptoZoo.state.boxes[type]) || 0;
-
-            CryptoZoo.ui?.showToast?.(`OPEN start ${type} | count=${count}`);
-
             if (count <= 0) {
                 CryptoZoo.ui?.showToast?.("Brak boxa");
                 return;
             }
 
-            const config =
-                CryptoZoo.config &&
-                CryptoZoo.config.boxes &&
-                CryptoZoo.config.boxes[type]
-                    ? CryptoZoo.config.boxes[type]
-                    : null;
-
+            const config = CryptoZoo.config?.boxes?.[type] || null;
             if (!config) {
                 CryptoZoo.ui?.showToast?.("Błąd config boxa");
                 return;
@@ -125,8 +142,10 @@ CryptoZoo.boxes = {
             this.saveLocalState();
             CryptoZoo.ui?.render?.();
 
+            CryptoZoo.api?.savePlayer?.();
             CryptoZoo.ui?.showToast?.(
-                `OPEN done +${CryptoZoo.formatNumber(coins)} coins +${CryptoZoo.formatNumber(gems)} gems`
+                `+${CryptoZoo.formatNumber(coins)} coins +${CryptoZoo.formatNumber(gems)} gems` +
+                (reward > 0 ? ` +${reward} reward` : "")
             );
         } catch (error) {
             console.error("Box open error:", error);
