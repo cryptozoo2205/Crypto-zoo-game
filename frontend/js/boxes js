@@ -5,41 +5,68 @@ CryptoZoo.boxes = {
         if (window.__cryptoZooBoxesBound) return;
         window.__cryptoZooBoxesBound = true;
 
-        document.addEventListener(
-            "pointerup",
-            (event) => {
-                const buyBtn = event.target.closest("[data-box-buy], [data-box-type]");
-                if (buyBtn) {
-                    event.preventDefault();
-                    event.stopPropagation();
+        this.lastActionAt = 0;
+        this.lastActionKey = "";
 
-                    const type =
-                        buyBtn.getAttribute("data-box-buy") ||
-                        buyBtn.getAttribute("data-box-type") ||
-                        "";
+        const handleBoxAction = (event) => {
+            const target = event.target;
+            if (!target || typeof target.closest !== "function") return;
 
-                    if (type) {
-                        this.buy(type);
-                    }
+            const now = Date.now();
+
+            const buyBtn = target.closest("[data-box-buy], [data-box-type]");
+            if (buyBtn) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const type =
+                    buyBtn.getAttribute("data-box-buy") ||
+                    buyBtn.getAttribute("data-box-type") ||
+                    "";
+
+                if (!type) return;
+
+                const actionKey = `buy:${type}`;
+                if (now - this.lastActionAt < 350 && this.lastActionKey === actionKey) {
                     return;
                 }
 
-                const openBtn = event.target.closest("[data-box-open], [id^='open-box-']");
-                if (openBtn) {
-                    event.preventDefault();
-                    event.stopPropagation();
+                this.lastActionAt = now;
+                this.lastActionKey = actionKey;
 
-                    const type =
-                        openBtn.getAttribute("data-box-open") ||
-                        String(openBtn.id || "").replace("open-box-", "");
+                this.buy(type);
+                return;
+            }
 
-                    if (type) {
-                        this.open(type);
-                    }
+            const openBtn = target.closest("[data-box-open], [id^='open-box-']");
+            if (openBtn) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const type =
+                    openBtn.getAttribute("data-box-open") ||
+                    String(openBtn.id || "").replace("open-box-", "");
+
+                if (!type) return;
+
+                const actionKey = `open:${type}`;
+                if (now - this.lastActionAt < 350 && this.lastActionKey === actionKey) {
+                    return;
                 }
-            },
-            true
-        );
+
+                this.lastActionAt = now;
+                this.lastActionKey = actionKey;
+
+                this.open(type);
+            }
+        };
+
+        document.addEventListener("pointerdown", handleBoxAction, true);
+        document.addEventListener("touchstart", handleBoxAction, {
+            passive: false,
+            capture: true
+        });
+        document.addEventListener("click", handleBoxAction, true);
     },
 
     ensureState() {
