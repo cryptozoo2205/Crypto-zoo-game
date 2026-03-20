@@ -43,6 +43,13 @@ CryptoZoo.boxes = {
         this.ensureState();
 
         const config = CryptoZoo.config?.boxes?.[type];
+        const coins = Number(CryptoZoo.state.coins) || 0;
+        const gems = Number(CryptoZoo.state.gems) || 0;
+
+        CryptoZoo.ui?.showToast?.(
+            `BUY start: ${type} | coins=${coins} gems=${gems} cfg=${config ? "ok" : "brak"}`
+        );
+
         if (!config) {
             CryptoZoo.ui?.showToast?.("Błąd config boxa");
             return;
@@ -51,16 +58,13 @@ CryptoZoo.boxes = {
         const buyCoins = Number(config.buyCoins) || 0;
         const buyGems = Number(config.buyGems) || 0;
 
-        const coins = Number(CryptoZoo.state.coins) || 0;
-        const gems = Number(CryptoZoo.state.gems) || 0;
-
         if (buyCoins > 0 && coins < buyCoins) {
-            CryptoZoo.ui?.showToast?.("Za mało coins");
+            CryptoZoo.ui?.showToast?.(`Za mało coins: masz ${CryptoZoo.formatNumber(coins)}, trzeba ${CryptoZoo.formatNumber(buyCoins)}`);
             return;
         }
 
         if (buyGems > 0 && gems < buyGems) {
-            CryptoZoo.ui?.showToast?.("Za mało gems");
+            CryptoZoo.ui?.showToast?.(`Za mało gems: masz ${CryptoZoo.formatNumber(gems)}, trzeba ${CryptoZoo.formatNumber(buyGems)}`);
             return;
         }
 
@@ -70,20 +74,27 @@ CryptoZoo.boxes = {
 
         this.saveLocalState();
         CryptoZoo.ui?.render?.();
-        CryptoZoo.ui?.showToast?.("Kupiono box");
+
+        CryptoZoo.ui?.showToast?.(
+            `BUY done: ${type} | left=${CryptoZoo.formatNumber(CryptoZoo.state.coins)} | boxes=${CryptoZoo.formatNumber(CryptoZoo.state.boxes[type])}`
+        );
     },
 
     open(type) {
         this.ensureState();
 
         const count = Number(CryptoZoo.state.boxes[type]) || 0;
+        const config = CryptoZoo.config?.boxes?.[type];
+
+        CryptoZoo.ui?.showToast?.(
+            `OPEN start: ${type} | count=${count} cfg=${config ? "ok" : "brak"}`
+        );
 
         if (count <= 0) {
             CryptoZoo.ui?.showToast?.("Brak boxa");
             return;
         }
 
-        const config = CryptoZoo.config?.boxes?.[type];
         if (!config) {
             CryptoZoo.ui?.showToast?.("Błąd config boxa");
             return;
@@ -115,7 +126,7 @@ CryptoZoo.boxes = {
         CryptoZoo.ui?.render?.();
 
         CryptoZoo.ui?.showToast?.(
-            `+${CryptoZoo.formatNumber(coins)} coins +${CryptoZoo.formatNumber(gems)} gems` +
+            `OPEN done: +${CryptoZoo.formatNumber(coins)} coins +${CryptoZoo.formatNumber(gems)} gems` +
             (reward > 0 ? ` +${reward} reward` : "")
         );
     }
