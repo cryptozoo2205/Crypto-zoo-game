@@ -1,6 +1,9 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.api = {
+    saveRequestSeq: 0,
+    latestAppliedSaveSeq: 0,
+
     getApiBase() {
         const fromStorage = localStorage.getItem("cryptozoo_api_base");
         if (fromStorage) {
@@ -362,11 +365,25 @@ window.CryptoZoo.api = {
 
     async savePlayer() {
         const payload = this.getSavePayload();
+        const requestSeq = ++this.saveRequestSeq;
 
         try {
-            CryptoZoo.state = await this.savePlayerToBackend(payload);
+            const savedState = await this.savePlayerToBackend(payload);
+
+            if (requestSeq < this.latestAppliedSaveSeq) {
+                return CryptoZoo.state;
+            }
+
+            this.latestAppliedSaveSeq = requestSeq;
+            CryptoZoo.state = savedState;
         } catch (error) {
             console.warn("Backend save failed, fallback to local save:", error);
+
+            if (requestSeq < this.latestAppliedSaveSeq) {
+                return CryptoZoo.state;
+            }
+
+            this.latestAppliedSaveSeq = requestSeq;
             CryptoZoo.state = this.normalizeState(payload);
         }
 
