@@ -188,6 +188,32 @@ CryptoZoo.gameplay = {
         return baseIncome * offlineBoost;
     },
 
+    getDailyRewardCoinsAmount() {
+        const level = Math.max(1, Number(CryptoZoo.state?.level) || 1);
+
+        if (level >= 25) {
+            return 5000;
+        }
+
+        if (level >= 15) {
+            return 3500;
+        }
+
+        if (level >= 10) {
+            return 2000;
+        }
+
+        if (level >= 5) {
+            return 1000;
+        }
+
+        return 500;
+    },
+
+    getDailyRewardGemsAmount() {
+        return this.dailyRewardGems;
+    },
+
     formatOfflineDuration(totalSeconds) {
         const safeSeconds = Math.max(0, Number(totalSeconds) || 0);
         const hours = Math.floor(safeSeconds / 3600);
@@ -271,8 +297,11 @@ CryptoZoo.gameplay = {
             return false;
         }
 
-        CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + this.dailyRewardCoins;
-        CryptoZoo.state.gems = (Number(CryptoZoo.state.gems) || 0) + this.dailyRewardGems;
+        const rewardCoins = this.getDailyRewardCoinsAmount();
+        const rewardGems = this.getDailyRewardGemsAmount();
+
+        CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + rewardCoins;
+        CryptoZoo.state.gems = (Number(CryptoZoo.state.gems) || 0) + rewardGems;
         CryptoZoo.state.lastDailyRewardAt = Date.now();
         CryptoZoo.state.lastLogin = Date.now();
 
@@ -281,7 +310,7 @@ CryptoZoo.gameplay = {
         CryptoZoo.api?.savePlayer?.();
 
         CryptoZoo.ui?.showToast?.(
-            `Daily Reward: +${CryptoZoo.formatNumber(this.dailyRewardCoins)} coins +${CryptoZoo.formatNumber(this.dailyRewardGems)} gem`
+            `Daily Reward: +${CryptoZoo.formatNumber(rewardCoins)} coins +${CryptoZoo.formatNumber(rewardGems)} gem`
         );
 
         return true;
@@ -785,4 +814,4 @@ CryptoZoo.gameplay = {
     openBox(type) {
         CryptoZoo.boxes?.open?.(type);
     }
-}; 
+};
