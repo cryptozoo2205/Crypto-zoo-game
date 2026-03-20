@@ -785,4 +785,4 @@ CryptoZoo.gameplay = {
     openBox(type) {
         CryptoZoo.boxes?.open?.(type);
     }
-};
+}; 
