@@ -8,6 +8,9 @@ CryptoZoo.gameplay = {
     suppressClickUntil: 0,
     touchTapLock: false,
     maxOfflineSeconds: 4 * 60 * 60,
+    dailyRewardCooldownMs: 24 * 60 * 60 * 1000,
+    dailyRewardCoins: 500,
+    dailyRewardGems: 1,
 
     init() {
         this.ensureState();
@@ -16,6 +19,7 @@ CryptoZoo.gameplay = {
         this.bindNavigation();
         this.bindTap();
         this.bindBoostShopButton();
+        this.bindDailyRewardButton();
 
         const lastScreen = sessionStorage.getItem("cryptozoo_last_screen") || "game";
         this.showScreen(lastScreen);
@@ -89,6 +93,10 @@ CryptoZoo.gameplay = {
 
         if (typeof CryptoZoo.state.lastLogin !== "number") {
             CryptoZoo.state.lastLogin = Number(CryptoZoo.state.lastLogin) || Date.now();
+        }
+
+        if (typeof CryptoZoo.state.lastDailyRewardAt !== "number") {
+            CryptoZoo.state.lastDailyRewardAt = Number(CryptoZoo.state.lastDailyRewardAt) || 0;
         }
 
         CryptoZoo.state.boost2xActiveUntil = this.normalizeBoostTimestamp(
@@ -236,6 +244,57 @@ CryptoZoo.gameplay = {
         );
 
         CryptoZoo.api?.savePlayer?.();
+    },
+
+    getDailyRewardTimeLeftMs() {
+        const lastClaimAt = Math.max(0, Number(CryptoZoo.state?.lastDailyRewardAt) || 0);
+
+        if (lastClaimAt <= 0) {
+            return 0;
+        }
+
+        const nextClaimAt = lastClaimAt + this.dailyRewardCooldownMs;
+        return Math.max(0, nextClaimAt - Date.now());
+    },
+
+    canClaimDailyReward() {
+        return this.getDailyRewardTimeLeftMs() <= 0;
+    },
+
+    claimDailyReward() {
+        if (!this.canClaimDailyReward()) {
+            const timeLeftSeconds = Math.ceil(this.getDailyRewardTimeLeftMs() / 1000);
+
+            CryptoZoo.ui?.showToast?.(
+                `Daily Reward za: ${CryptoZoo.ui?.formatTimeLeft?.(timeLeftSeconds) || "00:00:00"}`
+            );
+            return false;
+        }
+
+        CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + this.dailyRewardCoins;
+        CryptoZoo.state.gems = (Number(CryptoZoo.state.gems) || 0) + this.dailyRewardGems;
+        CryptoZoo.state.lastDailyRewardAt = Date.now();
+        CryptoZoo.state.lastLogin = Date.now();
+
+        this.recalculateProgress();
+        CryptoZoo.ui?.render?.();
+        CryptoZoo.api?.savePlayer?.();
+
+        CryptoZoo.ui?.showToast?.(
+            `Daily Reward: +${CryptoZoo.formatNumber(this.dailyRewardCoins)} coins +${CryptoZoo.formatNumber(this.dailyRewardGems)} gem`
+        );
+
+        return true;
+    },
+
+    bindDailyRewardButton() {
+        const btn = document.getElementById("homeDailyBtn");
+        if (!btn) return;
+
+        btn.dataset.bound = "1";
+        btn.onclick = () => {
+            this.claimDailyReward();
+        };
     },
 
     persistAndRender() {
