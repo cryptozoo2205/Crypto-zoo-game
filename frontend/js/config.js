@@ -156,18 +156,40 @@ CryptoZoo.config = {
     shopItems: [
         {
             id: "click1",
-            name: "Click Upgrade",
+            name: "Click Upgrade I",
             desc: "+1 coin per click",
             price: 250,
             type: "click"
         },
         {
             id: "click2",
-            name: "Strong Finger",
+            name: "Click Upgrade II",
             desc: "+1 coin per click",
-            price: 1250,
+            price: 900,
             type: "click"
         },
+        {
+            id: "click3",
+            name: "Strong Finger",
+            desc: "+1 coin per click",
+            price: 2500,
+            type: "click"
+        },
+        {
+            id: "click4",
+            name: "Turbo Tap",
+            desc: "+1 coin per click",
+            price: 7000,
+            type: "click"
+        },
+        {
+            id: "click5",
+            name: "Diamond Claw",
+            desc: "+1 coin per click",
+            price: 18000,
+            type: "click"
+        },
+
         {
             id: "income1",
             name: "Zoo Manager",
@@ -179,9 +201,31 @@ CryptoZoo.config = {
             id: "income2",
             name: "VIP Caretaker",
             desc: "+25% zoo income",
-            price: 12000,
+            price: 9000,
             type: "income"
         },
+        {
+            id: "income3",
+            name: "Automation Crew",
+            desc: "+25% zoo income",
+            price: 22000,
+            type: "income"
+        },
+        {
+            id: "income4",
+            name: "Golden Feeding System",
+            desc: "+25% zoo income",
+            price: 55000,
+            type: "income"
+        },
+        {
+            id: "income5",
+            name: "Elite Zoo Director",
+            desc: "+25% zoo income",
+            price: 140000,
+            type: "income"
+        },
+
         {
             id: "expedition1",
             name: "Better Expedition Gear",
@@ -190,9 +234,24 @@ CryptoZoo.config = {
             type: "expedition"
         },
         {
+            id: "expedition2",
+            name: "Rare Route Maps",
+            desc: "+20% expedition rewards",
+            price: 14000,
+            type: "expedition"
+        },
+        {
+            id: "expedition3",
+            name: "Epic Explorer Team",
+            desc: "+20% expedition rewards",
+            price: 36000,
+            type: "expedition"
+        },
+
+        {
             id: "offline1",
             name: "Offline Booster",
-            desc: "Better offline income",
+            desc: "x2 offline income",
             price: 8000,
             type: "offline"
         }
