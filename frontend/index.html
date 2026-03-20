@@ -175,11 +175,14 @@
                     </div>
 
                     <div class="home-quick-panel">
-                        <button id="homeDailyBtn" class="home-quick-card" type="button">
+                        <button id="homeDailyBtn" class="home-quick-card" type="button" aria-label="Otwórz Daily Reward">
                             <div class="home-quick-icon">🎁</div>
                             <div class="home-quick-text">
                                 <div class="home-quick-title">Daily Reward</div>
-                                <div class="home-quick-subtitle">W przygotowaniu</div>
+                                <div class="home-quick-subtitle">
+                                    <span id="homeDailyStatusText">Gotowe do dopracowania</span><br>
+                                    <span id="homeDailyTimerText">Countdown pojawi się tutaj</span>
+                                </div>
                             </div>
                         </button>
 
@@ -408,6 +411,55 @@
             </div>
 
             <button id="closeSettingsBtn" class="profile-close-btn" type="button">Zamknij</button>
+        </div>
+    </div>
+
+    <div id="dailyRewardModal" class="profile-modal hidden">
+        <div class="profile-backdrop" id="dailyRewardBackdrop"></div>
+
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar">🎁</div>
+
+                <div class="profile-user-meta">
+                    <div class="profile-name">Daily Reward</div>
+                    <div class="profile-subtitle" id="dailyRewardSubtitle">Odbierz codzienną nagrodę i wracaj po więcej</div>
+                </div>
+            </div>
+
+            <div class="profile-grid">
+                <div class="profile-box">
+                    <div class="profile-box-label">Status</div>
+                    <div class="profile-box-value" id="dailyRewardStatusText">Sprawdzanie...</div>
+                </div>
+
+                <div class="profile-box">
+                    <div class="profile-box-label">Do odebrania</div>
+                    <div class="profile-box-value" id="dailyRewardAmountText">0</div>
+                </div>
+
+                <div class="profile-box">
+                    <div class="profile-box-label">Countdown</div>
+                    <div class="profile-box-value" id="dailyRewardTimerText">--:--:--</div>
+                </div>
+
+                <div class="profile-box">
+                    <div class="profile-box-label">Streak</div>
+                    <div class="profile-box-value" id="dailyRewardStreakText">Day 1</div>
+                </div>
+            </div>
+
+            <div class="profile-boost-row">
+                <div class="profile-boost-left">
+                    <div class="profile-boost-label">Info</div>
+                    <div class="profile-boost-value" id="dailyRewardInfoText">
+                        Tutaj pokażemy gotowość nagrody, cooldown i później streak bez ruszania innych systemów.
+                    </div>
+                </div>
+            </div>
+
+            <button id="claimDailyRewardBtn" class="profile-close-btn" type="button">Odbierz nagrodę</button>
+            <button id="closeDailyRewardBtn" class="profile-close-btn" type="button">Zamknij</button>
         </div>
     </div>
 
