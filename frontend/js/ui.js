@@ -240,8 +240,9 @@ CryptoZoo.ui = {
 
         const titleEl = btn.querySelector(".home-quick-title");
         const subtitleEl = btn.querySelector(".home-quick-subtitle");
+        const iconEl = btn.querySelector(".home-quick-icon");
 
-        if (!titleEl || !subtitleEl) return;
+        if (!titleEl || !subtitleEl || !iconEl) return;
 
         const canClaim = CryptoZoo.gameplay?.canClaimDailyReward?.() || false;
         const timeLeftMs = Math.max(
@@ -267,14 +268,21 @@ CryptoZoo.ui = {
                     ? `Odbierz teraz: ${CryptoZoo.formatNumber(rewardCoins)} coins + ${CryptoZoo.formatNumber(rewardGems)} gem`
                     : `Odbierz teraz: ${CryptoZoo.formatNumber(rewardCoins)} coins`;
 
+            iconEl.textContent = "🎁";
             btn.style.opacity = "1";
             btn.style.filter = "none";
-            btn.style.borderColor = "rgba(255, 214, 92, 0.35)";
-            btn.style.boxShadow = "0 12px 22px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(255,214,92,0.10), inset 0 1px 0 rgba(255,255,255,0.04)";
+            btn.style.transform = "none";
+            btn.style.background = "linear-gradient(180deg, rgba(34, 50, 84, 0.98) 0%, rgba(18, 28, 48, 0.98) 100%)";
+            btn.style.borderColor = "rgba(255, 214, 92, 0.45)";
+            btn.style.boxShadow = "0 12px 24px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(255,214,92,0.12), 0 0 18px rgba(255,214,92,0.16), inset 0 1px 0 rgba(255,255,255,0.06)";
         } else {
             subtitleEl.textContent = `Następny za ${this.formatTimeLeft(timeLeftSeconds)}`;
-            btn.style.opacity = "0.92";
+
+            iconEl.textContent = "⏳";
+            btn.style.opacity = "0.94";
             btn.style.filter = "none";
+            btn.style.transform = "none";
+            btn.style.background = "linear-gradient(180deg, rgba(18, 28, 48, 0.96) 0%, rgba(10, 17, 31, 0.95) 100%)";
             btn.style.borderColor = "rgba(255,255,255,0.08)";
             btn.style.boxShadow = "0 12px 22px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255,255,255,0.04)";
         }
