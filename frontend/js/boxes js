@@ -4,6 +4,18 @@ CryptoZoo.boxes = {
     ensureState() {
         CryptoZoo.state = CryptoZoo.state || {};
 
+        if (typeof CryptoZoo.state.coins !== "number") {
+            CryptoZoo.state.coins = Number(CryptoZoo.state.coins) || 0;
+        }
+
+        if (typeof CryptoZoo.state.gems !== "number") {
+            CryptoZoo.state.gems = Number(CryptoZoo.state.gems) || 0;
+        }
+
+        if (typeof CryptoZoo.state.rewardBalance !== "number") {
+            CryptoZoo.state.rewardBalance = Number(CryptoZoo.state.rewardBalance) || 0;
+        }
+
         if (!CryptoZoo.state.boxes) {
             CryptoZoo.state.boxes = {
                 common: 0,
@@ -11,6 +23,19 @@ CryptoZoo.boxes = {
                 epic: 0,
                 legendary: 0
             };
+        }
+
+        CryptoZoo.state.boxes.common = Number(CryptoZoo.state.boxes.common) || 0;
+        CryptoZoo.state.boxes.rare = Number(CryptoZoo.state.boxes.rare) || 0;
+        CryptoZoo.state.boxes.epic = Number(CryptoZoo.state.boxes.epic) || 0;
+        CryptoZoo.state.boxes.legendary = Number(CryptoZoo.state.boxes.legendary) || 0;
+    },
+
+    saveLocalState() {
+        try {
+            localStorage.setItem("cryptozoo_save", JSON.stringify(CryptoZoo.state));
+        } catch (error) {
+            console.warn("Local box save error:", error);
         }
     },
 
@@ -39,16 +64,11 @@ CryptoZoo.boxes = {
             return;
         }
 
-        // 🔥 aktualizacja stanu
         CryptoZoo.state.coins = coins - buyCoins;
         CryptoZoo.state.gems = gems - buyGems;
-        CryptoZoo.state.boxes[type] =
-            (Number(CryptoZoo.state.boxes[type]) || 0) + 1;
+        CryptoZoo.state.boxes[type] = (Number(CryptoZoo.state.boxes[type]) || 0) + 1;
 
-        // 🔥 DEBUG (ważne)
-        console.log("BUY BOX:", type, CryptoZoo.state.boxes[type]);
-
-        CryptoZoo.api?.savePlayer?.();
+        this.saveLocalState();
         CryptoZoo.ui?.render?.();
         CryptoZoo.ui?.showToast?.("Kupiono box");
     },
@@ -75,6 +95,7 @@ CryptoZoo.boxes = {
         const coinMax = Number(config.coinMax) || 0;
         const gemsMin = Number(config.gemsMin) || 0;
         const gemsMax = Number(config.gemsMax) || 0;
+        const rewardMax = Number(config.rewardMax) || 0;
 
         const coins =
             Math.floor(Math.random() * (coinMax - coinMin + 1)) + coinMin;
@@ -82,16 +103,20 @@ CryptoZoo.boxes = {
         const gems =
             Math.floor(Math.random() * (gemsMax - gemsMin + 1)) + gemsMin;
 
-        CryptoZoo.state.coins += coins;
-        CryptoZoo.state.gems += gems;
+        const reward =
+            rewardMax > 0 ? Number((Math.random() * rewardMax).toFixed(2)) : 0;
 
-        console.log("OPEN BOX:", type, coins, gems);
+        CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + coins;
+        CryptoZoo.state.gems = (Number(CryptoZoo.state.gems) || 0) + gems;
+        CryptoZoo.state.rewardBalance =
+            (Number(CryptoZoo.state.rewardBalance) || 0) + reward;
 
-        CryptoZoo.api?.savePlayer?.();
+        this.saveLocalState();
         CryptoZoo.ui?.render?.();
 
         CryptoZoo.ui?.showToast?.(
-            `+${CryptoZoo.formatNumber(coins)} coins +${gems} gems`
+            `+${CryptoZoo.formatNumber(coins)} coins +${CryptoZoo.formatNumber(gems)} gems` +
+            (reward > 0 ? ` +${reward} reward` : "")
         );
     }
 };
