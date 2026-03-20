@@ -44,39 +44,6 @@ CryptoZoo.init = async function () {
         }
     };
 
-    const setupGlobalInteractionFallbacks = function () {
-        if (window.__cryptoZooGlobalInteractionsBound) return;
-        window.__cryptoZooGlobalInteractionsBound = true;
-
-        document.addEventListener("click", function (event) {
-            const buyBoxButton = event.target.closest("[data-box-type]");
-            if (buyBoxButton) {
-                const type = buyBoxButton.getAttribute("data-box-type");
-
-                if (type && CryptoZoo.boxes?.buy) {
-                    event.preventDefault();
-                    CryptoZoo.boxes.buy(type);
-                    return;
-                }
-            }
-
-            const openBoxButton = event.target.closest("[id^='open-box-']");
-            if (openBoxButton) {
-                const id = openBoxButton.id || "";
-                const prefix = "open-box-";
-
-                if (id.startsWith(prefix) && CryptoZoo.boxes?.open) {
-                    const type = id.slice(prefix.length);
-
-                    if (type) {
-                        event.preventDefault();
-                        CryptoZoo.boxes.open(type);
-                    }
-                }
-            }
-        });
-    };
-
     const setLoading = function (value) {
         const safeValue = Math.max(0, Math.min(100, Number(value) || 0));
 
@@ -108,7 +75,6 @@ CryptoZoo.init = async function () {
 
     try {
         setupResponsiveEnvironment();
-        setupGlobalInteractionFallbacks();
         setLoading(8);
 
         CryptoZoo.state = CryptoZoo.state || {};
@@ -169,6 +135,7 @@ CryptoZoo.init = async function () {
         setLoading(92);
 
         await finishLoading();
+
     } catch (error) {
         console.error("❌ Init error:", error);
         await finishLoading();
