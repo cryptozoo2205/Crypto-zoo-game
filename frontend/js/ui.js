@@ -249,6 +249,7 @@ CryptoZoo.ui = {
             Number(CryptoZoo.gameplay?.getDailyRewardTimeLeftMs?.()) || 0
         );
         const timeLeftSeconds = Math.ceil(timeLeftMs / 1000);
+
         const rewardCoins = Math.max(
             0,
             Number(CryptoZoo.gameplay?.getDailyRewardCoinsAmount?.()) || 0
@@ -261,13 +262,21 @@ CryptoZoo.ui = {
         titleEl.textContent = "Daily Reward";
 
         if (canClaim) {
-            subtitleEl.textContent = `Odbierz teraz: ${CryptoZoo.formatNumber(rewardCoins)} coins + ${CryptoZoo.formatNumber(rewardGems)} gem`;
+            subtitleEl.textContent =
+                rewardGems > 0
+                    ? `Odbierz teraz: ${CryptoZoo.formatNumber(rewardCoins)} coins + ${CryptoZoo.formatNumber(rewardGems)} gem`
+                    : `Odbierz teraz: ${CryptoZoo.formatNumber(rewardCoins)} coins`;
+
             btn.style.opacity = "1";
             btn.style.filter = "none";
+            btn.style.borderColor = "rgba(255, 214, 92, 0.35)";
+            btn.style.boxShadow = "0 12px 22px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(255,214,92,0.10), inset 0 1px 0 rgba(255,255,255,0.04)";
         } else {
             subtitleEl.textContent = `Następny za ${this.formatTimeLeft(timeLeftSeconds)}`;
-            btn.style.opacity = "0.9";
+            btn.style.opacity = "0.92";
             btn.style.filter = "none";
+            btn.style.borderColor = "rgba(255,255,255,0.08)";
+            btn.style.boxShadow = "0 12px 22px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255,255,255,0.04)";
         }
     },
 
