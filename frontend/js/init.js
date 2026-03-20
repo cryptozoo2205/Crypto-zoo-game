@@ -44,78 +44,6 @@ CryptoZoo.init = async function () {
         }
     };
 
-    const setupCommercePointerRouter = function () {
-        if (window.__cryptoZooCommerceRouterBound) return;
-        window.__cryptoZooCommerceRouterBound = true;
-
-        let lastHandledAt = 0;
-        let lastHandledKey = "";
-
-        document.addEventListener(
-            "pointerup",
-            function (event) {
-                const target = event.target;
-                if (!target || typeof target.closest !== "function") return;
-
-                const now = Date.now();
-
-                const shopBuyBtn = target.closest("[id^='buy-shop-']");
-                if (shopBuyBtn) {
-                    const itemId = String(shopBuyBtn.id || "").replace("buy-shop-", "");
-                    const dedupeKey = `shop:${itemId}`;
-
-                    if (now - lastHandledAt < 350 && lastHandledKey === dedupeKey) {
-                        return;
-                    }
-
-                    lastHandledAt = now;
-                    lastHandledKey = dedupeKey;
-
-                    if (itemId) {
-                        CryptoZoo.gameplay?.buyShopItem?.(itemId);
-                    }
-                    return;
-                }
-
-                const buyBoxBtn = target.closest("[data-box-type]");
-                if (buyBoxBtn) {
-                    const type = buyBoxBtn.getAttribute("data-box-type") || "";
-                    const dedupeKey = `buybox:${type}`;
-
-                    if (now - lastHandledAt < 350 && lastHandledKey === dedupeKey) {
-                        return;
-                    }
-
-                    lastHandledAt = now;
-                    lastHandledKey = dedupeKey;
-
-                    if (type) {
-                        CryptoZoo.boxes?.buy?.(type);
-                    }
-                    return;
-                }
-
-                const openBoxBtn = target.closest("[id^='open-box-']");
-                if (openBoxBtn) {
-                    const type = String(openBoxBtn.id || "").replace("open-box-", "");
-                    const dedupeKey = `openbox:${type}`;
-
-                    if (now - lastHandledAt < 350 && lastHandledKey === dedupeKey) {
-                        return;
-                    }
-
-                    lastHandledAt = now;
-                    lastHandledKey = dedupeKey;
-
-                    if (type) {
-                        CryptoZoo.boxes?.open?.(type);
-                    }
-                }
-            },
-            true
-        );
-    };
-
     const setLoading = function (value) {
         const safeValue = Math.max(0, Math.min(100, Number(value) || 0));
 
@@ -147,7 +75,6 @@ CryptoZoo.init = async function () {
 
     try {
         setupResponsiveEnvironment();
-        setupCommercePointerRouter();
         setLoading(8);
 
         CryptoZoo.state = CryptoZoo.state || {};
@@ -208,7 +135,6 @@ CryptoZoo.init = async function () {
         setLoading(92);
 
         await finishLoading();
-
     } catch (error) {
         console.error("❌ Init error:", error);
         await finishLoading();
