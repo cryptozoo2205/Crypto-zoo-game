@@ -677,6 +677,27 @@ CryptoZoo.ui = {
         CryptoZoo.gameplay?.bindShopButtons?.();
     },
 
+    bindBoxButtons() {
+        const buyButtons = document.querySelectorAll("[data-box-buy]");
+        const openButtons = document.querySelectorAll("[data-box-open]");
+
+        buyButtons.forEach((button) => {
+            button.onclick = () => {
+                const type = button.getAttribute("data-box-buy");
+                this.showToast(`klik buy ${type}`);
+                CryptoZoo.boxes?.buy?.(type);
+            };
+        });
+
+        openButtons.forEach((button) => {
+            button.onclick = () => {
+                const type = button.getAttribute("data-box-open");
+                this.showToast(`klik open ${type}`);
+                CryptoZoo.boxes?.open?.(type);
+            };
+        });
+    },
+
     renderBoxes() {
         const buyList = document.getElementById("boxesBuyList");
         const container = document.getElementById("boxesList");
@@ -705,10 +726,7 @@ CryptoZoo.ui = {
                     : `${CryptoZoo.formatNumber(config.buyGems || 0)} gems`;
 
             return `
-                <button
-                    type="button"
-                    onclick="CryptoZoo.ui.showToast('klik buy ${box.key}'); CryptoZoo.boxes.buy('${box.key}')"
-                >
+                <button type="button" data-box-buy="${box.key}">
                     ${box.label}
                     <br>
                     ${priceText}
@@ -720,12 +738,11 @@ CryptoZoo.ui = {
             <div class="shop-item">
                 <h3>${box.label}</h3>
                 <div>Posiadasz: ${CryptoZoo.formatNumber(boxesState[box.key] || 0)}</div>
-                <button
-                    type="button"
-                    onclick="CryptoZoo.ui.showToast('klik open ${box.key}'); CryptoZoo.boxes.open('${box.key}')"
-                >Otwórz</button>
+                <button type="button" data-box-open="${box.key}">Otwórz</button>
             </div>
         `).join("");
+
+        this.bindBoxButtons();
     },
 
     render() {
