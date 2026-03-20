@@ -84,45 +84,6 @@ CryptoZoo.config = {
         }
     },
 
-    boxes: {
-        common: {
-            buyCoins: 150,
-            buyGems: 0,
-            coinMin: 80,
-            coinMax: 260,
-            gemsMin: 0,
-            gemsMax: 1,
-            rewardMax: 0
-        },
-        rare: {
-            buyCoins: 0,
-            buyGems: 3,
-            coinMin: 500,
-            coinMax: 1800,
-            gemsMin: 1,
-            gemsMax: 3,
-            rewardMax: 0
-        },
-        epic: {
-            buyCoins: 0,
-            buyGems: 10,
-            coinMin: 2500,
-            coinMax: 9000,
-            gemsMin: 2,
-            gemsMax: 6,
-            rewardMax: 0.25
-        },
-        legendary: {
-            buyCoins: 0,
-            buyGems: 25,
-            coinMin: 10000,
-            coinMax: 30000,
-            gemsMin: 6,
-            gemsMax: 14,
-            rewardMax: 1
-        }
-    },
-
     expeditions: [
         {
             id: "forest",
@@ -158,35 +119,35 @@ CryptoZoo.config = {
             id: "click1",
             name: "Click Upgrade I",
             desc: "+1 coin per click",
-            price: 60,
+            price: 250,
             type: "click"
         },
         {
             id: "click2",
             name: "Click Upgrade II",
             desc: "+1 coin per click",
-            price: 180,
+            price: 900,
             type: "click"
         },
         {
             id: "click3",
             name: "Strong Finger",
             desc: "+1 coin per click",
-            price: 500,
+            price: 2500,
             type: "click"
         },
         {
             id: "click4",
             name: "Turbo Tap",
             desc: "+1 coin per click",
-            price: 1200,
+            price: 7000,
             type: "click"
         },
         {
             id: "click5",
             name: "Diamond Claw",
             desc: "+1 coin per click",
-            price: 3000,
+            price: 18000,
             type: "click"
         },
 
@@ -194,35 +155,35 @@ CryptoZoo.config = {
             id: "income1",
             name: "Zoo Manager",
             desc: "+25% zoo income",
-            price: 900,
+            price: 3000,
             type: "income"
         },
         {
             id: "income2",
             name: "VIP Caretaker",
             desc: "+25% zoo income",
-            price: 2500,
+            price: 9000,
             type: "income"
         },
         {
             id: "income3",
             name: "Automation Crew",
             desc: "+25% zoo income",
-            price: 7000,
+            price: 22000,
             type: "income"
         },
         {
             id: "income4",
             name: "Golden Feeding System",
             desc: "+25% zoo income",
-            price: 18000,
+            price: 55000,
             type: "income"
         },
         {
             id: "income5",
             name: "Elite Zoo Director",
             desc: "+25% zoo income",
-            price: 45000,
+            price: 140000,
             type: "income"
         },
 
@@ -230,21 +191,21 @@ CryptoZoo.config = {
             id: "expedition1",
             name: "Better Expedition Gear",
             desc: "+20% expedition rewards",
-            price: 1500,
+            price: 5000,
             type: "expedition"
         },
         {
             id: "expedition2",
             name: "Rare Route Maps",
             desc: "+20% expedition rewards",
-            price: 4500,
+            price: 14000,
             type: "expedition"
         },
         {
             id: "expedition3",
             name: "Epic Explorer Team",
             desc: "+20% expedition rewards",
-            price: 12000,
+            price: 36000,
             type: "expedition"
         },
 
@@ -252,7 +213,7 @@ CryptoZoo.config = {
             id: "offline1",
             name: "Offline Booster",
             desc: "x2 offline income",
-            price: 2200,
+            price: 8000,
             type: "offline"
         }
     ]
