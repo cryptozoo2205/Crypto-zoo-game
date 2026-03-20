@@ -7,10 +7,12 @@ CryptoZoo.gameplay = {
     boostTimerStarted: false,
     suppressClickUntil: 0,
     touchTapLock: false,
+    maxOfflineSeconds: 4 * 60 * 60,
 
     init() {
         this.ensureState();
         this.recalculateProgress();
+        this.applyOfflineEarnings();
         this.bindNavigation();
         this.bindTap();
         this.bindBoostShopButton();
@@ -83,6 +85,10 @@ CryptoZoo.gameplay = {
 
         if (typeof CryptoZoo.state.boost2xActiveUntil !== "number") {
             CryptoZoo.state.boost2xActiveUntil = Number(CryptoZoo.state.boost2xActiveUntil) || 0;
+        }
+
+        if (typeof CryptoZoo.state.lastLogin !== "number") {
+            CryptoZoo.state.lastLogin = Number(CryptoZoo.state.lastLogin) || Date.now();
         }
 
         CryptoZoo.state.boost2xActiveUntil = this.normalizeBoostTimestamp(
@@ -167,9 +173,51 @@ CryptoZoo.gameplay = {
         return this.getBaseZooIncome() * this.getBoost2xMultiplier();
     },
 
+    getOfflineIncomePerSecond() {
+        const baseIncome = this.getBaseZooIncome();
+        const offlineBoost = Math.max(1, Number(CryptoZoo.state?.offlineBoost) || 1);
+
+        return baseIncome * offlineBoost;
+    },
+
+    applyOfflineEarnings() {
+        const now = Date.now();
+        const lastLogin = Math.max(0, Number(CryptoZoo.state?.lastLogin) || now);
+        const elapsedSeconds = Math.max(0, Math.floor((now - lastLogin) / 1000));
+        const cappedSeconds = Math.min(elapsedSeconds, this.maxOfflineSeconds);
+
+        if (cappedSeconds <= 0) {
+            CryptoZoo.state.lastLogin = now;
+            return;
+        }
+
+        this.recalculateZooIncome();
+
+        const offlineIncomePerSecond = this.getOfflineIncomePerSecond();
+        const offlineCoins = Math.floor(offlineIncomePerSecond * cappedSeconds);
+
+        CryptoZoo.state.lastLogin = now;
+
+        if (offlineCoins <= 0) {
+            return;
+        }
+
+        CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + offlineCoins;
+        CryptoZoo.state.xp = (Number(CryptoZoo.state.xp) || 0) + Math.max(1, Math.floor(cappedSeconds / 60));
+
+        this.recalculateLevel();
+
+        CryptoZoo.ui?.showToast?.(
+            `Offline zarobki: +${CryptoZoo.formatNumber(offlineCoins)} coins`
+        );
+
+        CryptoZoo.api?.savePlayer?.();
+    },
+
     persistAndRender() {
         this.normalizeBoostState();
         this.recalculateProgress();
+        CryptoZoo.state.lastLogin = Date.now();
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
     },
@@ -255,7 +303,7 @@ CryptoZoo.gameplay = {
         sessionStorage.setItem("cryptozoo_last_screen", screenName);
 
         if (screenName === "ranking") {
-            CryptoZoo.ui?.renderRanking?.();
+            CryptoZoo.uiRanking?.renderRanking?.();
         }
 
         if (screenName === "missions") {
@@ -279,6 +327,7 @@ CryptoZoo.gameplay = {
         this.recalculateLevel();
 
         CryptoZoo.ui?.animateCoin?.(safeTapCount);
+        CryptoZoo.state.lastLogin = Date.now();
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
     },
@@ -522,6 +571,7 @@ CryptoZoo.gameplay = {
 
             const baseIncome = Number(CryptoZoo.state?.zooIncome) || 0;
             if (baseIncome <= 0) {
+                CryptoZoo.state.lastLogin = Date.now();
                 CryptoZoo.ui?.renderHome?.();
                 return;
             }
@@ -530,6 +580,7 @@ CryptoZoo.gameplay = {
 
             CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + income;
             CryptoZoo.state.xp = (Number(CryptoZoo.state.xp) || 0) + 1;
+            CryptoZoo.state.lastLogin = Date.now();
 
             this.recalculateLevel();
 
@@ -546,6 +597,7 @@ CryptoZoo.gameplay = {
             const previousBoostValue = Number(CryptoZoo.state?.boost2xActiveUntil) || 0;
 
             this.normalizeBoostState();
+            CryptoZoo.state.lastLogin = Date.now();
 
             const currentBoostValue = Number(CryptoZoo.state?.boost2xActiveUntil) || 0;
 
@@ -600,6 +652,7 @@ CryptoZoo.gameplay = {
             )
         };
 
+        CryptoZoo.state.lastLogin = Date.now();
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
         CryptoZoo.ui?.showToast?.("Ekspedycja rozpoczęta");
@@ -624,6 +677,7 @@ CryptoZoo.gameplay = {
         CryptoZoo.state.xp = (Number(CryptoZoo.state.xp) || 0) + 5;
 
         CryptoZoo.state.expedition = null;
+        CryptoZoo.state.lastLogin = Date.now();
 
         this.recalculateLevel();
 
@@ -640,6 +694,7 @@ CryptoZoo.gameplay = {
             if (!CryptoZoo.state?.expedition) return;
             if (this.activeScreen !== "missions") return;
 
+            CryptoZoo.state.lastLogin = Date.now();
             CryptoZoo.ui?.renderExpeditions?.();
         }, 1000);
     },
