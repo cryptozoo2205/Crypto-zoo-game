@@ -249,11 +249,19 @@ CryptoZoo.ui = {
             Number(CryptoZoo.gameplay?.getDailyRewardTimeLeftMs?.()) || 0
         );
         const timeLeftSeconds = Math.ceil(timeLeftMs / 1000);
+        const rewardCoins = Math.max(
+            0,
+            Number(CryptoZoo.gameplay?.getDailyRewardCoinsAmount?.()) || 0
+        );
+        const rewardGems = Math.max(
+            0,
+            Number(CryptoZoo.gameplay?.getDailyRewardGemsAmount?.()) || 0
+        );
 
         titleEl.textContent = "Daily Reward";
 
         if (canClaim) {
-            subtitleEl.textContent = "Odbierz teraz: 500 coins + 1 gem";
+            subtitleEl.textContent = `Odbierz teraz: ${CryptoZoo.formatNumber(rewardCoins)} coins + ${CryptoZoo.formatNumber(rewardGems)} gem`;
             btn.style.opacity = "1";
             btn.style.filter = "none";
         } else {
