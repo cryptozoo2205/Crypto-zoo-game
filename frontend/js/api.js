@@ -106,6 +106,7 @@ window.CryptoZoo.api = {
             expeditionBoost: 0,
             offlineBoost: 1,
             lastLogin: Date.now(),
+            lastDailyRewardAt: 0,
             boost2xActiveUntil: 0,
             animals: {
                 monkey: { count: 0, level: 1 },
@@ -217,6 +218,7 @@ window.CryptoZoo.api = {
             expeditionBoost: Math.max(0, Number(data.expeditionBoost ?? base.expeditionBoost) || 0),
             offlineBoost: Math.max(1, Number(data.offlineBoost ?? base.offlineBoost) || 1),
             lastLogin: Number(data.lastLogin ?? base.lastLogin) || Date.now(),
+            lastDailyRewardAt: Math.max(0, Number(data.lastDailyRewardAt ?? base.lastDailyRewardAt) || 0),
             boost2xActiveUntil,
             animals,
             expedition: this.normalizeExpedition(data.expedition)
@@ -251,6 +253,7 @@ window.CryptoZoo.api = {
             expeditionBoost: state.expeditionBoost,
             offlineBoost: state.offlineBoost,
             lastLogin: Date.now(),
+            lastDailyRewardAt: state.lastDailyRewardAt,
             boost2xActiveUntil: state.boost2xActiveUntil,
             animals: state.animals,
             expedition: state.expedition
