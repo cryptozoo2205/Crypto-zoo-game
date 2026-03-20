@@ -705,7 +705,10 @@ CryptoZoo.ui = {
                     : `${CryptoZoo.formatNumber(config.buyGems || 0)} gems`;
 
             return `
-                <button type="button" onclick="CryptoZoo.boxes.buy('${box.key}')">
+                <button
+                    type="button"
+                    onclick="CryptoZoo.ui.showToast('klik buy ${box.key}'); CryptoZoo.boxes.buy('${box.key}')"
+                >
                     ${box.label}
                     <br>
                     ${priceText}
@@ -717,7 +720,10 @@ CryptoZoo.ui = {
             <div class="shop-item">
                 <h3>${box.label}</h3>
                 <div>Posiadasz: ${CryptoZoo.formatNumber(boxesState[box.key] || 0)}</div>
-                <button type="button" onclick="CryptoZoo.boxes.open('${box.key}')">Otwórz</button>
+                <button
+                    type="button"
+                    onclick="CryptoZoo.ui.showToast('klik open ${box.key}'); CryptoZoo.boxes.open('${box.key}')"
+                >Otwórz</button>
             </div>
         `).join("");
     },
