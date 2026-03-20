@@ -677,79 +677,12 @@ CryptoZoo.ui = {
         CryptoZoo.gameplay?.bindShopButtons?.();
     },
 
-    bindBoxButtons() {
-        const buyButtons = document.querySelectorAll("[data-box-buy]");
-        const openButtons = document.querySelectorAll("[data-box-open]");
-
-        buyButtons.forEach((button) => {
-            button.onclick = () => {
-                const type = button.getAttribute("data-box-buy");
-                CryptoZoo.boxes?.buy?.(type);
-            };
-        });
-
-        openButtons.forEach((button) => {
-            button.onclick = () => {
-                const type = button.getAttribute("data-box-open");
-                CryptoZoo.boxes?.open?.(type);
-            };
-        });
-    },
-
-    renderBoxes() {
-        const buyList = document.getElementById("boxesBuyList");
-        const container = document.getElementById("boxesList");
-        if (!buyList || !container) return;
-
-        const boxesConfig = CryptoZoo.config?.boxes || {};
-        const boxesState = CryptoZoo.state?.boxes || {
-            common: 0,
-            rare: 0,
-            epic: 0,
-            legendary: 0
-        };
-
-        const types = [
-            { key: "common", label: "Common Box" },
-            { key: "rare", label: "Rare Box" },
-            { key: "epic", label: "Epic Box" },
-            { key: "legendary", label: "Legendary Box" }
-        ];
-
-        buyList.innerHTML = types.map((box) => {
-            const config = boxesConfig[box.key] || {};
-            const priceText =
-                (Number(config.buyCoins) || 0) > 0
-                    ? `${CryptoZoo.formatNumber(config.buyCoins)} coins`
-                    : `${CryptoZoo.formatNumber(config.buyGems || 0)} gems`;
-
-            return `
-                <button type="button" data-box-buy="${box.key}">
-                    ${box.label}
-                    <br>
-                    ${priceText}
-                </button>
-            `;
-        }).join("");
-
-        container.innerHTML = types.map((box) => `
-            <div class="shop-item">
-                <h3>${box.label}</h3>
-                <div>Posiadasz: ${CryptoZoo.formatNumber(boxesState[box.key] || 0)}</div>
-                <button type="button" data-box-open="${box.key}">Otwórz</button>
-            </div>
-        `).join("");
-
-        this.bindBoxButtons();
-    },
-
     render() {
         this.renderHome();
         this.renderTopHiddenStats();
         this.renderZooList();
         this.renderExpeditions();
         this.renderShopItems();
-        this.renderBoxes();
 
         if (CryptoZoo.gameplay?.activeScreen === "ranking") {
             CryptoZoo.uiRanking?.renderRanking?.(false);
