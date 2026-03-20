@@ -180,11 +180,32 @@ CryptoZoo.gameplay = {
         return baseIncome * offlineBoost;
     },
 
+    formatOfflineDuration(totalSeconds) {
+        const safeSeconds = Math.max(0, Number(totalSeconds) || 0);
+        const hours = Math.floor(safeSeconds / 3600);
+        const minutes = Math.floor((safeSeconds % 3600) / 60);
+
+        if (hours > 0 && minutes > 0) {
+            return `${hours}h ${minutes}m`;
+        }
+
+        if (hours > 0) {
+            return `${hours}h`;
+        }
+
+        if (minutes > 0) {
+            return `${minutes}m`;
+        }
+
+        return `${safeSeconds}s`;
+    },
+
     applyOfflineEarnings() {
         const now = Date.now();
         const lastLogin = Math.max(0, Number(CryptoZoo.state?.lastLogin) || now);
         const elapsedSeconds = Math.max(0, Math.floor((now - lastLogin) / 1000));
         const cappedSeconds = Math.min(elapsedSeconds, this.maxOfflineSeconds);
+        const wasCapped = elapsedSeconds > this.maxOfflineSeconds;
 
         if (cappedSeconds <= 0) {
             CryptoZoo.state.lastLogin = now;
@@ -207,8 +228,11 @@ CryptoZoo.gameplay = {
 
         this.recalculateLevel();
 
+        const timeLabel = this.formatOfflineDuration(cappedSeconds);
+        const capLabel = wasCapped ? " • limit 4h" : "";
+
         CryptoZoo.ui?.showToast?.(
-            `Offline zarobki: +${CryptoZoo.formatNumber(offlineCoins)} coins`
+            `Offline: ${timeLabel} • +${CryptoZoo.formatNumber(offlineCoins)} coins${capLabel}`
         );
 
         CryptoZoo.api?.savePlayer?.();
