@@ -271,6 +271,22 @@ CryptoZoo.ui = {
         }
     },
 
+    getShopTypeLabel(type) {
+        if (type === "click") return "Click Boost";
+        if (type === "income") return "Income Boost";
+        if (type === "expedition") return "Expedition Boost";
+        if (type === "offline") return "Offline Boost";
+        return "Upgrade";
+    },
+
+    getShopTypeEmoji(type) {
+        if (type === "click") return "👆";
+        if (type === "income") return "💰";
+        if (type === "expedition") return "🧭";
+        if (type === "offline") return "💤";
+        return "✨";
+    },
+
     bindHomeButtons() {
         const boostBtn = document.getElementById("homeBoostBtn");
         if (boostBtn && !boostBtn.dataset.bound) {
@@ -628,14 +644,35 @@ CryptoZoo.ui = {
 
         const items = CryptoZoo.config?.shopItems || [];
 
-        shopList.innerHTML = items.map((item) => `
-            <div class="shop-item">
-                <h3>${item.name}</h3>
-                <div>${item.desc}</div>
-                <div>Koszt: ${CryptoZoo.formatNumber(item.price)} coins</div>
-                <button id="buy-shop-${item.id}" type="button">Kup</button>
-            </div>
-        `).join("");
+        shopList.innerHTML = items.map((item) => {
+            const typeLabel = this.getShopTypeLabel(item.type);
+            const typeEmoji = this.getShopTypeEmoji(item.type);
+
+            return `
+                <div class="shop-item">
+                    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:8px;">
+                        <div>
+                            <div style="font-size:16px; font-weight:900; margin-bottom:4px;">
+                                ${typeEmoji} ${item.name}
+                            </div>
+                            <div style="display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; background:rgba(255,255,255,0.08); font-size:11px; font-weight:800; color:rgba(255,255,255,0.82);">
+                                ${typeLabel}
+                            </div>
+                        </div>
+                        <div style="text-align:right; flex-shrink:0;">
+                            <div style="font-size:12px; color:rgba(255,255,255,0.66);">Koszt</div>
+                            <div style="font-size:16px; font-weight:900;">${CryptoZoo.formatNumber(item.price)}</div>
+                        </div>
+                    </div>
+
+                    <div style="font-size:13px; color:rgba(255,255,255,0.78); margin-bottom:10px; line-height:1.45;">
+                        ${item.desc}
+                    </div>
+
+                    <button id="buy-shop-${item.id}" type="button">Kup</button>
+                </div>
+            `;
+        }).join("");
 
         CryptoZoo.gameplay?.bindShopButtons?.();
     },
