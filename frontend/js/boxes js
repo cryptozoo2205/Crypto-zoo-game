@@ -1,14 +1,44 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.boxes = {
+    initialized: false,
+
     init() {
+        if (this.initialized) return;
+        this.initialized = true;
+
+        this.bindBuyButtons();
+        this.bindDelegatedBuyHandler();
+    },
+
+    bindBuyButtons() {
         const buttons = document.querySelectorAll("[data-box-type]");
 
         buttons.forEach((button) => {
+            if (button.dataset.boxBound === "1") return;
+
+            button.dataset.boxBound = "1";
             button.onclick = () => {
                 const type = button.getAttribute("data-box-type");
                 this.buy(type);
             };
+        });
+    },
+
+    bindDelegatedBuyHandler() {
+        if (document.body?.dataset.boxDelegationBound === "1") return;
+
+        document.body.dataset.boxDelegationBound = "1";
+
+        document.addEventListener("click", (event) => {
+            const button = event.target.closest("[data-box-type]");
+            if (!button) return;
+
+            const type = button.getAttribute("data-box-type");
+            if (!type) return;
+
+            event.preventDefault();
+            this.buy(type);
         });
     },
 
@@ -60,6 +90,7 @@ CryptoZoo.boxes = {
 
     buy(type) {
         this.ensureState();
+        this.bindBuyButtons();
 
         const config = CryptoZoo.config && CryptoZoo.config.boxes
             ? CryptoZoo.config.boxes[type]
@@ -165,3 +196,11 @@ CryptoZoo.boxes = {
         );
     }
 };
+
+CryptoZoo.boxes.init();
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
+        CryptoZoo.boxes.init();
+    });
+}
