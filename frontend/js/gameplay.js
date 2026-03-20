@@ -35,6 +35,12 @@ CryptoZoo.gameplay = {
     ensureState() {
         CryptoZoo.state = CryptoZoo.state || {};
         CryptoZoo.state.animals = CryptoZoo.state.animals || {};
+        CryptoZoo.state.boxes = CryptoZoo.state.boxes || {
+            common: 0,
+            rare: 0,
+            epic: 0,
+            legendary: 0
+        };
 
         const animals = CryptoZoo.config?.animals || {};
         Object.keys(animals).forEach((type) => {
@@ -249,7 +255,7 @@ CryptoZoo.gameplay = {
             return 0;
         }
 
-        const nextClaimAt = lastClaimAt + this.getDailyRewardCooldownMs();
+        const nextClaimAt = lastClaimAt + this.dailyRewardCooldownMs;
         return Math.max(0, nextClaimAt - Date.now());
     },
 
@@ -300,9 +306,8 @@ CryptoZoo.gameplay = {
 
     bindDailyRewardButton() {
         const btn = document.getElementById("homeDailyBtn");
-        if (!btn || btn.dataset.dailyBound) return;
+        if (!btn) return;
 
-        btn.dataset.dailyBound = "1";
         btn.onclick = () => {
             this.claimDailyReward();
         };
@@ -691,6 +696,7 @@ CryptoZoo.gameplay = {
             const previousBoostValue = Number(CryptoZoo.state?.boost2xActiveUntil) || 0;
 
             this.normalizeBoostState();
+            CryptoZoo.state.lastLogin = Date.now();
 
             const currentBoostValue = Number(CryptoZoo.state?.boost2xActiveUntil) || 0;
 
@@ -787,11 +793,12 @@ CryptoZoo.gameplay = {
             if (!CryptoZoo.state?.expedition) return;
             if (this.activeScreen !== "missions") return;
 
+            CryptoZoo.state.lastLogin = Date.now();
             CryptoZoo.ui?.renderExpeditions?.();
         }, 1000);
     },
 
     openBox(type) {
-        return type;
+        CryptoZoo.boxes?.open?.(type);
     }
 };
