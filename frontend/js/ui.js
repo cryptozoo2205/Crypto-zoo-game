@@ -234,6 +234,35 @@ CryptoZoo.ui = {
         `;
     },
 
+    renderDailyRewardStatus() {
+        const btn = document.getElementById("homeDailyBtn");
+        if (!btn) return;
+
+        const titleEl = btn.querySelector(".home-quick-title");
+        const subtitleEl = btn.querySelector(".home-quick-subtitle");
+
+        if (!titleEl || !subtitleEl) return;
+
+        const canClaim = CryptoZoo.gameplay?.canClaimDailyReward?.() || false;
+        const timeLeftMs = Math.max(
+            0,
+            Number(CryptoZoo.gameplay?.getDailyRewardTimeLeftMs?.()) || 0
+        );
+        const timeLeftSeconds = Math.ceil(timeLeftMs / 1000);
+
+        titleEl.textContent = "Daily Reward";
+
+        if (canClaim) {
+            subtitleEl.textContent = "Odbierz teraz: 500 coins + 1 gem";
+            btn.style.opacity = "1";
+            btn.style.filter = "none";
+        } else {
+            subtitleEl.textContent = `Następny za ${this.formatTimeLeft(timeLeftSeconds)}`;
+            btn.style.opacity = "0.9";
+            btn.style.filter = "none";
+        }
+    },
+
     bindHomeButtons() {
         const boostBtn = document.getElementById("homeBoostBtn");
         if (boostBtn && !boostBtn.dataset.bound) {
@@ -276,7 +305,11 @@ CryptoZoo.ui = {
         }
 
         const homeDailyBtn = document.getElementById("homeDailyBtn");
-        if (homeDailyBtn && !homeDailyBtn.dataset.bound) {
+        if (
+            homeDailyBtn &&
+            !homeDailyBtn.dataset.bound &&
+            !CryptoZoo.gameplay?.bindDailyRewardButton
+        ) {
             homeDailyBtn.dataset.bound = "1";
             homeDailyBtn.addEventListener("click", () => {
                 this.showToast("Daily Reward w przygotowaniu");
@@ -450,6 +483,7 @@ CryptoZoo.ui = {
         this.bindHomeButtons();
         this.renderBoostStatus();
         this.renderOfflineInfo();
+        this.renderDailyRewardStatus();
     },
 
     renderTopHiddenStats() {
