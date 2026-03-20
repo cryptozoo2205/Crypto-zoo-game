@@ -1,9 +1,6 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.api = {
-    saveRequestSeq: 0,
-    latestAppliedSaveSeq: 0,
-
     getApiBase() {
         const fromStorage = localStorage.getItem("cryptozoo_api_base");
         if (fromStorage) {
@@ -109,7 +106,6 @@ window.CryptoZoo.api = {
             expeditionBoost: 0,
             offlineBoost: 1,
             lastLogin: Date.now(),
-            lastDailyRewardAt: 0,
             boost2xActiveUntil: 0,
             animals: {
                 monkey: { count: 0, level: 1 },
@@ -125,12 +121,6 @@ window.CryptoZoo.api = {
                 crocodile: { count: 0, level: 1 },
                 kangaroo: { count: 0, level: 1 },
                 wolf: { count: 0, level: 1 }
-            },
-            boxes: {
-                common: 0,
-                rare: 0,
-                epic: 0,
-                legendary: 0
             },
             expedition: null
         };
@@ -227,15 +217,8 @@ window.CryptoZoo.api = {
             expeditionBoost: Math.max(0, Number(data.expeditionBoost ?? base.expeditionBoost) || 0),
             offlineBoost: Math.max(1, Number(data.offlineBoost ?? base.offlineBoost) || 1),
             lastLogin: Number(data.lastLogin ?? base.lastLogin) || Date.now(),
-            lastDailyRewardAt: Math.max(0, Number(data.lastDailyRewardAt ?? base.lastDailyRewardAt) || 0),
             boost2xActiveUntil,
             animals,
-            boxes: {
-                common: Math.max(0, Number(data.boxes?.common) || 0),
-                rare: Math.max(0, Number(data.boxes?.rare) || 0),
-                epic: Math.max(0, Number(data.boxes?.epic) || 0),
-                legendary: Math.max(0, Number(data.boxes?.legendary) || 0)
-            },
             expedition: this.normalizeExpedition(data.expedition)
         };
     },
@@ -268,10 +251,8 @@ window.CryptoZoo.api = {
             expeditionBoost: state.expeditionBoost,
             offlineBoost: state.offlineBoost,
             lastLogin: Date.now(),
-            lastDailyRewardAt: state.lastDailyRewardAt,
             boost2xActiveUntil: state.boost2xActiveUntil,
             animals: state.animals,
-            boxes: state.boxes,
             expedition: state.expedition
         };
     },
@@ -365,25 +346,11 @@ window.CryptoZoo.api = {
 
     async savePlayer() {
         const payload = this.getSavePayload();
-        const requestSeq = ++this.saveRequestSeq;
 
         try {
-            const savedState = await this.savePlayerToBackend(payload);
-
-            if (requestSeq < this.latestAppliedSaveSeq) {
-                return CryptoZoo.state;
-            }
-
-            this.latestAppliedSaveSeq = requestSeq;
-            CryptoZoo.state = savedState;
+            CryptoZoo.state = await this.savePlayerToBackend(payload);
         } catch (error) {
             console.warn("Backend save failed, fallback to local save:", error);
-
-            if (requestSeq < this.latestAppliedSaveSeq) {
-                return CryptoZoo.state;
-            }
-
-            this.latestAppliedSaveSeq = requestSeq;
             CryptoZoo.state = this.normalizeState(payload);
         }
 
