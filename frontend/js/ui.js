@@ -532,4 +532,209 @@ CryptoZoo.ui = {
 
     renderZooList() {
         const zooList = document.getElementById("zooList");
-        if (!zooList) return
+        if (!zooList) return;
+
+        const animalsConfig = CryptoZoo.config?.animals || {};
+        const animalsState = CryptoZoo.state?.animals || {};
+
+        zooList.innerHTML = Object.keys(animalsConfig).map((type) => {
+            const config = animalsConfig[type];
+            const state = animalsState[type] || { count: 0, level: 1 };
+            const upgradeCost = CryptoZoo.gameplay?.getAnimalUpgradeCost?.(type) || 0;
+
+            return `
+                <div class="animal-row">
+                    <div class="animal-left">
+                        <div class="animal-icon">
+                            <img src="assets/animals/${config.asset}.png" alt="${config.name}">
+                        </div>
+
+                        <div class="animal-text">
+                            <div class="animal-name">${config.name}</div>
+                            <div class="animal-desc">
+                                Dochód ${CryptoZoo.formatNumber(config.baseIncome)}/sek • Koszt ${CryptoZoo.formatNumber(config.buyCost)}
+                            </div>
+                            <div class="animal-owned">
+                                Posiadasz: ${CryptoZoo.formatNumber(state.count)} • Poziom: ${CryptoZoo.formatNumber(state.level)}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="animal-actions">
+                        <button id="buy-${type}-btn" type="button">Kup</button>
+                        <button id="upgrade-${type}-btn" type="button">Lvl Up (${CryptoZoo.formatNumber(upgradeCost)})</button>
+                    </div>
+                </div>
+            `;
+        }).join("");
+
+        CryptoZoo.gameplay?.bindAnimalButtons?.();
+    },
+
+    renderExpeditions() {
+        const container = document.getElementById("missionsList");
+        if (!container) return;
+
+        const expedition = CryptoZoo.state?.expedition;
+
+        if (expedition) {
+            const now = Date.now();
+            const timeLeft = Math.max(0, Math.floor((expedition.endTime - now) / 1000));
+            const canCollect = timeLeft <= 0;
+
+            const rarityMap = {
+                common: "Zwykła",
+                rare: "Rzadka",
+                epic: "Epicka"
+            };
+
+            container.innerHTML = `
+                <div class="expedition-card">
+                    <h3>Aktywna ekspedycja: ${expedition.name}</h3>
+                    <div>Pozostało: ${this.formatTimeLeft(timeLeft)}</div>
+                    <div>Jakość nagrody: ${rarityMap[expedition.rewardRarity] || "Zwykła"}</div>
+                    <div>
+                        Przewidywana nagroda:
+                        ${CryptoZoo.formatNumber(expedition.rewardCoins)} coins +
+                        ${CryptoZoo.formatNumber(expedition.rewardGems)} gems
+                    </div>
+                    <button id="collect-expedition-btn" type="button" ${canCollect ? "" : "disabled"}>
+                        ${canCollect ? "Odbierz nagrodę" : "Trwa ekspedycja"}
+                    </button>
+                </div>
+            `;
+
+            this.bindClick("collect-expedition-btn", () => {
+                CryptoZoo.gameplay?.collectExpedition?.();
+            });
+
+            return;
+        }
+
+        const expeditions = CryptoZoo.config?.expeditions || [];
+
+        container.innerHTML = expeditions.map((exp) => `
+                <div class="expedition-card">
+                    <h3>${exp.name}</h3>
+                    <div>Czas: ${this.formatTimeLeft(exp.duration)}</div>
+                    <div>
+                        Nagroda bazowa:
+                        ${CryptoZoo.formatNumber(exp.baseCoins)} coins +
+                        ${CryptoZoo.formatNumber(exp.baseGems)} gems
+                    </div>
+                    <div>
+                        Szansa na bonus:
+                        Rare ${(exp.rareChance * 100).toFixed(0)}% /
+                        Epic ${(exp.epicChance * 100).toFixed(0)}%
+                    </div>
+                    <button id="start-expedition-${exp.id}" type="button">Start</button>
+                </div>
+            `).join("");
+
+        expeditions.forEach((exp) => {
+            this.bindClick(`start-expedition-${exp.id}`, () => {
+                CryptoZoo.gameplay?.startExpedition?.(exp.id);
+            });
+        });
+    },
+
+    renderShopItems() {
+        const shopList = document.getElementById("shopList");
+        if (!shopList) return;
+
+        const items = CryptoZoo.config?.shopItems || [];
+
+        shopList.innerHTML = items.map((item) => {
+            const typeLabel = this.getShopTypeLabel(item.type);
+            const typeEmoji = this.getShopTypeEmoji(item.type);
+
+            return `
+                <div class="shop-item">
+                    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:8px;">
+                        <div>
+                            <div style="font-size:16px; font-weight:900; margin-bottom:4px;">
+                                ${typeEmoji} ${item.name}
+                            </div>
+                            <div style="display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; background:rgba(255,255,255,0.08); font-size:11px; font-weight:800; color:rgba(255,255,255,0.82);">
+                                ${typeLabel}
+                            </div>
+                        </div>
+                        <div style="text-align:right; flex-shrink:0;">
+                            <div style="font-size:12px; color:rgba(255,255,255,0.66);">Koszt</div>
+                            <div style="font-size:16px; font-weight:900;">${CryptoZoo.formatNumber(item.price)}</div>
+                        </div>
+                    </div>
+
+                    <div style="font-size:13px; color:rgba(255,255,255,0.78); margin-bottom:10px; line-height:1.45;">
+                        ${item.desc}
+                    </div>
+
+                    <button id="buy-shop-${item.id}" type="button">Kup</button>
+                </div>
+            `;
+        }).join("");
+
+        CryptoZoo.gameplay?.bindShopButtons?.();
+    },
+
+    renderBoxes() {
+        const buyList = document.getElementById("boxesBuyList");
+        const container = document.getElementById("boxesList");
+        if (!buyList || !container) return;
+
+        const boxesConfig = CryptoZoo.config?.boxes || {};
+        const boxesState = CryptoZoo.state?.boxes || {
+            common: 0,
+            rare: 0,
+            epic: 0,
+            legendary: 0
+        };
+
+        const types = [
+            { key: "common", label: "Common Box" },
+            { key: "rare", label: "Rare Box" },
+            { key: "epic", label: "Epic Box" },
+            { key: "legendary", label: "Legendary Box" }
+        ];
+
+        buyList.innerHTML = types.map((box) => {
+            const config = boxesConfig[box.key] || {};
+            const priceText =
+                (Number(config.buyCoins) || 0) > 0
+                    ? `${CryptoZoo.formatNumber(config.buyCoins)} coins`
+                    : `${CryptoZoo.formatNumber(config.buyGems || 0)} gems`;
+
+            return `
+                <button type="button" onclick="CryptoZoo.boxes.buy('${box.key}')">
+                    ${box.label}
+                    <br>
+                    ${priceText}
+                </button>
+            `;
+        }).join("");
+
+        container.innerHTML = types.map((box) => `
+            <div class="shop-item">
+                <h3>${box.label}</h3>
+                <div>Posiadasz: ${CryptoZoo.formatNumber(boxesState[box.key] || 0)}</div>
+                <button type="button" onclick="CryptoZoo.boxes.open('${box.key}')">Otwórz</button>
+            </div>
+        `).join("");
+    },
+
+    render() {
+        this.renderHome();
+        this.renderTopHiddenStats();
+        this.renderZooList();
+        this.renderExpeditions();
+        this.renderShopItems();
+        this.renderBoxes();
+
+        if (CryptoZoo.gameplay?.activeScreen === "ranking") {
+            CryptoZoo.uiRanking?.renderRanking?.(false);
+        }
+
+        CryptoZoo.uiProfile?.refreshProfileModalData?.();
+        CryptoZoo.uiSettings?.refreshSettingsModalData?.();
+    }
+};
