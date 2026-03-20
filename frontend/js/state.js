@@ -12,7 +12,6 @@ window.CryptoZoo.state = {
     expeditionBoost: 0,
     offlineBoost: 1,
     lastLogin: Date.now(),
-
     boost2xActiveUntil: 0,
 
     animals: {
@@ -31,12 +30,5 @@ window.CryptoZoo.state = {
         wolf: { count: 0, level: 1 }
     },
 
-    boxes: {
-        common: 0,
-        rare: 0,
-        epic: 0,
-        legendary: 0
-    },
-
     expedition: null
-}; 
+};
