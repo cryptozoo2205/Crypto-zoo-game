@@ -5,35 +5,41 @@ CryptoZoo.boxes = {
         if (window.__cryptoZooBoxesBound) return;
         window.__cryptoZooBoxesBound = true;
 
-        document.addEventListener("click", (event) => {
-            const buyBtn = event.target.closest("[data-box-buy], [data-box-type]");
-            if (buyBtn) {
-                event.preventDefault();
+        document.addEventListener(
+            "pointerup",
+            (event) => {
+                const buyBtn = event.target.closest("[data-box-buy], [data-box-type]");
+                if (buyBtn) {
+                    event.preventDefault();
+                    event.stopPropagation();
 
-                const type =
-                    buyBtn.getAttribute("data-box-buy") ||
-                    buyBtn.getAttribute("data-box-type") ||
-                    "";
+                    const type =
+                        buyBtn.getAttribute("data-box-buy") ||
+                        buyBtn.getAttribute("data-box-type") ||
+                        "";
 
-                if (type) {
-                    this.buy(type);
+                    if (type) {
+                        this.buy(type);
+                    }
+                    return;
                 }
-                return;
-            }
 
-            const openBtn = event.target.closest("[data-box-open], [id^='open-box-']");
-            if (openBtn) {
-                event.preventDefault();
+                const openBtn = event.target.closest("[data-box-open], [id^='open-box-']");
+                if (openBtn) {
+                    event.preventDefault();
+                    event.stopPropagation();
 
-                const type =
-                    openBtn.getAttribute("data-box-open") ||
-                    String(openBtn.id || "").replace("open-box-", "");
+                    const type =
+                        openBtn.getAttribute("data-box-open") ||
+                        String(openBtn.id || "").replace("open-box-", "");
 
-                if (type) {
-                    this.open(type);
+                    if (type) {
+                        this.open(type);
+                    }
                 }
-            }
-        });
+            },
+            true
+        );
     },
 
     ensureState() {
@@ -98,8 +104,8 @@ CryptoZoo.boxes = {
 
             this.saveLocalState();
             CryptoZoo.ui?.render?.();
-
             CryptoZoo.api?.savePlayer?.();
+
             CryptoZoo.ui?.showToast?.("Kupiono box");
         } catch (error) {
             console.error("Box buy error:", error);
@@ -141,8 +147,8 @@ CryptoZoo.boxes = {
 
             this.saveLocalState();
             CryptoZoo.ui?.render?.();
-
             CryptoZoo.api?.savePlayer?.();
+
             CryptoZoo.ui?.showToast?.(
                 `+${CryptoZoo.formatNumber(coins)} coins +${CryptoZoo.formatNumber(gems)} gems` +
                 (reward > 0 ? ` +${reward} reward` : "")
