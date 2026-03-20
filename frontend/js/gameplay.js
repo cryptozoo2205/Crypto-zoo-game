@@ -265,12 +265,29 @@ CryptoZoo.gameplay = {
 
     getDailyRewardCoinsAmount() {
         const level = Math.max(1, Number(CryptoZoo.state?.level) || 1);
-        return Math.floor(100 + level * 50);
+        const zooIncome = Math.max(0, Number(CryptoZoo.state?.zooIncome) || 0);
+        const coinsPerClick = Math.max(1, Number(CryptoZoo.state?.coinsPerClick) || 1);
+
+        const levelPart = level * 120;
+        const incomePart = zooIncome * 45;
+        const clickPart = coinsPerClick * 25;
+        const minimumReward = 250;
+
+        return Math.max(
+            minimumReward,
+            Math.floor(levelPart + incomePart + clickPart)
+        );
     },
 
     getDailyRewardGemsAmount() {
         const level = Math.max(1, Number(CryptoZoo.state?.level) || 1);
-        return level >= 5 ? 1 : 0;
+        const zooIncome = Math.max(0, Number(CryptoZoo.state?.zooIncome) || 0);
+
+        if (level >= 40 || zooIncome >= 20000) return 3;
+        if (level >= 20 || zooIncome >= 3000) return 2;
+        if (level >= 5 || zooIncome >= 150) return 1;
+
+        return 0;
     },
 
     claimDailyReward() {
