@@ -85,15 +85,6 @@ CryptoZoo.init = async function () {
         await new Promise((resolve) => setTimeout(resolve, 180));
         setLoading(20);
 
-        if (!CryptoZoo.state.boxes) {
-            CryptoZoo.state.boxes = {
-                common: 0,
-                rare: 0,
-                epic: 0,
-                legendary: 0
-            };
-        }
-
         CryptoZoo.telegram?.init?.();
         setViewportVars();
 
@@ -110,7 +101,6 @@ CryptoZoo.init = async function () {
         await new Promise((resolve) => setTimeout(resolve, 180));
         setLoading(52);
 
-        CryptoZoo.boxes?.init?.();
         CryptoZoo.shop?.init?.();
         CryptoZoo.minigames?.init?.();
 
