@@ -174,6 +174,66 @@ CryptoZoo.ui = {
         }
     },
 
+    ensureOfflineInfoBar() {
+        const gameCard = document.querySelector("#screen-game .game-main-card");
+        const incomeStrip = document.querySelector(".home-income-strip");
+
+        if (!gameCard || !incomeStrip) return null;
+
+        let bar = document.getElementById("homeOfflineInfoBar");
+
+        if (!bar) {
+            bar = document.createElement("div");
+            bar.id = "homeOfflineInfoBar";
+            bar.style.width = "100%";
+            bar.style.marginTop = "10px";
+            bar.style.marginBottom = "10px";
+            bar.style.padding = "10px 12px";
+            bar.style.borderRadius = "16px";
+            bar.style.background = "linear-gradient(180deg, rgba(18, 28, 48, 0.96) 0%, rgba(10, 17, 31, 0.95) 100%)";
+            bar.style.border = "1px solid rgba(255,255,255,0.08)";
+            bar.style.boxShadow = "0 12px 22px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255,255,255,0.04)";
+            bar.style.color = "#ffffff";
+            bar.style.fontSize = "12px";
+            bar.style.fontWeight = "700";
+            bar.style.lineHeight = "1.4";
+
+            incomeStrip.insertAdjacentElement("afterend", bar);
+        }
+
+        return bar;
+    },
+
+    renderOfflineInfo() {
+        const bar = this.ensureOfflineInfoBar();
+        if (!bar) return;
+
+        const maxOfflineSeconds = Math.max(
+            0,
+            Number(CryptoZoo.gameplay?.maxOfflineSeconds) || 0
+        );
+        const maxOfflineHours = maxOfflineSeconds > 0
+            ? Math.floor(maxOfflineSeconds / 3600)
+            : 0;
+
+        const offlineBoost = Math.max(
+            1,
+            Number(CryptoZoo.state?.offlineBoost) || 1
+        );
+
+        const boostLabel =
+            offlineBoost > 1
+                ? `Aktywny mnożnik offline x${CryptoZoo.formatNumber(offlineBoost)}`
+                : "Standardowy mnożnik offline x1";
+
+        bar.innerHTML = `
+            <div style="font-size:13px; font-weight:900; margin-bottom:4px;">💤 Offline Earnings</div>
+            <div style="color: rgba(255,255,255,0.78);">
+                Limit bazowy: ${maxOfflineHours}h • ${boostLabel}
+            </div>
+        `;
+    },
+
     bindHomeButtons() {
         const boostBtn = document.getElementById("homeBoostBtn");
         if (boostBtn && !boostBtn.dataset.bound) {
@@ -389,6 +449,7 @@ CryptoZoo.ui = {
         CryptoZoo.uiSettings?.bindSettingsModal?.();
         this.bindHomeButtons();
         this.renderBoostStatus();
+        this.renderOfflineInfo();
     },
 
     renderTopHiddenStats() {
