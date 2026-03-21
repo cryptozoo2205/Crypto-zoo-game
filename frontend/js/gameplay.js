@@ -7,6 +7,7 @@ CryptoZoo.gameplay = {
     suppressClickUntil: 0,
     touchTapLock: false,
     currentTouchTapCount: 1,
+    touchTapTimer: null,
     maxOfflineSeconds: 1 * 60 * 60,
     dailyRewardCooldownMs: 24 * 60 * 60 * 1000,
     dailyRewardMaxStreak: 7,
@@ -127,22 +128,22 @@ CryptoZoo.gameplay = {
         tapButton.addEventListener("touchstart", (e) => {
             const touchCount = this.getTapCountFromTouches(e.touches?.length || 1);
 
+            e.preventDefault();
+
             if (!this.touchTapLock) {
                 this.touchTapLock = true;
                 this.currentTouchTapCount = touchCount;
                 this.suppressClickUntil = Date.now() + 700;
 
-                e.preventDefault();
-
-                requestAnimationFrame(() => {
+                clearTimeout(this.touchTapTimer);
+                this.touchTapTimer = setTimeout(() => {
                     this.handleTap(this.currentTouchTapCount);
-                });
+                }, 45);
 
                 return;
             }
 
             this.currentTouchTapCount = Math.max(this.currentTouchTapCount, touchCount);
-            e.preventDefault();
         }, { passive: false });
 
         tapButton.addEventListener("touchmove", (e) => {
@@ -156,6 +157,8 @@ CryptoZoo.gameplay = {
         const unlock = () => {
             this.touchTapLock = false;
             this.currentTouchTapCount = 1;
+            clearTimeout(this.touchTapTimer);
+            this.touchTapTimer = null;
         };
 
         tapButton.addEventListener("touchend", unlock);
@@ -178,7 +181,10 @@ CryptoZoo.gameplay = {
     },
 
     getTapCountFromTouches(touchCount) {
-        return Math.max(1, Math.min(3, Number(touchCount) || 1));
+        const count = Number(touchCount) || 1;
+
+        if (count <= 1) return 1;
+        return 3;
     },
 
     getBaseCoinsPerClick() {
