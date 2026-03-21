@@ -62,6 +62,14 @@ CryptoZoo.gameplay = {
             CryptoZoo.state.rewardBalance = Number(CryptoZoo.state.rewardBalance) || 0;
         }
 
+        if (typeof CryptoZoo.state.rewardWallet !== "number") {
+            CryptoZoo.state.rewardWallet = Number(CryptoZoo.state.rewardWallet) || 0;
+        }
+
+        if (typeof CryptoZoo.state.withdrawPending !== "number") {
+            CryptoZoo.state.withdrawPending = Number(CryptoZoo.state.withdrawPending) || 0;
+        }
+
         if (typeof CryptoZoo.state.level !== "number") {
             CryptoZoo.state.level = Number(CryptoZoo.state.level) || 1;
         }
@@ -194,7 +202,7 @@ CryptoZoo.gameplay = {
     },
 
     getOfflineIncomePerSecond() {
-        const baseIncome = this.getBaseZooIncome();
+        const baseIncome = Math.max(0, Number(CryptoZoo.state?.zooIncome) || 0);
         const offlineBoost = Math.max(1, Number(CryptoZoo.state?.offlineBoost) || 1);
 
         return baseIncome * offlineBoost;
