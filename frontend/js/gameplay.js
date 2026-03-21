@@ -62,14 +62,6 @@ CryptoZoo.gameplay = {
             CryptoZoo.state.rewardBalance = Number(CryptoZoo.state.rewardBalance) || 0;
         }
 
-        if (typeof CryptoZoo.state.rewardWallet !== "number") {
-            CryptoZoo.state.rewardWallet = Number(CryptoZoo.state.rewardWallet) || 0;
-        }
-
-        if (typeof CryptoZoo.state.withdrawPending !== "number") {
-            CryptoZoo.state.withdrawPending = Number(CryptoZoo.state.withdrawPending) || 0;
-        }
-
         if (typeof CryptoZoo.state.level !== "number") {
             CryptoZoo.state.level = Number(CryptoZoo.state.level) || 1;
         }
@@ -113,10 +105,6 @@ CryptoZoo.gameplay = {
         if (typeof CryptoZoo.state.dailyRewardClaimDayKey !== "string") {
             CryptoZoo.state.dailyRewardClaimDayKey = String(CryptoZoo.state.dailyRewardClaimDayKey || "");
         }
-
-        CryptoZoo.state.rewardBalance = Math.max(0, Number(CryptoZoo.state.rewardBalance) || 0);
-        CryptoZoo.state.rewardWallet = Math.max(0, Number(CryptoZoo.state.rewardWallet) || 0);
-        CryptoZoo.state.withdrawPending = Math.max(0, Number(CryptoZoo.state.withdrawPending) || 0);
 
         CryptoZoo.state.dailyRewardStreak = Math.min(
             this.dailyRewardMaxStreak,
@@ -423,6 +411,36 @@ CryptoZoo.gameplay = {
         );
 
         return true;
+    },
+
+    getExpeditionUnlockRequirement(expeditionOrId) {
+        const expedition = typeof expeditionOrId === "string"
+            ? (CryptoZoo.config?.expeditions || []).find((exp) => exp.id === expeditionOrId)
+            : expeditionOrId;
+
+        const duration = Number(expedition?.duration) || 0;
+
+        if (duration >= 86400) return 50;
+        if (duration >= 43200) return 35;
+        if (duration >= 28800) return 26;
+        if (duration >= 14400) return 18;
+        if (duration >= 7200) return 12;
+        if (duration >= 3600) return 8;
+        if (duration >= 1800) return 5;
+        if (duration >= 900) return 3;
+
+        return 1;
+    },
+
+    isExpeditionUnlocked(expeditionOrId) {
+        const requiredLevel = this.getExpeditionUnlockRequirement(expeditionOrId);
+        const currentLevel = Math.max(1, Number(CryptoZoo.state?.level) || 1);
+        return currentLevel >= requiredLevel;
+    },
+
+    getExpeditionUnlockText(expeditionOrId) {
+        const requiredLevel = this.getExpeditionUnlockRequirement(expeditionOrId);
+        return `Odblokuj poziom ${requiredLevel}`;
     },
 
     updateDailyRewardStreak() {
@@ -899,6 +917,11 @@ CryptoZoo.gameplay = {
     startExpedition(id) {
         const expedition = (CryptoZoo.config?.expeditions || []).find((e) => e.id === id);
         if (!expedition) return;
+
+        if (!this.isExpeditionUnlocked(expedition)) {
+            CryptoZoo.ui?.showToast?.(this.getExpeditionUnlockText(expedition));
+            return;
+        }
 
         if (CryptoZoo.state.expedition) {
             CryptoZoo.ui?.showToast?.("Ekspedycja już trwa");
