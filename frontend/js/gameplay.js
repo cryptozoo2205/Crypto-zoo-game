@@ -1,4 +1,3 @@
-
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.gameplay = {
@@ -371,6 +370,14 @@ CryptoZoo.gameplay = {
         return CryptoZoo.animalsSystem?.upgrade?.(type) || false;
     },
 
+    bindShopButtons() {
+        return CryptoZoo.shopSystem?.bindButtons?.();
+    },
+
+    buyShopItem(itemId) {
+        return CryptoZoo.shopSystem?.buy?.(itemId) || false;
+    },
+
     bindDailyRewardButton() {
         const btn = document.getElementById("homeDailyBtn");
         if (!btn) return;
@@ -539,95 +546,6 @@ CryptoZoo.gameplay = {
 
         tapButton.addEventListener("touchend", unlockTouchTap, { passive: true });
         tapButton.addEventListener("touchcancel", unlockTouchTap, { passive: true });
-    },
-
-    bindShopButtons() {
-        const items = CryptoZoo.config?.shopItems || [];
-
-        items.forEach((item) => {
-            const btn = document.getElementById(`buy-shop-${item.id}`);
-            if (btn) {
-                btn.onclick = () => this.buyShopItem(item.id);
-            }
-        });
-    },
-
-    buyShopItem(itemId) {
-        const item = (CryptoZoo.config?.shopItems || []).find((x) => x.id === itemId);
-        if (!item) return;
-
-        const coinPrice = Math.max(0, Number(item.price) || 0);
-        const gemPrice = Math.max(0, Number(item.gemPrice) || 0);
-
-        const coinsBeforeSpend = Number(CryptoZoo.state.coins) || 0;
-        const gemsBeforeSpend = Number(CryptoZoo.state.gems) || 0;
-
-        const isGemPurchase = gemPrice > 0;
-        const spendAmountForLevelDrop = isGemPurchase ? 0 : coinPrice;
-
-        if (isGemPurchase) {
-            if (gemsBeforeSpend < gemPrice) {
-                CryptoZoo.ui?.showToast?.("Za mało gems");
-                return;
-            }
-
-            CryptoZoo.state.gems = gemsBeforeSpend - gemPrice;
-        } else {
-            if (coinsBeforeSpend < coinPrice) {
-                CryptoZoo.ui?.showToast?.("Za mało coins");
-                return;
-            }
-
-            CryptoZoo.state.coins = coinsBeforeSpend - coinPrice;
-        }
-
-        if (item.type === "click") {
-            const bonus = Math.max(1, Number(item.clickValueBonus) || 1);
-            CryptoZoo.state.coinsPerClick =
-                (Number(CryptoZoo.state.coinsPerClick) || 1) + bonus;
-        }
-
-        if (item.type === "income") {
-            const currentIncome = Number(CryptoZoo.state.zooIncome) || 0;
-            CryptoZoo.state.zooIncome = Math.max(1, Math.floor(currentIncome * 1.25));
-        }
-
-        if (item.type === "expedition") {
-            CryptoZoo.state.expeditionBoost = (Number(CryptoZoo.state.expeditionBoost) || 0) + 0.2;
-        }
-
-        if (item.type === "offline") {
-            const multiplier = Math.max(1, Number(item.offlineMultiplier) || 2);
-            const durationSeconds = Math.max(60, Number(item.offlineDurationSeconds) || 10 * 60);
-            this.activateOfflineBoost(multiplier, durationSeconds);
-        }
-
-        this.applyLevelDropBySpend(spendAmountForLevelDrop, coinsBeforeSpend);
-        this.persistAndRender();
-
-        if (item.type === "offline") {
-            const multiplier = Math.max(1, Number(item.offlineMultiplier) || 2);
-            const durationSeconds = Math.max(60, Number(item.offlineDurationSeconds) || 10 * 60);
-
-            if (isGemPurchase) {
-                CryptoZoo.ui?.showToast?.(
-                    `Kupiono ${item.name} • ${CryptoZoo.formatNumber(gemPrice)} gem • x${CryptoZoo.formatNumber(multiplier)} offline ${this.formatOfflineDuration(durationSeconds)}`
-                );
-            } else {
-                CryptoZoo.ui?.showToast?.(
-                    `Kupiono ${item.name} • x${CryptoZoo.formatNumber(multiplier)} offline ${this.formatOfflineDuration(durationSeconds)}`
-                );
-            }
-
-            return;
-        }
-
-        if (isGemPurchase) {
-            CryptoZoo.ui?.showToast?.(`Kupiono ${item.name} za ${CryptoZoo.formatNumber(gemPrice)} gem`);
-            return;
-        }
-
-        CryptoZoo.ui?.showToast?.(`Kupiono ${item.name}`);
     },
 
     startIncomeTimer() {
