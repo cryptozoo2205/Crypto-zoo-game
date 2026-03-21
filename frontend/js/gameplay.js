@@ -1,4 +1,3 @@
-CryptoZoo.dailyReward?.startTimer?.();
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.gameplay = {
@@ -31,6 +30,8 @@ CryptoZoo.gameplay = {
         this.startIncomeTimer();
         this.startExpeditionTimer();
         this.startBoostTimer();
+
+        CryptoZoo.dailyReward?.startTimer?.();
 
         CryptoZoo.ui?.render?.();
     },
