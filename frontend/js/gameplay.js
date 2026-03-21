@@ -8,6 +8,7 @@ CryptoZoo.gameplay = {
     touchTapLock: false,
     currentTouchTapCount: 1,
     touchTapTimer: null,
+    touchTapTriggered: false,
     maxOfflineSeconds: 1 * 60 * 60,
     dailyRewardCooldownMs: 24 * 60 * 60 * 1000,
     dailyRewardMaxStreak: 7,
@@ -134,13 +135,15 @@ CryptoZoo.gameplay = {
 
             if (!this.touchTapLock) {
                 this.touchTapLock = true;
+                this.touchTapTriggered = false;
                 this.currentTouchTapCount = touchCount;
                 this.suppressClickUntil = Date.now() + 700;
 
                 clearTimeout(this.touchTapTimer);
                 this.touchTapTimer = setTimeout(() => {
+                    this.touchTapTriggered = true;
                     this.handleTap(this.currentTouchTapCount);
-                }, 45);
+                }, 35);
 
                 return;
             }
@@ -159,7 +162,7 @@ CryptoZoo.gameplay = {
         const unlock = () => {
             this.touchTapLock = false;
             this.currentTouchTapCount = 1;
-            clearTimeout(this.touchTapTimer);
+            this.touchTapTriggered = false;
             this.touchTapTimer = null;
         };
 
@@ -184,7 +187,6 @@ CryptoZoo.gameplay = {
 
     getTapCountFromTouches(touchCount) {
         const count = Number(touchCount) || 1;
-
         if (count <= 1) return 1;
         return 3;
     },
@@ -237,6 +239,10 @@ CryptoZoo.gameplay = {
 
     getBoost2xMultiplier() {
         return CryptoZoo.boostSystem?.getMultiplier?.() || 1;
+    },
+
+    getBoost2xTimeLeft() {
+        return CryptoZoo.boostSystem?.getTimeLeft?.() || 0;
     },
 
     activateBoost2x() {
@@ -310,7 +316,11 @@ CryptoZoo.gameplay = {
         setInterval(() => {
             this.normalizeBoostState();
             this.normalizeOfflineBoostState();
-            CryptoZoo.ui?.render?.();
+            CryptoZoo.ui?.renderBoostStatus?.();
+            CryptoZoo.ui?.renderDailyRewardStatus?.();
+            if (this.activeScreen === "missions") {
+                CryptoZoo.ui?.renderExpeditions?.();
+            }
         }, 1000);
     },
 
