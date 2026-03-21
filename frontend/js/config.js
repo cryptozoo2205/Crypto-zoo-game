@@ -14,13 +14,13 @@ CryptoZoo.config = {
             name: "Panda",
             asset: "panda",
             buyCost: 260,
-            baseIncome: 4
+            baseIncome: 3
         },
         lion: {
             name: "Lion",
             asset: "lion",
             buyCost: 900,
-            baseIncome: 12
+            baseIncome: 15
         },
         tiger: {
             name: "Tiger",
