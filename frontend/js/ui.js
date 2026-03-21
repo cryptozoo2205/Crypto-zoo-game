@@ -259,6 +259,11 @@ CryptoZoo.ui = {
             0,
             Number(CryptoZoo.gameplay?.getDailyRewardGemsAmount?.()) || 0
         );
+        const streak = Math.max(
+            0,
+            Number(CryptoZoo.gameplay?.getDailyRewardStreak?.()) || 0
+        );
+        const streakLabel = `Day ${Math.max(1, streak || 1)}`;
 
         titleEl.textContent = "Daily Reward";
         subtitleEl.style.whiteSpace = "normal";
@@ -269,8 +274,8 @@ CryptoZoo.ui = {
         if (canClaim) {
             const rewardText =
                 rewardGems > 0
-                    ? `READY • ${CryptoZoo.formatNumber(rewardCoins)} coins + ${CryptoZoo.formatNumber(rewardGems)} gem`
-                    : `READY • ${CryptoZoo.formatNumber(rewardCoins)} coins`;
+                    ? `${streakLabel} • READY • ${CryptoZoo.formatNumber(rewardCoins)} coins + ${CryptoZoo.formatNumber(rewardGems)} gem`
+                    : `${streakLabel} • READY • ${CryptoZoo.formatNumber(rewardCoins)} coins`;
 
             subtitleEl.textContent = rewardText;
 
@@ -286,7 +291,7 @@ CryptoZoo.ui = {
             titleEl.style.color = "#fff4c4";
             subtitleEl.style.color = "rgba(255,255,255,0.92)";
         } else {
-            subtitleEl.textContent = `Next reward in ${this.formatTimeLeft(timeLeftSeconds)}`;
+            subtitleEl.textContent = `${streakLabel} • Next reward in ${this.formatTimeLeft(timeLeftSeconds)}`;
 
             iconEl.textContent = "⏳";
             btn.dataset.dailyState = "cooldown";
