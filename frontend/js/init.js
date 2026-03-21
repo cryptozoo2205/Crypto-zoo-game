@@ -1,3 +1,9 @@
+console.log(
+    window.CryptoZoo.TEST_MODE
+        ? "🧪 TEST MODE"
+        : "💾 NORMAL MODE"
+);
+
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.init = async function () {
@@ -136,3 +142,13 @@ document.addEventListener("DOMContentLoaded", function () {
         CryptoZoo.init();
     }
 });
+
+window.enableTestMode = function () {
+    localStorage.setItem("cryptozoo_test_mode", "1");
+    location.reload();
+};
+
+window.disableTestMode = function () {
+    localStorage.removeItem("cryptozoo_test_mode");
+    location.reload();
+};
