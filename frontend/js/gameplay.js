@@ -1,3 +1,4 @@
+
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.gameplay = {
@@ -354,6 +355,22 @@ CryptoZoo.gameplay = {
         return CryptoZoo.progression?.recalculateProgress?.();
     },
 
+    bindAnimalButtons() {
+        return CryptoZoo.animalsSystem?.bindButtons?.();
+    },
+
+    buyAnimal(type) {
+        return CryptoZoo.animalsSystem?.buy?.(type) || false;
+    },
+
+    getAnimalUpgradeCost(type) {
+        return CryptoZoo.animalsSystem?.getUpgradeCost?.(type) || 0;
+    },
+
+    upgradeAnimal(type) {
+        return CryptoZoo.animalsSystem?.upgrade?.(type) || false;
+    },
+
     bindDailyRewardButton() {
         const btn = document.getElementById("homeDailyBtn");
         if (!btn) return;
@@ -524,23 +541,6 @@ CryptoZoo.gameplay = {
         tapButton.addEventListener("touchcancel", unlockTouchTap, { passive: true });
     },
 
-    bindAnimalButtons() {
-        const animals = CryptoZoo.config?.animals || {};
-
-        Object.keys(animals).forEach((type) => {
-            const buyBtn = document.getElementById(`buy-${type}-btn`);
-            const upgradeBtn = document.getElementById(`upgrade-${type}-btn`);
-
-            if (buyBtn) {
-                buyBtn.onclick = () => this.buyAnimal(type);
-            }
-
-            if (upgradeBtn) {
-                upgradeBtn.onclick = () => this.upgradeAnimal(type);
-            }
-        });
-    },
-
     bindShopButtons() {
         const items = CryptoZoo.config?.shopItems || [];
 
@@ -628,74 +628,6 @@ CryptoZoo.gameplay = {
         }
 
         CryptoZoo.ui?.showToast?.(`Kupiono ${item.name}`);
-    },
-
-    buyAnimal(type) {
-        const config = CryptoZoo.config?.animals?.[type];
-        if (!config) return;
-
-        const buyCost = Number(config.buyCost || 0);
-        const coinsBeforeSpend = Number(CryptoZoo.state?.coins) || 0;
-
-        if (coinsBeforeSpend < buyCost) {
-            CryptoZoo.ui?.showToast?.("Za mało coins");
-            return;
-        }
-
-        if (!CryptoZoo.state.animals[type]) {
-            CryptoZoo.state.animals[type] = { count: 0, level: 1 };
-        }
-
-        CryptoZoo.state.coins -= buyCost;
-        CryptoZoo.state.animals[type].count += 1;
-
-        this.applyLevelDropBySpend(buyCost, coinsBeforeSpend);
-        this.persistAndRender();
-        CryptoZoo.ui?.showToast?.(`Kupiono ${config.name}`);
-    },
-
-    getAnimalUpgradeCost(type) {
-        const config = CryptoZoo.config?.animals?.[type];
-        const animal = CryptoZoo.state?.animals?.[type];
-
-        if (!config || !animal) return 0;
-
-        const buyCost = Math.max(1, Number(config.buyCost) || 1);
-        const level = Math.max(1, Number(animal.level) || 1);
-        const count = Math.max(0, Number(animal.count) || 0);
-
-        const levelMultiplier = Math.pow(1.42, level - 1);
-        const ownershipDiscount = count >= 10 ? 0.92 : count >= 5 ? 0.96 : 1;
-
-        const rawCost = buyCost * 0.55 * levelMultiplier * ownershipDiscount;
-        return Math.max(1, Math.floor(rawCost));
-    },
-
-    upgradeAnimal(type) {
-        const config = CryptoZoo.config?.animals?.[type];
-        const animal = CryptoZoo.state?.animals?.[type];
-
-        if (!config || !animal) return;
-
-        if ((Number(animal.count) || 0) <= 0) {
-            CryptoZoo.ui?.showToast?.("Najpierw kup to zwierzę");
-            return;
-        }
-
-        const cost = this.getAnimalUpgradeCost(type);
-        const coinsBeforeSpend = Number(CryptoZoo.state.coins) || 0;
-
-        if (coinsBeforeSpend < cost) {
-            CryptoZoo.ui?.showToast?.("Za mało coins");
-            return;
-        }
-
-        CryptoZoo.state.coins -= cost;
-        animal.level += 1;
-
-        this.applyLevelDropBySpend(cost, coinsBeforeSpend);
-        this.persistAndRender();
-        CryptoZoo.ui?.showToast?.(`Ulepszono ${config.name}`);
     },
 
     startIncomeTimer() {
