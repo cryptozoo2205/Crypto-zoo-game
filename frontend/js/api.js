@@ -1,7 +1,7 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.api = {
-    testResetMode: false,
+    testResetMode: true,
 
     getApiBase() {
         const fromStorage = localStorage.getItem("cryptozoo_api_base");
@@ -109,6 +109,8 @@ window.CryptoZoo.api = {
             offlineBoost: 1,
             lastLogin: Date.now(),
             lastDailyRewardAt: 0,
+            dailyRewardStreak: 0,
+            dailyRewardClaimDayKey: "",
             boost2xActiveUntil: 0,
             animals: {
                 monkey: { count: 0, level: 1 },
@@ -227,6 +229,8 @@ window.CryptoZoo.api = {
             offlineBoost: Math.max(1, Number(data.offlineBoost ?? base.offlineBoost) || 1),
             lastLogin: Number(data.lastLogin ?? base.lastLogin) || Date.now(),
             lastDailyRewardAt: Math.max(0, Number(data.lastDailyRewardAt ?? base.lastDailyRewardAt) || 0),
+            dailyRewardStreak: Math.max(0, Number(data.dailyRewardStreak ?? base.dailyRewardStreak) || 0),
+            dailyRewardClaimDayKey: String(data.dailyRewardClaimDayKey ?? base.dailyRewardClaimDayKey ?? ""),
             boost2xActiveUntil,
             animals,
             boxes: {
@@ -268,6 +272,8 @@ window.CryptoZoo.api = {
             offlineBoost: state.offlineBoost,
             lastLogin: Date.now(),
             lastDailyRewardAt: state.lastDailyRewardAt,
+            dailyRewardStreak: state.dailyRewardStreak,
+            dailyRewardClaimDayKey: state.dailyRewardClaimDayKey,
             boost2xActiveUntil: state.boost2xActiveUntil,
             animals: state.animals,
             boxes: state.boxes,
