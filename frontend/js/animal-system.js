@@ -57,10 +57,10 @@ CryptoZoo.animalsSystem = {
         const level = Math.max(1, Number(animal.level) || 1);
         const count = Math.max(0, Number(animal.count) || 0);
 
-        const levelMultiplier = Math.pow(1.42, level - 1);
-        const ownershipDiscount = count >= 10 ? 0.92 : count >= 5 ? 0.96 : 1;
+        const levelMultiplier = Math.pow(1.62, level - 1);
+        const ownershipDiscount = count >= 25 ? 0.94 : count >= 10 ? 0.97 : 1;
 
-        const rawCost = buyCost * 0.55 * levelMultiplier * ownershipDiscount;
+        const rawCost = buyCost * 0.9 * levelMultiplier * ownershipDiscount;
         return Math.max(1, Math.floor(rawCost));
     },
 
