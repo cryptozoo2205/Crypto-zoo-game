@@ -9,6 +9,7 @@ CryptoZoo.gameplay = {
     touchTapLock: false,
     maxOfflineSeconds: 4 * 60 * 60,
     dailyRewardCooldownMs: 24 * 60 * 60 * 1000,
+    dailyRewardMaxStreak: 7,
 
     init() {
         this.ensureState();
@@ -104,6 +105,11 @@ CryptoZoo.gameplay = {
         if (typeof CryptoZoo.state.dailyRewardClaimDayKey !== "string") {
             CryptoZoo.state.dailyRewardClaimDayKey = String(CryptoZoo.state.dailyRewardClaimDayKey || "");
         }
+
+        CryptoZoo.state.dailyRewardStreak = Math.min(
+            this.dailyRewardMaxStreak,
+            Math.max(0, Number(CryptoZoo.state.dailyRewardStreak) || 0)
+        );
 
         CryptoZoo.state.boost2xActiveUntil = this.normalizeBoostTimestamp(
             CryptoZoo.state.boost2xActiveUntil
@@ -271,7 +277,10 @@ CryptoZoo.gameplay = {
     },
 
     getDailyRewardStreak() {
-        return Math.max(0, Number(CryptoZoo.state?.dailyRewardStreak) || 0);
+        return Math.min(
+            this.dailyRewardMaxStreak,
+            Math.max(0, Number(CryptoZoo.state?.dailyRewardStreak) || 0)
+        );
     },
 
     getDailyRewardTimeLeftMs() {
@@ -305,7 +314,7 @@ CryptoZoo.gameplay = {
             Math.floor(levelPart + incomePart + clickPart)
         );
 
-        const streakMultiplier = 1 + Math.min(streak, 7) * 0.08;
+        const streakMultiplier = 1 + streak * 0.08;
 
         return Math.max(minimumReward, Math.floor(baseReward * streakMultiplier));
     },
@@ -321,7 +330,7 @@ CryptoZoo.gameplay = {
         else if (level >= 20 || zooIncome >= 3000) gems = 2;
         else if (level >= 5 || zooIncome >= 150) gems = 1;
 
-        if (streak >= 7) {
+        if (streak >= this.dailyRewardMaxStreak) {
             gems += 1;
         }
 
@@ -341,7 +350,10 @@ CryptoZoo.gameplay = {
         if (!previousKey) {
             CryptoZoo.state.dailyRewardStreak = 1;
         } else if (previousKey === yesterdayKey) {
-            CryptoZoo.state.dailyRewardStreak = currentStreak + 1;
+            CryptoZoo.state.dailyRewardStreak = Math.min(
+                this.dailyRewardMaxStreak,
+                currentStreak + 1
+            );
         } else {
             CryptoZoo.state.dailyRewardStreak = 1;
         }
