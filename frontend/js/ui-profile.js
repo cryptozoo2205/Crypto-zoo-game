@@ -77,197 +77,32 @@ CryptoZoo.uiProfile = {
         return index >= 0 ? "#" + String(index + 1) : "#-";
     },
 
-    removeDuplicateStatBoxes() {
-        const grid = document.querySelector("#profileModal .profile-grid");
-        if (!grid) return;
+    getRewardWalletInfoElements() {
+        const rows = Array.from(
+            document.querySelectorAll("#profileModal .profile-boost-row")
+        );
 
-        const boxes = Array.from(grid.querySelectorAll(".profile-box"));
-        const seenLabels = new Set();
+        const rewardWalletRow = rows.find((row) => {
+            const label = String(
+                row.querySelector(".profile-boost-label")?.textContent || ""
+            ).trim().toLowerCase();
 
-        boxes.forEach((box) => {
-            const labelEl = box.querySelector(".profile-box-label");
-            const label = String(labelEl?.textContent || "")
-                .trim()
-                .toLowerCase();
-
-            if (!label) return;
-
-            if (seenLabels.has(label)) {
-                box.remove();
-                return;
-            }
-
-            seenLabels.add(label);
-        });
-    },
-
-    ensureSingleStatBox(labelText, valueId) {
-        const grid = document.querySelector("#profileModal .profile-grid");
-        if (!grid) return null;
-
-        const normalizedTarget = String(labelText).trim().toLowerCase();
-        const boxes = Array.from(grid.querySelectorAll(".profile-box"));
-
-        let found = null;
-
-        boxes.forEach((box) => {
-            const labelEl = box.querySelector(".profile-box-label");
-            const label = String(labelEl?.textContent || "").trim().toLowerCase();
-
-            if (label !== normalizedTarget) return;
-
-            if (!found) {
-                found = box;
-            } else {
-                box.remove();
-            }
-        });
-
-        if (!found) {
-            found = document.createElement("div");
-            found.className = "profile-box";
-            found.innerHTML = `
-                <div class="profile-box-label">${labelText}</div>
-                <div class="profile-box-value" id="${valueId}">0</div>
-            `;
-            grid.appendChild(found);
-        } else {
-            const valueEl = found.querySelector(".profile-box-value");
-            if (valueEl && valueEl.id !== valueId) {
-                valueEl.id = valueId;
-            }
-        }
-
-        return found;
-    },
-
-    ensureRewardBoxes() {
-        this.removeDuplicateStatBoxes();
-
-        this.ensureSingleStatBox("Reward", "profileRewardBalance");
-        this.ensureSingleStatBox("Wallet", "profileRewardWallet");
-        this.ensureSingleStatBox("Pending", "profileWithdrawPending");
-    },
-
-    removeDuplicateTransferSections() {
-        const card = document.querySelector("#profileModal .profile-card");
-        if (!card) return;
-
-        const boostRows = Array.from(card.querySelectorAll(".profile-boost-row"));
-        const transferRows = boostRows.filter((row) => {
-            const label = String(row.querySelector(".profile-boost-label")?.textContent || "")
-                .trim()
-                .toLowerCase();
             return label === "reward wallet";
         });
 
-        if (transferRows.length > 1) {
-            transferRows.slice(1).forEach((row) => row.remove());
-        }
+        const rewardWalletValue = rewardWalletRow
+            ? rewardWalletRow.querySelector(".profile-boost-value")
+            : null;
 
-        const transferButtons = Array.from(card.querySelectorAll("button")).filter((btn) => {
-            const text = String(btn.textContent || "").trim().toLowerCase();
-            return text.includes("transfer reward") || text.includes("brak reward do transferu");
-        });
-
-        if (transferButtons.length > 1) {
-            transferButtons.slice(1).forEach((btn) => btn.remove());
-        }
-    },
-
-    ensureRewardWalletTransferRow() {
-        const card = document.querySelector("#profileModal .profile-card");
-        if (!card) return;
-
-        this.removeDuplicateTransferSections();
-
-        let transferRow = Array.from(card.querySelectorAll(".profile-boost-row")).find((row) => {
-            const label = String(row.querySelector(".profile-boost-label")?.textContent || "")
-                .trim()
-                .toLowerCase();
-            return label === "reward wallet";
-        });
-
-        if (!transferRow) {
-            transferRow = document.createElement("div");
-            transferRow.className = "profile-boost-row";
-            transferRow.id = "profileRewardWalletTransferRow";
-            transferRow.innerHTML = `
-                <div class="profile-boost-left">
-                    <div class="profile-boost-label">Reward Wallet</div>
-                    <div class="profile-boost-value" id="profileRewardWalletTransferText">Przenieś Reward do Wallet</div>
-                </div>
-            `;
-
-            const closeBtn = document.getElementById("closeProfileBtn");
-            if (closeBtn) {
-                card.insertBefore(transferRow, closeBtn);
-            } else {
-                card.appendChild(transferRow);
-            }
-        } else {
-            transferRow.id = "profileRewardWalletTransferRow";
-
-            let textEl = transferRow.querySelector("#profileRewardWalletTransferText");
-            if (!textEl) {
-                const valueEl = transferRow.querySelector(".profile-boost-value");
-                if (valueEl) {
-                    valueEl.id = "profileRewardWalletTransferText";
-                    textEl = valueEl;
-                }
-            }
-
-            if (!textEl) {
-                transferRow.innerHTML = `
-                    <div class="profile-boost-left">
-                        <div class="profile-boost-label">Reward Wallet</div>
-                        <div class="profile-boost-value" id="profileRewardWalletTransferText">Przenieś Reward do Wallet</div>
-                    </div>
-                `;
-            }
-        }
-
-        let transferBtn = document.getElementById("profileTransferRewardBtn");
-
-        if (!transferBtn) {
-            transferBtn = document.createElement("button");
-            transferBtn.id = "profileTransferRewardBtn";
-            transferBtn.className = "profile-close-btn";
-            transferBtn.type = "button";
-
-            const closeBtn = document.getElementById("closeProfileBtn");
-            if (closeBtn) {
-                card.insertBefore(transferBtn, closeBtn);
-            } else {
-                card.appendChild(transferBtn);
-            }
-        }
-
-        if (!transferBtn.dataset.bound) {
-            transferBtn.dataset.bound = "1";
-            transferBtn.addEventListener("click", () => {
-                const rewardBalance = Math.max(0, Number(CryptoZoo.state?.rewardBalance) || 0);
-
-                if (rewardBalance <= 0) {
-                    CryptoZoo.ui?.showToast?.("Brak Reward do transferu");
-                    return;
-                }
-
-                const success = CryptoZoo.gameplay?.transferRewardToWallet?.();
-
-                if (!success) {
-                    CryptoZoo.ui?.showToast?.("Brak Reward do transferu");
-                }
-            });
-        }
+        return {
+            rewardWalletRow,
+            rewardWalletValue
+        };
     },
 
     refreshProfileModalData() {
         const modal = document.getElementById("profileModal");
         if (!modal) return;
-
-        this.ensureRewardBoxes();
-        this.ensureRewardWalletTransferRow();
 
         const username = this.getProfileUsername();
         const subtitle = this.getProfileSubtitle();
@@ -300,18 +135,18 @@ CryptoZoo.uiProfile = {
             boostStatusEl.classList.toggle("active", boostActive);
         }
 
-        const transferTextEl = document.getElementById("profileRewardWalletTransferText");
-        if (transferTextEl) {
-            transferTextEl.textContent =
+        const { rewardWalletValue } = this.getRewardWalletInfoElements();
+        if (rewardWalletValue) {
+            rewardWalletValue.textContent =
                 rewardBalance > 0
-                    ? `Dostępne do przeniesienia: ${CryptoZoo.formatNumber(rewardBalance)}`
+                    ? `Przenieś ${CryptoZoo.formatNumber(rewardBalance)} Reward do Wallet`
                     : "Brak Reward do przeniesienia";
         }
 
-        const transferBtn = document.getElementById("profileTransferRewardBtn");
+        const transferBtn = document.getElementById("transferRewardBtn");
         if (transferBtn) {
             if (rewardBalance > 0) {
-                transferBtn.textContent = `Transfer Reward`;
+                transferBtn.textContent = "Transfer Reward";
                 transferBtn.disabled = false;
                 transferBtn.style.opacity = "1";
                 transferBtn.style.filter = "none";
@@ -373,6 +208,28 @@ CryptoZoo.uiProfile = {
             backdrop.dataset.bound = "1";
             backdrop.addEventListener("click", () => {
                 this.closeProfileModal();
+            });
+        }
+
+        const transferBtn = document.getElementById("transferRewardBtn");
+        if (transferBtn && !transferBtn.dataset.bound) {
+            transferBtn.dataset.bound = "1";
+            transferBtn.addEventListener("click", () => {
+                const rewardBalance = Math.max(0, Number(CryptoZoo.state?.rewardBalance) || 0);
+
+                if (rewardBalance <= 0) {
+                    CryptoZoo.ui?.showToast?.("Brak Reward do transferu");
+                    this.refreshProfileModalData();
+                    return;
+                }
+
+                const success = CryptoZoo.gameplay?.transferRewardToWallet?.();
+
+                if (!success) {
+                    CryptoZoo.ui?.showToast?.("Brak Reward do transferu");
+                }
+
+                this.refreshProfileModalData();
             });
         }
     }
