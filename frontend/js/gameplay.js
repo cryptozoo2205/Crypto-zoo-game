@@ -338,6 +338,22 @@ CryptoZoo.gameplay = {
         return CryptoZoo.expeditions?.getUnlockText?.(expeditionOrId) || "Odblokuj poziom 1";
     },
 
+    applyLevelDropBySpend(spentAmount, coinsBeforeSpend) {
+        return CryptoZoo.progression?.applyLevelDropBySpend?.(spentAmount, coinsBeforeSpend);
+    },
+
+    recalculateZooIncome() {
+        return CryptoZoo.progression?.recalculateZooIncome?.() || 0;
+    },
+
+    recalculateLevel() {
+        return CryptoZoo.progression?.recalculateLevel?.() || 1;
+    },
+
+    recalculateProgress() {
+        return CryptoZoo.progression?.recalculateProgress?.();
+    },
+
     bindDailyRewardButton() {
         const btn = document.getElementById("homeDailyBtn");
         if (!btn) return;
@@ -536,33 +552,6 @@ CryptoZoo.gameplay = {
         });
     },
 
-    applyLevelDropBySpend(spentAmount, coinsBeforeSpend) {
-        const spent = Number(spentAmount) || 0;
-        const before = Number(coinsBeforeSpend) || 0;
-
-        if (spent <= 0 || before <= 0) return;
-
-        const spendRatio = spent / before;
-        let levelLoss = 0;
-
-        if (spendRatio > 0.60) {
-            levelLoss = 3;
-        } else if (spendRatio > 0.30) {
-            levelLoss = 2;
-        } else if (spendRatio > 0.10) {
-            levelLoss = 1;
-        }
-
-        if (levelLoss > 0) {
-            CryptoZoo.state.level = Math.max(
-                1,
-                (Number(CryptoZoo.state.level) || 1) - levelLoss
-            );
-        }
-
-        CryptoZoo.state.xp = Math.floor((Number(CryptoZoo.state.xp) || 0) * 0.7);
-    },
-
     buyShopItem(itemId) {
         const item = (CryptoZoo.config?.shopItems || []).find((x) => x.id === itemId);
         if (!item) return;
@@ -707,48 +696,6 @@ CryptoZoo.gameplay = {
         this.applyLevelDropBySpend(cost, coinsBeforeSpend);
         this.persistAndRender();
         CryptoZoo.ui?.showToast?.(`Ulepszono ${config.name}`);
-    },
-
-    recalculateZooIncome() {
-        const animals = CryptoZoo.config?.animals || {};
-        const stateAnimals = CryptoZoo.state?.animals || {};
-
-        let total = 0;
-
-        Object.keys(animals).forEach((type) => {
-            const config = animals[type];
-            const animal = stateAnimals[type] || { count: 0, level: 1 };
-
-            total +=
-                (Number(animal.count) || 0) *
-                (Number(animal.level) || 1) *
-                (Number(config.baseIncome) || 0);
-        });
-
-        CryptoZoo.state.zooIncome = total;
-    },
-
-    recalculateLevel() {
-        const xp = Number(CryptoZoo.state.xp) || 0;
-
-        let level = 1;
-        let requiredXp = 100;
-        let spentXp = 0;
-
-        while (xp >= spentXp + requiredXp) {
-            spentXp += requiredXp;
-            level += 1;
-            requiredXp += 100;
-        }
-
-        CryptoZoo.state.level = Math.max(Number(CryptoZoo.state.level) || 1, level);
-    },
-
-    recalculateProgress() {
-        this.recalculateZooIncome();
-        this.recalculateLevel();
-        this.normalizeBoostState();
-        this.normalizeOfflineBoostState();
     },
 
     startIncomeTimer() {
