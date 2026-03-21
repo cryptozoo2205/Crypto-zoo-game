@@ -162,4 +162,4 @@ CryptoZoo.shopSystem = {
         CryptoZoo.ui?.showToast?.(`Kupiono ${item.name}`);
         return true;
     }
-};
+}; 
