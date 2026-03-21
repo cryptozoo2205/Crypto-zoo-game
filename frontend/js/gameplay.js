@@ -1,3 +1,4 @@
+CryptoZoo.dailyReward?.startTimer?.();
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.gameplay = {
