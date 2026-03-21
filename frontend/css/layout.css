@@ -1,6 +1,8 @@
 .top-bar {
     width: 100%;
     margin: 0 0 10px;
+    position: relative;
+    z-index: 5;
 }
 
 .top-bar-shell {
@@ -31,6 +33,20 @@
     background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
     border: 1px solid rgba(255,255,255,0.04);
     pointer-events: none;
+}
+
+.top-bar-shell::after {
+    content: "";
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    bottom: -12px;
+    height: 26px;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(8, 14, 26, 0.22) 0%, rgba(8, 14, 26, 0) 100%);
+    filter: blur(8px);
+    border-radius: 999px;
+    opacity: 0.8;
 }
 
 .top-bar-main {
@@ -181,6 +197,20 @@ main#game {
     min-width: 0;
     flex: 1 1 auto;
     padding-bottom: 0;
+    position: relative;
+}
+
+main#game::before {
+    content: "";
+    position: absolute;
+    top: -4px;
+    left: 8px;
+    right: 8px;
+    height: 14px;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(16, 24, 42, 0.18) 0%, rgba(16, 24, 42, 0) 100%);
+    filter: blur(6px);
+    border-radius: 999px;
 }
 
 #screen-game,
@@ -256,6 +286,35 @@ main#game {
     line-height: 1.05;
     word-break: break-word;
     overflow-wrap: anywhere;
+}
+
+/* kolorowanie głównych wartości */
+#homeCoins {
+    color: #7dff9a;
+    text-shadow: 0 0 12px rgba(88, 255, 130, 0.10);
+}
+
+#homeGems {
+    color: #7fd8ff;
+    text-shadow: 0 0 12px rgba(82, 203, 255, 0.10);
+}
+
+#homeRewardBalance {
+    color: #ffd976;
+    text-shadow: 0 0 12px rgba(255, 207, 92, 0.10);
+}
+
+#homeLevel {
+    color: #d0b0ff;
+    text-shadow: 0 0 12px rgba(184, 130, 255, 0.10);
+}
+
+#homeCoinsPerClick {
+    color: #ffffff;
+}
+
+#homeZooIncomeStat {
+    color: #79ff90;
 }
 
 .tap-area {
@@ -735,6 +794,14 @@ main#game {
     word-break: break-word;
 }
 
+#profileRewardBalance {
+    color: #ffd976;
+}
+
+#profileRewardWallet {
+    color: #8fe6ff;
+}
+
 .profile-boost-row {
     margin-bottom: 16px;
     border-radius: 18px;
@@ -784,6 +851,15 @@ main#game {
     box-shadow: 0 8px 16px rgba(255, 191, 0, 0.18);
 }
 
+#transferRewardBtn {
+    margin-top: 18px;
+    margin-bottom: 12px;
+}
+
+#closeProfileBtn {
+    margin-top: 2px;
+}
+
 .profile-close-btn:active {
     transform: scale(0.985);
 }
@@ -825,6 +901,13 @@ main#game {
         top: 8px;
         bottom: 8px;
         border-radius: 14px;
+    }
+
+    .top-bar-shell::after {
+        left: 12px;
+        right: 12px;
+        height: 20px;
+        bottom: -10px;
     }
 
     .top-bar-main {
@@ -1037,6 +1120,11 @@ main#game {
     .profile-close-btn {
         padding: 11px 12px;
         border-radius: 14px;
+    }
+
+    #transferRewardBtn {
+        margin-top: 16px;
+        margin-bottom: 10px;
     }
 }
 
