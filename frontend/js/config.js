@@ -173,35 +173,35 @@ CryptoZoo.config = {
             id: "click1",
             name: "Click Upgrade I",
             desc: "+1 coin per click",
-            price: 600,
+            price: 450,
             type: "click"
         },
         {
             id: "click2",
             name: "Click Upgrade II",
             desc: "+1 coin per click",
-            price: 1800,
+            price: 1200,
             type: "click"
         },
         {
             id: "click3",
             name: "Strong Finger",
             desc: "+1 coin per click",
-            price: 4500,
+            price: 3200,
             type: "click"
         },
         {
             id: "click4",
             name: "Turbo Tap",
             desc: "+1 coin per click",
-            price: 10000,
+            price: 8500,
             type: "click"
         },
         {
             id: "click5",
             name: "Diamond Claw",
             desc: "+1 coin per click",
-            price: 22000,
+            price: 20000,
             type: "click"
         },
 
@@ -209,35 +209,35 @@ CryptoZoo.config = {
             id: "income1",
             name: "Zoo Manager",
             desc: "+25% zoo income",
-            price: 3000,
+            price: 2200,
             type: "income"
         },
         {
             id: "income2",
             name: "VIP Caretaker",
             desc: "+25% zoo income",
-            price: 9000,
+            price: 6500,
             type: "income"
         },
         {
             id: "income3",
             name: "Automation Crew",
             desc: "+25% zoo income",
-            price: 22000,
+            price: 17000,
             type: "income"
         },
         {
             id: "income4",
             name: "Golden Feeding System",
             desc: "+25% zoo income",
-            price: 55000,
+            price: 42000,
             type: "income"
         },
         {
             id: "income5",
             name: "Elite Zoo Director",
             desc: "+25% zoo income",
-            price: 140000,
+            price: 98000,
             type: "income"
         },
 
@@ -245,21 +245,21 @@ CryptoZoo.config = {
             id: "expedition1",
             name: "Better Expedition Gear",
             desc: "+20% expedition rewards",
-            price: 5000,
+            price: 7000,
             type: "expedition"
         },
         {
             id: "expedition2",
             name: "Rare Route Maps",
             desc: "+20% expedition rewards",
-            price: 14000,
+            price: 18000,
             type: "expedition"
         },
         {
             id: "expedition3",
             name: "Epic Explorer Team",
             desc: "+20% expedition rewards",
-            price: 36000,
+            price: 42000,
             type: "expedition"
         },
 
@@ -267,7 +267,7 @@ CryptoZoo.config = {
             id: "offline1",
             name: "Offline Booster",
             desc: "x2 offline income",
-            price: 8000,
+            price: 12000,
             type: "offline"
         }
     ]
