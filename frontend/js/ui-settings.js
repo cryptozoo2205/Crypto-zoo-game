@@ -65,42 +65,7 @@ CryptoZoo.uiSettings = {
     },
 
     getSoundLabel(sound) {
-        return sound ? "ON • test beep" : "OFF";
-    },
-
-    playTestBeep() {
-        const settings = this.getSettings();
-        if (!settings.sound) return;
-
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContextClass) return;
-
-        try {
-            const ctx = new AudioContextClass();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-
-            osc.type = "sine";
-            osc.frequency.value = 740;
-            gain.gain.value = 0.02;
-
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-
-            const now = ctx.currentTime;
-            osc.start(now);
-            osc.stop(now + 0.08);
-
-            osc.onended = () => {
-                try {
-                    ctx.close();
-                } catch (error) {
-                    console.warn("AudioContext close error:", error);
-                }
-            };
-        } catch (error) {
-            console.warn("Test beep error:", error);
-        }
+        return sound ? "ON" : "OFF";
     },
 
     refreshSettingsModalData() {
@@ -144,10 +109,6 @@ CryptoZoo.uiSettings = {
         this.applySettings(saved);
         this.refreshSettingsModalData();
 
-        if (saved.sound) {
-            this.playTestBeep();
-        }
-
         CryptoZoo.ui?.showToast?.(
             saved.sound ? "Dźwięki: ON" : "Dźwięki: OFF"
         );
@@ -159,6 +120,11 @@ CryptoZoo.uiSettings = {
 
         this.refreshSettingsModalData();
         modal.classList.remove("hidden");
+
+        const card = modal.querySelector(".profile-card");
+        if (card) {
+            card.scrollTop = 0;
+        }
     },
 
     closeSettingsModal() {
