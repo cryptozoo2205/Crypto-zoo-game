@@ -1,41 +1,6 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.uiProfile = {
-    ensureRewardBoxes() {
-        const grid = document.querySelector("#profileModal .profile-grid");
-        if (!grid) return;
-
-        if (!document.getElementById("profileRewardBalance")) {
-            const rewardBox = document.createElement("div");
-            rewardBox.className = "profile-box";
-            rewardBox.innerHTML = `
-                <div class="profile-box-label">Reward</div>
-                <div class="profile-box-value" id="profileRewardBalance">0</div>
-            `;
-            grid.appendChild(rewardBox);
-        }
-
-        if (!document.getElementById("profileRewardWallet")) {
-            const walletBox = document.createElement("div");
-            walletBox.className = "profile-box";
-            walletBox.innerHTML = `
-                <div class="profile-box-label">Wallet</div>
-                <div class="profile-box-value" id="profileRewardWallet">0</div>
-            `;
-            grid.appendChild(walletBox);
-        }
-
-        if (!document.getElementById("profileWithdrawPending")) {
-            const pendingBox = document.createElement("div");
-            pendingBox.className = "profile-box";
-            pendingBox.innerHTML = `
-                <div class="profile-box-label">Pending</div>
-                <div class="profile-box-value" id="profileWithdrawPending">0</div>
-            `;
-            grid.appendChild(pendingBox);
-        }
-    },
-
     getProfileUsername() {
         const fromApi = CryptoZoo.api?.getUsername?.();
         if (fromApi && String(fromApi).trim()) {
@@ -112,6 +77,44 @@ CryptoZoo.uiProfile = {
         return index >= 0 ? "#" + String(index + 1) : "#-";
     },
 
+    ensureRewardBoxes() {
+        const grid = document.querySelector("#profileModal .profile-grid");
+        if (!grid) return;
+
+        if (!document.getElementById("profileRewardBalanceBox")) {
+            const rewardBox = document.createElement("div");
+            rewardBox.className = "profile-box";
+            rewardBox.id = "profileRewardBalanceBox";
+            rewardBox.innerHTML = `
+                <div class="profile-box-label">Reward</div>
+                <div class="profile-box-value" id="profileRewardBalance">0</div>
+            `;
+            grid.appendChild(rewardBox);
+        }
+
+        if (!document.getElementById("profileRewardWalletBox")) {
+            const walletBox = document.createElement("div");
+            walletBox.className = "profile-box";
+            walletBox.id = "profileRewardWalletBox";
+            walletBox.innerHTML = `
+                <div class="profile-box-label">Wallet</div>
+                <div class="profile-box-value" id="profileRewardWallet">0</div>
+            `;
+            grid.appendChild(walletBox);
+        }
+
+        if (!document.getElementById("profileWithdrawPendingBox")) {
+            const pendingBox = document.createElement("div");
+            pendingBox.className = "profile-box";
+            pendingBox.id = "profileWithdrawPendingBox";
+            pendingBox.innerHTML = `
+                <div class="profile-box-label">Pending</div>
+                <div class="profile-box-value" id="profileWithdrawPending">0</div>
+            `;
+            grid.appendChild(pendingBox);
+        }
+    },
+
     refreshProfileModalData() {
         const modal = document.getElementById("profileModal");
         if (!modal) return;
@@ -147,6 +150,19 @@ CryptoZoo.uiProfile = {
         const boostStatusEl = document.getElementById("profileBoostStatus");
         if (boostStatusEl) {
             boostStatusEl.classList.toggle("active", boostActive);
+        }
+    },
+
+    renderTopBarProfile() {
+        const topPlayerName = document.getElementById("topPlayerName");
+        const topPlayerStatus = document.getElementById("topPlayerStatus");
+
+        if (topPlayerName) {
+            topPlayerName.textContent = this.getProfileUsername();
+        }
+
+        if (topPlayerStatus) {
+            topPlayerStatus.textContent = "● Online";
         }
     },
 
