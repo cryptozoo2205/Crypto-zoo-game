@@ -1,6 +1,8 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.api = {
+    testResetMode: true,
+
     getApiBase() {
         const fromStorage = localStorage.getItem("cryptozoo_api_base");
         if (fromStorage) {
@@ -331,6 +333,17 @@ window.CryptoZoo.api = {
     async loadPlayer() {
         let loaded = null;
 
+        if (this.testResetMode) {
+            loaded = this.normalizeState(this.getDefaultState());
+            CryptoZoo.state = loaded;
+
+            if (CryptoZoo.gameplay?.recalculateProgress) {
+                CryptoZoo.gameplay.recalculateProgress();
+            }
+
+            return CryptoZoo.state;
+        }
+
         try {
             loaded = await this.loadPlayerFromBackend();
         } catch (error) {
@@ -362,6 +375,16 @@ window.CryptoZoo.api = {
 
     async savePlayer() {
         const payload = this.getSavePayload();
+
+        if (this.testResetMode) {
+            CryptoZoo.state = this.normalizeState(payload);
+
+            if (CryptoZoo.gameplay?.recalculateProgress) {
+                CryptoZoo.gameplay.recalculateProgress();
+            }
+
+            return CryptoZoo.state;
+        }
 
         try {
             CryptoZoo.state = await this.savePlayerToBackend(payload);
