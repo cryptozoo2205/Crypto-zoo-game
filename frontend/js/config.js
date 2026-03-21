@@ -1,7 +1,7 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.config = {
-    clickValue: 0.15,
+    clickValue: 1,
 
     animals: {
         monkey: {
@@ -119,35 +119,35 @@ CryptoZoo.config = {
             id: "click1",
             name: "Click Upgrade I",
             desc: "+1 coin per click",
-            price: 250,
+            price: 600,
             type: "click"
         },
         {
             id: "click2",
             name: "Click Upgrade II",
             desc: "+1 coin per click",
-            price: 900,
+            price: 1800,
             type: "click"
         },
         {
             id: "click3",
             name: "Strong Finger",
             desc: "+1 coin per click",
-            price: 2500,
+            price: 4500,
             type: "click"
         },
         {
             id: "click4",
             name: "Turbo Tap",
             desc: "+1 coin per click",
-            price: 7000,
+            price: 10000,
             type: "click"
         },
         {
             id: "click5",
             name: "Diamond Claw",
             desc: "+1 coin per click",
-            price: 18000,
+            price: 22000,
             type: "click"
         },
 
