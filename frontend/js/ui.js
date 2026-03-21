@@ -415,6 +415,17 @@ CryptoZoo.ui = {
         };
     },
 
+    getShopButtonLabel(item) {
+        if (!item) return "Kup";
+
+        const gemPrice = Math.max(0, Number(item.gemPrice) || 0);
+        if (gemPrice > 0) {
+            return "Kup za gemy";
+        }
+
+        return "Kup";
+    },
+
     bindHomeButtons() {
         const boostBtn = document.getElementById("homeBoostBtn");
         if (boostBtn && !boostBtn.dataset.bound) {
@@ -805,6 +816,7 @@ CryptoZoo.ui = {
             const typeEmoji = this.getShopTypeEmoji(item.type);
             const description = this.getShopItemDescription(item);
             const priceMeta = this.getShopItemPriceMeta(item);
+            const buttonLabel = this.getShopButtonLabel(item);
 
             return `
                 <div class="shop-item">
@@ -827,7 +839,7 @@ CryptoZoo.ui = {
                         ${description}
                     </div>
 
-                    <button id="buy-shop-${item.id}" type="button">Kup</button>
+                    <button id="buy-shop-${item.id}" type="button">${buttonLabel}</button>
                 </div>
             `;
         }).join("");
