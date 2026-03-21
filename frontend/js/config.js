@@ -56,31 +56,31 @@ CryptoZoo.config = {
             name: "Penguin",
             asset: "penguin",
             buyCost: 230000,
-            baseIncome: 1300
+            baseIncome: 1400
         },
         bear: {
             name: "Bear",
             asset: "bear",
             buyCost: 520000,
-            baseIncome: 2600
+            baseIncome: 3000
         },
         crocodile: {
             name: "Crocodile",
             asset: "crocodile",
             buyCost: 1200000,
-            baseIncome: 5200
+            baseIncome: 6200
         },
         kangaroo: {
             name: "Kangaroo",
             asset: "kangaroo",
             buyCost: 2600000,
-            baseIncome: 9800
+            baseIncome: 12500
         },
         wolf: {
             name: "Wolf",
             asset: "wolf",
             buyCost: 6000000,
-            baseIncome: 18000
+            baseIncome: 24000
         }
     },
 
@@ -116,7 +116,7 @@ CryptoZoo.config = {
             id: "canyon",
             name: "Sunstone Canyon",
             duration: 3600,
-            baseCoins: 16000,
+            baseCoins: 17000,
             baseGems: 5,
             rareChance: 0.31,
             epicChance: 0.10
@@ -125,7 +125,7 @@ CryptoZoo.config = {
             id: "glacier",
             name: "Frozen Glacier",
             duration: 7200,
-            baseCoins: 38000,
+            baseCoins: 43000,
             baseGems: 8,
             rareChance: 0.34,
             epicChance: 0.11
@@ -134,8 +134,8 @@ CryptoZoo.config = {
             id: "jungle",
             name: "Emerald Jungle",
             duration: 14400,
-            baseCoins: 90000,
-            baseGems: 12,
+            baseCoins: 105000,
+            baseGems: 13,
             rareChance: 0.37,
             epicChance: 0.13
         },
@@ -143,8 +143,8 @@ CryptoZoo.config = {
             id: "temple",
             name: "Ancient Temple",
             duration: 28800,
-            baseCoins: 210000,
-            baseGems: 20,
+            baseCoins: 270000,
+            baseGems: 22,
             rareChance: 0.40,
             epicChance: 0.14
         },
@@ -152,8 +152,8 @@ CryptoZoo.config = {
             id: "oasis",
             name: "Royal Oasis",
             duration: 43200,
-            baseCoins: 360000,
-            baseGems: 28,
+            baseCoins: 520000,
+            baseGems: 32,
             rareChance: 0.42,
             epicChance: 0.15
         },
@@ -161,8 +161,8 @@ CryptoZoo.config = {
             id: "kingdom",
             name: "Lost Beast Kingdom",
             duration: 86400,
-            baseCoins: 760000,
-            baseGems: 45,
+            baseCoins: 1200000,
+            baseGems: 55,
             rareChance: 0.44,
             epicChance: 0.17
         }
@@ -173,35 +173,35 @@ CryptoZoo.config = {
             id: "click1",
             name: "Click Upgrade I",
             desc: "+1 coin per click",
-            price: 500,
+            price: 700,
             type: "click"
         },
         {
             id: "click2",
             name: "Click Upgrade II",
             desc: "+1 coin per click",
-            price: 1400,
+            price: 2200,
             type: "click"
         },
         {
             id: "click3",
             name: "Strong Finger",
             desc: "+1 coin per click",
-            price: 3600,
+            price: 6500,
             type: "click"
         },
         {
             id: "click4",
             name: "Turbo Tap",
             desc: "+1 coin per click",
-            price: 9000,
+            price: 18000,
             type: "click"
         },
         {
             id: "click5",
             name: "Diamond Claw",
             desc: "+1 coin per click",
-            price: 24000,
+            price: 48000,
             type: "click"
         },
 
@@ -209,35 +209,35 @@ CryptoZoo.config = {
             id: "income1",
             name: "Zoo Manager",
             desc: "+25% zoo income",
-            price: 2800,
+            price: 5000,
             type: "income"
         },
         {
             id: "income2",
             name: "VIP Caretaker",
             desc: "+25% zoo income",
-            price: 7600,
+            price: 15000,
             type: "income"
         },
         {
             id: "income3",
             name: "Automation Crew",
             desc: "+25% zoo income",
-            price: 19000,
+            price: 42000,
             type: "income"
         },
         {
             id: "income4",
             name: "Golden Feeding System",
             desc: "+25% zoo income",
-            price: 46000,
+            price: 110000,
             type: "income"
         },
         {
             id: "income5",
             name: "Elite Zoo Director",
             desc: "+25% zoo income",
-            price: 115000,
+            price: 280000,
             type: "income"
         },
 
@@ -245,21 +245,21 @@ CryptoZoo.config = {
             id: "expedition1",
             name: "Better Expedition Gear",
             desc: "+20% expedition rewards",
-            price: 7000,
+            price: 12000,
             type: "expedition"
         },
         {
             id: "expedition2",
             name: "Rare Route Maps",
             desc: "+20% expedition rewards",
-            price: 18000,
+            price: 32000,
             type: "expedition"
         },
         {
             id: "expedition3",
             name: "Epic Explorer Team",
             desc: "+20% expedition rewards",
-            price: 42000,
+            price: 85000,
             type: "expedition"
         },
 
@@ -267,7 +267,7 @@ CryptoZoo.config = {
             id: "offline10m",
             name: "Offline Boost 10m",
             desc: "x2 offline income przez 10 minut",
-            price: 12000,
+            price: 15000,
             type: "offline",
             offlineMultiplier: 2,
             offlineDurationSeconds: 10 * 60
@@ -276,7 +276,7 @@ CryptoZoo.config = {
             id: "offline1h",
             name: "Offline Boost 1h",
             desc: "x2 offline income przez 1 godzinę",
-            price: 38000,
+            price: 65000,
             type: "offline",
             offlineMultiplier: 2,
             offlineDurationSeconds: 60 * 60
@@ -285,7 +285,7 @@ CryptoZoo.config = {
             id: "offline3h",
             name: "Offline Boost 3h",
             desc: "x2 offline income przez 3 godziny",
-            price: 98000,
+            price: 180000,
             type: "offline",
             offlineMultiplier: 2,
             offlineDurationSeconds: 3 * 60 * 60
@@ -294,7 +294,7 @@ CryptoZoo.config = {
             id: "offline5h",
             name: "Offline Boost 5h",
             desc: "x2 offline income przez 5 godzin",
-            price: 175000,
+            price: 320000,
             type: "offline",
             offlineMultiplier: 2,
             offlineDurationSeconds: 5 * 60 * 60
