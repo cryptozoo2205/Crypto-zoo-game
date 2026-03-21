@@ -210,57 +210,11 @@ CryptoZoo.ui = {
         return bar;
     },
 
-    ensureGuideCard() {
-        const quickPanel = document.querySelector(".home-quick-panel");
-        if (!quickPanel) return null;
-
-        let card = document.getElementById("homeGuideCard");
-
-        if (!card) {
-            card = document.createElement("div");
-            card.id = "homeGuideCard";
-            card.style.width = "100%";
-            card.style.marginTop = "10px";
-            card.style.padding = "12px 14px";
-            card.style.borderRadius = "16px";
-            card.style.background = "linear-gradient(180deg, rgba(18, 28, 48, 0.96) 0%, rgba(10, 17, 31, 0.95) 100%)";
-            card.style.border = "1px solid rgba(255,255,255,0.08)";
-            card.style.boxShadow = "0 12px 22px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255,255,255,0.04)";
-            card.style.color = "#ffffff";
-            card.style.fontSize = "12px";
-            card.style.fontWeight = "700";
-            card.style.lineHeight = "1.5";
-
-            quickPanel.insertAdjacentElement("afterend", card);
+    removeGuideCard() {
+        const oldCard = document.getElementById("homeGuideCard");
+        if (oldCard) {
+            oldCard.remove();
         }
-
-        return card;
-    },
-
-    renderGuideCard() {
-        const card = this.ensureGuideCard();
-        if (!card) return;
-
-        const level = Math.max(1, Number(CryptoZoo.state?.level) || 1);
-        const zooIncome = Math.max(0, Number(CryptoZoo.state?.zooIncome) || 0);
-        const clickValue = Math.max(1, Number(CryptoZoo.state?.coinsPerClick) || 1);
-        const nextLevelHint = CryptoZoo.formatNumber(level * 100);
-
-        card.innerHTML = `
-            <div style="font-size:13px; font-weight:900; margin-bottom:6px;">📘 Jak działa gra</div>
-            <div style="color: rgba(255,255,255,0.88); margin-bottom:4px;">
-                • Klikanie daje coins i XP. Im większy click value, tym mocniejsze tapnięcie.
-            </div>
-            <div style="color: rgba(255,255,255,0.88); margin-bottom:4px;">
-                • Poziom gracza rośnie za XP i odblokowuje lepsze ekspedycje.
-            </div>
-            <div style="color: rgba(255,255,255,0.88); margin-bottom:4px;">
-                • Kup zwierzę = więcej sztuk. Lvl Up = każda posiadana sztuka daje więcej income.
-            </div>
-            <div style="color: rgba(255,255,255,0.72);">
-                Teraz: click ${CryptoZoo.formatNumber(clickValue)} • zoo ${CryptoZoo.formatNumber(zooIncome)}/sek • kolejny ważny próg levelu około ${nextLevelHint} XP
-            </div>
-        `;
     },
 
     renderOfflineInfo() {
@@ -321,7 +275,7 @@ CryptoZoo.ui = {
         subtitleEl.style.lineHeight = "1.35";
 
         if (!isUnlocked) {
-            subtitleEl.textContent = `Unlock in ${this.formatTimeLeft(timeLeftSeconds)} • Daily odblokowuje się po czasie gry`;
+            subtitleEl.textContent = `Unlock in ${this.formatTimeLeft(timeLeftSeconds)}`;
             iconEl.textContent = "🔒";
             return;
         }
@@ -387,21 +341,13 @@ CryptoZoo.ui = {
 
         if (item.type === "click") {
             const bonus = Math.max(1, Number(item.clickValueBonus) || 1);
-            return `Stały bonus: +${CryptoZoo.formatNumber(bonus)} do coins per click.`;
-        }
-
-        if (item.type === "income") {
-            return "Stały bonus do dochodu zoo. Wzmacnia progres pasywny.";
-        }
-
-        if (item.type === "expedition") {
-            return "Stały bonus do nagród z ekspedycji.";
+            return `+${CryptoZoo.formatNumber(bonus)} coin${bonus !== 1 ? "s" : ""} per click`;
         }
 
         if (item.type === "offline") {
             const multiplier = Math.max(1, Number(item.offlineMultiplier) || 2);
             const durationSeconds = Math.max(60, Number(item.offlineDurationSeconds) || 600);
-            return `Czasowy bonus: x${CryptoZoo.formatNumber(multiplier)} offline income przez ${this.formatDurationLabel(durationSeconds)}.`;
+            return `x${CryptoZoo.formatNumber(multiplier)} offline income przez ${this.formatDurationLabel(durationSeconds)}`;
         }
 
         return item.desc || "";
@@ -641,15 +587,6 @@ CryptoZoo.ui = {
         this.updateText("homeLionCount", CryptoZoo.formatNumber(lionCount));
         this.updateText("homeLionLevel", CryptoZoo.formatNumber(lionLevel));
 
-        const monkeyUpgradeBtn = document.getElementById("homeUpgradeMonkeyBtn");
-        if (monkeyUpgradeBtn) monkeyUpgradeBtn.title = "Lvl Up zwiększa dochód każdej posiadanej Monkey.";
-
-        const pandaUpgradeBtn = document.getElementById("homeUpgradePandaBtn");
-        if (pandaUpgradeBtn) pandaUpgradeBtn.title = "Lvl Up zwiększa dochód każdej posiadanej Panda.";
-
-        const lionUpgradeBtn = document.getElementById("homeUpgradeLionBtn");
-        if (lionUpgradeBtn) lionUpgradeBtn.title = "Lvl Up zwiększa dochód każdej posiadanej Lion.";
-
         CryptoZoo.uiProfile?.renderTopBarProfile?.();
         CryptoZoo.uiProfile?.bindProfileModal?.();
         CryptoZoo.uiSettings?.bindSettingsModal?.();
@@ -657,7 +594,7 @@ CryptoZoo.ui = {
         this.renderBoostStatus();
         this.renderOfflineInfo();
         this.renderDailyRewardStatus();
-        this.renderGuideCard();
+        this.removeGuideCard();
     },
 
     renderTopHiddenStats() {
@@ -692,7 +629,6 @@ CryptoZoo.ui = {
             const count = Math.max(0, Number(state.count) || 0);
             const displayLevel = count > 0 ? Math.max(1, Number(state.level) || 1) : 0;
             const upgradeCost = CryptoZoo.animalsSystem?.getUpgradeCost?.(type) || 0;
-            const totalIncome = count * Math.max(1, displayLevel || 1) * (Number(config.baseIncome) || 0);
 
             return `
                 <div class="animal-row">
@@ -704,16 +640,10 @@ CryptoZoo.ui = {
                         <div class="animal-text">
                             <div class="animal-name">${config.name}</div>
                             <div class="animal-desc">
-                                Bazowy dochód ${CryptoZoo.formatNumber(config.baseIncome)}/sek • Koszt kupna ${CryptoZoo.formatNumber(config.buyCost)}
+                                Dochód ${CryptoZoo.formatNumber(config.baseIncome)}/sek • Koszt ${CryptoZoo.formatNumber(config.buyCost)}
                             </div>
                             <div class="animal-owned">
                                 Posiadasz: ${CryptoZoo.formatNumber(count)} • Poziom: ${CryptoZoo.formatNumber(displayLevel)}
-                            </div>
-                            <div class="animal-owned" style="color:rgba(255,255,255,0.70);">
-                                Kup zwiększa liczbę sztuk • Lvl Up zwiększa dochód każdej sztuki
-                            </div>
-                            <div class="animal-owned" style="color:rgba(255,255,255,0.60);">
-                                Aktualny dochód tego gatunku: ${CryptoZoo.formatNumber(count > 0 ? totalIncome : 0)}/sek
                             </div>
                         </div>
                     </div>
@@ -764,9 +694,6 @@ CryptoZoo.ui = {
                         Reward Wallet:
                         ${CryptoZoo.formatNumber(rewardBalanceAmount)} reward
                     </div>
-                    <div style="margin-top:6px; color:rgba(255,255,255,0.68); font-size:12px;">
-                        Ekspedycje dają pasywne nagrody. Im dalej w grze, tym bardziej opłaca się wysyłać lepsze wyprawy.
-                    </div>
                     <button id="collect-expedition-btn" type="button" ${canCollect ? "" : "disabled"}>
                         ${canCollect ? "Odbierz nagrodę" : "Trwa ekspedycja"}
                     </button>
@@ -801,15 +728,12 @@ CryptoZoo.ui = {
                         Reward Wallet: ${rewardRangeText}
                     </div>
                     <div>
-                        Wymagany poziom gracza: ${CryptoZoo.formatNumber(requiredLevel)}
+                        Wymagany poziom: ${CryptoZoo.formatNumber(requiredLevel)}
                     </div>
                     <div>
                         Szansa na bonus:
                         Rare ${(exp.rareChance * 100).toFixed(0)}% /
                         Epic ${(exp.epicChance * 100).toFixed(0)}%
-                    </div>
-                    <div style="margin-top:6px; color:rgba(255,255,255,0.68); font-size:12px;">
-                        Wyższy poziom gracza odblokowuje kolejne ekspedycje.
                     </div>
                     <button
                         id="start-expedition-${exp.id}"
