@@ -210,11 +210,15 @@ CryptoZoo.ui = {
 
         const maxOfflineSeconds = Math.max(
             0,
-            Number(CryptoZoo.gameplay?.maxOfflineSeconds) || 0
+            Number(CryptoZoo.state?.offlineMaxSeconds) ||
+            Number(CryptoZoo.gameplay?.maxOfflineSeconds) ||
+            0
         );
-        const maxOfflineHours = maxOfflineSeconds > 0
-            ? Math.floor(maxOfflineSeconds / 3600)
-            : 0;
+
+        const maxOfflineHours = maxOfflineSeconds / 3600;
+        const maxOfflineLabel = Number.isInteger(maxOfflineHours)
+            ? `${maxOfflineHours}h`
+            : `${maxOfflineHours.toFixed(1).replace(/\.0$/, "")}h`;
 
         const offlineBoost = Math.max(
             1,
@@ -229,7 +233,7 @@ CryptoZoo.ui = {
         bar.innerHTML = `
             <div style="font-size:13px; font-weight:900; margin-bottom:4px;">💤 Offline Earnings</div>
             <div style="color: rgba(255,255,255,0.78);">
-                Limit bazowy: ${maxOfflineHours}h • ${boostLabel}
+                Limit bazowy: ${maxOfflineLabel} • ${boostLabel}
             </div>
         `;
     },
