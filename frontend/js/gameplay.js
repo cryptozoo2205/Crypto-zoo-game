@@ -337,6 +337,36 @@ CryptoZoo.gameplay = {
         return gems;
     },
 
+    getDailyRewardBalanceAmount() {
+        const streak = this.getDailyRewardStreak();
+        const level = Math.max(1, Number(CryptoZoo.state?.level) || 1);
+
+        let rewardBalance = 1;
+
+        if (level >= 10) rewardBalance = 2;
+        if (level >= 25) rewardBalance = 3;
+        if (streak >= this.dailyRewardMaxStreak) rewardBalance += 1;
+
+        return rewardBalance;
+    },
+
+    getExpeditionRewardBalanceAmount(expedition) {
+        if (!expedition) return 0;
+
+        let rewardBalance = 0;
+        const durationSeconds = Math.max(0, Number(expedition.endTime) - Number(expedition.startTime)) / 1000;
+        const rarity = String(expedition.rewardRarity || "common");
+
+        if (durationSeconds >= 900) rewardBalance += 1;
+        if (durationSeconds >= 7200) rewardBalance += 1;
+        if (durationSeconds >= 43200) rewardBalance += 1;
+
+        if (rarity === "rare") rewardBalance += 1;
+        if (rarity === "epic") rewardBalance += 2;
+
+        return Math.max(1, rewardBalance);
+    },
+
     updateDailyRewardStreak() {
         const todayKey = this.getDayKeyFromTimestamp(Date.now());
         const yesterdayKey = this.getYesterdayDayKey();
@@ -375,9 +405,11 @@ CryptoZoo.gameplay = {
         const streak = this.updateDailyRewardStreak();
         const coinsReward = this.getDailyRewardCoinsAmount();
         const gemsReward = this.getDailyRewardGemsAmount();
+        const rewardBalanceReward = this.getDailyRewardBalanceAmount();
 
         CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + coinsReward;
         CryptoZoo.state.gems = (Number(CryptoZoo.state.gems) || 0) + gemsReward;
+        CryptoZoo.state.rewardBalance = (Number(CryptoZoo.state.rewardBalance) || 0) + rewardBalanceReward;
         CryptoZoo.state.lastDailyRewardAt = Date.now();
         CryptoZoo.state.lastLogin = Date.now();
 
@@ -387,8 +419,8 @@ CryptoZoo.gameplay = {
 
         CryptoZoo.ui?.showToast?.(
             gemsReward > 0
-                ? `🎁 Day ${streak} • +${CryptoZoo.formatNumber(coinsReward)} coins +${CryptoZoo.formatNumber(gemsReward)} gem`
-                : `🎁 Day ${streak} • +${CryptoZoo.formatNumber(coinsReward)} coins`
+                ? `🎁 Day ${streak} • +${CryptoZoo.formatNumber(coinsReward)} coins +${CryptoZoo.formatNumber(gemsReward)} gem +${CryptoZoo.formatNumber(rewardBalanceReward)} reward`
+                : `🎁 Day ${streak} • +${CryptoZoo.formatNumber(coinsReward)} coins +${CryptoZoo.formatNumber(rewardBalanceReward)} reward`
         );
 
         return true;
@@ -859,10 +891,14 @@ CryptoZoo.gameplay = {
             return;
         }
 
+        const rewardBalanceReward = this.getExpeditionRewardBalanceAmount(expedition);
+
         CryptoZoo.state.coins =
             (Number(CryptoZoo.state.coins) || 0) + (Number(expedition.rewardCoins) || 0);
         CryptoZoo.state.gems =
             (Number(CryptoZoo.state.gems) || 0) + (Number(expedition.rewardGems) || 0);
+        CryptoZoo.state.rewardBalance =
+            (Number(CryptoZoo.state.rewardBalance) || 0) + rewardBalanceReward;
         CryptoZoo.state.xp = (Number(CryptoZoo.state.xp) || 0) + 5;
 
         CryptoZoo.state.expedition = null;
@@ -872,7 +908,9 @@ CryptoZoo.gameplay = {
 
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
-        CryptoZoo.ui?.showToast?.("Odebrano nagrodę z ekspedycji");
+        CryptoZoo.ui?.showToast?.(
+            `Odebrano ekspedycję • +${CryptoZoo.formatNumber(rewardBalanceReward)} reward`
+        );
     },
 
     startExpeditionTimer() {
