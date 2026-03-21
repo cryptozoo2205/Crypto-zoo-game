@@ -411,6 +411,10 @@ CryptoZoo.ui = {
             };
         }
 
+        if (CryptoZoo.shopSystem?.getCurrentPriceMeta) {
+            return CryptoZoo.shopSystem.getCurrentPriceMeta(item);
+        }
+
         const gemPrice = Number(item.gemPrice) || 0;
         if (gemPrice > 0) {
             return {
