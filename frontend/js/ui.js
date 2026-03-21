@@ -98,7 +98,7 @@ CryptoZoo.ui = {
             Number(CryptoZoo.config?.clickValue) ||
             1;
 
-        const boostActive = (CryptoZoo.gameplay?.getBoost2xMultiplier?.() || 1) > 1;
+        const boostActive = (CryptoZoo.boostSystem?.getMultiplier?.() || 1) > 1;
 
         const pop = document.createElement("div");
         pop.className = `coin-pop${boostActive ? " boost-pop" : ""}`;
@@ -178,13 +178,7 @@ CryptoZoo.ui = {
     },
 
     goToBoostShop() {
-        const shopButton = document.querySelector('[data-nav="shop"]');
-
-        if (shopButton) {
-            shopButton.click();
-        } else if (CryptoZoo.gameplay?.showScreen) {
-            CryptoZoo.gameplay.showScreen("shop");
-        }
+        CryptoZoo.navigation?.show?.("shop");
 
         const boostCard = document.getElementById("boostShopCard");
         if (boostCard) {
@@ -268,24 +262,24 @@ CryptoZoo.ui = {
 
         if (!titleEl || !subtitleEl || !iconEl) return;
 
-        const canClaim = CryptoZoo.gameplay?.canClaimDailyReward?.() || false;
+        const canClaim = CryptoZoo.dailyReward?.canClaim?.() || false;
         const timeLeftMs = Math.max(
             0,
-            Number(CryptoZoo.gameplay?.getDailyRewardTimeLeftMs?.()) || 0
+            Number(CryptoZoo.dailyReward?.getTimeLeftMs?.()) || 0
         );
         const timeLeftSeconds = Math.ceil(timeLeftMs / 1000);
 
         const rewardCoins = Math.max(
             0,
-            Number(CryptoZoo.gameplay?.getDailyRewardCoinsAmount?.()) || 0
+            Number(CryptoZoo.dailyReward?.getCoinsAmount?.()) || 0
         );
         const rewardGems = Math.max(
             0,
-            Number(CryptoZoo.gameplay?.getDailyRewardGemsAmount?.()) || 0
+            Number(CryptoZoo.dailyReward?.getGemsAmount?.()) || 0
         );
         const streak = Math.max(
             0,
-            Number(CryptoZoo.gameplay?.getDailyRewardStreak?.()) || 0
+            Number(CryptoZoo.dailyReward?.getStreak?.()) || 0
         );
         const streakLabel = `Day ${Math.max(1, streak || 1)}`;
 
@@ -356,14 +350,14 @@ CryptoZoo.ui = {
         };
 
         const commonReward = Number(
-            CryptoZoo.gameplay?.getExpeditionRewardBalanceAmount?.({
+            CryptoZoo.expeditions?.getRewardBalanceAmount?.({
                 ...baseExpedition,
                 rewardRarity: "common"
             }) || 0
         );
 
         const epicReward = Number(
-            CryptoZoo.gameplay?.getExpeditionRewardBalanceAmount?.({
+            CryptoZoo.expeditions?.getRewardBalanceAmount?.({
                 ...baseExpedition,
                 rewardRarity: "epic"
             }) || 0
@@ -431,18 +425,16 @@ CryptoZoo.ui = {
         if (boostBtn && !boostBtn.dataset.bound) {
             boostBtn.dataset.bound = "1";
             boostBtn.addEventListener("click", () => {
-                const gameplay = CryptoZoo.gameplay;
-                const state = CryptoZoo.state || {};
-                const gems = Number(state.gems) || 0;
+                const gems = Number(CryptoZoo.state?.gems) || 0;
 
-                if (gameplay?.isBoost2xActive?.()) {
-                    const left = gameplay.getBoost2xTimeLeft?.() || 0;
+                if (CryptoZoo.boostSystem?.isActive?.()) {
+                    const left = CryptoZoo.boostSystem?.getTimeLeft?.() || 0;
                     this.showToast(`Boost aktywny: ${this.formatTimeLeft(left)}`);
                     return;
                 }
 
                 if (gems >= 1) {
-                    gameplay?.activateBoost2x?.();
+                    CryptoZoo.boostSystem?.activate?.();
                     return;
                 }
 
@@ -455,27 +447,15 @@ CryptoZoo.ui = {
         if (zooPreviewBtn && !zooPreviewBtn.dataset.bound) {
             zooPreviewBtn.dataset.bound = "1";
             zooPreviewBtn.addEventListener("click", () => {
-                const zooButton = document.querySelector('[data-nav="zoo"]');
-                if (zooButton) {
-                    zooButton.click();
-                    return;
-                }
-
-                if (CryptoZoo.gameplay?.showScreen) {
-                    CryptoZoo.gameplay.showScreen("zoo");
-                }
+                CryptoZoo.navigation?.show?.("zoo");
             });
         }
 
         const homeDailyBtn = document.getElementById("homeDailyBtn");
-        if (
-            homeDailyBtn &&
-            !homeDailyBtn.dataset.bound &&
-            !CryptoZoo.gameplay?.bindDailyRewardButton
-        ) {
+        if (homeDailyBtn && !homeDailyBtn.dataset.bound) {
             homeDailyBtn.dataset.bound = "1";
             homeDailyBtn.addEventListener("click", () => {
-                this.showToast("Daily Reward w przygotowaniu");
+                CryptoZoo.dailyReward?.claim?.();
             });
         }
 
@@ -506,7 +486,7 @@ CryptoZoo.ui = {
             if (buyBtn && !buyBtn.dataset.bound) {
                 buyBtn.dataset.bound = "1";
                 buyBtn.addEventListener("click", () => {
-                    CryptoZoo.gameplay?.buyAnimal?.(item.type);
+                    CryptoZoo.animalsSystem?.buy?.(item.type);
                 });
             }
 
@@ -514,7 +494,7 @@ CryptoZoo.ui = {
             if (upgradeBtn && !upgradeBtn.dataset.bound) {
                 upgradeBtn.dataset.bound = "1";
                 upgradeBtn.addEventListener("click", () => {
-                    CryptoZoo.gameplay?.upgradeAnimal?.(item.type);
+                    CryptoZoo.animalsSystem?.upgrade?.(item.type);
                 });
             }
         });
@@ -537,9 +517,8 @@ CryptoZoo.ui = {
     },
 
     renderBoostStatus() {
-        const gameplay = CryptoZoo.gameplay;
-        const isActive = gameplay?.isBoost2xActive?.() || false;
-        const left = gameplay?.getBoost2xTimeLeft?.() || 0;
+        const isActive = CryptoZoo.boostSystem?.isActive?.() || false;
+        const left = CryptoZoo.boostSystem?.getTimeLeft?.() || 0;
 
         const homeStatus = document.getElementById("homeBoostStatus");
         const shopStatus = document.getElementById("boostShopStatus");
@@ -615,15 +594,13 @@ CryptoZoo.ui = {
     renderHome() {
         const state = CryptoZoo.state || {};
         const animals = state.animals || {};
+        const boostMultiplier = CryptoZoo.boostSystem?.getMultiplier?.() || 1;
 
         const effectiveCoinsPerClick =
-            CryptoZoo.gameplay?.getEffectiveCoinsPerClick?.(1) ||
-            Number(state.coinsPerClick) ||
-            1;
+            (Math.max(1, Number(state.coinsPerClick) || 1) * boostMultiplier);
 
         const effectiveZooIncome =
-            CryptoZoo.gameplay?.getEffectiveZooIncome?.() ??
-            ((Number(state.zooIncome) || 0) * (CryptoZoo.gameplay?.getBoost2xMultiplier?.() || 1));
+            (Math.max(0, Number(state.zooIncome) || 0) * boostMultiplier);
 
         this.updateText("homeCoins", CryptoZoo.formatNumber(state.coins || 0));
         this.updateText("homeGems", CryptoZoo.formatNumber(state.gems || 0));
@@ -651,15 +628,13 @@ CryptoZoo.ui = {
 
     renderTopHiddenStats() {
         const state = CryptoZoo.state || {};
+        const boostMultiplier = CryptoZoo.boostSystem?.getMultiplier?.() || 1;
 
         const effectiveCoinsPerClick =
-            CryptoZoo.gameplay?.getEffectiveCoinsPerClick?.(1) ||
-            Number(state.coinsPerClick) ||
-            1;
+            (Math.max(1, Number(state.coinsPerClick) || 1) * boostMultiplier);
 
         const effectiveZooIncome =
-            CryptoZoo.gameplay?.getEffectiveZooIncome?.() ??
-            ((Number(state.zooIncome) || 0) * (CryptoZoo.gameplay?.getBoost2xMultiplier?.() || 1));
+            (Math.max(0, Number(state.zooIncome) || 0) * boostMultiplier);
 
         this.updateText("coins", CryptoZoo.formatNumber(state.coins || 0));
         this.updateText("gems", CryptoZoo.formatNumber(state.gems || 0));
@@ -679,7 +654,7 @@ CryptoZoo.ui = {
         zooList.innerHTML = Object.keys(animalsConfig).map((type) => {
             const config = animalsConfig[type];
             const state = animalsState[type] || { count: 0, level: 1 };
-            const upgradeCost = CryptoZoo.gameplay?.getAnimalUpgradeCost?.(type) || 0;
+            const upgradeCost = CryptoZoo.animalsSystem?.getUpgradeCost?.(type) || 0;
 
             return `
                 <div class="animal-row">
@@ -707,7 +682,7 @@ CryptoZoo.ui = {
             `;
         }).join("");
 
-        CryptoZoo.gameplay?.bindAnimalButtons?.();
+        CryptoZoo.animalsSystem?.bindButtons?.();
     },
 
     renderExpeditions() {
@@ -722,7 +697,7 @@ CryptoZoo.ui = {
             const canCollect = timeLeft <= 0;
             const rewardBalanceAmount = Math.max(
                 0,
-                Number(CryptoZoo.gameplay?.getExpeditionRewardBalanceAmount?.(expedition)) || 0
+                Number(CryptoZoo.expeditions?.getRewardBalanceAmount?.(expedition)) || 0
             );
 
             const rarityMap = {
@@ -752,7 +727,7 @@ CryptoZoo.ui = {
             `;
 
             this.bindClick("collect-expedition-btn", () => {
-                CryptoZoo.gameplay?.collectExpedition?.();
+                CryptoZoo.expeditions?.collect?.();
             });
 
             return;
@@ -762,8 +737,8 @@ CryptoZoo.ui = {
 
         container.innerHTML = expeditions.map((exp) => {
             const rewardRangeText = this.getExpeditionRewardRangeText(exp);
-            const isUnlocked = CryptoZoo.gameplay?.isExpeditionUnlocked?.(exp) || false;
-            const requiredLevel = CryptoZoo.gameplay?.getExpeditionUnlockRequirement?.(exp) || 1;
+            const isUnlocked = CryptoZoo.expeditions?.isUnlocked?.(exp) || false;
+            const requiredLevel = CryptoZoo.expeditions?.getUnlockRequirement?.(exp) || 1;
             const buttonLabel = isUnlocked ? "Start" : `Lvl ${CryptoZoo.formatNumber(requiredLevel)}`;
 
             return `
@@ -797,9 +772,9 @@ CryptoZoo.ui = {
         }).join("");
 
         expeditions.forEach((exp) => {
-            if (CryptoZoo.gameplay?.isExpeditionUnlocked?.(exp)) {
+            if (CryptoZoo.expeditions?.isUnlocked?.(exp)) {
                 this.bindClick(`start-expedition-${exp.id}`, () => {
-                    CryptoZoo.gameplay?.startExpedition?.(exp.id);
+                    CryptoZoo.expeditions?.start?.(exp.id);
                 });
             }
         });
@@ -844,7 +819,7 @@ CryptoZoo.ui = {
             `;
         }).join("");
 
-        CryptoZoo.gameplay?.bindShopButtons?.();
+        CryptoZoo.shopSystem?.bindButtons?.();
     },
 
     render() {
