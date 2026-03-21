@@ -10,12 +10,12 @@
 
 .tap-area {
     width: 100%;
-    min-height: 220px;
+    min-height: 260px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    padding: 8px 0 2px;
+    padding: 12px 0 6px;
     margin-top: 4px;
     overflow: visible;
 }
@@ -23,8 +23,8 @@
 .tap-area::before {
     content: "";
     position: absolute;
-    width: 280px;
-    height: 280px;
+    width: 320px;
+    height: 320px;
     border-radius: 50%;
     background: radial-gradient(circle, rgba(94, 255, 116, 0.10) 0%, rgba(94, 255, 116, 0.03) 55%, rgba(94, 255, 116, 0) 74%);
     filter: blur(14px);
@@ -34,8 +34,8 @@
 
 .tap-glow {
     position: absolute;
-    width: 232px;
-    height: 232px;
+    width: 270px;
+    height: 270px;
     border-radius: 50%;
     background:
         radial-gradient(circle, rgba(112, 255, 120, 0.28) 0%, rgba(112, 255, 120, 0.11) 45%, rgba(112, 255, 120, 0) 72%);
@@ -48,8 +48,8 @@
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 120px;
-    height: 120px;
+    width: 140px;
+    height: 140px;
     transform: translate(-50%, -50%) scale(0.6);
     border-radius: 50%;
     border: 2px solid rgba(255, 224, 120, 0.55);
@@ -65,8 +65,8 @@
 .tap-button {
     position: relative;
     z-index: 2;
-    width: 148px;
-    height: 148px;
+    width: 182px;
+    height: 182px;
     display: block;
     border: none;
     border-radius: 50%;
@@ -81,6 +81,8 @@
     transition: transform 0.10s ease, filter 0.10s ease, box-shadow 0.14s ease;
     overflow: visible;
     flex: 0 0 auto;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .tap-button::before {
@@ -431,22 +433,22 @@
 
 @media (max-width: 767px) {
     .tap-area {
-        min-height: 196px;
+        min-height: 228px;
     }
 
     .tap-area::before {
-        width: 248px;
-        height: 248px;
+        width: 288px;
+        height: 288px;
     }
 
     .tap-glow {
-        width: 206px;
-        height: 206px;
+        width: 238px;
+        height: 238px;
     }
 
     .tap-button {
-        width: 132px;
-        height: 132px;
+        width: 166px;
+        height: 166px;
     }
 
     .home-tap-title {
@@ -468,24 +470,24 @@
     }
 
     .tap-area {
-        min-height: 184px;
-        padding: 6px 0 0;
+        min-height: 212px;
+        padding: 8px 0 2px;
         margin-top: 2px;
     }
 
     .tap-area::before {
-        width: 228px;
-        height: 228px;
+        width: 260px;
+        height: 260px;
     }
 
     .tap-glow {
-        width: 190px;
-        height: 190px;
+        width: 220px;
+        height: 220px;
     }
 
     .tap-button {
-        width: 122px;
-        height: 122px;
+        width: 156px;
+        height: 156px;
     }
 
     .home-tap-caption {
@@ -548,22 +550,22 @@
 
 @media (max-width: 420px) {
     .tap-area {
-        min-height: 176px;
+        min-height: 200px;
     }
 
     .tap-area::before {
-        width: 214px;
-        height: 214px;
+        width: 238px;
+        height: 238px;
     }
 
     .tap-glow {
-        width: 178px;
-        height: 178px;
+        width: 204px;
+        height: 204px;
     }
 
     .tap-button {
-        width: 116px;
-        height: 116px;
+        width: 146px;
+        height: 146px;
     }
 
     .home-tap-title {
@@ -577,22 +579,22 @@
 
 @media (max-width: 380px) {
     .tap-area {
-        min-height: 168px;
+        min-height: 188px;
     }
 
     .tap-area::before {
-        width: 200px;
-        height: 200px;
+        width: 224px;
+        height: 224px;
     }
 
     .tap-glow {
-        width: 168px;
-        height: 168px;
+        width: 190px;
+        height: 190px;
     }
 
     .tap-button {
-        width: 108px;
-        height: 108px;
+        width: 136px;
+        height: 136px;
     }
 
     .home-tap-title {
