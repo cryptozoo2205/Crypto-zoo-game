@@ -264,11 +264,40 @@ CryptoZoo.config = {
         },
 
         {
-            id: "offline1",
-            name: "Offline Booster",
-            desc: "x2 offline income",
+            id: "offline10m",
+            name: "Offline Boost 10m",
+            desc: "x2 offline income przez 10 minut",
             price: 12000,
-            type: "offline"
+            type: "offline",
+            offlineMultiplier: 2,
+            offlineDurationSeconds: 10 * 60
+        },
+        {
+            id: "offline1h",
+            name: "Offline Boost 1h",
+            desc: "x2 offline income przez 1 godzinę",
+            price: 38000,
+            type: "offline",
+            offlineMultiplier: 2,
+            offlineDurationSeconds: 60 * 60
+        },
+        {
+            id: "offline3h",
+            name: "Offline Boost 3h",
+            desc: "x2 offline income przez 3 godziny",
+            price: 98000,
+            type: "offline",
+            offlineMultiplier: 2,
+            offlineDurationSeconds: 3 * 60 * 60
+        },
+        {
+            id: "offline5h",
+            name: "Offline Boost 5h",
+            desc: "x2 offline income przez 5 godzin",
+            price: 175000,
+            type: "offline",
+            offlineMultiplier: 2,
+            offlineDurationSeconds: 5 * 60 * 60
         }
     ]
 };
