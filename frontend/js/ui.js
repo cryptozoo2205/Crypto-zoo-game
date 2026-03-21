@@ -261,30 +261,44 @@ CryptoZoo.ui = {
         );
 
         titleEl.textContent = "Daily Reward";
+        subtitleEl.style.whiteSpace = "normal";
+        subtitleEl.style.wordBreak = "break-word";
+        subtitleEl.style.overflowWrap = "anywhere";
+        subtitleEl.style.lineHeight = "1.35";
 
         if (canClaim) {
-            subtitleEl.textContent =
+            const rewardText =
                 rewardGems > 0
-                    ? `Odbierz teraz: ${CryptoZoo.formatNumber(rewardCoins)} coins + ${CryptoZoo.formatNumber(rewardGems)} gem`
-                    : `Odbierz teraz: ${CryptoZoo.formatNumber(rewardCoins)} coins`;
+                    ? `READY • ${CryptoZoo.formatNumber(rewardCoins)} coins + ${CryptoZoo.formatNumber(rewardGems)} gem`
+                    : `READY • ${CryptoZoo.formatNumber(rewardCoins)} coins`;
+
+            subtitleEl.textContent = rewardText;
 
             iconEl.textContent = "🎁";
+            btn.dataset.dailyState = "ready";
             btn.style.opacity = "1";
             btn.style.filter = "none";
             btn.style.transform = "none";
             btn.style.background = "linear-gradient(180deg, rgba(34, 50, 84, 0.98) 0%, rgba(18, 28, 48, 0.98) 100%)";
             btn.style.borderColor = "rgba(255, 214, 92, 0.45)";
             btn.style.boxShadow = "0 12px 24px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(255,214,92,0.12), 0 0 18px rgba(255,214,92,0.16), inset 0 1px 0 rgba(255,255,255,0.06)";
+            iconEl.style.background = "linear-gradient(180deg, rgba(255, 227, 122, 0.22) 0%, rgba(255, 191, 0, 0.10) 100%)";
+            titleEl.style.color = "#fff4c4";
+            subtitleEl.style.color = "rgba(255,255,255,0.92)";
         } else {
-            subtitleEl.textContent = `Następny za ${this.formatTimeLeft(timeLeftSeconds)}`;
+            subtitleEl.textContent = `Next reward in ${this.formatTimeLeft(timeLeftSeconds)}`;
 
             iconEl.textContent = "⏳";
-            btn.style.opacity = "0.94";
+            btn.dataset.dailyState = "cooldown";
+            btn.style.opacity = "0.95";
             btn.style.filter = "none";
             btn.style.transform = "none";
             btn.style.background = "linear-gradient(180deg, rgba(18, 28, 48, 0.96) 0%, rgba(10, 17, 31, 0.95) 100%)";
             btn.style.borderColor = "rgba(255,255,255,0.08)";
             btn.style.boxShadow = "0 12px 22px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255,255,255,0.04)";
+            iconEl.style.background = "rgba(255,255,255,0.06)";
+            titleEl.style.color = "#ffffff";
+            subtitleEl.style.color = "rgba(255,255,255,0.72)";
         }
     },
 
