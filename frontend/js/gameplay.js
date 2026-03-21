@@ -3,7 +3,6 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.gameplay = {
     activeScreen: "game",
     expeditionTimerStarted: false,
-    incomeTimerStarted: false,
     boostTimerStarted: false,
     suppressClickUntil: 0,
     touchTapLock: false,
@@ -373,27 +372,7 @@ CryptoZoo.gameplay = {
     },
 
     startIncomeTimer() {
-        if (this.incomeTimerStarted) return;
-        this.incomeTimerStarted = true;
-
-        setInterval(() => {
-            CryptoZoo.state.playTimeSeconds = (Number(CryptoZoo.state.playTimeSeconds) || 0) + 1;
-
-            this.recalculateProgress();
-
-            const income = this.getEffectiveZooIncome();
-            if (income > 0) {
-                CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + income;
-                CryptoZoo.state.xp = (Number(CryptoZoo.state.xp) || 0) + 1;
-            }
-
-            CryptoZoo.state.lastLogin = Date.now();
-
-            this.recalculateLevel();
-
-            CryptoZoo.ui?.render?.();
-            CryptoZoo.api?.savePlayer?.();
-        }, 1000);
+        return CryptoZoo.incomeSystem?.start?.() || false;
     },
 
     startBoostTimer() {
