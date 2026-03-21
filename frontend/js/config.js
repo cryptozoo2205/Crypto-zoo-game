@@ -168,47 +168,47 @@ CryptoZoo.config = {
         }
     ],
 
-        shopItems: [
-    {
-        id: "click1",
-        name: "Click Upgrade I",
-        desc: "+1 coin per click",
-        price: 700,
-        type: "click",
-        clickValueBonus: 1
-    },
-    {
-        id: "click2",
-        name: "Click Upgrade II",
-        desc: "+2 coins per click",
-        price: 2200,
-        type: "click",
-        clickValueBonus: 2
-    },
-    {
-        id: "click3",
-        name: "Strong Finger",
-        desc: "+3 coins per click",
-        price: 6500,
-        type: "click",
-        clickValueBonus: 3
-    },
-    {
-        id: "click4",
-        name: "Turbo Tap",
-        desc: "+5 coins per click",
-        price: 18000,
-        type: "click",
-        clickValueBonus: 5
-    },
-    {
-        id: "click5",
-        name: "Diamond Claw",
-        desc: "+8 coins per click",
-        price: 52000,
-        type: "click",
-        clickValueBonus: 8
-    },
+    shopItems: [
+        {
+            id: "click1",
+            name: "Click Upgrade I",
+            desc: "+1 coin per click",
+            price: 700,
+            type: "click",
+            clickValueBonus: 1
+        },
+        {
+            id: "click2",
+            name: "Click Upgrade II",
+            desc: "+2 coins per click",
+            price: 2200,
+            type: "click",
+            clickValueBonus: 2
+        },
+        {
+            id: "click3",
+            name: "Strong Finger",
+            desc: "+3 coins per click",
+            price: 6500,
+            type: "click",
+            clickValueBonus: 3
+        },
+        {
+            id: "click4",
+            name: "Turbo Tap",
+            desc: "+5 coins per click",
+            price: 18000,
+            type: "click",
+            clickValueBonus: 5
+        },
+        {
+            id: "click5",
+            name: "Diamond Claw",
+            desc: "+8 coins per click",
+            price: 52000,
+            type: "click",
+            clickValueBonus: 8
+        },
 
         {
             id: "income1",
@@ -272,7 +272,7 @@ CryptoZoo.config = {
             id: "offline10m",
             name: "Offline Boost 10m",
             desc: "x2 offline income przez 10 minut",
-            price: 15000,
+            gemPrice: 1,
             type: "offline",
             offlineMultiplier: 2,
             offlineDurationSeconds: 10 * 60
@@ -281,7 +281,7 @@ CryptoZoo.config = {
             id: "offline1h",
             name: "Offline Boost 1h",
             desc: "x2 offline income przez 1 godzinę",
-            price: 65000,
+            gemPrice: 3,
             type: "offline",
             offlineMultiplier: 2,
             offlineDurationSeconds: 60 * 60
@@ -290,7 +290,7 @@ CryptoZoo.config = {
             id: "offline3h",
             name: "Offline Boost 3h",
             desc: "x2 offline income przez 3 godziny",
-            price: 180000,
+            gemPrice: 7,
             type: "offline",
             offlineMultiplier: 2,
             offlineDurationSeconds: 3 * 60 * 60
@@ -299,7 +299,7 @@ CryptoZoo.config = {
             id: "offline5h",
             name: "Offline Boost 5h",
             desc: "x2 offline income przez 5 godzin",
-            price: 320000,
+            gemPrice: 10,
             type: "offline",
             offlineMultiplier: 2,
             offlineDurationSeconds: 5 * 60 * 60
