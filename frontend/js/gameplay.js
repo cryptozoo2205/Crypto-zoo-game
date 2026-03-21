@@ -181,23 +181,23 @@ CryptoZoo.gameplay = {
     },
 
     isBoost2xActive() {
-        this.normalizeBoostState();
-        return (Number(CryptoZoo.state?.boost2xActiveUntil) || 0) > Date.now();
+        return CryptoZoo.boostSystem?.isActive?.() || false;
     },
 
     getBoost2xMultiplier() {
-        return this.isBoost2xActive() ? 2 : 1;
+        return CryptoZoo.boostSystem?.getMultiplier?.() || 1;
     },
 
     getBoost2xTimeLeft() {
-        this.normalizeBoostState();
+        return CryptoZoo.boostSystem?.getTimeLeft?.() || 0;
+    },
 
-        return Math.max(
-            0,
-            Math.floor(
-                ((Number(CryptoZoo.state?.boost2xActiveUntil) || 0) - Date.now()) / 1000
-            )
-        );
+    activateBoost2x() {
+        return CryptoZoo.boostSystem?.activate?.() || false;
+    },
+
+    bindBoostShopButton() {
+        return CryptoZoo.boostSystem?.bindShopButton?.() || false;
     },
 
     isOfflineBoostActive() {
@@ -393,45 +393,6 @@ CryptoZoo.gameplay = {
         CryptoZoo.state.lastLogin = Date.now();
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
-    },
-
-    activateBoost2x() {
-        const boostCostGems = 1;
-        const boostDurationMs = 10 * 60 * 1000;
-
-        if (this.isBoost2xActive()) {
-            CryptoZoo.ui?.showToast?.(
-                `Boost już aktywny: ${CryptoZoo.ui?.formatTimeLeft?.(this.getBoost2xTimeLeft()) || "00:00:00"}`
-            );
-            CryptoZoo.ui?.render?.();
-            return true;
-        }
-
-        if ((Number(CryptoZoo.state.gems) || 0) < boostCostGems) {
-            CryptoZoo.ui?.showToast?.("Za mało gems");
-            return false;
-        }
-
-        CryptoZoo.state.gems = (Number(CryptoZoo.state.gems) || 0) - boostCostGems;
-        CryptoZoo.state.boost2xActiveUntil = Date.now() + boostDurationMs;
-
-        this.persistAndRender();
-        CryptoZoo.ui?.showToast?.("X2 Boost aktywowany");
-
-        return true;
-    },
-
-    bindBoostShopButton() {
-        const btn = document.getElementById("buyBoostBtn");
-        if (!btn) return;
-
-        btn.onclick = () => {
-            const activated = this.activateBoost2x();
-
-            if (activated) {
-                this.showScreen("game");
-            }
-        };
     },
 
     bindNavigation() {
