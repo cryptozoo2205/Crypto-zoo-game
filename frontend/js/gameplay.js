@@ -62,6 +62,14 @@ CryptoZoo.gameplay = {
             CryptoZoo.state.rewardBalance = Number(CryptoZoo.state.rewardBalance) || 0;
         }
 
+        if (typeof CryptoZoo.state.rewardWallet !== "number") {
+            CryptoZoo.state.rewardWallet = Number(CryptoZoo.state.rewardWallet) || 0;
+        }
+
+        if (typeof CryptoZoo.state.withdrawPending !== "number") {
+            CryptoZoo.state.withdrawPending = Number(CryptoZoo.state.withdrawPending) || 0;
+        }
+
         if (typeof CryptoZoo.state.level !== "number") {
             CryptoZoo.state.level = Number(CryptoZoo.state.level) || 1;
         }
@@ -105,6 +113,10 @@ CryptoZoo.gameplay = {
         if (typeof CryptoZoo.state.dailyRewardClaimDayKey !== "string") {
             CryptoZoo.state.dailyRewardClaimDayKey = String(CryptoZoo.state.dailyRewardClaimDayKey || "");
         }
+
+        CryptoZoo.state.rewardBalance = Math.max(0, Number(CryptoZoo.state.rewardBalance) || 0);
+        CryptoZoo.state.rewardWallet = Math.max(0, Number(CryptoZoo.state.rewardWallet) || 0);
+        CryptoZoo.state.withdrawPending = Math.max(0, Number(CryptoZoo.state.withdrawPending) || 0);
 
         CryptoZoo.state.dailyRewardStreak = Math.min(
             this.dailyRewardMaxStreak,
@@ -358,14 +370,59 @@ CryptoZoo.gameplay = {
 
         let rewardBalance = 0;
 
-        if (durationSeconds >= 14400) rewardBalance += 1;   // 4h+
-        if (durationSeconds >= 43200) rewardBalance += 1;   // 12h+
-        if (durationSeconds >= 86400) rewardBalance += 1;   // 24h
+        if (durationSeconds >= 14400) rewardBalance += 1;
+        if (durationSeconds >= 43200) rewardBalance += 1;
+        if (durationSeconds >= 86400) rewardBalance += 1;
 
         if (rarity === "rare" && durationSeconds >= 14400) rewardBalance += 1;
         if (rarity === "epic" && durationSeconds >= 14400) rewardBalance += 2;
 
         return rewardBalance;
+    },
+
+    getRewardWalletBalance() {
+        return Math.max(0, Number(CryptoZoo.state?.rewardWallet) || 0);
+    },
+
+    getWithdrawPendingBalance() {
+        return Math.max(0, Number(CryptoZoo.state?.withdrawPending) || 0);
+    },
+
+    getRewardBalanceAvailableToTransfer() {
+        return Math.max(0, Number(CryptoZoo.state?.rewardBalance) || 0);
+    },
+
+    transferRewardToWallet(amount) {
+        const available = this.getRewardBalanceAvailableToTransfer();
+
+        let transferAmount = Number(amount);
+
+        if (!Number.isFinite(transferAmount) || transferAmount <= 0) {
+            transferAmount = available;
+        }
+
+        transferAmount = Math.floor(transferAmount);
+
+        if (transferAmount <= 0 || available <= 0) {
+            CryptoZoo.ui?.showToast?.("Brak reward do transferu");
+            return false;
+        }
+
+        if (transferAmount > available) {
+            transferAmount = available;
+        }
+
+        CryptoZoo.state.rewardBalance =
+            Math.max(0, Number(CryptoZoo.state.rewardBalance) || 0) - transferAmount;
+        CryptoZoo.state.rewardWallet =
+            (Number(CryptoZoo.state.rewardWallet) || 0) + transferAmount;
+
+        this.persistAndRender();
+        CryptoZoo.ui?.showToast?.(
+            `Przeniesiono ${CryptoZoo.formatNumber(transferAmount)} reward do wallet`
+        );
+
+        return true;
     },
 
     updateDailyRewardStreak() {
