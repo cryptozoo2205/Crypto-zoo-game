@@ -14,73 +14,73 @@ CryptoZoo.config = {
             name: "Panda",
             asset: "panda",
             buyCost: 260,
-            baseIncome: 3
+            baseIncome: 4
         },
         lion: {
             name: "Lion",
             asset: "lion",
             buyCost: 900,
-            baseIncome: 15
+            baseIncome: 11
         },
         tiger: {
             name: "Tiger",
             asset: "tiger",
             buyCost: 2600,
-            baseIncome: 34
+            baseIncome: 28
         },
         elephant: {
             name: "Elephant",
             asset: "elephant",
             buyCost: 7500,
-            baseIncome: 95
+            baseIncome: 72
         },
         giraffe: {
             name: "Giraffe",
             asset: "giraffe",
             buyCost: 18000,
-            baseIncome: 210
+            baseIncome: 155
         },
         zebra: {
             name: "Zebra",
             asset: "zebra",
             buyCost: 42000,
-            baseIncome: 420
+            baseIncome: 320
         },
         hippo: {
             name: "Hippo",
             asset: "hippo",
             buyCost: 100000,
-            baseIncome: 900
+            baseIncome: 680
         },
         penguin: {
             name: "Penguin",
             asset: "penguin",
             buyCost: 230000,
-            baseIncome: 1600
+            baseIncome: 1350
         },
         bear: {
             name: "Bear",
             asset: "bear",
             buyCost: 520000,
-            baseIncome: 3200
+            baseIncome: 2550
         },
         crocodile: {
             name: "Crocodile",
             asset: "crocodile",
             buyCost: 1200000,
-            baseIncome: 6000
+            baseIncome: 4700
         },
         kangaroo: {
             name: "Kangaroo",
             asset: "kangaroo",
             buyCost: 2600000,
-            baseIncome: 12000
+            baseIncome: 8600
         },
         wolf: {
             name: "Wolf",
             asset: "wolf",
             buyCost: 6000000,
-            baseIncome: 22000
+            baseIncome: 15000
         }
     },
 
