@@ -89,7 +89,7 @@ CryptoZoo.config = {
             id: "forest",
             name: "Magic Forest",
             duration: 300,
-            baseCoins: 800,
+            baseCoins: 1200,
             baseGems: 1,
             rareChance: 0.25,
             epicChance: 0.08
@@ -98,8 +98,8 @@ CryptoZoo.config = {
             id: "river",
             name: "Crystal River",
             duration: 900,
-            baseCoins: 3000,
-            baseGems: 3,
+            baseCoins: 4500,
+            baseGems: 4,
             rareChance: 0.3,
             epicChance: 0.1
         },
@@ -107,8 +107,8 @@ CryptoZoo.config = {
             id: "volcano",
             name: "Golden Volcano",
             duration: 1800,
-            baseCoins: 8000,
-            baseGems: 7,
+            baseCoins: 12000,
+            baseGems: 9,
             rareChance: 0.35,
             epicChance: 0.12
         }
