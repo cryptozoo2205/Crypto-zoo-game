@@ -30,7 +30,7 @@ CryptoZoo.minigames = {
         const rewards = [
             { label: "1000 Coins", type: "coins", value: 1000, angle: 30 },
             { label: "2 Gems", type: "gems", value: 2, angle: 90 },
-            { label: "0.01 Reward", type: "reward", value: 0.01, angle: 150 },
+            { label: "1 Reward", type: "reward", value: 1, angle: 150 },
             { label: "2500 Coins", type: "coins", value: 2500, angle: 210 },
             { label: "1 Gem", type: "gems", value: 1, angle: 270 },
             { label: "5000 Coins", type: "coins", value: 5000, angle: 330 }
