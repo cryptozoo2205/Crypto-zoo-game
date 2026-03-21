@@ -1,12 +1,30 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.dailyReward = {
+    unlockAfterSeconds: 60 * 60,
+
     getCooldownMs() {
         return Number(CryptoZoo.gameplay?.dailyRewardCooldownMs) || 24 * 60 * 60 * 1000;
     },
 
     getMaxStreak() {
         return Number(CryptoZoo.gameplay?.dailyRewardMaxStreak) || 7;
+    },
+
+    getUnlockAfterSeconds() {
+        return Math.max(0, Number(this.unlockAfterSeconds) || 0);
+    },
+
+    getPlayTimeSeconds() {
+        return Math.max(0, Number(CryptoZoo.state?.playTimeSeconds) || 0);
+    },
+
+    getRemainingUnlockSeconds() {
+        return Math.max(0, this.getUnlockAfterSeconds() - this.getPlayTimeSeconds());
+    },
+
+    isUnlocked() {
+        return this.getRemainingUnlockSeconds() <= 0;
     },
 
     getDayKeyFromTimestamp(timestamp = Date.now()) {
@@ -31,6 +49,10 @@ CryptoZoo.dailyReward = {
     },
 
     getTimeLeftMs() {
+        if (!this.isUnlocked()) {
+            return this.getRemainingUnlockSeconds() * 1000;
+        }
+
         const lastClaimAt = Math.max(0, Number(CryptoZoo.state?.lastDailyRewardAt) || 0);
 
         if (lastClaimAt <= 0) {
@@ -42,6 +64,10 @@ CryptoZoo.dailyReward = {
     },
 
     canClaim() {
+        if (!this.isUnlocked()) {
+            return false;
+        }
+
         return this.getTimeLeftMs() <= 0;
     },
 
@@ -123,6 +149,15 @@ CryptoZoo.dailyReward = {
 
     claim() {
         CryptoZoo.state = CryptoZoo.state || {};
+
+        if (!this.isUnlocked()) {
+            const unlockLeft = Math.ceil(this.getRemainingUnlockSeconds());
+
+            CryptoZoo.ui?.showToast?.(
+                `Daily Reward odblokuje się za: ${CryptoZoo.ui?.formatTimeLeft?.(unlockLeft) || "00:00:00"}`
+            );
+            return false;
+        }
 
         if (!this.canClaim()) {
             const timeLeftSeconds = Math.ceil(this.getTimeLeftMs() / 1000);
