@@ -7,7 +7,7 @@ CryptoZoo.gameplay = {
     boostTimerStarted: false,
     suppressClickUntil: 0,
     touchTapLock: false,
-    maxOfflineSeconds: 4 * 60 * 60,
+    maxOfflineSeconds: 1 * 60 * 60,
     dailyRewardCooldownMs: 24 * 60 * 60 * 1000,
     dailyRewardMaxStreak: 7,
 
@@ -90,6 +90,10 @@ CryptoZoo.gameplay = {
             CryptoZoo.state.offlineBoost = Number(CryptoZoo.state.offlineBoost) || 1;
         }
 
+        if (typeof CryptoZoo.state.offlineMaxSeconds !== "number") {
+            CryptoZoo.state.offlineMaxSeconds = this.maxOfflineSeconds;
+        }
+
         if (typeof CryptoZoo.state.xp !== "number") {
             CryptoZoo.state.xp = Number(CryptoZoo.state.xp) || 0;
         }
@@ -117,6 +121,11 @@ CryptoZoo.gameplay = {
         CryptoZoo.state.dailyRewardStreak = Math.min(
             this.dailyRewardMaxStreak,
             Math.max(0, Number(CryptoZoo.state.dailyRewardStreak) || 0)
+        );
+
+        CryptoZoo.state.offlineMaxSeconds = Math.max(
+            this.maxOfflineSeconds,
+            Number(CryptoZoo.state.offlineMaxSeconds) || this.maxOfflineSeconds
         );
 
         CryptoZoo.state.boost2xActiveUntil = this.normalizeBoostTimestamp(
@@ -208,6 +217,13 @@ CryptoZoo.gameplay = {
         return baseIncome * offlineBoost;
     },
 
+    getOfflineMaxSeconds() {
+        return Math.max(
+            this.maxOfflineSeconds,
+            Number(CryptoZoo.state?.offlineMaxSeconds) || this.maxOfflineSeconds
+        );
+    },
+
     formatOfflineDuration(totalSeconds) {
         const safeSeconds = Math.max(0, Number(totalSeconds) || 0);
         const hours = Math.floor(safeSeconds / 3600);
@@ -232,8 +248,9 @@ CryptoZoo.gameplay = {
         const now = Date.now();
         const lastLogin = Math.max(0, Number(CryptoZoo.state?.lastLogin) || now);
         const elapsedSeconds = Math.max(0, Math.floor((now - lastLogin) / 1000));
-        const cappedSeconds = Math.min(elapsedSeconds, this.maxOfflineSeconds);
-        const wasCapped = elapsedSeconds > this.maxOfflineSeconds;
+        const maxOfflineSeconds = this.getOfflineMaxSeconds();
+        const cappedSeconds = Math.min(elapsedSeconds, maxOfflineSeconds);
+        const wasCapped = elapsedSeconds > maxOfflineSeconds;
 
         if (cappedSeconds <= 0) {
             CryptoZoo.state.lastLogin = now;
@@ -257,7 +274,7 @@ CryptoZoo.gameplay = {
         this.recalculateLevel();
 
         const timeLabel = this.formatOfflineDuration(cappedSeconds);
-        const capLabel = wasCapped ? " • limit 4h" : "";
+        const capLabel = wasCapped ? ` • limit ${this.formatOfflineDuration(maxOfflineSeconds)}` : "";
 
         CryptoZoo.ui?.showToast?.(
             `Offline: ${timeLabel} • +${CryptoZoo.formatNumber(offlineCoins)} coins${capLabel}`
