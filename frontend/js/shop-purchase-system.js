@@ -1,6 +1,69 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.shopSystem = {
+    getPurchaseCount(itemId) {
+        CryptoZoo.state = CryptoZoo.state || {};
+        CryptoZoo.state.shopPurchases = CryptoZoo.state.shopPurchases || {};
+        return Math.max(0, Number(CryptoZoo.state.shopPurchases[itemId]) || 0);
+    },
+
+    getPriceMultiplier(item) {
+        if (!item) return 1;
+
+        if (item.type === "click") return 1.7;
+        if (item.type === "income") return 1.85;
+        if (item.type === "expedition") return 1.65;
+        if (item.type === "offline") return 1.5;
+
+        return 1.6;
+    },
+
+    getCurrentCoinPrice(item) {
+        if (!item) return 0;
+
+        const basePrice = Math.max(0, Number(item.price) || 0);
+        if (basePrice <= 0) return 0;
+
+        const purchaseCount = this.getPurchaseCount(item.id);
+        const multiplier = this.getPriceMultiplier(item);
+
+        return Math.max(1, Math.floor(basePrice * Math.pow(multiplier, purchaseCount)));
+    },
+
+    getCurrentGemPrice(item) {
+        if (!item) return 0;
+
+        const basePrice = Math.max(0, Number(item.gemPrice) || 0);
+        if (basePrice <= 0) return 0;
+
+        const purchaseCount = this.getPurchaseCount(item.id);
+        const multiplier = this.getPriceMultiplier(item);
+
+        return Math.max(1, Math.floor(basePrice * Math.pow(multiplier, purchaseCount)));
+    },
+
+    getCurrentPriceMeta(item) {
+        if (!item) {
+            return {
+                label: "Koszt",
+                value: "0"
+            };
+        }
+
+        const currentGemPrice = this.getCurrentGemPrice(item);
+        if (currentGemPrice > 0) {
+            return {
+                label: "Koszt",
+                value: `${CryptoZoo.formatNumber(currentGemPrice)} gem`
+            };
+        }
+
+        return {
+            label: "Koszt",
+            value: `${CryptoZoo.formatNumber(this.getCurrentCoinPrice(item))}`
+        };
+    },
+
     bindButtons() {
         const items = CryptoZoo.config?.shopItems || [];
 
@@ -17,9 +80,10 @@ CryptoZoo.shopSystem = {
         if (!item) return false;
 
         CryptoZoo.state = CryptoZoo.state || {};
+        CryptoZoo.state.shopPurchases = CryptoZoo.state.shopPurchases || {};
 
-        const coinPrice = Math.max(0, Number(item.price) || 0);
-        const gemPrice = Math.max(0, Number(item.gemPrice) || 0);
+        const coinPrice = this.getCurrentCoinPrice(item);
+        const gemPrice = this.getCurrentGemPrice(item);
 
         const coinsBeforeSpend = Number(CryptoZoo.state.coins) || 0;
         const gemsBeforeSpend = Number(CryptoZoo.state.gems) || 0;
@@ -65,6 +129,8 @@ CryptoZoo.shopSystem = {
 
             CryptoZoo.gameplay?.activateOfflineBoost?.(multiplier, durationSeconds);
         }
+
+        CryptoZoo.state.shopPurchases[item.id] = this.getPurchaseCount(item.id) + 1;
 
         CryptoZoo.gameplay?.applyLevelDropBySpend?.(spendAmountForLevelDrop, coinsBeforeSpend);
         CryptoZoo.gameplay?.persistAndRender?.();
