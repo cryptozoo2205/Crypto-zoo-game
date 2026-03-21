@@ -808,8 +808,15 @@ CryptoZoo.gameplay = {
 
         if (!config || !animal) return 0;
 
-        const level = Number(animal.level) || 1;
-        return Math.floor((Number(config.buyCost) || 0) * level * 0.7);
+        const buyCost = Math.max(1, Number(config.buyCost) || 1);
+        const level = Math.max(1, Number(animal.level) || 1);
+        const count = Math.max(0, Number(animal.count) || 0);
+
+        const levelMultiplier = Math.pow(1.42, level - 1);
+        const ownershipDiscount = count >= 10 ? 0.92 : count >= 5 ? 0.96 : 1;
+
+        const rawCost = buyCost * 0.55 * levelMultiplier * ownershipDiscount;
+        return Math.max(1, Math.floor(rawCost));
     },
 
     upgradeAnimal(type) {
@@ -817,6 +824,11 @@ CryptoZoo.gameplay = {
         const animal = CryptoZoo.state?.animals?.[type];
 
         if (!config || !animal) return;
+
+        if ((Number(animal.count) || 0) <= 0) {
+            CryptoZoo.ui?.showToast?.("Najpierw kup to zwierzę");
+            return;
+        }
 
         const cost = this.getAnimalUpgradeCost(type);
         const coinsBeforeSpend = Number(CryptoZoo.state.coins) || 0;
