@@ -339,32 +339,33 @@ CryptoZoo.gameplay = {
 
     getDailyRewardBalanceAmount() {
         const streak = this.getDailyRewardStreak();
-        const level = Math.max(1, Number(CryptoZoo.state?.level) || 1);
 
-        let rewardBalance = 1;
+        if (streak >= this.dailyRewardMaxStreak) {
+            return 1;
+        }
 
-        if (level >= 10) rewardBalance = 2;
-        if (level >= 25) rewardBalance = 3;
-        if (streak >= this.dailyRewardMaxStreak) rewardBalance += 1;
-
-        return rewardBalance;
+        return 0;
     },
 
     getExpeditionRewardBalanceAmount(expedition) {
         if (!expedition) return 0;
 
-        let rewardBalance = 0;
-        const durationSeconds = Math.max(0, Number(expedition.endTime) - Number(expedition.startTime)) / 1000;
+        const durationSeconds = Math.max(
+            0,
+            (Number(expedition.endTime) || 0) - (Number(expedition.startTime) || 0)
+        ) / 1000;
         const rarity = String(expedition.rewardRarity || "common");
 
-        if (durationSeconds >= 900) rewardBalance += 1;
-        if (durationSeconds >= 7200) rewardBalance += 1;
-        if (durationSeconds >= 43200) rewardBalance += 1;
+        let rewardBalance = 0;
 
-        if (rarity === "rare") rewardBalance += 1;
-        if (rarity === "epic") rewardBalance += 2;
+        if (durationSeconds >= 14400) rewardBalance += 1;   // 4h+
+        if (durationSeconds >= 43200) rewardBalance += 1;   // 12h+
+        if (durationSeconds >= 86400) rewardBalance += 1;   // 24h
 
-        return Math.max(1, rewardBalance);
+        if (rarity === "rare" && durationSeconds >= 14400) rewardBalance += 1;
+        if (rarity === "epic" && durationSeconds >= 14400) rewardBalance += 2;
+
+        return rewardBalance;
     },
 
     updateDailyRewardStreak() {
@@ -417,11 +418,19 @@ CryptoZoo.gameplay = {
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
 
-        CryptoZoo.ui?.showToast?.(
-            gemsReward > 0
-                ? `🎁 Day ${streak} • +${CryptoZoo.formatNumber(coinsReward)} coins +${CryptoZoo.formatNumber(gemsReward)} gem +${CryptoZoo.formatNumber(rewardBalanceReward)} reward`
-                : `🎁 Day ${streak} • +${CryptoZoo.formatNumber(coinsReward)} coins +${CryptoZoo.formatNumber(rewardBalanceReward)} reward`
-        );
+        if (rewardBalanceReward > 0) {
+            CryptoZoo.ui?.showToast?.(
+                gemsReward > 0
+                    ? `🎁 Day ${streak} • +${CryptoZoo.formatNumber(coinsReward)} coins +${CryptoZoo.formatNumber(gemsReward)} gem +${CryptoZoo.formatNumber(rewardBalanceReward)} reward`
+                    : `🎁 Day ${streak} • +${CryptoZoo.formatNumber(coinsReward)} coins +${CryptoZoo.formatNumber(rewardBalanceReward)} reward`
+            );
+        } else {
+            CryptoZoo.ui?.showToast?.(
+                gemsReward > 0
+                    ? `🎁 Day ${streak} • +${CryptoZoo.formatNumber(coinsReward)} coins +${CryptoZoo.formatNumber(gemsReward)} gem`
+                    : `🎁 Day ${streak} • +${CryptoZoo.formatNumber(coinsReward)} coins`
+            );
+        }
 
         return true;
     },
@@ -908,9 +917,14 @@ CryptoZoo.gameplay = {
 
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
-        CryptoZoo.ui?.showToast?.(
-            `Odebrano ekspedycję • +${CryptoZoo.formatNumber(rewardBalanceReward)} reward`
-        );
+
+        if (rewardBalanceReward > 0) {
+            CryptoZoo.ui?.showToast?.(
+                `Odebrano ekspedycję • +${CryptoZoo.formatNumber(rewardBalanceReward)} reward`
+            );
+        } else {
+            CryptoZoo.ui?.showToast?.("Odebrano ekspedycję");
+        }
     },
 
     startExpeditionTimer() {
