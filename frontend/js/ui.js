@@ -323,6 +323,35 @@ CryptoZoo.ui = {
         return "✨";
     },
 
+    getExpeditionRewardRangeText(expeditionConfig) {
+        if (!expeditionConfig) return "0 reward";
+
+        const baseExpedition = {
+            startTime: 0,
+            endTime: Number(expeditionConfig.duration || 0) * 1000
+        };
+
+        const commonReward = Number(
+            CryptoZoo.gameplay?.getExpeditionRewardBalanceAmount?.({
+                ...baseExpedition,
+                rewardRarity: "common"
+            }) || 0
+        );
+
+        const epicReward = Number(
+            CryptoZoo.gameplay?.getExpeditionRewardBalanceAmount?.({
+                ...baseExpedition,
+                rewardRarity: "epic"
+            }) || 0
+        );
+
+        if (commonReward === epicReward) {
+            return `${CryptoZoo.formatNumber(commonReward)} reward`;
+        }
+
+        return `${CryptoZoo.formatNumber(commonReward)} - ${CryptoZoo.formatNumber(epicReward)} reward`;
+    },
+
     bindHomeButtons() {
         const boostBtn = document.getElementById("homeBoostBtn");
         if (boostBtn && !boostBtn.dataset.bound) {
@@ -617,6 +646,10 @@ CryptoZoo.ui = {
             const now = Date.now();
             const timeLeft = Math.max(0, Math.floor((expedition.endTime - now) / 1000));
             const canCollect = timeLeft <= 0;
+            const rewardBalanceAmount = Math.max(
+                0,
+                Number(CryptoZoo.gameplay?.getExpeditionRewardBalanceAmount?.(expedition)) || 0
+            );
 
             const rarityMap = {
                 common: "Zwykła",
@@ -634,6 +667,10 @@ CryptoZoo.ui = {
                         ${CryptoZoo.formatNumber(expedition.rewardCoins)} coins +
                         ${CryptoZoo.formatNumber(expedition.rewardGems)} gems
                     </div>
+                    <div>
+                        Reward Wallet:
+                        ${CryptoZoo.formatNumber(rewardBalanceAmount)} reward
+                    </div>
                     <button id="collect-expedition-btn" type="button" ${canCollect ? "" : "disabled"}>
                         ${canCollect ? "Odbierz nagrodę" : "Trwa ekspedycja"}
                     </button>
@@ -649,63 +686,30 @@ CryptoZoo.ui = {
 
         const expeditions = CryptoZoo.config?.expeditions || [];
 
-        container.innerHTML = expeditions.map((exp) => `
-            <div class="expedition-card" style="
-                background: linear-gradient(180deg, rgba(18, 28, 48, 0.96) 0%, rgba(10, 17, 31, 0.95) 100%);
-                border: 1px solid rgba(255,255,255,0.08);
-                border-radius: 18px;
-                padding: 14px;
-                margin-bottom: 12px;
-                box-shadow: 0 12px 22px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255,255,255,0.04);
-            ">
-                <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:10px;">
-                    <div style="min-width:0;">
-                        <div style="font-size:18px; font-weight:900; color:#ffffff; line-height:1.15;">
-                            ${exp.name}
-                        </div>
-                        <div style="margin-top:6px; display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; background:rgba(255,255,255,0.08); font-size:11px; font-weight:800; color:rgba(255,255,255,0.82);">
-                            ⏱ ${this.formatTimeLeft(exp.duration)}
-                        </div>
-                    </div>
+        container.innerHTML = expeditions.map((exp) => {
+            const rewardRangeText = this.getExpeditionRewardRangeText(exp);
 
-                    <div style="flex:0 0 auto; text-align:right;">
-                        <div style="font-size:11px; color:rgba(255,255,255,0.62);">Coins / h</div>
-                        <div style="font-size:15px; font-weight:900; color:#6cff7d;">
-                            ${CryptoZoo.formatNumber(Math.floor((Number(exp.baseCoins || 0) / Math.max(1, Number(exp.duration || 1))) * 3600))}
-                        </div>
+            return `
+                <div class="expedition-card">
+                    <h3>${exp.name}</h3>
+                    <div>Czas: ${this.formatTimeLeft(exp.duration)}</div>
+                    <div>
+                        Nagroda bazowa:
+                        ${CryptoZoo.formatNumber(exp.baseCoins)} coins +
+                        ${CryptoZoo.formatNumber(exp.baseGems)} gems
                     </div>
+                    <div>
+                        Reward Wallet: ${rewardRangeText}
+                    </div>
+                    <div>
+                        Szansa na bonus:
+                        Rare ${(exp.rareChance * 100).toFixed(0)}% /
+                        Epic ${(exp.epicChance * 100).toFixed(0)}%
+                    </div>
+                    <button id="start-expedition-${exp.id}" type="button">Start</button>
                 </div>
-
-                <div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; margin-bottom:10px;">
-                    <div style="border-radius:14px; padding:10px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.05);">
-                        <div style="font-size:10px; color:rgba(255,255,255,0.62); margin-bottom:4px;">Bazowe coins</div>
-                        <div style="font-size:16px; font-weight:900; color:#ffffff;">${CryptoZoo.formatNumber(exp.baseCoins)}</div>
-                    </div>
-
-                    <div style="border-radius:14px; padding:10px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.05);">
-                        <div style="font-size:10px; color:rgba(255,255,255,0.62); margin-bottom:4px;">Bazowe gems</div>
-                        <div style="font-size:16px; font-weight:900; color:#ffffff;">${CryptoZoo.formatNumber(exp.baseGems)}</div>
-                    </div>
-                </div>
-
-                <div style="font-size:12px; color:rgba(255,255,255,0.78); margin-bottom:12px; line-height:1.45;">
-                    Szansa na bonus: Rare ${(exp.rareChance * 100).toFixed(0)}% • Epic ${(exp.epicChance * 100).toFixed(0)}%
-                </div>
-
-                <button id="start-expedition-${exp.id}" type="button" style="
-                    width:100%;
-                    border:none;
-                    border-radius:14px;
-                    padding:12px 14px;
-                    font-size:14px;
-                    font-weight:900;
-                    cursor:pointer;
-                    color:#1a1a1a;
-                    background:linear-gradient(180deg, #ffe27a 0%, #ffbf00 100%);
-                    box-shadow:0 8px 16px rgba(255, 191, 0, 0.18);
-                ">Start</button>
-            </div>
-        `).join("");
+            `;
+        }).join("");
 
         expeditions.forEach((exp) => {
             this.bindClick(`start-expedition-${exp.id}`, () => {
