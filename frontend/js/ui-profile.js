@@ -115,6 +115,26 @@ CryptoZoo.uiProfile = {
         }
     },
 
+    refreshTransferButtonState() {
+        const transferBtn = document.getElementById("transferRewardBtn");
+        if (!transferBtn) return;
+
+        const availableReward = Math.max(
+            0,
+            Number(CryptoZoo.gameplay?.getRewardBalanceAvailableToTransfer?.() ?? CryptoZoo.state?.rewardBalance) || 0
+        );
+
+        if (availableReward > 0) {
+            transferBtn.disabled = false;
+            transferBtn.textContent = `Transfer Reward (${CryptoZoo.formatNumber(availableReward)})`;
+            transferBtn.style.opacity = "1";
+        } else {
+            transferBtn.disabled = true;
+            transferBtn.textContent = "Brak Reward do transferu";
+            transferBtn.style.opacity = "0.65";
+        }
+    },
+
     refreshProfileModalData() {
         const modal = document.getElementById("profileModal");
         if (!modal) return;
@@ -151,6 +171,8 @@ CryptoZoo.uiProfile = {
         if (boostStatusEl) {
             boostStatusEl.classList.toggle("active", boostActive);
         }
+
+        this.refreshTransferButtonState();
     },
 
     renderTopBarProfile() {
@@ -178,6 +200,20 @@ CryptoZoo.uiProfile = {
         document.getElementById("profileModal")?.classList.add("hidden");
     },
 
+    bindTransferRewardButton() {
+        const transferBtn = document.getElementById("transferRewardBtn");
+        if (!transferBtn || transferBtn.dataset.bound) return;
+
+        transferBtn.dataset.bound = "1";
+        transferBtn.addEventListener("click", () => {
+            const transferred = CryptoZoo.gameplay?.transferRewardToWallet?.();
+
+            if (transferred) {
+                this.refreshProfileModalData();
+            }
+        });
+    },
+
     bindProfileModal() {
         const openBtn = document.getElementById("topProfileBtn");
         if (openBtn && !openBtn.dataset.bound) {
@@ -202,5 +238,7 @@ CryptoZoo.uiProfile = {
                 this.closeProfileModal();
             });
         }
+
+        this.bindTransferRewardButton();
     }
 };
