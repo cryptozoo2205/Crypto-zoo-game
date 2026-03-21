@@ -3,6 +3,13 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.incomeSystem = {
     timerStarted: false,
 
+    getEffectiveIncome() {
+        const baseIncome = Math.max(0, Number(CryptoZoo.state?.zooIncome) || 0);
+        const boostMultiplier = Math.max(1, Number(CryptoZoo.boostSystem?.getMultiplier?.() || 1));
+
+        return baseIncome * boostMultiplier;
+    },
+
     start() {
         if (this.timerStarted) return;
         this.timerStarted = true;
@@ -15,7 +22,7 @@ CryptoZoo.incomeSystem = {
 
             CryptoZoo.gameplay?.recalculateProgress?.();
 
-            const income = CryptoZoo.gameplay?.getEffectiveZooIncome?.() || 0;
+            const income = this.getEffectiveIncome();
 
             if (income > 0) {
                 CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + income;
