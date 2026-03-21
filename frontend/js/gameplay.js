@@ -6,6 +6,7 @@ CryptoZoo.gameplay = {
     boostTimerStarted: false,
     suppressClickUntil: 0,
     touchTapLock: false,
+    currentTouchTapCount: 1,
     maxOfflineSeconds: 1 * 60 * 60,
     dailyRewardCooldownMs: 24 * 60 * 60 * 1000,
     dailyRewardMaxStreak: 7,
@@ -124,16 +125,39 @@ CryptoZoo.gameplay = {
         };
 
         tapButton.addEventListener("touchstart", (e) => {
-            if (this.touchTapLock) return;
-            const touches = this.getTapCountFromTouches(e.touches?.length || 1);
+            const touchCount = this.getTapCountFromTouches(e.touches?.length || 1);
 
-            this.touchTapLock = true;
-            this.suppressClickUntil = Date.now() + 700;
+            if (!this.touchTapLock) {
+                this.touchTapLock = true;
+                this.currentTouchTapCount = touchCount;
+                this.suppressClickUntil = Date.now() + 700;
+
+                e.preventDefault();
+
+                requestAnimationFrame(() => {
+                    this.handleTap(this.currentTouchTapCount);
+                });
+
+                return;
+            }
+
+            this.currentTouchTapCount = Math.max(this.currentTouchTapCount, touchCount);
             e.preventDefault();
-            this.handleTap(touches);
         }, { passive: false });
 
-        const unlock = () => this.touchTapLock = false;
+        tapButton.addEventListener("touchmove", (e) => {
+            if (!this.touchTapLock) return;
+
+            const touchCount = this.getTapCountFromTouches(e.touches?.length || 1);
+            this.currentTouchTapCount = Math.max(this.currentTouchTapCount, touchCount);
+            e.preventDefault();
+        }, { passive: false });
+
+        const unlock = () => {
+            this.touchTapLock = false;
+            this.currentTouchTapCount = 1;
+        };
+
         tapButton.addEventListener("touchend", unlock);
         tapButton.addEventListener("touchcancel", unlock);
     },
@@ -172,14 +196,23 @@ CryptoZoo.gameplay = {
             this.getTapCountFromTouches(tapCount);
     },
 
-    // SYSTEMY (wrappery)
+    getEffectiveZooIncome() {
+        const baseIncome = Math.max(0, Number(CryptoZoo.state?.zooIncome) || 0);
+        return baseIncome * this.getBoost2xMultiplier();
+    },
 
     bindNavigation() {
         return CryptoZoo.navigation?.bind?.();
     },
 
     showScreen(screenName) {
-        return CryptoZoo.navigation?.show?.(screenName);
+        const result = CryptoZoo.navigation?.show?.(screenName);
+
+        if (typeof screenName === "string" && screenName) {
+            this.activeScreen = screenName;
+        }
+
+        return result;
     },
 
     startIncomeTimer() {
@@ -210,10 +243,6 @@ CryptoZoo.gameplay = {
         return CryptoZoo.shopSystem?.bindButtons?.();
     },
 
-    buyShopItem(id) {
-        return CryptoZoo.shopSystem?.buy?.(id);
-    },
-
     bindDailyRewardButton() {
         const btn = document.getElementById("homeDailyBtn");
         if (btn) btn.onclick = () => CryptoZoo.dailyReward?.claim?.();
@@ -222,8 +251,6 @@ CryptoZoo.gameplay = {
     applyOfflineEarnings() {
         return CryptoZoo.offline?.applyEarnings?.();
     },
-
-    // CORE
 
     recalculateZooIncome() {
         const animals = CryptoZoo.config?.animals || {};
