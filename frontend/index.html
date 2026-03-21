@@ -20,7 +20,6 @@
     <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
-    <!-- LOADING -->
     <div id="loading-screen">
         <div class="loading-visual">
             <div class="loading-image-wrap">
@@ -42,17 +41,11 @@
     </div>
 
     <div id="app">
-        <!-- TOP BAR -->
         <header class="top-bar">
             <div class="top-bar-shell">
                 <div class="top-bar-main">
                     <div class="top-bar-left">
-                        <button
-                            class="top-profile-trigger"
-                            type="button"
-                            id="topProfileBtn"
-                            aria-label="Profil gracza"
-                        >
+                        <button class="top-profile-trigger" type="button" id="topProfileBtn" aria-label="Profil gracza">
                             <div class="top-avatar"></div>
                             <span class="top-profile-ring"></span>
                         </button>
@@ -64,21 +57,10 @@
                     </div>
 
                     <div class="top-bar-overlay-actions">
-                        <button
-                            class="top-icon-chip top-icon-chip-star"
-                            type="button"
-                            id="topEventsBtn"
-                            aria-label="Events"
-                        >
+                        <button class="top-icon-chip top-icon-chip-star" type="button" id="topEventsBtn" aria-label="Events">
                             ✦
                         </button>
-
-                        <button
-                            class="top-icon-chip top-icon-chip-settings"
-                            type="button"
-                            id="topSettingsBtn"
-                            aria-label="Settings"
-                        >
+                        <button class="top-icon-chip top-icon-chip-settings" type="button" id="topSettingsBtn" aria-label="Settings">
                             ⚙
                         </button>
                     </div>
@@ -86,9 +68,7 @@
             </div>
         </header>
 
-        <!-- MAIN -->
         <main id="game">
-            <!-- SCREEN: GAME -->
             <section id="screen-game" class="screen">
                 <div class="panel card game-main-card">
                     <div class="home-stats-panel">
@@ -195,12 +175,7 @@
                     </div>
 
                     <div class="home-quick-panel">
-                        <button
-                            id="homeDailyBtn"
-                            class="home-quick-card"
-                            type="button"
-                            aria-label="Otwórz Daily Reward"
-                        >
+                        <button id="homeDailyBtn" class="home-quick-card" type="button" aria-label="Otwórz Daily Reward">
                             <div class="home-quick-icon">🎁</div>
                             <div class="home-quick-text">
                                 <div class="home-quick-title">Daily Reward</div>
@@ -239,7 +214,6 @@
                 </div>
             </section>
 
-            <!-- SCREEN: ZOO -->
             <section id="screen-zoo" class="screen hidden">
                 <div class="panel card">
                     <h2>🐾 Zoo</h2>
@@ -247,7 +221,6 @@
                 </div>
             </section>
 
-            <!-- SCREEN: SHOP -->
             <section id="screen-shop" class="screen hidden">
                 <div class="panel card">
                     <h2>🛒 Shop</h2>
@@ -264,7 +237,6 @@
                 </div>
             </section>
 
-            <!-- SCREEN: MISSIONS -->
             <section id="screen-missions" class="screen hidden">
                 <div class="panel card">
                     <h2>🌍 Expeditions</h2>
@@ -272,7 +244,6 @@
                 </div>
             </section>
 
-            <!-- SCREEN: MINIGAMES -->
             <section id="screen-minigames" class="screen hidden">
                 <div class="panel card">
                     <h2>🎮 Mini Games</h2>
@@ -282,34 +253,26 @@
                             <h3>Wheel Of Fortune</h3>
 
                             <div style="position:relative; width:260px; height:260px; margin:0 auto 16px auto;">
-                                <div
-                                    id="wheelPointer"
-                                    style="position:absolute; top:-8px; left:50%; transform:translateX(-50%); font-size:28px; z-index:2;"
-                                >
-                                    ▼
-                                </div>
+                                <div id="wheelPointer" style="position:absolute; top:-8px; left:50%; transform:translateX(-50%); font-size:28px; z-index:2;">▼</div>
 
-                                <div
-                                    id="wheel"
-                                    style="
-                                        width:260px;
-                                        height:260px;
-                                        border-radius:50%;
-                                        border:8px solid #fff;
-                                        background:
-                                        conic-gradient(
-                                            #ffcc00 0deg 60deg,
-                                            #4caf50 60deg 120deg,
-                                            #03a9f4 120deg 180deg,
-                                            #ff5722 180deg 240deg,
-                                            #9c27b0 240deg 300deg,
-                                            #8bc34a 300deg 360deg
-                                        );
-                                        transition: transform 4s cubic-bezier(0.15, 0.85, 0.15, 1);
-                                        box-shadow:0 0 20px rgba(0,0,0,0.35);
-                                        margin:0 auto;
-                                    "
-                                ></div>
+                                <div id="wheel" style="
+                                    width:260px;
+                                    height:260px;
+                                    border-radius:50%;
+                                    border:8px solid #fff;
+                                    background:
+                                    conic-gradient(
+                                        #ffcc00 0deg 60deg,
+                                        #4caf50 60deg 120deg,
+                                        #03a9f4 120deg 180deg,
+                                        #ff5722 180deg 240deg,
+                                        #9c27b0 240deg 300deg,
+                                        #8bc34a 300deg 360deg
+                                    );
+                                    transition: transform 4s cubic-bezier(0.15, 0.85, 0.15, 1);
+                                    box-shadow:0 0 20px rgba(0,0,0,0.35);
+                                    margin:0 auto;
+                                "></div>
                             </div>
 
                             <button id="spinWheelBtn" type="button">Spin Wheel</button>
@@ -319,16 +282,13 @@
                         <div id="memoryGame">
                             <h3>Memory Animals</h3>
 
-                            <div
-                                id="memoryBoard"
-                                style="
-                                    display:grid;
-                                    grid-template-columns:repeat(4, 70px);
-                                    gap:10px;
-                                    justify-content:center;
-                                    margin:16px auto;
-                                "
-                            ></div>
+                            <div id="memoryBoard" style="
+                                display:grid;
+                                grid-template-columns:repeat(4, 70px);
+                                gap:10px;
+                                justify-content:center;
+                                margin:16px auto;
+                            "></div>
 
                             <button id="startMemoryBtn" type="button">Start Memory</button>
                             <p id="memoryStatus"></p>
@@ -337,7 +297,6 @@
                 </div>
             </section>
 
-            <!-- SCREEN: RANKING -->
             <section id="screen-ranking" class="screen hidden">
                 <div class="panel card">
                     <h2>🏆 Ranking</h2>
@@ -346,7 +305,6 @@
             </section>
         </main>
 
-        <!-- MENU -->
         <footer class="menu">
             <button class="menu-btn active-nav" data-nav="game" type="button">
                 <img src="assets/menu/game.png" alt="Game" class="menu-icon">
@@ -374,7 +332,6 @@
         </footer>
     </div>
 
-    <!-- PROFILE MODAL -->
     <div id="profileModal" class="profile-modal hidden">
         <div class="profile-backdrop" id="profileBackdrop"></div>
 
@@ -444,7 +401,6 @@
         </div>
     </div>
 
-    <!-- SETTINGS MODAL -->
     <div id="settingsModal" class="profile-modal hidden">
         <div class="profile-backdrop" id="settingsBackdrop"></div>
 
@@ -481,7 +437,6 @@
         </div>
     </div>
 
-    <!-- DAILY REWARD MODAL -->
     <div id="dailyRewardModal" class="profile-modal hidden">
         <div class="profile-backdrop" id="dailyRewardBackdrop"></div>
 
@@ -491,9 +446,7 @@
 
                 <div class="profile-user-meta">
                     <div class="profile-name">Daily Reward</div>
-                    <div class="profile-subtitle" id="dailyRewardSubtitle">
-                        Odbierz codzienną nagrodę i wracaj po więcej
-                    </div>
+                    <div class="profile-subtitle" id="dailyRewardSubtitle">Odbierz codzienną nagrodę i wracaj po więcej</div>
                 </div>
             </div>
 
@@ -533,35 +486,29 @@
         </div>
     </div>
 
-    <!-- CORE -->
     <script src="./js/config.js"></script>
     <script src="./js/state.js"></script>
     <script src="./js/dom.js"></script>
-
-    <!-- UI -->
     <script src="./js/ui-profile.js"></script>
     <script src="./js/ui-settings.js"></script>
     <script src="./js/ui-ranking.js"></script>
     <script src="./js/ui.js"></script>
-
-    <!-- SYSTEMS -->
     <script src="./js/api.js"></script>
     <script src="./js/telegram.js"></script>
     <script src="./js/shop.js"></script>
     <script src="./js/minigames.js"></script>
+
     <script src="./js/offline-system.js"></script>
     <script src="./js/daily-reward-system.js"></script>
-<script src="./js/expedition-system.js"></script>
-<script src="./js/reward-wallet-system.js"></script>
-<script src="./js/progression-system.js"></script>
-<script src="./js/animal-system.js"></script>
-<script src="./js/shop-purchase-system.js"></script>
-<script src="./js/tap-system.js"></script>
-<script src="./js/boost-system.js"></script>
-<script src="./js/navigation-system.js"></script>
+    <script src="./js/expedition-system.js"></script>
+    <script src="./js/reward-wallet-system.js"></script>
+    <script src="./js/progression-system.js"></script>
+    <script src="./js/animal-system.js"></script>
+    <script src="./js/shop-purchase-system.js"></script>
+    <script src="./js/tap-system.js"></script>
+    <script src="./js/boost-system.js"></script>
+    <script src="./js/navigation-system.js"></script>
     <script src="./js/gameplay.js"></script>
-
-    <!-- INIT -->
     <script src="./js/init.js"></script>
 </body>
 </html>
