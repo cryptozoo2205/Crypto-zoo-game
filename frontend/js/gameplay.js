@@ -728,8 +728,7 @@ CryptoZoo.gameplay = {
 
         CryptoZoo.ui?.render?.();
     },
-
-    handleTap(tapCount = 1) {
+handleTap(tapCount = 1) {
         const safeTapCount = this.getTapCountFromTouches(tapCount);
         const clickValue = this.getEffectiveCoinsPerClick(safeTapCount);
 
@@ -845,15 +844,30 @@ CryptoZoo.gameplay = {
         const item = (CryptoZoo.config?.shopItems || []).find((x) => x.id === itemId);
         if (!item) return;
 
-        const price = Number(item.price || 0);
+        const coinPrice = Math.max(0, Number(item.price) || 0);
+        const gemPrice = Math.max(0, Number(item.gemPrice) || 0);
+
         const coinsBeforeSpend = Number(CryptoZoo.state.coins) || 0;
+        const gemsBeforeSpend = Number(CryptoZoo.state.gems) || 0;
 
-        if (coinsBeforeSpend < price) {
-            CryptoZoo.ui?.showToast?.("Za mało coins");
-            return;
+        const isGemPurchase = gemPrice > 0;
+        const spendAmountForLevelDrop = isGemPurchase ? 0 : coinPrice;
+
+        if (isGemPurchase) {
+            if (gemsBeforeSpend < gemPrice) {
+                CryptoZoo.ui?.showToast?.("Za mało gems");
+                return;
+            }
+
+            CryptoZoo.state.gems = gemsBeforeSpend - gemPrice;
+        } else {
+            if (coinsBeforeSpend < coinPrice) {
+                CryptoZoo.ui?.showToast?.("Za mało coins");
+                return;
+            }
+
+            CryptoZoo.state.coins = coinsBeforeSpend - coinPrice;
         }
-
-        CryptoZoo.state.coins -= price;
 
         if (item.type === "click") {
             const bonus = Math.max(1, Number(item.clickValueBonus) || 1);
@@ -876,15 +890,28 @@ CryptoZoo.gameplay = {
             this.activateOfflineBoost(multiplier, durationSeconds);
         }
 
-        this.applyLevelDropBySpend(price, coinsBeforeSpend);
+        this.applyLevelDropBySpend(spendAmountForLevelDrop, coinsBeforeSpend);
         this.persistAndRender();
 
         if (item.type === "offline") {
             const multiplier = Math.max(1, Number(item.offlineMultiplier) || 2);
             const durationSeconds = Math.max(60, Number(item.offlineDurationSeconds) || 10 * 60);
-            CryptoZoo.ui?.showToast?.(
-                `Kupiono ${item.name} • x${CryptoZoo.formatNumber(multiplier)} offline ${this.formatOfflineDuration(durationSeconds)}`
-            );
+
+            if (isGemPurchase) {
+                CryptoZoo.ui?.showToast?.(
+                    `Kupiono ${item.name} • ${CryptoZoo.formatNumber(gemPrice)} gem • x${CryptoZoo.formatNumber(multiplier)} offline ${this.formatOfflineDuration(durationSeconds)}`
+                );
+            } else {
+                CryptoZoo.ui?.showToast?.(
+                    `Kupiono ${item.name} • x${CryptoZoo.formatNumber(multiplier)} offline ${this.formatOfflineDuration(durationSeconds)}`
+                );
+            }
+
+            return;
+        }
+
+        if (isGemPurchase) {
+            CryptoZoo.ui?.showToast?.(`Kupiono ${item.name} za ${CryptoZoo.formatNumber(gemPrice)} gem`);
             return;
         }
 
