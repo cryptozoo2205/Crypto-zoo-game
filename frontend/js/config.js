@@ -168,42 +168,47 @@ CryptoZoo.config = {
         }
     ],
 
-    shopItems: [
-        {
-            id: "click1",
-            name: "Click Upgrade I",
-            desc: "+1 coin per click",
-            price: 700,
-            type: "click"
-        },
-        {
-            id: "click2",
-            name: "Click Upgrade II",
-            desc: "+1 coin per click",
-            price: 2200,
-            type: "click"
-        },
-        {
-            id: "click3",
-            name: "Strong Finger",
-            desc: "+1 coin per click",
-            price: 6500,
-            type: "click"
-        },
-        {
-            id: "click4",
-            name: "Turbo Tap",
-            desc: "+1 coin per click",
-            price: 18000,
-            type: "click"
-        },
-        {
-            id: "click5",
-            name: "Diamond Claw",
-            desc: "+1 coin per click",
-            price: 48000,
-            type: "click"
-        },
+        shopItems: [
+    {
+        id: "click1",
+        name: "Click Upgrade I",
+        desc: "+1 coin per click",
+        price: 700,
+        type: "click",
+        clickValueBonus: 1
+    },
+    {
+        id: "click2",
+        name: "Click Upgrade II",
+        desc: "+2 coins per click",
+        price: 2200,
+        type: "click",
+        clickValueBonus: 2
+    },
+    {
+        id: "click3",
+        name: "Strong Finger",
+        desc: "+3 coins per click",
+        price: 6500,
+        type: "click",
+        clickValueBonus: 3
+    },
+    {
+        id: "click4",
+        name: "Turbo Tap",
+        desc: "+5 coins per click",
+        price: 18000,
+        type: "click",
+        clickValueBonus: 5
+    },
+    {
+        id: "click5",
+        name: "Diamond Claw",
+        desc: "+8 coins per click",
+        price: 52000,
+        type: "click",
+        clickValueBonus: 8
+    },
 
         {
             id: "income1",
