@@ -869,14 +869,20 @@ CryptoZoo.gameplay = {
         }
 
         if (item.type === "offline") {
-            this.activateOfflineBoost(2, 10 * 60);
+            const multiplier = Math.max(1, Number(item.offlineMultiplier) || 2);
+            const durationSeconds = Math.max(60, Number(item.offlineDurationSeconds) || 10 * 60);
+            this.activateOfflineBoost(multiplier, durationSeconds);
         }
 
         this.applyLevelDropBySpend(price, coinsBeforeSpend);
         this.persistAndRender();
 
         if (item.type === "offline") {
-            CryptoZoo.ui?.showToast?.(`Kupiono ${item.name} • x2 offline 10m`);
+            const multiplier = Math.max(1, Number(item.offlineMultiplier) || 2);
+            const durationSeconds = Math.max(60, Number(item.offlineDurationSeconds) || 10 * 60);
+            CryptoZoo.ui?.showToast?.(
+                `Kupiono ${item.name} • x${CryptoZoo.formatNumber(multiplier)} offline ${this.formatOfflineDuration(durationSeconds)}`
+            );
             return;
         }
 
