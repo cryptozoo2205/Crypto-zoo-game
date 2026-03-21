@@ -1,6 +1,41 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.uiProfile = {
+    ensureRewardBoxes() {
+        const grid = document.querySelector("#profileModal .profile-grid");
+        if (!grid) return;
+
+        if (!document.getElementById("profileRewardBalance")) {
+            const rewardBox = document.createElement("div");
+            rewardBox.className = "profile-box";
+            rewardBox.innerHTML = `
+                <div class="profile-box-label">Reward</div>
+                <div class="profile-box-value" id="profileRewardBalance">0</div>
+            `;
+            grid.appendChild(rewardBox);
+        }
+
+        if (!document.getElementById("profileRewardWallet")) {
+            const walletBox = document.createElement("div");
+            walletBox.className = "profile-box";
+            walletBox.innerHTML = `
+                <div class="profile-box-label">Wallet</div>
+                <div class="profile-box-value" id="profileRewardWallet">0</div>
+            `;
+            grid.appendChild(walletBox);
+        }
+
+        if (!document.getElementById("profileWithdrawPending")) {
+            const pendingBox = document.createElement("div");
+            pendingBox.className = "profile-box";
+            pendingBox.innerHTML = `
+                <div class="profile-box-label">Pending</div>
+                <div class="profile-box-value" id="profileWithdrawPending">0</div>
+            `;
+            grid.appendChild(pendingBox);
+        }
+    },
+
     getProfileUsername() {
         const fromApi = CryptoZoo.api?.getUsername?.();
         if (fromApi && String(fromApi).trim()) {
@@ -81,10 +116,16 @@ CryptoZoo.uiProfile = {
         const modal = document.getElementById("profileModal");
         if (!modal) return;
 
+        this.ensureRewardBoxes();
+
         const username = this.getProfileUsername();
         const subtitle = this.getProfileSubtitle();
         const summary = this.getAnimalsSummary();
         const boxesTotal = this.getBoxesTotal();
+
+        const rewardBalance = Math.max(0, Number(CryptoZoo.state?.rewardBalance) || 0);
+        const rewardWallet = Math.max(0, Number(CryptoZoo.state?.rewardWallet) || 0);
+        const withdrawPending = Math.max(0, Number(CryptoZoo.state?.withdrawPending) || 0);
 
         const boostActive = CryptoZoo.gameplay?.isBoost2xActive?.() || false;
         const boostLeft = CryptoZoo.gameplay?.getBoost2xTimeLeft?.() || 0;
@@ -98,6 +139,9 @@ CryptoZoo.uiProfile = {
         CryptoZoo.ui?.updateText?.("profileSpeciesUnlocked", CryptoZoo.formatNumber(summary.unlockedSpecies));
         CryptoZoo.ui?.updateText?.("profileBoxesTotal", CryptoZoo.formatNumber(boxesTotal));
         CryptoZoo.ui?.updateText?.("profileRankingPlace", this.getCurrentPlayerRankingPlace());
+        CryptoZoo.ui?.updateText?.("profileRewardBalance", CryptoZoo.formatNumber(rewardBalance));
+        CryptoZoo.ui?.updateText?.("profileRewardWallet", CryptoZoo.formatNumber(rewardWallet));
+        CryptoZoo.ui?.updateText?.("profileWithdrawPending", CryptoZoo.formatNumber(withdrawPending));
         CryptoZoo.ui?.updateText?.("profileBoostStatus", boostLabel);
 
         const boostStatusEl = document.getElementById("profileBoostStatus");
