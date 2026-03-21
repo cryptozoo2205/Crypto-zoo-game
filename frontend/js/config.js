@@ -89,81 +89,81 @@ CryptoZoo.config = {
             id: "forest",
             name: "Magic Forest",
             duration: 300,
-            baseCoins: 1200,
+            baseCoins: 1000,
             baseGems: 1,
-            rareChance: 0.25,
-            epicChance: 0.08
+            rareChance: 0.24,
+            epicChance: 0.07
         },
         {
             id: "river",
             name: "Crystal River",
             duration: 900,
-            baseCoins: 4500,
-            baseGems: 4,
-            rareChance: 0.30,
-            epicChance: 0.10
+            baseCoins: 3200,
+            baseGems: 2,
+            rareChance: 0.27,
+            epicChance: 0.08
         },
         {
             id: "volcano",
             name: "Golden Volcano",
             duration: 1800,
-            baseCoins: 12000,
-            baseGems: 9,
-            rareChance: 0.35,
-            epicChance: 0.12
+            baseCoins: 8500,
+            baseGems: 4,
+            rareChance: 0.30,
+            epicChance: 0.10
         },
         {
             id: "canyon",
             name: "Sunstone Canyon",
             duration: 3600,
-            baseCoins: 28000,
-            baseGems: 14,
-            rareChance: 0.36,
-            epicChance: 0.13
+            baseCoins: 22000,
+            baseGems: 7,
+            rareChance: 0.33,
+            epicChance: 0.11
         },
         {
             id: "glacier",
             name: "Frozen Glacier",
             duration: 7200,
-            baseCoins: 70000,
-            baseGems: 22,
-            rareChance: 0.38,
-            epicChance: 0.14
+            baseCoins: 52000,
+            baseGems: 12,
+            rareChance: 0.36,
+            epicChance: 0.12
         },
         {
             id: "jungle",
             name: "Emerald Jungle",
             duration: 14400,
-            baseCoins: 180000,
-            baseGems: 36,
-            rareChance: 0.40,
-            epicChance: 0.15
+            baseCoins: 125000,
+            baseGems: 20,
+            rareChance: 0.39,
+            epicChance: 0.14
         },
         {
             id: "temple",
             name: "Ancient Temple",
             duration: 28800,
-            baseCoins: 420000,
-            baseGems: 60,
-            rareChance: 0.42,
-            epicChance: 0.16
+            baseCoins: 290000,
+            baseGems: 32,
+            rareChance: 0.41,
+            epicChance: 0.15
         },
         {
             id: "oasis",
             name: "Royal Oasis",
             duration: 43200,
-            baseCoins: 800000,
-            baseGems: 90,
-            rareChance: 0.44,
-            epicChance: 0.17
+            baseCoins: 520000,
+            baseGems: 48,
+            rareChance: 0.43,
+            epicChance: 0.16
         },
         {
             id: "kingdom",
             name: "Lost Beast Kingdom",
             duration: 86400,
-            baseCoins: 1800000,
-            baseGems: 160,
-            rareChance: 0.46,
+            baseCoins: 1100000,
+            baseGems: 80,
+            rareChance: 0.45,
             epicChance: 0.18
         }
     ],
