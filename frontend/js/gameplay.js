@@ -263,92 +263,47 @@ CryptoZoo.gameplay = {
     },
 
     getDailyRewardCooldownMs() {
-        return this.dailyRewardCooldownMs;
+        return CryptoZoo.dailyReward?.getCooldownMs?.() || this.dailyRewardCooldownMs;
     },
 
     getDayKeyFromTimestamp(timestamp = Date.now()) {
-        const date = new Date(Number(timestamp) || Date.now());
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
+        return CryptoZoo.dailyReward?.getDayKeyFromTimestamp?.(timestamp) || "";
     },
 
     getYesterdayDayKey() {
-        const now = new Date();
-        now.setDate(now.getDate() - 1);
-        return this.getDayKeyFromTimestamp(now.getTime());
+        return CryptoZoo.dailyReward?.getYesterdayDayKey?.() || "";
     },
 
     getDailyRewardStreak() {
-        return Math.min(
-            this.dailyRewardMaxStreak,
-            Math.max(0, Number(CryptoZoo.state?.dailyRewardStreak) || 0)
-        );
+        return CryptoZoo.dailyReward?.getStreak?.() || 0;
     },
 
     getDailyRewardTimeLeftMs() {
-        const lastClaimAt = Math.max(0, Number(CryptoZoo.state?.lastDailyRewardAt) || 0);
-
-        if (lastClaimAt <= 0) {
-            return 0;
-        }
-
-        const nextClaimAt = lastClaimAt + this.dailyRewardCooldownMs;
-        return Math.max(0, nextClaimAt - Date.now());
+        return CryptoZoo.dailyReward?.getTimeLeftMs?.() || 0;
     },
 
     canClaimDailyReward() {
-        return this.getDailyRewardTimeLeftMs() <= 0;
+        return CryptoZoo.dailyReward?.canClaim?.() || false;
     },
 
     getDailyRewardCoinsAmount() {
-        const level = Math.max(1, Number(CryptoZoo.state?.level) || 1);
-        const zooIncome = Math.max(0, Number(CryptoZoo.state?.zooIncome) || 0);
-        const coinsPerClick = Math.max(1, Number(CryptoZoo.state?.coinsPerClick) || 1);
-        const streak = this.getDailyRewardStreak();
-
-        const levelPart = level * 120;
-        const incomePart = zooIncome * 45;
-        const clickPart = coinsPerClick * 25;
-        const minimumReward = 250;
-
-        const baseReward = Math.max(
-            minimumReward,
-            Math.floor(levelPart + incomePart + clickPart)
-        );
-
-        const streakMultiplier = 1 + streak * 0.08;
-
-        return Math.max(minimumReward, Math.floor(baseReward * streakMultiplier));
+        return CryptoZoo.dailyReward?.getCoinsAmount?.() || 0;
     },
 
     getDailyRewardGemsAmount() {
-        const level = Math.max(1, Number(CryptoZoo.state?.level) || 1);
-        const zooIncome = Math.max(0, Number(CryptoZoo.state?.zooIncome) || 0);
-        const streak = this.getDailyRewardStreak();
-
-        let gems = 0;
-
-        if (level >= 40 || zooIncome >= 20000) gems = 3;
-        else if (level >= 20 || zooIncome >= 3000) gems = 2;
-        else if (level >= 5 || zooIncome >= 150) gems = 1;
-
-        if (streak >= this.dailyRewardMaxStreak) {
-            gems += 1;
-        }
-
-        return gems;
+        return CryptoZoo.dailyReward?.getGemsAmount?.() || 0;
     },
 
     getDailyRewardBalanceAmount() {
-        const streak = this.getDailyRewardStreak();
+        return CryptoZoo.dailyReward?.getRewardBalanceAmount?.() || 0;
+    },
 
-        if (streak >= this.dailyRewardMaxStreak) {
-            return 1;
-        }
+    updateDailyRewardStreak() {
+        return CryptoZoo.dailyReward?.updateStreak?.() || 1;
+    },
 
-        return 0;
+    claimDailyReward() {
+        return CryptoZoo.dailyReward?.claim?.() || false;
     },
 
     getExpeditionRewardBalanceAmount(expedition) {
@@ -445,73 +400,6 @@ CryptoZoo.gameplay = {
     getExpeditionUnlockText(expeditionOrId) {
         const requiredLevel = this.getExpeditionUnlockRequirement(expeditionOrId);
         return `Odblokuj poziom ${requiredLevel}`;
-    },
-
-    updateDailyRewardStreak() {
-        const todayKey = this.getDayKeyFromTimestamp(Date.now());
-        const yesterdayKey = this.getYesterdayDayKey();
-        const previousKey = String(CryptoZoo.state?.dailyRewardClaimDayKey || "");
-        const currentStreak = this.getDailyRewardStreak();
-
-        if (previousKey === todayKey) {
-            return currentStreak > 0 ? currentStreak : 1;
-        }
-
-        if (!previousKey) {
-            CryptoZoo.state.dailyRewardStreak = 1;
-        } else if (previousKey === yesterdayKey) {
-            CryptoZoo.state.dailyRewardStreak = Math.min(
-                this.dailyRewardMaxStreak,
-                currentStreak + 1
-            );
-        } else {
-            CryptoZoo.state.dailyRewardStreak = 1;
-        }
-
-        CryptoZoo.state.dailyRewardClaimDayKey = todayKey;
-        return CryptoZoo.state.dailyRewardStreak;
-    },
-
-    claimDailyReward() {
-        if (!this.canClaimDailyReward()) {
-            const timeLeftSeconds = Math.ceil(this.getDailyRewardTimeLeftMs() / 1000);
-
-            CryptoZoo.ui?.showToast?.(
-                `Daily Reward za: ${CryptoZoo.ui?.formatTimeLeft?.(timeLeftSeconds) || "00:00:00"}`
-            );
-            return false;
-        }
-
-        const streak = this.updateDailyRewardStreak();
-        const coinsReward = this.getDailyRewardCoinsAmount();
-        const gemsReward = this.getDailyRewardGemsAmount();
-        const rewardBalanceReward = this.getDailyRewardBalanceAmount();
-
-        CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + coinsReward;
-        CryptoZoo.state.gems = (Number(CryptoZoo.state.gems) || 0) + gemsReward;
-        CryptoZoo.state.rewardBalance = (Number(CryptoZoo.state.rewardBalance) || 0) + rewardBalanceReward;
-        CryptoZoo.state.lastDailyRewardAt = Date.now();
-        CryptoZoo.state.lastLogin = Date.now();
-
-        this.recalculateProgress();
-        CryptoZoo.ui?.render?.();
-        CryptoZoo.api?.savePlayer?.();
-
-        if (rewardBalanceReward > 0) {
-            CryptoZoo.ui?.showToast?.(
-                gemsReward > 0
-                    ? `🎁 Day ${streak} • +${CryptoZoo.formatNumber(coinsReward)} coins +${CryptoZoo.formatNumber(gemsReward)} gem +${CryptoZoo.formatNumber(rewardBalanceReward)} reward`
-                    : `🎁 Day ${streak} • +${CryptoZoo.formatNumber(coinsReward)} coins +${CryptoZoo.formatNumber(rewardBalanceReward)} reward`
-            );
-        } else {
-            CryptoZoo.ui?.showToast?.(
-                gemsReward > 0
-                    ? `🎁 Day ${streak} • +${CryptoZoo.formatNumber(coinsReward)} coins +${CryptoZoo.formatNumber(gemsReward)} gem`
-                    : `🎁 Day ${streak} • +${CryptoZoo.formatNumber(coinsReward)} coins`
-            );
-        }
-
-        return true;
     },
 
     bindDailyRewardButton() {
