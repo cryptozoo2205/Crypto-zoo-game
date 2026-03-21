@@ -86,12 +86,20 @@ CryptoZoo.gameplay = {
             CryptoZoo.state.expeditionBoost = Number(CryptoZoo.state.expeditionBoost) || 0;
         }
 
-        if (typeof CryptoZoo.state.offlineBoost !== "number") {
-            CryptoZoo.state.offlineBoost = Number(CryptoZoo.state.offlineBoost) || 1;
-        }
-
         if (typeof CryptoZoo.state.offlineMaxSeconds !== "number") {
             CryptoZoo.state.offlineMaxSeconds = this.maxOfflineSeconds;
+        }
+
+        if (typeof CryptoZoo.state.offlineBoostMultiplier !== "number") {
+            CryptoZoo.state.offlineBoostMultiplier = 1;
+        }
+
+        if (typeof CryptoZoo.state.offlineBoostActiveUntil !== "number") {
+            CryptoZoo.state.offlineBoostActiveUntil = 0;
+        }
+
+        if (typeof CryptoZoo.state.offlineBoost !== "number") {
+            CryptoZoo.state.offlineBoost = 1;
         }
 
         if (typeof CryptoZoo.state.xp !== "number") {
@@ -128,9 +136,17 @@ CryptoZoo.gameplay = {
             Number(CryptoZoo.state.offlineMaxSeconds) || this.maxOfflineSeconds
         );
 
+        CryptoZoo.state.offlineBoostMultiplier = Math.max(
+            1,
+            Number(CryptoZoo.state.offlineBoostMultiplier) || 1
+        );
+
+        CryptoZoo.state.offlineBoostActiveUntil = Number(CryptoZoo.state.offlineBoostActiveUntil) || 0;
         CryptoZoo.state.boost2xActiveUntil = this.normalizeBoostTimestamp(
             CryptoZoo.state.boost2xActiveUntil
         );
+
+        this.normalizeOfflineBoostState();
     },
 
     normalizeBoostTimestamp(value) {
@@ -160,6 +176,29 @@ CryptoZoo.gameplay = {
         }
     },
 
+    normalizeOfflineBoostState() {
+        const now = Date.now();
+        let activeUntil = Number(CryptoZoo.state?.offlineBoostActiveUntil) || 0;
+
+        if (activeUntil > 0 && activeUntil < 1000000000000) {
+            activeUntil *= 1000;
+        }
+
+        CryptoZoo.state.offlineBoostActiveUntil = activeUntil;
+
+        if (activeUntil > 0 && activeUntil <= now) {
+            CryptoZoo.state.offlineBoostActiveUntil = 0;
+            CryptoZoo.state.offlineBoostMultiplier = 1;
+            CryptoZoo.state.offlineBoost = 1;
+        } else {
+            CryptoZoo.state.offlineBoostMultiplier = Math.max(
+                1,
+                Number(CryptoZoo.state?.offlineBoostMultiplier) || 1
+            );
+            CryptoZoo.state.offlineBoost = CryptoZoo.state.offlineBoostMultiplier;
+        }
+    },
+
     isBoost2xActive() {
         this.normalizeBoostState();
         return (Number(CryptoZoo.state?.boost2xActiveUntil) || 0) > Date.now();
@@ -178,6 +217,41 @@ CryptoZoo.gameplay = {
                 ((Number(CryptoZoo.state?.boost2xActiveUntil) || 0) - Date.now()) / 1000
             )
         );
+    },
+
+    isOfflineBoostActive() {
+        this.normalizeOfflineBoostState();
+        return (Number(CryptoZoo.state?.offlineBoostActiveUntil) || 0) > Date.now();
+    },
+
+    getOfflineBoostMultiplier() {
+        this.normalizeOfflineBoostState();
+
+        return this.isOfflineBoostActive()
+            ? Math.max(1, Number(CryptoZoo.state?.offlineBoostMultiplier) || 1)
+            : 1;
+    },
+
+    getOfflineBoostTimeLeft() {
+        this.normalizeOfflineBoostState();
+
+        return Math.max(
+            0,
+            Math.floor(
+                ((Number(CryptoZoo.state?.offlineBoostActiveUntil) || 0) - Date.now()) / 1000
+            )
+        );
+    },
+
+    activateOfflineBoost(multiplier = 2, durationSeconds = 10 * 60) {
+        const safeMultiplier = Math.max(1, Number(multiplier) || 1);
+        const safeDurationSeconds = Math.max(60, Number(durationSeconds) || 600);
+
+        CryptoZoo.state.offlineBoostMultiplier = safeMultiplier;
+        CryptoZoo.state.offlineBoostActiveUntil = Date.now() + safeDurationSeconds * 1000;
+        CryptoZoo.state.offlineBoost = safeMultiplier;
+
+        return true;
     },
 
     getTapCountFromTouches(touchCount) {
@@ -211,10 +285,12 @@ CryptoZoo.gameplay = {
     },
 
     getOfflineIncomePerSecond() {
-        const baseIncome = Math.max(0, Number(CryptoZoo.state?.zooIncome) || 0);
-        const offlineBoost = Math.max(1, Number(CryptoZoo.state?.offlineBoost) || 1);
+        this.normalizeOfflineBoostState();
 
-        return baseIncome * offlineBoost;
+        const baseIncome = Math.max(0, Number(CryptoZoo.state?.zooIncome) || 0);
+        const offlineBoostMultiplier = this.getOfflineBoostMultiplier();
+
+        return baseIncome * offlineBoostMultiplier;
     },
 
     getOfflineMaxSeconds() {
@@ -258,6 +334,7 @@ CryptoZoo.gameplay = {
         }
 
         this.recalculateZooIncome();
+        this.normalizeOfflineBoostState();
 
         const offlineIncomePerSecond = this.getOfflineIncomePerSecond();
         const offlineCoins = Math.floor(offlineIncomePerSecond * cappedSeconds);
@@ -275,9 +352,13 @@ CryptoZoo.gameplay = {
 
         const timeLabel = this.formatOfflineDuration(cappedSeconds);
         const capLabel = wasCapped ? ` • limit ${this.formatOfflineDuration(maxOfflineSeconds)}` : "";
+        const offlineMultiplier = this.getOfflineBoostMultiplier();
+        const boostLabel = offlineMultiplier > 1
+            ? ` • x${CryptoZoo.formatNumber(offlineMultiplier)} offline`
+            : "";
 
         CryptoZoo.ui?.showToast?.(
-            `Offline: ${timeLabel} • +${CryptoZoo.formatNumber(offlineCoins)} coins${capLabel}`
+            `Offline: ${timeLabel} • +${CryptoZoo.formatNumber(offlineCoins)} coins${capLabel}${boostLabel}`
         );
 
         CryptoZoo.api?.savePlayer?.();
@@ -546,6 +627,7 @@ CryptoZoo.gameplay = {
 
     persistAndRender() {
         this.normalizeBoostState();
+        this.normalizeOfflineBoostState();
         this.recalculateProgress();
         CryptoZoo.state.lastLogin = Date.now();
         CryptoZoo.ui?.render?.();
@@ -787,11 +869,17 @@ CryptoZoo.gameplay = {
         }
 
         if (item.type === "offline") {
-            CryptoZoo.state.offlineBoost = 2;
+            this.activateOfflineBoost(2, 10 * 60);
         }
 
         this.applyLevelDropBySpend(price, coinsBeforeSpend);
         this.persistAndRender();
+
+        if (item.type === "offline") {
+            CryptoZoo.ui?.showToast?.(`Kupiono ${item.name} • x2 offline 10m`);
+            return;
+        }
+
         CryptoZoo.ui?.showToast?.(`Kupiono ${item.name}`);
     },
 
@@ -902,6 +990,7 @@ CryptoZoo.gameplay = {
         this.recalculateZooIncome();
         this.recalculateLevel();
         this.normalizeBoostState();
+        this.normalizeOfflineBoostState();
     },
 
     startIncomeTimer() {
@@ -937,13 +1026,20 @@ CryptoZoo.gameplay = {
 
         setInterval(() => {
             const previousBoostValue = Number(CryptoZoo.state?.boost2xActiveUntil) || 0;
+            const previousOfflineValue = Number(CryptoZoo.state?.offlineBoostActiveUntil) || 0;
 
             this.normalizeBoostState();
+            this.normalizeOfflineBoostState();
             CryptoZoo.state.lastLogin = Date.now();
 
             const currentBoostValue = Number(CryptoZoo.state?.boost2xActiveUntil) || 0;
+            const currentOfflineValue = Number(CryptoZoo.state?.offlineBoostActiveUntil) || 0;
 
             if (previousBoostValue > 0 && currentBoostValue === 0) {
+                CryptoZoo.api?.savePlayer?.();
+            }
+
+            if (previousOfflineValue > 0 && currentOfflineValue === 0) {
                 CryptoZoo.api?.savePlayer?.();
             }
 
