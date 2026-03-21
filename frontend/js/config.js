@@ -100,8 +100,8 @@ CryptoZoo.config = {
             duration: 900,
             baseCoins: 4500,
             baseGems: 4,
-            rareChance: 0.3,
-            epicChance: 0.1
+            rareChance: 0.30,
+            epicChance: 0.10
         },
         {
             id: "volcano",
@@ -111,6 +111,60 @@ CryptoZoo.config = {
             baseGems: 9,
             rareChance: 0.35,
             epicChance: 0.12
+        },
+        {
+            id: "canyon",
+            name: "Sunstone Canyon",
+            duration: 3600,
+            baseCoins: 28000,
+            baseGems: 14,
+            rareChance: 0.36,
+            epicChance: 0.13
+        },
+        {
+            id: "glacier",
+            name: "Frozen Glacier",
+            duration: 7200,
+            baseCoins: 70000,
+            baseGems: 22,
+            rareChance: 0.38,
+            epicChance: 0.14
+        },
+        {
+            id: "jungle",
+            name: "Emerald Jungle",
+            duration: 14400,
+            baseCoins: 180000,
+            baseGems: 36,
+            rareChance: 0.40,
+            epicChance: 0.15
+        },
+        {
+            id: "temple",
+            name: "Ancient Temple",
+            duration: 28800,
+            baseCoins: 420000,
+            baseGems: 60,
+            rareChance: 0.42,
+            epicChance: 0.16
+        },
+        {
+            id: "oasis",
+            name: "Royal Oasis",
+            duration: 43200,
+            baseCoins: 800000,
+            baseGems: 90,
+            rareChance: 0.44,
+            epicChance: 0.17
+        },
+        {
+            id: "kingdom",
+            name: "Lost Beast Kingdom",
+            duration: 86400,
+            baseCoins: 1800000,
+            baseGems: 160,
+            rareChance: 0.46,
+            epicChance: 0.18
         }
     ],
 
