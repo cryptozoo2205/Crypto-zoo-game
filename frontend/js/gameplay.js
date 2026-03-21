@@ -856,7 +856,9 @@ CryptoZoo.gameplay = {
         CryptoZoo.state.coins -= price;
 
         if (item.type === "click") {
-            CryptoZoo.state.coinsPerClick = (Number(CryptoZoo.state.coinsPerClick) || 1) + 1;
+            const bonus = Math.max(1, Number(item.clickValueBonus) || 1);
+            CryptoZoo.state.coinsPerClick =
+                (Number(CryptoZoo.state.coinsPerClick) || 1) + bonus;
         }
 
         if (item.type === "income") {
