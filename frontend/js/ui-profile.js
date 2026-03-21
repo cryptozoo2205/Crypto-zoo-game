@@ -77,12 +77,34 @@ CryptoZoo.uiProfile = {
         return index >= 0 ? "#" + String(index + 1) : "#-";
     },
 
+    removeDuplicateRewardBoxes() {
+        const grid = document.querySelector("#profileModal .profile-grid");
+        if (!grid) return;
+
+        const autoIds = [
+            "profileRewardBalanceBox",
+            "profileRewardWalletBox",
+            "profileWithdrawPendingBox"
+        ];
+
+        autoIds.forEach((id) => {
+            const duplicates = Array.from(grid.querySelectorAll(`#${id}`));
+
+            if (duplicates.length > 1) {
+                duplicates.slice(1).forEach((el) => el.remove());
+            }
+        });
+    },
+
     ensureRewardBoxes() {
         const grid = document.querySelector("#profileModal .profile-grid");
         if (!grid) return;
 
-        if (!document.getElementById("profileRewardBalanceBox")) {
-            const rewardBox = document.createElement("div");
+        this.removeDuplicateRewardBoxes();
+
+        let rewardBox = document.getElementById("profileRewardBalanceBox");
+        if (!rewardBox) {
+            rewardBox = document.createElement("div");
             rewardBox.className = "profile-box";
             rewardBox.id = "profileRewardBalanceBox";
             rewardBox.innerHTML = `
@@ -92,8 +114,9 @@ CryptoZoo.uiProfile = {
             grid.appendChild(rewardBox);
         }
 
-        if (!document.getElementById("profileRewardWalletBox")) {
-            const walletBox = document.createElement("div");
+        let walletBox = document.getElementById("profileRewardWalletBox");
+        if (!walletBox) {
+            walletBox = document.createElement("div");
             walletBox.className = "profile-box";
             walletBox.id = "profileRewardWalletBox";
             walletBox.innerHTML = `
@@ -103,8 +126,9 @@ CryptoZoo.uiProfile = {
             grid.appendChild(walletBox);
         }
 
-        if (!document.getElementById("profileWithdrawPendingBox")) {
-            const pendingBox = document.createElement("div");
+        let pendingBox = document.getElementById("profileWithdrawPendingBox");
+        if (!pendingBox) {
+            pendingBox = document.createElement("div");
             pendingBox.className = "profile-box";
             pendingBox.id = "profileWithdrawPendingBox";
             pendingBox.innerHTML = `
@@ -115,23 +139,55 @@ CryptoZoo.uiProfile = {
         }
     },
 
-    refreshTransferButtonState() {
-        const transferBtn = document.getElementById("transferRewardBtn");
-        if (!transferBtn) return;
+    ensureRewardWalletTransferRow() {
+        const card = document.querySelector("#profileModal .profile-card");
+        if (!card) return;
 
-        const availableReward = Math.max(
-            0,
-            Number(CryptoZoo.gameplay?.getRewardBalanceAvailableToTransfer?.() ?? CryptoZoo.state?.rewardBalance) || 0
-        );
+        let transferRow = document.getElementById("profileRewardWalletTransferRow");
+        if (!transferRow) {
+            transferRow = document.createElement("div");
+            transferRow.className = "profile-boost-row";
+            transferRow.id = "profileRewardWalletTransferRow";
+            transferRow.innerHTML = `
+                <div class="profile-boost-left">
+                    <div class="profile-boost-label">Reward Wallet</div>
+                    <div class="profile-boost-value">Przenieś Reward do Wallet</div>
+                </div>
+            `;
 
-        if (availableReward > 0) {
-            transferBtn.disabled = false;
-            transferBtn.textContent = `Transfer Reward (${CryptoZoo.formatNumber(availableReward)})`;
-            transferBtn.style.opacity = "1";
-        } else {
-            transferBtn.disabled = true;
-            transferBtn.textContent = "Brak Reward do transferu";
-            transferBtn.style.opacity = "0.65";
+            const closeBtn = document.getElementById("closeProfileBtn");
+            if (closeBtn) {
+                card.insertBefore(transferRow, closeBtn);
+            } else {
+                card.appendChild(transferRow);
+            }
+        }
+
+        let transferBtn = document.getElementById("profileTransferRewardBtn");
+        if (!transferBtn) {
+            transferBtn = document.createElement("button");
+            transferBtn.id = "profileTransferRewardBtn";
+            transferBtn.className = "profile-close-btn";
+            transferBtn.type = "button";
+            transferBtn.textContent = "Przenieś Reward do Wallet";
+
+            const closeBtn = document.getElementById("closeProfileBtn");
+            if (closeBtn) {
+                card.insertBefore(transferBtn, closeBtn);
+            } else {
+                card.appendChild(transferBtn);
+            }
+        }
+
+        if (!transferBtn.dataset.bound) {
+            transferBtn.dataset.bound = "1";
+            transferBtn.addEventListener("click", () => {
+                const success = CryptoZoo.gameplay?.transferRewardToWallet?.();
+
+                if (!success) {
+                    CryptoZoo.ui?.showToast?.("Brak Reward do transferu");
+                }
+            });
         }
     },
 
@@ -140,6 +196,7 @@ CryptoZoo.uiProfile = {
         if (!modal) return;
 
         this.ensureRewardBoxes();
+        this.ensureRewardWalletTransferRow();
 
         const username = this.getProfileUsername();
         const subtitle = this.getProfileSubtitle();
@@ -172,7 +229,13 @@ CryptoZoo.uiProfile = {
             boostStatusEl.classList.toggle("active", boostActive);
         }
 
-        this.refreshTransferButtonState();
+        const transferBtn = document.getElementById("profileTransferRewardBtn");
+        if (transferBtn) {
+            transferBtn.textContent =
+                rewardBalance > 0
+                    ? `Przenieś ${CryptoZoo.formatNumber(rewardBalance)} Reward do Wallet`
+                    : "Brak Reward do transferu";
+        }
     },
 
     renderTopBarProfile() {
@@ -200,20 +263,6 @@ CryptoZoo.uiProfile = {
         document.getElementById("profileModal")?.classList.add("hidden");
     },
 
-    bindTransferRewardButton() {
-        const transferBtn = document.getElementById("transferRewardBtn");
-        if (!transferBtn || transferBtn.dataset.bound) return;
-
-        transferBtn.dataset.bound = "1";
-        transferBtn.addEventListener("click", () => {
-            const transferred = CryptoZoo.gameplay?.transferRewardToWallet?.();
-
-            if (transferred) {
-                this.refreshProfileModalData();
-            }
-        });
-    },
-
     bindProfileModal() {
         const openBtn = document.getElementById("topProfileBtn");
         if (openBtn && !openBtn.dataset.bound) {
@@ -238,7 +287,5 @@ CryptoZoo.uiProfile = {
                 this.closeProfileModal();
             });
         }
-
-        this.bindTransferRewardButton();
     }
 };
