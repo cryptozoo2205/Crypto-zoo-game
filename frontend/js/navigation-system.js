@@ -56,7 +56,7 @@ CryptoZoo.navigation = {
         }
 
         if (screenName === "shop") {
-            CryptoZoo.boostSystem?.bindShopButton?.();
+            CryptoZoo.gameplay?.bindBoostShopButton?.();
         }
 
         CryptoZoo.ui?.render?.();
