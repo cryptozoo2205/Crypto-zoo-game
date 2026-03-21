@@ -100,6 +100,57 @@ CryptoZoo.uiProfile = {
         };
     },
 
+    ensureProfileButtonsLayout() {
+        const transferBtn = document.getElementById("transferRewardBtn");
+        const closeBtn = document.getElementById("closeProfileBtn");
+
+        if (transferBtn) {
+            transferBtn.style.marginTop = "18px";
+            transferBtn.style.marginBottom = "12px";
+            transferBtn.style.background = "linear-gradient(180deg, rgba(62, 130, 255, 0.95) 0%, rgba(45, 102, 221, 0.95) 100%)";
+            transferBtn.style.border = "1px solid rgba(255,255,255,0.10)";
+            transferBtn.style.boxShadow = "0 10px 22px rgba(0,0,0,0.22)";
+        }
+
+        if (closeBtn) {
+            closeBtn.style.marginTop = "4px";
+            closeBtn.style.background = "linear-gradient(180deg, rgba(42, 52, 76, 0.95) 0%, rgba(25, 32, 48, 0.95) 100%)";
+            closeBtn.style.border = "1px solid rgba(255,255,255,0.08)";
+        }
+    },
+
+    transferRewardToWallet() {
+        CryptoZoo.state = CryptoZoo.state || {};
+
+        const rewardBalance = Math.max(0, Number(CryptoZoo.state.rewardBalance) || 0);
+        if (rewardBalance <= 0) {
+            CryptoZoo.ui?.showToast?.("Brak Reward do transferu");
+            return false;
+        }
+
+        if (typeof CryptoZoo.gameplay?.transferRewardToWallet === "function") {
+            return CryptoZoo.gameplay.transferRewardToWallet();
+        }
+
+        CryptoZoo.state.rewardBalance = Math.max(
+            0,
+            (Number(CryptoZoo.state.rewardBalance) || 0) - rewardBalance
+        );
+        CryptoZoo.state.rewardWallet = Math.max(
+            0,
+            (Number(CryptoZoo.state.rewardWallet) || 0) + rewardBalance
+        );
+        CryptoZoo.state.lastLogin = Date.now();
+
+        CryptoZoo.ui?.render?.();
+        CryptoZoo.api?.savePlayer?.();
+        CryptoZoo.ui?.showToast?.(
+            `Przeniesiono ${CryptoZoo.formatNumber(rewardBalance)} Reward do Wallet`
+        );
+
+        return true;
+    },
+
     refreshProfileModalData() {
         const modal = document.getElementById("profileModal");
         if (!modal) return;
@@ -113,8 +164,8 @@ CryptoZoo.uiProfile = {
         const rewardWallet = Math.max(0, Number(CryptoZoo.state?.rewardWallet) || 0);
         const withdrawPending = Math.max(0, Number(CryptoZoo.state?.withdrawPending) || 0);
 
-        const boostActive = CryptoZoo.gameplay?.isBoost2xActive?.() || false;
-        const boostLeft = CryptoZoo.gameplay?.getBoost2xTimeLeft?.() || 0;
+        const boostActive = CryptoZoo.boostSystem?.isActive?.() || false;
+        const boostLeft = CryptoZoo.boostSystem?.getTimeLeft?.() || 0;
         const boostLabel = boostActive
             ? `Aktywny • ${CryptoZoo.ui?.formatTimeLeft?.(boostLeft) || "00:00:00"}`
             : "Nieaktywny";
@@ -146,7 +197,7 @@ CryptoZoo.uiProfile = {
         const transferBtn = document.getElementById("transferRewardBtn");
         if (transferBtn) {
             if (rewardBalance > 0) {
-                transferBtn.textContent = "Transfer Reward";
+                transferBtn.textContent = `Transfer Reward (${CryptoZoo.formatNumber(rewardBalance)})`;
                 transferBtn.disabled = false;
                 transferBtn.style.opacity = "1";
                 transferBtn.style.filter = "none";
@@ -154,11 +205,13 @@ CryptoZoo.uiProfile = {
             } else {
                 transferBtn.textContent = "Brak Reward do transferu";
                 transferBtn.disabled = true;
-                transferBtn.style.opacity = "0.7";
+                transferBtn.style.opacity = "0.72";
                 transferBtn.style.filter = "grayscale(0.15)";
                 transferBtn.style.cursor = "not-allowed";
             }
         }
+
+        this.ensureProfileButtonsLayout();
     },
 
     renderTopBarProfile() {
@@ -215,15 +268,7 @@ CryptoZoo.uiProfile = {
         if (transferBtn && !transferBtn.dataset.bound) {
             transferBtn.dataset.bound = "1";
             transferBtn.addEventListener("click", () => {
-                const rewardBalance = Math.max(0, Number(CryptoZoo.state?.rewardBalance) || 0);
-
-                if (rewardBalance <= 0) {
-                    CryptoZoo.ui?.showToast?.("Brak Reward do transferu");
-                    this.refreshProfileModalData();
-                    return;
-                }
-
-                const success = CryptoZoo.gameplay?.transferRewardToWallet?.();
+                const success = this.transferRewardToWallet();
 
                 if (!success) {
                     CryptoZoo.ui?.showToast?.("Brak Reward do transferu");
