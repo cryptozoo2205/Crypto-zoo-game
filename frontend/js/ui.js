@@ -688,6 +688,9 @@ CryptoZoo.ui = {
 
         container.innerHTML = expeditions.map((exp) => {
             const rewardRangeText = this.getExpeditionRewardRangeText(exp);
+            const isUnlocked = CryptoZoo.gameplay?.isExpeditionUnlocked?.(exp) || false;
+            const requiredLevel = CryptoZoo.gameplay?.getExpeditionUnlockRequirement?.(exp) || 1;
+            const buttonLabel = isUnlocked ? "Start" : `Lvl ${CryptoZoo.formatNumber(requiredLevel)}`;
 
             return `
                 <div class="expedition-card">
@@ -702,19 +705,29 @@ CryptoZoo.ui = {
                         Reward Wallet: ${rewardRangeText}
                     </div>
                     <div>
+                        Wymagany poziom: ${CryptoZoo.formatNumber(requiredLevel)}
+                    </div>
+                    <div>
                         Szansa na bonus:
                         Rare ${(exp.rareChance * 100).toFixed(0)}% /
                         Epic ${(exp.epicChance * 100).toFixed(0)}%
                     </div>
-                    <button id="start-expedition-${exp.id}" type="button">Start</button>
+                    <button
+                        id="start-expedition-${exp.id}"
+                        type="button"
+                        ${isUnlocked ? "" : "disabled"}
+                        style="${isUnlocked ? "" : "opacity:0.65; cursor:not-allowed;"}"
+                    >${buttonLabel}</button>
                 </div>
             `;
         }).join("");
 
         expeditions.forEach((exp) => {
-            this.bindClick(`start-expedition-${exp.id}`, () => {
-                CryptoZoo.gameplay?.startExpedition?.(exp.id);
-            });
+            if (CryptoZoo.gameplay?.isExpeditionUnlocked?.(exp)) {
+                this.bindClick(`start-expedition-${exp.id}`, () => {
+                    CryptoZoo.gameplay?.startExpedition?.(exp.id);
+                });
+            }
         });
     },
 
