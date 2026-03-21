@@ -262,6 +262,7 @@ CryptoZoo.ui = {
 
         if (!titleEl || !subtitleEl || !iconEl) return;
 
+        const isUnlocked = CryptoZoo.dailyReward?.isUnlocked?.() || false;
         const canClaim = CryptoZoo.dailyReward?.canClaim?.() || false;
         const timeLeftMs = Math.max(
             0,
@@ -288,6 +289,23 @@ CryptoZoo.ui = {
         subtitleEl.style.wordBreak = "break-word";
         subtitleEl.style.overflowWrap = "anywhere";
         subtitleEl.style.lineHeight = "1.35";
+
+        if (!isUnlocked) {
+            subtitleEl.textContent = `Unlock in ${this.formatTimeLeft(timeLeftSeconds)}`;
+
+            iconEl.textContent = "🔒";
+            btn.dataset.dailyState = "locked";
+            btn.style.opacity = "0.92";
+            btn.style.filter = "none";
+            btn.style.transform = "none";
+            btn.style.background = "linear-gradient(180deg, rgba(18, 28, 48, 0.96) 0%, rgba(10, 17, 31, 0.95) 100%)";
+            btn.style.borderColor = "rgba(255,255,255,0.08)";
+            btn.style.boxShadow = "0 12px 22px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255,255,255,0.04)";
+            iconEl.style.background = "rgba(255,255,255,0.06)";
+            titleEl.style.color = "#ffffff";
+            subtitleEl.style.color = "rgba(255,255,255,0.72)";
+            return;
+        }
 
         if (canClaim) {
             const rewardText =
@@ -597,10 +615,10 @@ CryptoZoo.ui = {
         const boostMultiplier = CryptoZoo.boostSystem?.getMultiplier?.() || 1;
 
         const effectiveCoinsPerClick =
-            (Math.max(1, Number(state.coinsPerClick) || 1) * boostMultiplier);
+            Math.max(1, Number(state.coinsPerClick) || 1) * boostMultiplier;
 
         const effectiveZooIncome =
-            (Math.max(0, Number(state.zooIncome) || 0) * boostMultiplier);
+            Math.max(0, Number(state.zooIncome) || 0) * boostMultiplier;
 
         this.updateText("homeCoins", CryptoZoo.formatNumber(state.coins || 0));
         this.updateText("homeGems", CryptoZoo.formatNumber(state.gems || 0));
@@ -631,10 +649,10 @@ CryptoZoo.ui = {
         const boostMultiplier = CryptoZoo.boostSystem?.getMultiplier?.() || 1;
 
         const effectiveCoinsPerClick =
-            (Math.max(1, Number(state.coinsPerClick) || 1) * boostMultiplier);
+            Math.max(1, Number(state.coinsPerClick) || 1) * boostMultiplier;
 
         const effectiveZooIncome =
-            (Math.max(0, Number(state.zooIncome) || 0) * boostMultiplier);
+            Math.max(0, Number(state.zooIncome) || 0) * boostMultiplier;
 
         this.updateText("coins", CryptoZoo.formatNumber(state.coins || 0));
         this.updateText("gems", CryptoZoo.formatNumber(state.gems || 0));
