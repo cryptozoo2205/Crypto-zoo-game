@@ -217,8 +217,7 @@ CryptoZoo.gameplay = {
     },
 
     getTapCountFromTouches(touchCount) {
-        const safeCount = Number(touchCount) || 1;
-        return Math.max(1, Math.min(3, safeCount));
+        return CryptoZoo.tapSystem?.getTapCountFromTouches?.(touchCount) || 1;
     },
 
     getBaseCoinsPerClick() {
@@ -492,60 +491,11 @@ CryptoZoo.gameplay = {
     },
 
     handleTap(tapCount = 1) {
-        const safeTapCount = this.getTapCountFromTouches(tapCount);
-        const clickValue = this.getEffectiveCoinsPerClick(safeTapCount);
-
-        CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + clickValue;
-        CryptoZoo.state.xp = (Number(CryptoZoo.state.xp) || 0) + safeTapCount;
-
-        this.recalculateLevel();
-
-        CryptoZoo.ui?.animateCoin?.(safeTapCount);
-        CryptoZoo.state.lastLogin = Date.now();
-        CryptoZoo.ui?.render?.();
-        CryptoZoo.api?.savePlayer?.();
+        return CryptoZoo.tapSystem?.handleTap?.(tapCount) || false;
     },
 
     bindTap() {
-        const tapButton = document.getElementById("tapButton");
-        if (!tapButton) return;
-
-        tapButton.onclick = (event) => {
-            if (event) {
-                event.preventDefault();
-            }
-
-            if (Date.now() < this.suppressClickUntil) {
-                return;
-            }
-
-            this.handleTap(1);
-        };
-
-        tapButton.addEventListener(
-            "touchstart",
-            (event) => {
-                if (this.touchTapLock) {
-                    event.preventDefault();
-                    return;
-                }
-
-                const touches = this.getTapCountFromTouches(event.touches?.length || 1);
-
-                this.touchTapLock = true;
-                this.suppressClickUntil = Date.now() + 700;
-                event.preventDefault();
-                this.handleTap(touches);
-            },
-            { passive: false }
-        );
-
-        const unlockTouchTap = () => {
-            this.touchTapLock = false;
-        };
-
-        tapButton.addEventListener("touchend", unlockTouchTap, { passive: true });
-        tapButton.addEventListener("touchcancel", unlockTouchTap, { passive: true });
+        return CryptoZoo.tapSystem?.bind?.() || false;
     },
 
     startIncomeTimer() {
