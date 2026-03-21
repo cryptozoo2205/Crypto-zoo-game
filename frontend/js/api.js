@@ -1,7 +1,7 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.api = {
-    testResetMode: false,
+    testResetMode: true,
 
     getApiBase() {
         const fromStorage = localStorage.getItem("cryptozoo_api_base");
