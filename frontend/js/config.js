@@ -20,67 +20,67 @@ CryptoZoo.config = {
             name: "Lion",
             asset: "lion",
             buyCost: 900,
-            baseIncome: 11
+            baseIncome: 10
         },
         tiger: {
             name: "Tiger",
             asset: "tiger",
             buyCost: 2600,
-            baseIncome: 28
+            baseIncome: 24
         },
         elephant: {
             name: "Elephant",
             asset: "elephant",
             buyCost: 7500,
-            baseIncome: 72
+            baseIncome: 58
         },
         giraffe: {
             name: "Giraffe",
             asset: "giraffe",
             buyCost: 18000,
-            baseIncome: 155
+            baseIncome: 130
         },
         zebra: {
             name: "Zebra",
             asset: "zebra",
             buyCost: 42000,
-            baseIncome: 320
+            baseIncome: 280
         },
         hippo: {
             name: "Hippo",
             asset: "hippo",
             buyCost: 100000,
-            baseIncome: 680
+            baseIncome: 620
         },
         penguin: {
             name: "Penguin",
             asset: "penguin",
             buyCost: 230000,
-            baseIncome: 1350
+            baseIncome: 1300
         },
         bear: {
             name: "Bear",
             asset: "bear",
             buyCost: 520000,
-            baseIncome: 2550
+            baseIncome: 2600
         },
         crocodile: {
             name: "Crocodile",
             asset: "crocodile",
             buyCost: 1200000,
-            baseIncome: 4700
+            baseIncome: 5200
         },
         kangaroo: {
             name: "Kangaroo",
             asset: "kangaroo",
             buyCost: 2600000,
-            baseIncome: 8600
+            baseIncome: 9800
         },
         wolf: {
             name: "Wolf",
             asset: "wolf",
             buyCost: 6000000,
-            baseIncome: 15000
+            baseIncome: 18000
         }
     },
 
@@ -89,82 +89,82 @@ CryptoZoo.config = {
             id: "forest",
             name: "Magic Forest",
             duration: 300,
-            baseCoins: 1000,
+            baseCoins: 900,
             baseGems: 1,
-            rareChance: 0.24,
-            epicChance: 0.07
+            rareChance: 0.22,
+            epicChance: 0.06
         },
         {
             id: "river",
             name: "Crystal River",
             duration: 900,
-            baseCoins: 3200,
+            baseCoins: 2500,
             baseGems: 2,
-            rareChance: 0.27,
-            epicChance: 0.08
+            rareChance: 0.25,
+            epicChance: 0.07
         },
         {
             id: "volcano",
             name: "Golden Volcano",
             duration: 1800,
-            baseCoins: 8500,
-            baseGems: 4,
-            rareChance: 0.30,
-            epicChance: 0.10
+            baseCoins: 6500,
+            baseGems: 3,
+            rareChance: 0.28,
+            epicChance: 0.09
         },
         {
             id: "canyon",
             name: "Sunstone Canyon",
             duration: 3600,
-            baseCoins: 22000,
-            baseGems: 7,
-            rareChance: 0.33,
-            epicChance: 0.11
+            baseCoins: 16000,
+            baseGems: 5,
+            rareChance: 0.31,
+            epicChance: 0.10
         },
         {
             id: "glacier",
             name: "Frozen Glacier",
             duration: 7200,
-            baseCoins: 52000,
-            baseGems: 12,
-            rareChance: 0.36,
-            epicChance: 0.12
+            baseCoins: 38000,
+            baseGems: 8,
+            rareChance: 0.34,
+            epicChance: 0.11
         },
         {
             id: "jungle",
             name: "Emerald Jungle",
             duration: 14400,
-            baseCoins: 125000,
-            baseGems: 20,
-            rareChance: 0.39,
-            epicChance: 0.14
+            baseCoins: 90000,
+            baseGems: 12,
+            rareChance: 0.37,
+            epicChance: 0.13
         },
         {
             id: "temple",
             name: "Ancient Temple",
             duration: 28800,
-            baseCoins: 290000,
-            baseGems: 32,
-            rareChance: 0.41,
-            epicChance: 0.15
+            baseCoins: 210000,
+            baseGems: 20,
+            rareChance: 0.40,
+            epicChance: 0.14
         },
         {
             id: "oasis",
             name: "Royal Oasis",
             duration: 43200,
-            baseCoins: 520000,
-            baseGems: 48,
-            rareChance: 0.43,
-            epicChance: 0.16
+            baseCoins: 360000,
+            baseGems: 28,
+            rareChance: 0.42,
+            epicChance: 0.15
         },
         {
             id: "kingdom",
             name: "Lost Beast Kingdom",
             duration: 86400,
-            baseCoins: 1100000,
-            baseGems: 80,
-            rareChance: 0.45,
-            epicChance: 0.18
+            baseCoins: 760000,
+            baseGems: 45,
+            rareChance: 0.44,
+            epicChance: 0.17
         }
     ],
 
@@ -173,35 +173,35 @@ CryptoZoo.config = {
             id: "click1",
             name: "Click Upgrade I",
             desc: "+1 coin per click",
-            price: 450,
+            price: 500,
             type: "click"
         },
         {
             id: "click2",
             name: "Click Upgrade II",
             desc: "+1 coin per click",
-            price: 1200,
+            price: 1400,
             type: "click"
         },
         {
             id: "click3",
             name: "Strong Finger",
             desc: "+1 coin per click",
-            price: 3200,
+            price: 3600,
             type: "click"
         },
         {
             id: "click4",
             name: "Turbo Tap",
             desc: "+1 coin per click",
-            price: 8500,
+            price: 9000,
             type: "click"
         },
         {
             id: "click5",
             name: "Diamond Claw",
             desc: "+1 coin per click",
-            price: 20000,
+            price: 24000,
             type: "click"
         },
 
@@ -209,35 +209,35 @@ CryptoZoo.config = {
             id: "income1",
             name: "Zoo Manager",
             desc: "+25% zoo income",
-            price: 2200,
+            price: 2800,
             type: "income"
         },
         {
             id: "income2",
             name: "VIP Caretaker",
             desc: "+25% zoo income",
-            price: 6500,
+            price: 7600,
             type: "income"
         },
         {
             id: "income3",
             name: "Automation Crew",
             desc: "+25% zoo income",
-            price: 17000,
+            price: 19000,
             type: "income"
         },
         {
             id: "income4",
             name: "Golden Feeding System",
             desc: "+25% zoo income",
-            price: 42000,
+            price: 46000,
             type: "income"
         },
         {
             id: "income5",
             name: "Elite Zoo Director",
             desc: "+25% zoo income",
-            price: 98000,
+            price: 115000,
             type: "income"
         },
 
