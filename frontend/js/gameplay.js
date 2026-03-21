@@ -6,7 +6,6 @@ CryptoZoo.gameplay = {
     boostTimerStarted: false,
     suppressClickUntil: 0,
     touchTapLock: false,
-    currentTouchTapCount: 1,
     touchTapTimer: null,
     touchTapTriggered: false,
     maxOfflineSeconds: 1 * 60 * 60,
@@ -129,39 +128,28 @@ CryptoZoo.gameplay = {
         };
 
         tapButton.addEventListener("touchstart", (e) => {
-            const touchCount = this.getTapCountFromTouches(e.touches?.length || 1);
-
             e.preventDefault();
 
-            if (!this.touchTapLock) {
-                this.touchTapLock = true;
-                this.touchTapTriggered = false;
-                this.currentTouchTapCount = touchCount;
-                this.suppressClickUntil = Date.now() + 700;
+            if (this.touchTapLock) return;
 
-                clearTimeout(this.touchTapTimer);
-                this.touchTapTimer = setTimeout(() => {
-                    this.touchTapTriggered = true;
-                    this.handleTap(this.currentTouchTapCount);
-                }, 35);
+            this.touchTapLock = true;
+            this.touchTapTriggered = false;
+            this.suppressClickUntil = Date.now() + 700;
 
-                return;
-            }
-
-            this.currentTouchTapCount = Math.max(this.currentTouchTapCount, touchCount);
+            clearTimeout(this.touchTapTimer);
+            this.touchTapTimer = setTimeout(() => {
+                this.touchTapTriggered = true;
+                this.handleTap(1);
+            }, 35);
         }, { passive: false });
 
         tapButton.addEventListener("touchmove", (e) => {
             if (!this.touchTapLock) return;
-
-            const touchCount = this.getTapCountFromTouches(e.touches?.length || 1);
-            this.currentTouchTapCount = Math.max(this.currentTouchTapCount, touchCount);
             e.preventDefault();
         }, { passive: false });
 
         const unlock = () => {
             this.touchTapLock = false;
-            this.currentTouchTapCount = 1;
             this.touchTapTriggered = false;
             this.touchTapTimer = null;
         };
@@ -175,20 +163,18 @@ CryptoZoo.gameplay = {
         const value = this.getEffectiveCoinsPerClick(safeTapCount);
 
         CryptoZoo.state.coins += value;
-        CryptoZoo.state.xp += safeTapCount;
+        CryptoZoo.state.xp += 1;
         CryptoZoo.state.lastLogin = Date.now();
 
         this.recalculateLevel();
 
-        CryptoZoo.ui?.animateCoin?.(safeTapCount);
+        CryptoZoo.ui?.animateCoin?.(1);
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
     },
 
-    getTapCountFromTouches(touchCount) {
-        const count = Number(touchCount) || 1;
-        if (count <= 1) return 1;
-        return 3;
+    getTapCountFromTouches() {
+        return 1;
     },
 
     getBaseCoinsPerClick() {
@@ -200,10 +186,9 @@ CryptoZoo.gameplay = {
         );
     },
 
-    getEffectiveCoinsPerClick(tapCount = 1) {
+    getEffectiveCoinsPerClick() {
         return this.getBaseCoinsPerClick() *
-            this.getBoost2xMultiplier() *
-            this.getTapCountFromTouches(tapCount);
+            this.getBoost2xMultiplier();
     },
 
     getEffectiveZooIncome() {
@@ -318,6 +303,7 @@ CryptoZoo.gameplay = {
             this.normalizeOfflineBoostState();
             CryptoZoo.ui?.renderBoostStatus?.();
             CryptoZoo.ui?.renderDailyRewardStatus?.();
+
             if (this.activeScreen === "missions") {
                 CryptoZoo.ui?.renderExpeditions?.();
             }
