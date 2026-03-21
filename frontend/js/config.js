@@ -26,19 +26,19 @@ CryptoZoo.config = {
             name: "Tiger",
             asset: "tiger",
             buyCost: 2600,
-            baseIncome: 30
+            baseIncome: 34
         },
         elephant: {
             name: "Elephant",
             asset: "elephant",
             buyCost: 7500,
-            baseIncome: 85
+            baseIncome: 95
         },
         giraffe: {
             name: "Giraffe",
             asset: "giraffe",
             buyCost: 18000,
-            baseIncome: 180
+            baseIncome: 210
         },
         zebra: {
             name: "Zebra",
