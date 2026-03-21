@@ -311,48 +311,19 @@ CryptoZoo.gameplay = {
     },
 
     getRewardWalletBalance() {
-        return Math.max(0, Number(CryptoZoo.state?.rewardWallet) || 0);
+        return CryptoZoo.rewardWallet?.getWalletBalance?.() || 0;
     },
 
     getWithdrawPendingBalance() {
-        return Math.max(0, Number(CryptoZoo.state?.withdrawPending) || 0);
+        return CryptoZoo.rewardWallet?.getWithdrawPendingBalance?.() || 0;
     },
 
     getRewardBalanceAvailableToTransfer() {
-        return Math.max(0, Number(CryptoZoo.state?.rewardBalance) || 0);
+        return CryptoZoo.rewardWallet?.getTransferableBalance?.() || 0;
     },
 
     transferRewardToWallet(amount) {
-        const available = this.getRewardBalanceAvailableToTransfer();
-
-        let transferAmount = Number(amount);
-
-        if (!Number.isFinite(transferAmount) || transferAmount <= 0) {
-            transferAmount = available;
-        }
-
-        transferAmount = Math.floor(transferAmount);
-
-        if (transferAmount <= 0 || available <= 0) {
-            CryptoZoo.ui?.showToast?.("Brak reward do transferu");
-            return false;
-        }
-
-        if (transferAmount > available) {
-            transferAmount = available;
-        }
-
-        CryptoZoo.state.rewardBalance =
-            Math.max(0, Number(CryptoZoo.state.rewardBalance) || 0) - transferAmount;
-        CryptoZoo.state.rewardWallet =
-            (Number(CryptoZoo.state.rewardWallet) || 0) + transferAmount;
-
-        this.persistAndRender();
-        CryptoZoo.ui?.showToast?.(
-            `Przeniesiono ${CryptoZoo.formatNumber(transferAmount)} reward do wallet`
-        );
-
-        return true;
+        return CryptoZoo.rewardWallet?.transferToWallet?.(amount) || false;
     },
 
     getExpeditionUnlockRequirement(expeditionOrId) {
