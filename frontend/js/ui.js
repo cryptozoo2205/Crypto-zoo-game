@@ -153,6 +153,26 @@ CryptoZoo.ui = {
         ].join(":");
     },
 
+    formatDurationLabel(totalSeconds) {
+        const safe = Math.max(0, Number(totalSeconds) || 0);
+        const hours = Math.floor(safe / 3600);
+        const minutes = Math.floor((safe % 3600) / 60);
+
+        if (hours > 0 && minutes > 0) {
+            return `${hours}h ${minutes}m`;
+        }
+
+        if (hours > 0) {
+            return `${hours}h`;
+        }
+
+        if (minutes > 0) {
+            return `${minutes}m`;
+        }
+
+        return `${safe}s`;
+    },
+
     bindClick(id, handler) {
         document.getElementById(id)?.addEventListener("click", handler);
     },
@@ -354,6 +374,45 @@ CryptoZoo.ui = {
         }
 
         return `${CryptoZoo.formatNumber(commonReward)} - ${CryptoZoo.formatNumber(epicReward)} reward`;
+    },
+
+    getShopItemDescription(item) {
+        if (!item) return "";
+
+        if (item.type === "click") {
+            const bonus = Math.max(1, Number(item.clickValueBonus) || 1);
+            return `+${CryptoZoo.formatNumber(bonus)} coin${bonus !== 1 ? "s" : ""} per click`;
+        }
+
+        if (item.type === "offline") {
+            const multiplier = Math.max(1, Number(item.offlineMultiplier) || 2);
+            const durationSeconds = Math.max(60, Number(item.offlineDurationSeconds) || 600);
+            return `x${CryptoZoo.formatNumber(multiplier)} offline income przez ${this.formatDurationLabel(durationSeconds)}`;
+        }
+
+        return item.desc || "";
+    },
+
+    getShopItemPriceMeta(item) {
+        if (!item) {
+            return {
+                label: "Koszt",
+                value: "0"
+            };
+        }
+
+        const gemPrice = Number(item.gemPrice) || 0;
+        if (gemPrice > 0) {
+            return {
+                label: "Koszt",
+                value: `${CryptoZoo.formatNumber(gemPrice)} gem`
+            };
+        }
+
+        return {
+            label: "Koszt",
+            value: `${CryptoZoo.formatNumber(Number(item.price) || 0)}`
+        };
     },
 
     bindHomeButtons() {
@@ -744,6 +803,8 @@ CryptoZoo.ui = {
         shopList.innerHTML = items.map((item) => {
             const typeLabel = this.getShopTypeLabel(item.type);
             const typeEmoji = this.getShopTypeEmoji(item.type);
+            const description = this.getShopItemDescription(item);
+            const priceMeta = this.getShopItemPriceMeta(item);
 
             return `
                 <div class="shop-item">
@@ -757,13 +818,13 @@ CryptoZoo.ui = {
                             </div>
                         </div>
                         <div style="text-align:right; flex-shrink:0;">
-                            <div style="font-size:12px; color:rgba(255,255,255,0.66);">Koszt</div>
-                            <div style="font-size:16px; font-weight:900;">${CryptoZoo.formatNumber(item.price)}</div>
+                            <div style="font-size:12px; color:rgba(255,255,255,0.66);">${priceMeta.label}</div>
+                            <div style="font-size:16px; font-weight:900;">${priceMeta.value}</div>
                         </div>
                     </div>
 
                     <div style="font-size:13px; color:rgba(255,255,255,0.78); margin-bottom:10px; line-height:1.45;">
-                        ${item.desc}
+                        ${description}
                     </div>
 
                     <button id="buy-shop-${item.id}" type="button">Kup</button>
