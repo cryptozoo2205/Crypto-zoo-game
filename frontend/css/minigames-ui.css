@@ -12,7 +12,7 @@
     box-shadow:
         0 22px 46px rgba(0,0,0,0.30),
         inset 0 1px 0 rgba(255,255,255,0.04);
-    padding: 16px;
+    padding: 12px;
     overflow: hidden;
 }
 
@@ -21,19 +21,21 @@
 ========================= */
 
 .minigames-header {
-    margin-bottom: 10px;
+    margin-bottom: 6px;
 }
 
 .minigames-title {
     font-size: 24px;
     font-weight: 900;
     color: #ffffff;
+    line-height: 1.1;
 }
 
 .minigames-subtitle {
     font-size: 13px;
     color: rgba(255,255,255,0.72);
-    margin-top: 4px;
+    margin-top: 3px;
+    line-height: 1.32;
 }
 
 /* =========================
@@ -52,7 +54,7 @@
 
 .minigame-box {
     position: relative;
-    padding: 12px 14px 14px;
+    padding: 8px 12px 12px;
     border-radius: 22px;
     background:
         linear-gradient(180deg, rgba(30, 40, 70, 0.97) 0%, rgba(15, 22, 40, 0.99) 100%);
@@ -60,6 +62,7 @@
     box-shadow:
         0 14px 28px rgba(0,0,0,0.24),
         inset 0 1px 0 rgba(255,255,255,0.04);
+    overflow: hidden;
 }
 
 /* =========================
@@ -67,22 +70,24 @@
 ========================= */
 
 .minigame-box-header {
-    margin-bottom: 2px;
+    margin-bottom: -10px;
     text-align: center;
+    position: relative;
+    z-index: 3;
 }
 
 .minigame-name {
     font-size: 18px;
     font-weight: 900;
     color: #ffffff;
-    line-height: 1.15;
+    line-height: 1.12;
 }
 
 .minigame-desc {
     font-size: 12px;
     color: rgba(255,255,255,0.72);
     margin-top: 2px;
-    line-height: 1.35;
+    line-height: 1.3;
 }
 
 /* =========================
@@ -90,17 +95,17 @@
 ========================= */
 
 .minigame-status {
-    margin-top: 8px;
+    margin-top: 6px;
     text-align: center;
     font-size: 13px;
     font-weight: 800;
     color: #ffffff;
     min-height: 18px;
-    line-height: 1.35;
+    line-height: 1.3;
 }
 
 /* =========================
-   WHEEL FIX
+   WHEEL GAME
 ========================= */
 
 #wheelGame {
@@ -111,25 +116,42 @@
     padding-top: 0;
 }
 
+#wheelGame .minigame-box-header {
+    margin-bottom: -22px;
+}
+
 .wheel-container {
     position: relative;
-    margin: -8px auto 8px auto;
-    width: 308px;
-    height: 308px;
+    margin: -58px auto 0 auto;
+    width: 360px;
+    height: 360px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-/* glow */
+/* outer glow */
 .wheel-container::before {
     content: "";
     position: absolute;
-    width: 360px;
-    height: 360px;
+    width: 420px;
+    height: 420px;
     border-radius: 50%;
     background: radial-gradient(circle, rgba(255,255,255,0.08), transparent 70%);
+    filter: blur(14px);
+    pointer-events: none;
+}
+
+/* secondary glow */
+.wheel-container::after {
+    content: "";
+    position: absolute;
+    width: 380px;
+    height: 380px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,208,0,0.08), transparent 72%);
     filter: blur(12px);
+    pointer-events: none;
 }
 
 /* =========================
@@ -141,31 +163,32 @@
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    box-shadow:
-        0 20px 40px rgba(0,0,0,0.35),
-        0 0 30px rgba(255,255,255,0.08);
     background-repeat: no-repeat;
     background-position: center;
-    background-size: contain;
+    background-size: 118%;
+    box-shadow:
+        0 22px 42px rgba(0,0,0,0.35),
+        0 0 30px rgba(255,255,255,0.08);
+    z-index: 2;
 }
 
-/* środek */
+/* center orb */
 .wheel::after {
     content: "";
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 70px;
-    height: 70px;
+    width: 78px;
+    height: 78px;
     transform: translate(-50%, -50%);
     border-radius: 50%;
     background:
-        radial-gradient(circle, #ffffff, #d9e2ff 60%, #8a97ab);
+        radial-gradient(circle at 38% 35%, #ffffff 0%, #eef3ff 28%, #d9e2ff 62%, #8a97ab 100%);
     box-shadow:
-        inset 0 2px 3px rgba(255,255,255,0.7),
+        inset 0 2px 4px rgba(255,255,255,0.78),
         0 6px 12px rgba(0,0,0,0.25);
     border: 4px solid rgba(255,255,255,0.9);
-    z-index: 4;
+    z-index: 6;
 }
 
 /* =========================
@@ -176,24 +199,26 @@
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 84px;
+    width: 68px;
     text-align: center;
     font-weight: 900;
-    font-size: 16px;
-    color: #fff6c7;
-    transform-origin: center;
+    font-size: 14px;
+    color: #fff7cf;
+    transform-origin: center center;
     text-shadow:
-        0 2px 8px rgba(0,0,0,0.45),
-        0 0 10px rgba(255,220,120,0.15);
+        0 2px 8px rgba(0,0,0,0.48),
+        0 0 10px rgba(255,220,120,0.14);
     transition: transform 0.18s ease, filter 0.18s ease, text-shadow 0.18s ease;
     z-index: 5;
+    user-select: none;
+    letter-spacing: 0.2px;
 }
 
 .wheel-label-active {
-    filter: brightness(1.18);
+    filter: brightness(1.2);
     text-shadow:
         0 0 10px rgba(255,255,255,0.6),
-        0 0 20px rgba(255,215,0,0.5);
+        0 0 20px rgba(255,215,0,0.45);
 }
 
 /* =========================
@@ -202,7 +227,7 @@
 
 .wheel-pointer {
     position: absolute;
-    top: 0;
+    top: 28px;
     left: 50%;
     transform: translateX(-50%);
     width: 0;
@@ -210,7 +235,8 @@
     border-left: 18px solid transparent;
     border-right: 18px solid transparent;
     border-bottom: 32px solid #ffffff;
-    z-index: 6;
+    z-index: 7;
+    filter: drop-shadow(0 5px 10px rgba(0,0,0,0.28));
 }
 
 .wheel-pointer::after {
@@ -229,7 +255,7 @@
 
 .minigame-box button {
     width: 100%;
-    margin-top: 6px;
+    margin-top: -4px;
     padding: 14px;
     border-radius: 14px;
     border: none;
@@ -240,12 +266,18 @@
     box-shadow:
         0 8px 16px rgba(255,191,0,0.25),
         inset 0 1px 0 rgba(255,255,255,0.4);
+    transition: transform 0.12s ease, filter 0.12s ease, opacity 0.12s ease;
+}
+
+.minigame-box button:active {
+    transform: scale(0.98);
 }
 
 .minigame-box button:disabled {
     background: #444;
     color: #aaa;
     cursor: not-allowed;
+    box-shadow: none;
 }
 
 /* =========================
@@ -265,7 +297,7 @@
     border: none;
     font-size: 28px;
     font-weight: 900;
-    background: linear-gradient(180deg,#4a5a7a,#2f3d5a);
+    background: linear-gradient(180deg, #4a5a7a, #2f3d5a);
     box-shadow:
         0 8px 16px rgba(0,0,0,0.25),
         inset 0 1px 0 rgba(255,255,255,0.05);
@@ -276,37 +308,131 @@
    MOBILE
 ========================= */
 
-@media (max-width: 600px) {
+@media (max-width: 700px) {
     .wheel-container {
-        width: 258px;
-        height: 258px;
-        margin: -10px auto 8px auto;
+        width: 320px;
+        height: 320px;
+        margin: -54px auto 0 auto;
     }
 
-    .wheel-label {
-        font-size: 14px;
-        width: 72px;
+    .wheel-container::before {
+        width: 372px;
+        height: 372px;
+    }
+
+    .wheel-container::after {
+        width: 338px;
+        height: 338px;
+    }
+
+    #wheelGame .minigame-box-header {
+        margin-bottom: -20px;
+    }
+}
+
+@media (max-width: 520px) {
+    .minigames-card {
+        padding: 10px;
     }
 
     .minigames-header {
-        margin-bottom: 8px;
+        margin-bottom: 4px;
+    }
+
+    .minigames-title {
+        font-size: 22px;
+    }
+
+    .minigames-subtitle {
+        font-size: 12px;
     }
 
     .minigame-box {
-        padding-top: 10px;
+        padding: 6px 10px 12px;
+    }
+
+    #wheelGame .minigame-box-header {
+        margin-bottom: -18px;
+    }
+
+    .wheel-container {
+        width: 286px;
+        height: 286px;
+        margin: -48px auto -2px auto;
+    }
+
+    .wheel-container::before {
+        width: 332px;
+        height: 332px;
+    }
+
+    .wheel-container::after {
+        width: 302px;
+        height: 302px;
+    }
+
+    .wheel {
+        background-size: 118%;
+    }
+
+    .wheel-label {
+        width: 60px;
+        font-size: 13px;
+    }
+
+    .wheel::after {
+        width: 66px;
+        height: 66px;
+    }
+
+    .wheel-pointer {
+        top: 20px;
+        border-left-width: 16px;
+        border-right-width: 16px;
+        border-bottom-width: 28px;
+    }
+
+    .wheel-pointer::after {
+        left: -7px;
+        border-left-width: 7px;
+        border-right-width: 7px;
+        border-bottom-width: 13px;
+    }
+
+    .minigame-box button {
+        margin-top: -8px;
     }
 }
 
 @media (max-width: 420px) {
     .wheel-container {
-        width: 236px;
-        height: 236px;
-        margin: -12px auto 6px auto;
+        width: 258px;
+        height: 258px;
+        margin: -44px auto -4px auto;
+    }
+
+    .wheel-container::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    .wheel-container::after {
+        width: 274px;
+        height: 274px;
     }
 
     .wheel-label {
-        font-size: 13px;
-        width: 64px;
+        width: 54px;
+        font-size: 12px;
+    }
+
+    .wheel::after {
+        width: 60px;
+        height: 60px;
+    }
+
+    .wheel-pointer {
+        top: 18px;
     }
 
     .minigame-name {
@@ -315,5 +441,38 @@
 
     .minigame-desc {
         font-size: 11px;
+    }
+}
+
+@media (max-width: 380px) {
+    .wheel-container {
+        width: 238px;
+        height: 238px;
+        margin: -40px auto -6px auto;
+    }
+
+    .wheel-container::before {
+        width: 278px;
+        height: 278px;
+    }
+
+    .wheel-container::after {
+        width: 252px;
+        height: 252px;
+    }
+
+    .wheel-label {
+        width: 50px;
+        font-size: 11px;
+    }
+
+    .wheel::after {
+        width: 56px;
+        height: 56px;
+    }
+
+    .minigame-box button {
+        font-size: 14px;
+        padding: 13px;
     }
 }
