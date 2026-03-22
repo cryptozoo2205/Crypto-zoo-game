@@ -4,13 +4,13 @@
 
 .minigames-card {
     background:
-        radial-gradient(circle at 18% 14%, rgba(80, 180, 255, 0.14) 0%, transparent 28%),
-        radial-gradient(circle at 84% 10%, rgba(255, 200, 80, 0.14) 0%, transparent 24%),
-        linear-gradient(180deg, rgba(18, 28, 48, 0.97) 0%, rgba(10, 17, 31, 0.99) 100%);
+        radial-gradient(circle at 18% 14%, rgba(80, 180, 255, 0.16) 0%, transparent 30%),
+        radial-gradient(circle at 84% 10%, rgba(255, 200, 80, 0.12) 0%, transparent 22%),
+        linear-gradient(180deg, rgba(18, 28, 48, 0.98) 0%, rgba(10, 17, 31, 0.99) 100%);
     border-radius: 24px;
     border: 1px solid rgba(255,255,255,0.08);
     box-shadow:
-        0 20px 44px rgba(0,0,0,0.28),
+        0 22px 46px rgba(0,0,0,0.30),
         inset 0 1px 0 rgba(255,255,255,0.04);
     padding: 18px;
     overflow: hidden;
@@ -58,7 +58,7 @@
     padding: 16px;
     border-radius: 22px;
     background:
-        linear-gradient(180deg, rgba(30, 40, 70, 0.96) 0%, rgba(15, 22, 40, 0.98) 100%);
+        linear-gradient(180deg, rgba(30, 40, 70, 0.97) 0%, rgba(15, 22, 40, 0.99) 100%);
     border: 1px solid rgba(255,255,255,0.08);
     box-shadow:
         0 14px 28px rgba(0,0,0,0.24),
@@ -123,14 +123,14 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding-top: 12px;
+    padding-top: 6px;
 }
 
 .wheel-container {
     position: relative;
-    margin: 8px auto 12px auto;
-    width: 286px;
-    height: 286px;
+    margin: 6px auto 14px auto;
+    width: 292px;
+    height: 292px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -139,8 +139,8 @@
 .wheel-container::before {
     content: "";
     position: absolute;
-    width: 336px;
-    height: 336px;
+    width: 346px;
+    height: 346px;
     border-radius: 50%;
     background:
         radial-gradient(circle, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 48%, transparent 72%);
@@ -151,11 +151,11 @@
 .wheel-container::after {
     content: "";
     position: absolute;
-    width: 312px;
-    height: 312px;
+    width: 318px;
+    height: 318px;
     border-radius: 50%;
     background:
-        radial-gradient(circle, rgba(255, 208, 0, 0.12) 0%, rgba(255, 208, 0, 0.03) 58%, transparent 76%);
+        radial-gradient(circle, rgba(255, 208, 0, 0.14) 0%, rgba(255, 208, 0, 0.04) 58%, transparent 76%);
     filter: blur(12px);
     pointer-events: none;
 }
@@ -169,29 +169,31 @@
     border: 10px solid rgba(255,255,255,0.96);
     background:
         conic-gradient(
-            #ffcf35 0deg 60deg,
-            #39cc73 60deg 120deg,
-            #2ea9ff 120deg 180deg,
-            #ff6f42 180deg 240deg,
-            #9f5eff 240deg 300deg,
-            #95dd49 300deg 360deg
+            #ffd33c 0deg 60deg,
+            #41d47a 60deg 120deg,
+            #32afff 120deg 180deg,
+            #ff7648 180deg 240deg,
+            #a566ff 240deg 300deg,
+            #99e14d 300deg 360deg
         );
     box-shadow:
         inset 0 0 0 6px rgba(255,255,255,0.12),
-        0 18px 36px rgba(0,0,0,0.32),
+        0 18px 38px rgba(0,0,0,0.34),
         0 0 28px rgba(255,255,255,0.08);
     overflow: hidden;
-    animation: wheelIdleGlow 3s ease-in-out infinite;
+    animation: wheelIdleGlow 3.2s ease-in-out infinite;
 }
 
 .wheel::before {
     content: "";
     position: absolute;
-    inset: 14px;
+    inset: 12px;
     border-radius: 50%;
     background:
-        radial-gradient(circle, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.02) 52%, transparent 72%);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.22);
+        radial-gradient(circle, rgba(255,255,255,0.11) 0%, rgba(255,255,255,0.025) 50%, transparent 72%);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.22),
+        inset 0 -8px 18px rgba(0,0,0,0.10);
 }
 
 .wheel::after {
@@ -199,17 +201,17 @@
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 72px;
-    height: 72px;
+    width: 76px;
+    height: 76px;
     transform: translate(-50%, -50%);
     border-radius: 50%;
     background:
         radial-gradient(circle at 35% 30%, #ffffff 0%, #edf3ff 22%, #cad5e8 62%, #8a97ab 100%);
     box-shadow:
-        inset 0 2px 3px rgba(255,255,255,0.7),
+        inset 0 2px 3px rgba(255,255,255,0.72),
         0 6px 14px rgba(0,0,0,0.24);
     border: 4px solid rgba(255,255,255,0.82);
-    z-index: 3;
+    z-index: 4;
 }
 
 .wheel-label {
@@ -219,52 +221,72 @@
     text-shadow:
         0 2px 8px rgba(0,0,0,0.35),
         0 0 10px rgba(255,255,255,0.08);
+    transition: transform 0.18s ease, filter 0.18s ease, text-shadow 0.18s ease;
+}
+
+.wheel-label-active {
+    filter: brightness(1.18);
+    text-shadow:
+        0 2px 10px rgba(0,0,0,0.36),
+        0 0 18px rgba(255,255,255,0.18),
+        0 0 26px rgba(255,218,90,0.22);
 }
 
 .wheel-pointer {
     position: absolute;
-    top: -6px;
+    top: -8px;
     left: 50%;
     width: 0;
     height: 0;
     transform: translateX(-50%);
-    border-left: 16px solid transparent;
-    border-right: 16px solid transparent;
+    border-left: 18px solid transparent;
+    border-right: 18px solid transparent;
     border-top: 0;
-    border-bottom: 28px solid #ffffff;
-    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.30));
-    z-index: 5;
+    border-bottom: 32px solid #ffffff;
+    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.30));
+    z-index: 6;
 }
 
 .wheel-pointer::after {
     content: "";
     position: absolute;
-    left: -7px;
-    top: 3px;
+    left: -8px;
+    top: 4px;
     width: 0;
     height: 0;
-    border-left: 7px solid transparent;
-    border-right: 7px solid transparent;
-    border-bottom: 14px solid #ffcb2f;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 16px solid #ffcf35;
+}
+
+.wheel-pointer::before {
+    content: "";
+    position: absolute;
+    left: -10px;
+    top: 22px;
+    width: 20px;
+    height: 10px;
+    background: rgba(255,255,255,0.84);
+    border-radius: 0 0 10px 10px;
 }
 
 @keyframes wheelIdleGlow {
     0% {
         box-shadow:
             inset 0 0 0 6px rgba(255,255,255,0.12),
-            0 18px 36px rgba(0,0,0,0.32),
+            0 18px 38px rgba(0,0,0,0.34),
             0 0 18px rgba(255,255,255,0.06);
     }
     50% {
         box-shadow:
             inset 0 0 0 6px rgba(255,255,255,0.12),
-            0 18px 36px rgba(0,0,0,0.32),
-            0 0 32px rgba(255,255,255,0.12);
+            0 18px 38px rgba(0,0,0,0.34),
+            0 0 34px rgba(255,255,255,0.12);
     }
     100% {
         box-shadow:
             inset 0 0 0 6px rgba(255,255,255,0.12),
-            0 18px 36px rgba(0,0,0,0.32),
+            0 18px 38px rgba(0,0,0,0.34),
             0 0 18px rgba(255,255,255,0.06);
     }
 }
@@ -300,9 +322,9 @@
 
 .minigame-box button:disabled {
     background: linear-gradient(180deg, #6e5a1f 0%, #4e3f12 100%);
-    color: rgba(255,255,255,0.68);
-    box-shadow: none;
-    opacity: 0.78;
+    color: rgba(255,255,255,0.72);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+    opacity: 0.88;
     cursor: not-allowed;
     filter: none;
 }
@@ -356,28 +378,28 @@
     }
 
     .wheel-container {
-        width: 250px;
-        height: 250px;
+        width: 256px;
+        height: 256px;
     }
 
     .wheel-container::before {
-        width: 292px;
-        height: 292px;
+        width: 300px;
+        height: 300px;
     }
 
     .wheel-container::after {
-        width: 270px;
-        height: 270px;
+        width: 276px;
+        height: 276px;
     }
 
     .wheel::after {
-        width: 64px;
-        height: 64px;
+        width: 66px;
+        height: 66px;
     }
 
     .wheel-label {
         font-size: 16px !important;
-        width: 68px !important;
+        width: 70px !important;
     }
 
     .minigame-name {
@@ -391,18 +413,18 @@
     }
 
     .wheel-container {
-        width: 228px;
-        height: 228px;
+        width: 232px;
+        height: 232px;
     }
 
     .wheel-container::before {
-        width: 264px;
-        height: 264px;
+        width: 268px;
+        height: 268px;
     }
 
     .wheel-container::after {
-        width: 244px;
-        height: 244px;
+        width: 248px;
+        height: 248px;
     }
 
     .wheel {
@@ -410,19 +432,24 @@
     }
 
     .wheel::after {
-        width: 56px;
-        height: 56px;
+        width: 58px;
+        height: 58px;
     }
 
     .wheel-pointer {
-        border-left-width: 14px;
-        border-right-width: 14px;
-        border-bottom-width: 24px;
+        border-left-width: 15px;
+        border-right-width: 15px;
+        border-bottom-width: 26px;
+    }
+
+    .wheel-pointer::before {
+        left: -9px;
+        width: 18px;
     }
 
     .wheel-label {
         font-size: 14px !important;
-        width: 60px !important;
+        width: 62px !important;
     }
 
     .memory-grid {
