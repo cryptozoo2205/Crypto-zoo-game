@@ -22,19 +22,99 @@ CryptoZoo.config = {
     },
 
     expeditions: [
-        { id: "forest", name: "Magic Forest", duration: 300, baseCoins: 900, baseGems: 1, rareChance: 0.22, epicChance: 0.06, unlockLevel: 1 },
-        { id: "river", name: "Crystal River", duration: 900, baseCoins: 2500, baseGems: 2, rareChance: 0.25, epicChance: 0.07, unlockLevel: 3 },
-        { id: "volcano", name: "Golden Volcano", duration: 1800, baseCoins: 6500, baseGems: 3, rareChance: 0.28, epicChance: 0.09, unlockLevel: 5 },
-        { id: "canyon", name: "Sunstone Canyon", duration: 3600, baseCoins: 17000, baseGems: 5, rareChance: 0.31, epicChance: 0.10, unlockLevel: 7 },
-        { id: "glacier", name: "Frozen Glacier", duration: 7200, baseCoins: 43000, baseGems: 8, rareChance: 0.34, epicChance: 0.11, unlockLevel: 10 },
-        { id: "jungle", name: "Emerald Jungle", duration: 14400, baseCoins: 105000, baseGems: 13, rareChance: 0.37, epicChance: 0.13, unlockLevel: 14 },
-        { id: "temple", name: "Ancient Temple", duration: 28800, baseCoins: 270000, baseGems: 22, rareChance: 0.40, epicChance: 0.14, unlockLevel: 18 },
-        { id: "oasis", name: "Royal Oasis", duration: 43200, baseCoins: 520000, baseGems: 32, rareChance: 0.42, epicChance: 0.15, unlockLevel: 22 },
-        { id: "kingdom", name: "Lost Beast Kingdom", duration: 86400, baseCoins: 1200000, baseGems: 55, rareChance: 0.44, epicChance: 0.17, unlockLevel: 28 }
+        {
+            id: "forest",
+            name: "Magic Forest",
+            duration: 5 * 60,
+            baseCoins: 450,
+            baseGems: 0,
+            rareChance: 0.18,
+            epicChance: 0.04,
+            unlockLevel: 1
+        },
+        {
+            id: "river",
+            name: "Crystal River",
+            duration: 15 * 60,
+            baseCoins: 1200,
+            baseGems: 0,
+            rareChance: 0.20,
+            epicChance: 0.05,
+            unlockLevel: 3
+        },
+        {
+            id: "volcano",
+            name: "Golden Volcano",
+            duration: 30 * 60,
+            baseCoins: 2800,
+            baseGems: 1,
+            rareChance: 0.22,
+            epicChance: 0.06,
+            unlockLevel: 5
+        },
+        {
+            id: "canyon",
+            name: "Sunstone Canyon",
+            duration: 60 * 60,
+            baseCoins: 6500,
+            baseGems: 1,
+            rareChance: 0.24,
+            epicChance: 0.07,
+            unlockLevel: 7
+        },
+        {
+            id: "glacier",
+            name: "Frozen Glacier",
+            duration: 2 * 60 * 60,
+            baseCoins: 15000,
+            baseGems: 1,
+            rareChance: 0.26,
+            epicChance: 0.08,
+            unlockLevel: 10
+        },
+        {
+            id: "jungle",
+            name: "Emerald Jungle",
+            duration: 4 * 60 * 60,
+            baseCoins: 32000,
+            baseGems: 2,
+            rareChance: 0.28,
+            epicChance: 0.09,
+            unlockLevel: 14
+        },
+        {
+            id: "temple",
+            name: "Ancient Temple",
+            duration: 8 * 60 * 60,
+            baseCoins: 70000,
+            baseGems: 2,
+            rareChance: 0.30,
+            epicChance: 0.10,
+            unlockLevel: 18
+        },
+        {
+            id: "oasis",
+            name: "Royal Oasis",
+            duration: 12 * 60 * 60,
+            baseCoins: 115000,
+            baseGems: 3,
+            rareChance: 0.32,
+            epicChance: 0.11,
+            unlockLevel: 22
+        },
+        {
+            id: "kingdom",
+            name: "Lost Beast Kingdom",
+            duration: 24 * 60 * 60,
+            baseCoins: 260000,
+            baseGems: 4,
+            rareChance: 0.35,
+            epicChance: 0.12,
+            unlockLevel: 28
+        }
     ],
 
     shopItems: [
-        /* CLICK */
         {
             id: "click1",
             name: "Click Upgrade I",
@@ -81,7 +161,6 @@ CryptoZoo.config = {
             clickValueBonus: 8
         },
 
-        /* INCOME */
         {
             id: "income1",
             name: "Zoo Manager",
@@ -128,7 +207,6 @@ CryptoZoo.config = {
             incomeBonus: 1
         },
 
-        /* EXPEDITIONS */
         {
             id: "expedition1",
             name: "Better Expedition Gear",
@@ -157,7 +235,6 @@ CryptoZoo.config = {
             expeditionBonus: 1
         },
 
-        /* OFFLINE */
         {
             id: "offline10m",
             name: "Offline Boost 10m",
@@ -195,7 +272,6 @@ CryptoZoo.config = {
             offlineDurationSeconds: 5 * 60 * 60
         },
 
-        /* GEM SHOP - NOWE */
         {
             id: "extra_spin",
             name: "Extra Spin",
