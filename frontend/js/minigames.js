@@ -6,9 +6,10 @@ CryptoZoo.minigames = {
     memoryFlipped: [],
     memoryMatched: 0,
     memoryLocked: false,
+    cooldownTimerStarted: false,
 
-    wheelCooldownSeconds: 60 * 30,
-    memoryCooldownSeconds: 60 * 15,
+    wheelCooldownSeconds: 30 * 60,
+    memoryCooldownSeconds: 15 * 60,
 
     isMiniGamesVisible() {
         const screen = document.getElementById("screen-minigames");
@@ -17,114 +18,120 @@ CryptoZoo.minigames = {
 
     ensureState() {
         CryptoZoo.state = CryptoZoo.state || {};
+        CryptoZoo.state.minigames = CryptoZoo.state.minigames || {};
 
-        if (typeof CryptoZoo.state.wheelLastPlayedAt !== "number") {
-            CryptoZoo.state.wheelLastPlayedAt = 0;
-        }
+        CryptoZoo.state.minigames.wheelCooldownUntil =
+            Number(CryptoZoo.state.minigames.wheelCooldownUntil) || 0;
 
-        if (typeof CryptoZoo.state.memoryLastPlayedAt !== "number") {
-            CryptoZoo.state.memoryLastPlayedAt = 0;
-        }
+        CryptoZoo.state.minigames.memoryCooldownUntil =
+            Number(CryptoZoo.state.minigames.memoryCooldownUntil) || 0;
     },
 
-    getWheelRewards() {
+    getWheelCooldownLeft() {
+        this.ensureState();
+        return Math.max(
+            0,
+            Math.ceil(
+                ((Number(CryptoZoo.state.minigames.wheelCooldownUntil) || 0) - Date.now()) / 1000
+            )
+        );
+    },
+
+    getMemoryCooldownLeft() {
+        this.ensureState();
+        return Math.max(
+            0,
+            Math.ceil(
+                ((Number(CryptoZoo.state.minigames.memoryCooldownUntil) || 0) - Date.now()) / 1000
+            )
+        );
+    },
+
+    isWheelReady() {
+        return this.getWheelCooldownLeft() <= 0 && !this.wheelSpinning;
+    },
+
+    isMemoryReady() {
+        return this.getMemoryCooldownLeft() <= 0;
+    },
+
+    startWheelCooldown() {
+        this.ensureState();
+        CryptoZoo.state.minigames.wheelCooldownUntil =
+            Date.now() + this.wheelCooldownSeconds * 1000;
+    },
+
+    startMemoryCooldown() {
+        this.ensureState();
+        CryptoZoo.state.minigames.memoryCooldownUntil =
+            Date.now() + this.memoryCooldownSeconds * 1000;
+    },
+
+    formatCooldown(seconds) {
+        if (CryptoZoo.ui?.formatTimeLeft) {
+            return CryptoZoo.ui.formatTimeLeft(seconds);
+        }
+
+        const safe = Math.max(0, Number(seconds) || 0);
+        const hours = Math.floor(safe / 3600);
+        const minutes = Math.floor((safe % 3600) / 60);
+        const secs = safe % 60;
+
         return [
-            { label: "1000 Coins", shortLabel: "1000C", type: "coins", value: 1000, angle: 30 },
-            { label: "2 Gems", shortLabel: "2G", type: "gems", value: 2, angle: 90 },
-            { label: "1 Reward", shortLabel: "1R", type: "reward", value: 1, angle: 150 },
-            { label: "2500 Coins", shortLabel: "2500C", type: "coins", value: 2500, angle: 210 },
-            { label: "1 Gem", shortLabel: "1G", type: "gems", value: 1, angle: 270 },
-            { label: "5000 Coins", shortLabel: "5000C", type: "coins", value: 5000, angle: 330 }
-        ];
+            String(hours).padStart(2, "0"),
+            String(minutes).padStart(2, "0"),
+            String(secs).padStart(2, "0")
+        ].join(":");
     },
 
-    getWheelTimeLeftSeconds() {
+    renderCooldowns() {
         this.ensureState();
 
-        const lastPlayedAt = Math.max(0, Number(CryptoZoo.state.wheelLastPlayedAt) || 0);
-        if (!lastPlayedAt) return 0;
-
-        const nextAvailableAt = lastPlayedAt + this.wheelCooldownSeconds * 1000;
-        return Math.max(0, Math.ceil((nextAvailableAt - Date.now()) / 1000));
-    },
-
-    canSpinWheel() {
-        return this.getWheelTimeLeftSeconds() <= 0;
-    },
-
-    getMemoryTimeLeftSeconds() {
-        this.ensureState();
-
-        const lastPlayedAt = Math.max(0, Number(CryptoZoo.state.memoryLastPlayedAt) || 0);
-        if (!lastPlayedAt) return 0;
-
-        const nextAvailableAt = lastPlayedAt + this.memoryCooldownSeconds * 1000;
-        return Math.max(0, Math.ceil((nextAvailableAt - Date.now()) / 1000));
-    },
-
-    canStartMemory() {
-        return this.getMemoryTimeLeftSeconds() <= 0;
-    },
-
-    renderWheelLabels() {
-        const wheel = document.getElementById("wheel");
-        if (!wheel) return;
-
-        const rewards = this.getWheelRewards();
-
-        wheel.innerHTML = rewards.map((reward, index) => {
-            const rotation = index * 60;
-            return `
-                <div
-                    style="
-                        position:absolute;
-                        left:50%;
-                        top:50%;
-                        width:0;
-                        height:0;
-                        transform: translate(-50%, -50%) rotate(${rotation}deg);
-                        pointer-events:none;
-                    "
-                >
-                    <div
-                        style="
-                            transform: translateY(-98px) rotate(-${rotation}deg);
-                            min-width:54px;
-                            text-align:center;
-                            font-size:11px;
-                            font-weight:900;
-                            color:#ffffff;
-                            text-shadow:0 1px 4px rgba(0,0,0,0.55);
-                            letter-spacing:0.2px;
-                        "
-                    >
-                        ${reward.shortLabel}
-                    </div>
-                </div>
-            `;
-        }).join("");
-    },
-
-    updateWheelUI() {
         const spinBtn = document.getElementById("spinWheelBtn");
         const rewardText = document.getElementById("wheelRewardText");
-        const left = this.getWheelTimeLeftSeconds();
+        const memoryBtn = document.getElementById("startMemoryBtn");
+        const memoryStatus = document.getElementById("memoryStatus");
+
+        const wheelLeft = this.getWheelCooldownLeft();
+        const memoryLeft = this.getMemoryCooldownLeft();
 
         if (spinBtn) {
             if (this.wheelSpinning) {
                 spinBtn.disabled = true;
                 spinBtn.textContent = "Spinning...";
-            } else if (left > 0) {
+            } else if (wheelLeft > 0) {
                 spinBtn.disabled = true;
-                spinBtn.textContent = `Wheel za ${CryptoZoo.ui?.formatTimeLeft?.(left) || left + "s"}`;
+                spinBtn.textContent = `Wheel CD ${this.formatCooldown(wheelLeft)}`;
             } else {
                 spinBtn.disabled = false;
                 spinBtn.textContent = "Spin Wheel";
             }
         }
 
-        if (rewardText && left > 0 && !this.wheelSpinning && !rewardText.dataset.keepResult) {
-            rewardText.textContent = `Następny spin za ${CryptoZoo.ui?.formatTimeLeft?.(left) || left + "s"}`;
+        if (rewardText && !this.wheelSpinning) {
+            if (wheelLeft > 0) {
+                rewardText.textContent = `Next spin in ${this.formatCooldown(wheelLeft)}`;
+            } else if (!rewardText.dataset.rewardLocked) {
+                rewardText.textContent = "Wheel ready";
+            }
+        }
+
+        if (memoryBtn) {
+            if (memoryLeft > 0) {
+                memoryBtn.disabled = true;
+                memoryBtn.textContent = `Memory CD ${this.formatCooldown(memoryLeft)}`;
+            } else {
+                memoryBtn.disabled = false;
+                memoryBtn.textContent = "Start Memory";
+            }
+        }
+
+        if (memoryStatus && this.memoryMatched !== this.memoryCards.length) {
+            if (memoryLeft > 0 && this.memoryCards.length === 0) {
+                memoryStatus.textContent = `Memory ready in ${this.formatCooldown(memoryLeft)}`;
+            } else if (memoryLeft <= 0 && this.memoryCards.length === 0) {
+                memoryStatus.textContent = "Find all pairs";
+            }
         }
     },
 
@@ -132,10 +139,10 @@ CryptoZoo.minigames = {
         if (!this.isMiniGamesVisible()) return;
         if (this.wheelSpinning) return;
 
-        const left = this.getWheelTimeLeftSeconds();
-        if (left > 0) {
-            CryptoZoo.ui?.showToast?.(`Koło Fortuny za ${CryptoZoo.ui?.formatTimeLeft?.(left) || left + "s"}`);
-            this.updateWheelUI();
+        const wheelLeft = this.getWheelCooldownLeft();
+        if (wheelLeft > 0) {
+            CryptoZoo.ui?.showToast?.(`Wheel ready in ${this.formatCooldown(wheelLeft)}`);
+            this.renderCooldowns();
             return;
         }
 
@@ -144,24 +151,28 @@ CryptoZoo.minigames = {
 
         if (!wheel) return;
 
-        this.ensureState();
         this.wheelSpinning = true;
 
         if (rewardText) {
-            rewardText.textContent = "Koło się kręci...";
-            rewardText.dataset.keepResult = "0";
+            rewardText.textContent = "";
+            rewardText.dataset.rewardLocked = "1";
         }
 
-        const rewards = this.getWheelRewards();
-        const reward = rewards[Math.floor(Math.random() * rewards.length)];
+        const rewards = [
+            { label: "1000 Coins", type: "coins", value: 1000, angle: 30 },
+            { label: "2 Gems", type: "gems", value: 2, angle: 90 },
+            { label: "1 Reward", type: "reward", value: 1, angle: 150 },
+            { label: "2500 Coins", type: "coins", value: 2500, angle: 210 },
+            { label: "1 Gem", type: "gems", value: 1, angle: 270 },
+            { label: "5000 Coins", type: "coins", value: 5000, angle: 330 }
+        ];
 
-        const spins = 360 * (7 + Math.floor(Math.random() * 3));
+        const reward = rewards[Math.floor(Math.random() * rewards.length)];
+        const spins = 360 * (4 + Math.floor(Math.random() * 3));
         const finalDeg = spins + (360 - reward.angle);
 
-        wheel.style.transition = "transform 6.8s cubic-bezier(0.12, 0.85, 0.14, 1)";
         wheel.style.transform = `rotate(${finalDeg}deg)`;
-
-        this.updateWheelUI();
+        this.renderCooldowns();
 
         setTimeout(() => {
             CryptoZoo.state = CryptoZoo.state || {};
@@ -175,14 +186,15 @@ CryptoZoo.minigames = {
             }
 
             if (reward.type === "reward") {
-                CryptoZoo.state.rewardBalance = (Number(CryptoZoo.state.rewardBalance) || 0) + reward.value;
+                CryptoZoo.state.rewardBalance =
+                    (Number(CryptoZoo.state.rewardBalance) || 0) + reward.value;
             }
 
-            CryptoZoo.state.wheelLastPlayedAt = Date.now();
+            this.startWheelCooldown();
 
             if (rewardText) {
                 rewardText.textContent = "Reward: " + reward.label;
-                rewardText.dataset.keepResult = "1";
+                rewardText.dataset.rewardLocked = "";
             }
 
             CryptoZoo.ui?.showToast?.(reward.label);
@@ -190,15 +202,8 @@ CryptoZoo.minigames = {
             CryptoZoo.api?.savePlayer?.();
 
             this.wheelSpinning = false;
-            this.updateWheelUI();
-
-            setTimeout(() => {
-                if (rewardText) {
-                    rewardText.dataset.keepResult = "0";
-                    this.updateWheelUI();
-                }
-            }, 3000);
-        }, 6900);
+            this.renderCooldowns();
+        }, 4100);
     },
 
     createMemoryDeck() {
@@ -242,36 +247,13 @@ CryptoZoo.minigames = {
         });
     },
 
-    updateMemoryUI() {
-        const btn = document.getElementById("startMemoryBtn");
-        const status = document.getElementById("memoryStatus");
-        const left = this.getMemoryTimeLeftSeconds();
-
-        if (btn) {
-            if (this.memoryCards.length > 0 && this.memoryMatched < this.memoryCards.length) {
-                btn.disabled = true;
-                btn.textContent = "Memory trwa...";
-            } else if (left > 0) {
-                btn.disabled = true;
-                btn.textContent = `Memory za ${CryptoZoo.ui?.formatTimeLeft?.(left) || left + "s"}`;
-            } else {
-                btn.disabled = false;
-                btn.textContent = "Start Memory";
-            }
-        }
-
-        if (status && left > 0 && !(this.memoryCards.length > 0 && this.memoryMatched < this.memoryCards.length)) {
-            status.textContent = `Następna gra za ${CryptoZoo.ui?.formatTimeLeft?.(left) || left + "s"}`;
-        }
-    },
-
     startMemory() {
         if (!this.isMiniGamesVisible()) return;
 
-        const left = this.getMemoryTimeLeftSeconds();
-        if (left > 0) {
-            CryptoZoo.ui?.showToast?.(`Memory za ${CryptoZoo.ui?.formatTimeLeft?.(left) || left + "s"}`);
-            this.updateMemoryUI();
+        const memoryLeft = this.getMemoryCooldownLeft();
+        if (memoryLeft > 0) {
+            CryptoZoo.ui?.showToast?.(`Memory ready in ${this.formatCooldown(memoryLeft)}`);
+            this.renderCooldowns();
             return;
         }
 
@@ -282,20 +264,19 @@ CryptoZoo.minigames = {
 
         const status = document.getElementById("memoryStatus");
         if (status) {
-            status.textContent = "Znajdź wszystkie pary";
+            status.textContent = "Find all pairs";
         }
 
         this.renderMemory();
-        this.updateMemoryUI();
+        this.renderCooldowns();
     },
 
-    finishMemoryWithReward() {
-        CryptoZoo.ensureState = CryptoZoo.ensureState || function () {};
+    finishMemoryGame() {
         CryptoZoo.state = CryptoZoo.state || {};
-
         CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + 3000;
         CryptoZoo.state.gems = (Number(CryptoZoo.state.gems) || 0) + 1;
-        CryptoZoo.state.memoryLastPlayedAt = Date.now();
+
+        this.startMemoryCooldown();
 
         const status = document.getElementById("memoryStatus");
         if (status) {
@@ -305,12 +286,13 @@ CryptoZoo.minigames = {
         CryptoZoo.ui?.showToast?.("Memory reward: 3000 Coins + 1 Gem");
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
-        this.updateMemoryUI();
+        this.renderCooldowns();
     },
 
     flipMemoryCard(cardId) {
         if (!this.isMiniGamesVisible()) return;
         if (this.memoryLocked) return;
+        if (!this.isMemoryReady() && this.memoryCards.length === 0) return;
 
         const card = this.memoryCards.find((c) => c.id === cardId);
 
@@ -335,7 +317,7 @@ CryptoZoo.minigames = {
             this.renderMemory();
 
             if (this.memoryMatched === this.memoryCards.length) {
-                this.finishMemoryWithReward();
+                this.finishMemoryGame();
             }
         } else {
             setTimeout(() => {
@@ -361,23 +343,19 @@ CryptoZoo.minigames = {
         }
     },
 
-    startUiTimer() {
-        if (this.uiTimerStarted) return;
-        this.uiTimerStarted = true;
+    startCooldownTimer() {
+        if (this.cooldownTimerStarted) return;
+        this.cooldownTimerStarted = true;
 
         setInterval(() => {
-            if (!this.isMiniGamesVisible()) return;
-            this.updateWheelUI();
-            this.updateMemoryUI();
+            this.renderCooldowns();
         }, 1000);
     },
 
     init() {
         this.ensureState();
         this.bindButtons();
-        this.renderWheelLabels();
-        this.updateWheelUI();
-        this.updateMemoryUI();
-        this.startUiTimer();
+        this.startCooldownTimer();
+        this.renderCooldowns();
     }
 };
