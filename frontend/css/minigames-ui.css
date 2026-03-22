@@ -1,0 +1,225 @@
+/* =========================
+   MINI GAMES MAIN
+========================= */
+
+.minigames-card {
+    background:
+        radial-gradient(circle at 20% 20%, rgba(80,180,255,0.12) 0%, transparent 30%),
+        radial-gradient(circle at 80% 10%, rgba(255,200,80,0.12) 0%, transparent 25%),
+        linear-gradient(180deg, rgba(18,28,48,0.96) 0%, rgba(10,17,31,0.96) 100%);
+    border-radius: 22px;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow:
+        0 20px 40px rgba(0,0,0,0.25),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+    padding: 16px;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.minigames-header {
+    margin-bottom: 16px;
+}
+
+.minigames-title {
+    font-size: 22px;
+    font-weight: 900;
+    color: #ffffff;
+}
+
+.minigames-subtitle {
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+    margin-top: 4px;
+}
+
+/* =========================
+   GAME BOX
+========================= */
+
+.minigame-box {
+    margin-top: 14px;
+    padding: 14px;
+    border-radius: 18px;
+    background:
+        linear-gradient(180deg, rgba(30,40,70,0.95) 0%, rgba(15,22,40,0.96) 100%);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow:
+        0 12px 24px rgba(0,0,0,0.22),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+/* =========================
+   GAME HEADER
+========================= */
+
+.minigame-box-header {
+    margin-bottom: 10px;
+}
+
+.minigame-name {
+    font-size: 18px;
+    font-weight: 900;
+    color: #fff;
+}
+
+.minigame-desc {
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+    margin-top: 2px;
+}
+
+/* =========================
+   STATUS TEXT
+========================= */
+
+.minigame-status {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+/* =========================
+   WHEEL
+========================= */
+
+.wheel-container {
+    position: relative;
+    margin: 12px auto;
+    width: 260px;
+    height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wheel {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 10px solid #fff;
+    background:
+        conic-gradient(
+            #ffcc00 0deg 60deg,
+            #4caf50 60deg 120deg,
+            #03a9f4 120deg 180deg,
+            #ff5722 180deg 240deg,
+            #9c27b0 240deg 300deg,
+            #8bc34a 300deg 360deg
+        );
+    box-shadow:
+        0 15px 30px rgba(0,0,0,0.3),
+        0 0 30px rgba(255,255,255,0.08);
+}
+
+/* glow */
+.wheel::before {
+    content: "";
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%);
+    filter: blur(10px);
+    z-index: 0;
+}
+
+/* labels */
+.wheel::after {
+    content: "1000C   2G   1R   2500C   1G   5000C";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 22px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 900;
+    letter-spacing: 10px;
+    transform: rotate(90deg);
+}
+
+/* pointer */
+.wheel-pointer {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 26px;
+    z-index: 5;
+}
+
+/* =========================
+   BUTTON
+========================= */
+
+.minigame-box button {
+    width: 100%;
+    margin-top: 10px;
+    padding: 14px;
+    border-radius: 14px;
+    border: none;
+    font-weight: 900;
+    font-size: 15px;
+    cursor: pointer;
+    background: linear-gradient(180deg, #ffe27a, #ffbf00);
+    box-shadow:
+        0 8px 16px rgba(255,191,0,0.25),
+        inset 0 1px 0 rgba(255,255,255,0.4);
+}
+
+.minigame-box button:active {
+    transform: scale(0.97);
+}
+
+/* =========================
+   MEMORY GRID
+========================= */
+
+.memory-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.memory-grid button {
+    aspect-ratio: 1/1;
+    border-radius: 16px;
+    border: none;
+    font-size: 28px;
+    font-weight: 900;
+    cursor: pointer;
+    background: linear-gradient(180deg,#4a5a7a,#2f3d5a);
+    box-shadow:
+        0 8px 16px rgba(0,0,0,0.25),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.memory-grid button:active {
+    transform: scale(0.95);
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 600px) {
+    .wheel-container {
+        width: 220px;
+        height: 220px;
+    }
+
+    .minigame-name {
+        font-size: 16px;
+    }
+
+    .minigames-title {
+        font-size: 20px;
+    }
+}
