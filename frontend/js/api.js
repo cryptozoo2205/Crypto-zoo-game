@@ -138,8 +138,10 @@ window.CryptoZoo.api = {
             expedition: null,
             minigames: {
                 wheelCooldownUntil: 0,
-                memoryCooldownUntil: 0
-            }
+                memoryCooldownUntil: 0,
+                extraWheelSpins: 0
+            },
+            shopPurchases: {}
         };
     },
 
@@ -196,8 +198,22 @@ window.CryptoZoo.api = {
     normalizeMinigames(rawMinigames) {
         return {
             wheelCooldownUntil: Math.max(0, Number(rawMinigames?.wheelCooldownUntil) || 0),
-            memoryCooldownUntil: Math.max(0, Number(rawMinigames?.memoryCooldownUntil) || 0)
+            memoryCooldownUntil: Math.max(0, Number(rawMinigames?.memoryCooldownUntil) || 0),
+            extraWheelSpins: Math.max(0, Number(rawMinigames?.extraWheelSpins) || 0)
         };
+    },
+
+    normalizeShopPurchases(rawShopPurchases) {
+        const result = {};
+        const source = rawShopPurchases && typeof rawShopPurchases === "object"
+            ? rawShopPurchases
+            : {};
+
+        Object.keys(source).forEach((key) => {
+            result[key] = Math.max(0, Number(source[key]) || 0);
+        });
+
+        return result;
     },
 
     recalculateZooIncomeFromAnimals(animals) {
@@ -226,16 +242,15 @@ window.CryptoZoo.api = {
             data.boost2xActiveUntil ?? base.boost2xActiveUntil
         );
         const derivedZooIncome = this.recalculateZooIncomeFromAnimals(animals);
-        const minigames = this.normalizeMinigames(data.minigames || {});
 
         return {
             ...base,
             ...data,
             coins: Math.max(0, Number(data.coins ?? base.coins) || 0),
             gems: Math.max(0, Number(data.gems ?? base.gems) || 0),
-            rewardBalance: Math.max(0, Number(data.rewardBalance ?? base.rewardBalance) || 0),
-            rewardWallet: Math.max(0, Number(data.rewardWallet ?? base.rewardWallet) || 0),
-            withdrawPending: Math.max(0, Number(data.withdrawPending ?? base.withdrawPending) || 0),
+            rewardBalance: Number((Math.max(0, Number(data.rewardBalance ?? base.rewardBalance) || 0)).toFixed(3)),
+            rewardWallet: Number((Math.max(0, Number(data.rewardWallet ?? base.rewardWallet) || 0)).toFixed(3)),
+            withdrawPending: Number((Math.max(0, Number(data.withdrawPending ?? base.withdrawPending) || 0)).toFixed(3)),
             level: Math.max(1, Number(data.level ?? base.level) || 1),
             xp: Math.max(0, Number(data.xp ?? base.xp) || 0),
             coinsPerClick: Math.max(1, Number(data.coinsPerClick ?? base.coinsPerClick) || 1),
@@ -256,7 +271,8 @@ window.CryptoZoo.api = {
                 legendary: Math.max(0, Number(data.boxes?.legendary) || 0)
             },
             expedition: this.normalizeExpedition(data.expedition),
-            minigames
+            minigames: this.normalizeMinigames(data.minigames),
+            shopPurchases: this.normalizeShopPurchases(data.shopPurchases)
         };
     },
 
@@ -297,39 +313,9 @@ window.CryptoZoo.api = {
             animals: state.animals,
             boxes: state.boxes,
             expedition: state.expedition,
-            minigames: state.minigames
+            minigames: state.minigames,
+            shopPurchases: state.shopPurchases
         };
-    },
-
-    readLocalSave() {
-        const localSave = localStorage.getItem("cryptozoo_save");
-        if (!localSave) {
-            return this.normalizeState(this.getDefaultState());
-        }
-
-        try {
-            return this.normalizeState(JSON.parse(localSave));
-        } catch (error) {
-            console.error("Local save parse error:", error);
-            return this.normalizeState(this.getDefaultState());
-        }
-    },
-
-    writeLocalSave(state) {
-        const safeState = this.normalizeState(state);
-        localStorage.setItem("cryptozoo_save", JSON.stringify(safeState));
-        return safeState;
-    },
-
-    init() {
-        const localState = this.readLocalSave();
-        CryptoZoo.state = localState;
-
-        if (CryptoZoo.gameplay?.recalculateProgress) {
-            CryptoZoo.gameplay.recalculateProgress();
-        }
-
-        return CryptoZoo.state;
     },
 
     async request(path, options = {}) {
@@ -345,7 +331,18 @@ window.CryptoZoo.api = {
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status} for ${finalUrl}`);
+            let errorMessage = `HTTP ${response.status} for ${finalUrl}`;
+
+            try {
+                const errorJson = await response.json();
+                if (errorJson?.error) {
+                    errorMessage = errorJson.error;
+                }
+            } catch (error) {
+                // ignore parse error
+            }
+
+            throw new Error(errorMessage);
         }
 
         const contentType = response.headers.get("content-type") || "";
@@ -398,7 +395,6 @@ window.CryptoZoo.api = {
                 CryptoZoo.gameplay.recalculateProgress();
             }
 
-            this.writeLocalSave(CryptoZoo.state);
             return CryptoZoo.state;
         }
 
@@ -406,7 +402,19 @@ window.CryptoZoo.api = {
             loaded = await this.loadPlayerFromBackend();
         } catch (error) {
             console.warn("Backend load failed, fallback to local save:", error);
-            loaded = this.readLocalSave();
+
+            const localSave = localStorage.getItem("cryptozoo_save");
+
+            if (localSave) {
+                try {
+                    loaded = this.normalizeState(JSON.parse(localSave));
+                } catch (parseError) {
+                    console.error("Local load error:", parseError);
+                    loaded = this.normalizeState(CryptoZoo.state);
+                }
+            } else {
+                loaded = this.normalizeState(CryptoZoo.state);
+            }
         }
 
         CryptoZoo.state = loaded;
@@ -415,7 +423,7 @@ window.CryptoZoo.api = {
             CryptoZoo.gameplay.recalculateProgress();
         }
 
-        this.writeLocalSave(CryptoZoo.state);
+        localStorage.setItem("cryptozoo_save", JSON.stringify(CryptoZoo.state));
         return CryptoZoo.state;
     },
 
@@ -429,7 +437,6 @@ window.CryptoZoo.api = {
                 CryptoZoo.gameplay.recalculateProgress();
             }
 
-            this.writeLocalSave(CryptoZoo.state);
             return CryptoZoo.state;
         }
 
@@ -444,7 +451,7 @@ window.CryptoZoo.api = {
             CryptoZoo.gameplay.recalculateProgress();
         }
 
-        this.writeLocalSave(CryptoZoo.state);
+        localStorage.setItem("cryptozoo_save", JSON.stringify(CryptoZoo.state));
         return CryptoZoo.state;
     },
 
@@ -515,5 +522,48 @@ window.CryptoZoo.api = {
                 }
             ];
         }
+    },
+
+    async createWithdrawRequest(amount) {
+        const safeAmount = Number((Math.max(0, Number(amount) || 0)).toFixed(3));
+
+        const result = await this.request("/withdraw/request", {
+            method: "POST",
+            body: JSON.stringify({
+                telegramId: this.getPlayerId(),
+                username: this.getUsername(),
+                amount: safeAmount
+            })
+        });
+
+        const playerPayload =
+            result?.player ||
+            result?.data?.player ||
+            null;
+
+        if (playerPayload) {
+            CryptoZoo.state = this.normalizeState({
+                ...(CryptoZoo.state || {}),
+                ...playerPayload
+            });
+
+            if (CryptoZoo.gameplay?.recalculateProgress) {
+                CryptoZoo.gameplay.recalculateProgress();
+            }
+
+            localStorage.setItem("cryptozoo_save", JSON.stringify(CryptoZoo.state));
+        }
+
+        return result;
+    },
+
+    async loadWithdrawRequests() {
+        const telegramId = this.getPlayerId();
+
+        const result = await this.request(`/withdraw/${encodeURIComponent(telegramId)}`, {
+            method: "GET"
+        });
+
+        return Array.isArray(result?.requests) ? result.requests : [];
     }
 };
