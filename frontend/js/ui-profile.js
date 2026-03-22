@@ -3,6 +3,8 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.uiProfile = {
     modalOpen: false,
     minWithdrawReward: 10,
+    withdrawHistory: [],
+    withdrawHistoryLoading: false,
 
     getPlayerName() {
         const username =
@@ -86,6 +88,177 @@ CryptoZoo.uiProfile = {
 
     canWithdraw() {
         return this.getRewardWalletValue() >= this.minWithdrawReward;
+    },
+
+    formatHistoryDate(timestamp) {
+        const safe = Number(timestamp) || 0;
+        if (!safe) return "--";
+
+        const date = new Date(safe);
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, "0");
+        const dd = String(date.getDate()).padStart(2, "0");
+        const hh = String(date.getHours()).padStart(2, "0");
+        const min = String(date.getMinutes()).padStart(2, "0");
+
+        return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+    },
+
+    getStatusLabel(status) {
+        const safe = String(status || "").toLowerCase();
+
+        if (safe === "approved") return "Approved";
+        if (safe === "rejected") return "Rejected";
+        return "Pending";
+    },
+
+    getStatusStyle(status) {
+        const safe = String(status || "").toLowerCase();
+
+        if (safe === "approved") {
+            return `
+                background: rgba(76, 175, 80, 0.16);
+                color: #9cffaf;
+                border: 1px solid rgba(76, 175, 80, 0.28);
+            `;
+        }
+
+        if (safe === "rejected") {
+            return `
+                background: rgba(244, 67, 54, 0.14);
+                color: #ff9e98;
+                border: 1px solid rgba(244, 67, 54, 0.26);
+            `;
+        }
+
+        return `
+            background: rgba(255, 191, 0, 0.14);
+            color: #ffd96f;
+            border: 1px solid rgba(255, 191, 0, 0.26);
+        `;
+    },
+
+    renderWithdrawHistory() {
+        const mount = document.getElementById("profileWithdrawHistoryList");
+        if (!mount) return;
+
+        if (this.withdrawHistoryLoading) {
+            mount.innerHTML = `
+                <div style="
+                    padding:12px;
+                    border-radius:14px;
+                    background:rgba(255,255,255,0.04);
+                    color:rgba(255,255,255,0.78);
+                    font-weight:700;
+                    font-size:13px;
+                    text-align:center;
+                ">
+                    Ładowanie historii...
+                </div>
+            `;
+            return;
+        }
+
+        if (!Array.isArray(this.withdrawHistory) || this.withdrawHistory.length === 0) {
+            mount.innerHTML = `
+                <div style="
+                    padding:12px;
+                    border-radius:14px;
+                    background:rgba(255,255,255,0.04);
+                    color:rgba(255,255,255,0.72);
+                    font-weight:700;
+                    font-size:13px;
+                    text-align:center;
+                ">
+                    Brak withdraw requestów
+                </div>
+            `;
+            return;
+        }
+
+        mount.innerHTML = this.withdrawHistory.map((item) => {
+            const amount = this.formatRewardValue(item?.amount || 0);
+            const status = this.getStatusLabel(item?.status);
+            const date = this.formatHistoryDate(item?.createdAt);
+            const note = String(item?.note || "").trim();
+
+            return `
+                <div style="
+                    padding:12px;
+                    border-radius:16px;
+                    background:linear-gradient(180deg, rgba(18, 28, 48, 0.96) 0%, rgba(10, 17, 31, 0.96) 100%);
+                    border:1px solid rgba(255,255,255,0.08);
+                    margin-bottom:10px;
+                ">
+                    <div style="
+                        display:flex;
+                        align-items:center;
+                        justify-content:space-between;
+                        gap:10px;
+                        margin-bottom:8px;
+                    ">
+                        <div style="
+                            font-size:14px;
+                            font-weight:900;
+                            color:#ffffff;
+                        ">
+                            ${amount} reward
+                        </div>
+
+                        <div style="
+                            padding:5px 9px;
+                            border-radius:999px;
+                            font-size:11px;
+                            font-weight:900;
+                            ${this.getStatusStyle(item?.status)}
+                        ">
+                            ${status}
+                        </div>
+                    </div>
+
+                    <div style="
+                        font-size:12px;
+                        color:rgba(255,255,255,0.68);
+                        font-weight:700;
+                        line-height:1.4;
+                    ">
+                        ${date}
+                    </div>
+
+                    ${note ? `
+                        <div style="
+                            margin-top:8px;
+                            font-size:12px;
+                            color:rgba(255,255,255,0.82);
+                            line-height:1.45;
+                            font-weight:700;
+                        ">
+                            Note: ${note}
+                        </div>
+                    ` : ""}
+                </div>
+            `;
+        }).join("");
+    },
+
+    async loadWithdrawHistory() {
+        const mount = document.getElementById("profileWithdrawHistoryList");
+        if (!mount) return;
+
+        this.withdrawHistoryLoading = true;
+        this.renderWithdrawHistory();
+
+        try {
+            const requests = await CryptoZoo.api?.loadWithdrawHistory?.();
+            this.withdrawHistory = Array.isArray(requests) ? requests : [];
+        } catch (error) {
+            console.error("Withdraw history load error:", error);
+            this.withdrawHistory = [];
+            CryptoZoo.ui?.showToast?.("Nie udało się pobrać historii withdraw");
+        }
+
+        this.withdrawHistoryLoading = false;
+        this.renderWithdrawHistory();
     },
 
     renderTopBarProfile() {
@@ -177,15 +350,18 @@ CryptoZoo.uiProfile = {
                 ? `Withdraw Request (${walletReward.toFixed(3)})`
                 : `Min withdraw ${this.minWithdrawReward.toFixed(3)}`;
         }
+
+        this.renderWithdrawHistory();
     },
 
-    openProfileModal() {
+    async openProfileModal() {
         const modal = document.getElementById("profileModal");
         if (!modal) return;
 
         modal.classList.remove("hidden");
         this.modalOpen = true;
         this.refreshProfileModalData();
+        await this.loadWithdrawHistory();
     },
 
     closeProfileModal() {
@@ -241,6 +417,7 @@ CryptoZoo.uiProfile = {
             CryptoZoo.audio?.play?.("win");
             this.refreshProfileModalData();
             CryptoZoo.ui?.render?.();
+            await this.loadWithdrawHistory();
 
             CryptoZoo.ui?.showToast?.(
                 `📤 Withdraw request +${walletReward.toFixed(3)} reward`
@@ -266,9 +443,9 @@ CryptoZoo.uiProfile = {
 
         if (openBtn && !openBtn.dataset.bound) {
             openBtn.dataset.bound = "1";
-            openBtn.onclick = () => {
+            openBtn.onclick = async () => {
                 CryptoZoo.audio?.play?.("click");
-                this.openProfileModal();
+                await this.openProfileModal();
             };
         }
 
