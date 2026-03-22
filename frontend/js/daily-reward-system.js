@@ -3,16 +3,9 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.dailyReward = {
     unlockAfterSeconds: 60 * 60,
     timerStarted: false,
-    lastTickAt: 0,
-    persistCounter: 0,
 
     init() {
         CryptoZoo.state = CryptoZoo.state || {};
-
-        CryptoZoo.state.playTimeSeconds = Math.max(
-            0,
-            Number(CryptoZoo.state.playTimeSeconds) || 0
-        );
 
         CryptoZoo.state.lastDailyRewardAt = Math.max(
             0,
@@ -24,13 +17,18 @@ CryptoZoo.dailyReward = {
             Number(CryptoZoo.state.dailyRewardStreak) || 0
         );
 
+        CryptoZoo.state.firstDailyUnlockStartedAt = Math.max(
+            0,
+            Number(CryptoZoo.state.firstDailyUnlockStartedAt) || 0
+        );
+
         if (typeof CryptoZoo.state.dailyRewardClaimDayKey !== "string") {
             CryptoZoo.state.dailyRewardClaimDayKey = String(
                 CryptoZoo.state.dailyRewardClaimDayKey || ""
             );
         }
 
-        this.lastTickAt = Date.now();
+        this.ensureFirstUnlockTimerStarted();
         this.startTimer();
     },
 
@@ -39,48 +37,27 @@ CryptoZoo.dailyReward = {
         this.timerStarted = true;
 
         setInterval(() => {
-            this.updatePlayTime();
+            this.ensureFirstUnlockTimerStarted();
             CryptoZoo.ui?.renderDailyRewardStatus?.();
-
-            this.persistCounter += 1;
-            if (this.persistCounter >= 15) {
-                this.persistCounter = 0;
-                CryptoZoo.api?.savePlayer?.();
-            }
         }, 1000);
-
-        document.addEventListener("visibilitychange", () => {
-            this.lastTickAt = Date.now();
-            CryptoZoo.ui?.renderDailyRewardStatus?.();
-        });
-
-        window.addEventListener("focus", () => {
-            this.lastTickAt = Date.now();
-        });
-
-        window.addEventListener("beforeunload", () => {
-            this.updatePlayTime(true);
-        });
     },
 
-    updatePlayTime(forceSave = false) {
+    isVisibleAndPlayable() {
+        return document.visibilityState === "visible";
+    },
+
+    hasClaimedAtLeastOnce() {
+        return Math.max(0, Number(CryptoZoo.state?.lastDailyRewardAt) || 0) > 0;
+    },
+
+    ensureFirstUnlockTimerStarted() {
         CryptoZoo.state = CryptoZoo.state || {};
 
-        const now = Date.now();
-        const previous = Number(this.lastTickAt) || now;
-        this.lastTickAt = now;
+        if (this.hasClaimedAtLeastOnce()) return;
+        if (!this.isVisibleAndPlayable()) return;
 
-        if (document.visibilityState !== "visible" && !forceSave) {
-            return;
-        }
-
-        const elapsedSeconds = Math.max(0, Math.floor((now - previous) / 1000));
-
-        if (elapsedSeconds > 0) {
-            CryptoZoo.state.playTimeSeconds = Math.max(
-                0,
-                Number(CryptoZoo.state.playTimeSeconds) || 0
-            ) + elapsedSeconds;
+        if (!CryptoZoo.state.firstDailyUnlockStartedAt) {
+            CryptoZoo.state.firstDailyUnlockStartedAt = Date.now();
         }
     },
 
@@ -96,20 +73,22 @@ CryptoZoo.dailyReward = {
         return Math.max(0, Number(this.unlockAfterSeconds) || 0);
     },
 
-    hasClaimedAtLeastOnce() {
-        return Math.max(0, Number(CryptoZoo.state?.lastDailyRewardAt) || 0) > 0;
-    },
-
-    getPlayTimeSeconds() {
-        return Math.max(0, Number(CryptoZoo.state?.playTimeSeconds) || 0);
-    },
-
     getRemainingUnlockSeconds() {
         if (this.hasClaimedAtLeastOnce()) {
             return 0;
         }
 
-        return Math.max(0, this.getUnlockAfterSeconds() - this.getPlayTimeSeconds());
+        const startedAt = Math.max(
+            0,
+            Number(CryptoZoo.state?.firstDailyUnlockStartedAt) || 0
+        );
+
+        if (!startedAt) {
+            return this.getUnlockAfterSeconds();
+        }
+
+        const unlockAt = startedAt + this.getUnlockAfterSeconds() * 1000;
+        return Math.max(0, Math.ceil((unlockAt - Date.now()) / 1000));
     },
 
     isUnlocked() {
