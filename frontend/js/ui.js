@@ -261,23 +261,10 @@ CryptoZoo.ui = {
 
         if (!titleEl || !subtitleEl || !iconEl) return;
 
-        CryptoZoo.dailyReward?.ensureFirstUnlockTimerStarted?.();
-
-        const hasClaimedAtLeastOnce =
-            CryptoZoo.dailyReward?.hasClaimedAtLeastOnce?.() || false;
-
-        const firstUnlockLeftSeconds = Math.max(
-            0,
-            Number(CryptoZoo.dailyReward?.getRemainingUnlockSeconds?.()) || 0
-        );
-
         const isUnlocked = CryptoZoo.dailyReward?.isUnlocked?.() || false;
         const canClaim = CryptoZoo.dailyReward?.canClaim?.() || false;
-
-        const cooldownLeftSeconds = Math.max(
-            0,
-            Math.ceil((Number(CryptoZoo.dailyReward?.getTimeLeftMs?.()) || 0) / 1000)
-        );
+        const timeLeftMs = Math.max(0, Number(CryptoZoo.dailyReward?.getTimeLeftMs?.()) || 0);
+        const timeLeftSeconds = Math.ceil(timeLeftMs / 1000);
 
         const rewardCoins = Math.max(0, Number(CryptoZoo.dailyReward?.getCoinsAmount?.()) || 0);
         const rewardGems = Math.max(0, Number(CryptoZoo.dailyReward?.getGemsAmount?.()) || 0);
@@ -290,8 +277,8 @@ CryptoZoo.ui = {
         subtitleEl.style.overflowWrap = "anywhere";
         subtitleEl.style.lineHeight = "1.35";
 
-        if (!hasClaimedAtLeastOnce && !isUnlocked) {
-            subtitleEl.textContent = `Unlock in ${this.formatTimeLeft(firstUnlockLeftSeconds)}`;
+        if (!isUnlocked) {
+            subtitleEl.textContent = `Unlock in ${this.formatTimeLeft(timeLeftSeconds)}`;
             iconEl.textContent = "🔒";
             return;
         }
@@ -305,7 +292,7 @@ CryptoZoo.ui = {
             return;
         }
 
-        subtitleEl.textContent = `${streakLabel} • Next reward in ${this.formatTimeLeft(cooldownLeftSeconds)}`;
+        subtitleEl.textContent = `${streakLabel} • Next reward in ${this.formatTimeLeft(timeLeftSeconds)}`;
         iconEl.textContent = "⏳";
     },
 
@@ -366,14 +353,18 @@ CryptoZoo.ui = {
         if (type === "income") return "Income Boost";
         if (type === "expedition") return "Expedition Boost";
         if (type === "offline") return "Offline Boost";
-        return "Upgrade";
+        return "Special";
     },
 
-    getShopTypeEmoji(type) {
+    getShopTypeEmoji(type, effect) {
         if (type === "click") return "👆";
         if (type === "income") return "💰";
         if (type === "expedition") return "🧭";
         if (type === "offline") return "💤";
+        if (effect === "extraSpin") return "🎡";
+        if (effect === "skipWheelCooldown") return "⏩";
+        if (effect === "coinPack") return "🪙";
+        if (effect === "boost2x") return "⚡";
         return "✨";
     },
 
@@ -398,10 +389,10 @@ CryptoZoo.ui = {
         );
 
         if (commonReward === epicReward) {
-            return `${CryptoZoo.formatNumber(commonReward)} reward`;
+            return `${commonReward.toFixed(3)} reward`;
         }
 
-        return `${CryptoZoo.formatNumber(commonReward)} - ${CryptoZoo.formatNumber(epicReward)} reward`;
+        return `${commonReward.toFixed(3)} - ${epicReward.toFixed(3)} reward`;
     },
 
     getShopItemDescription(item) {
@@ -412,10 +403,38 @@ CryptoZoo.ui = {
             return `+${CryptoZoo.formatNumber(bonus)} coin${bonus !== 1 ? "s" : ""} per click`;
         }
 
+        if (item.type === "income") {
+            const bonus = Math.max(1, Number(item.incomeBonus) || 1);
+            return `+${CryptoZoo.formatNumber(bonus)} level do wszystkich kupionych zwierząt`;
+        }
+
+        if (item.type === "expedition") {
+            const bonus = Math.max(1, Number(item.expeditionBonus) || 1);
+            return `+${CryptoZoo.formatNumber(bonus)} expedition boost`;
+        }
+
         if (item.type === "offline") {
             const multiplier = Math.max(1, Number(item.offlineMultiplier) || 2);
             const durationSeconds = Math.max(60, Number(item.offlineDurationSeconds) || 600);
             return `x${CryptoZoo.formatNumber(multiplier)} offline income przez ${this.formatDurationLabel(durationSeconds)}`;
+        }
+
+        if (item.effect === "extraSpin") {
+            return item.desc || "Natychmiastowy spin koła";
+        }
+
+        if (item.effect === "skipWheelCooldown") {
+            return item.desc || "Resetuje cooldown wheel";
+        }
+
+        if (item.effect === "coinPack") {
+            const amount = Math.max(0, Number(item.coinPackAmount) || 0);
+            return `+${CryptoZoo.formatNumber(amount)} coins`;
+        }
+
+        if (item.effect === "boost2x") {
+            const durationSeconds = Math.max(60, Number(item.boostDurationSeconds) || 600);
+            return `X2 klik i zoo income przez ${this.formatDurationLabel(durationSeconds)}`;
         }
 
         return item.desc || "";
@@ -755,16 +774,16 @@ CryptoZoo.ui = {
             );
 
             const rarityMap = {
-                common: "Zwykła",
-                rare: "Rzadka",
-                epic: "Epicka"
+                common: "Common",
+                rare: "Rare",
+                epic: "Epic"
             };
 
             container.innerHTML = `
                 <div class="expedition-card">
                     <h3>Aktywna ekspedycja: ${expedition.name}</h3>
                     <div>Pozostało: ${this.formatTimeLeft(timeLeft)}</div>
-                    <div>Jakość nagrody: ${rarityMap[expedition.rewardRarity] || "Zwykła"}</div>
+                    <div>Jakość nagrody: ${rarityMap[expedition.rewardRarity] || "Common"}</div>
                     <div>
                         Przewidywana nagroda:
                         ${CryptoZoo.formatNumber(expedition.rewardCoins)} coins +
@@ -772,7 +791,7 @@ CryptoZoo.ui = {
                     </div>
                     <div>
                         Reward Wallet:
-                        ${CryptoZoo.formatNumber(rewardBalanceAmount)} reward
+                        ${rewardBalanceAmount.toFixed(3)} reward
                     </div>
                     <button id="collect-expedition-btn" type="button" ${canCollect ? "" : "disabled"}>
                         ${canCollect ? "Odbierz nagrodę" : "Trwa ekspedycja"}
@@ -842,10 +861,12 @@ CryptoZoo.ui = {
 
         shopList.innerHTML = items.map((item) => {
             const typeLabel = this.getShopTypeLabel(item.type);
-            const typeEmoji = this.getShopTypeEmoji(item.type);
+            const typeEmoji = this.getShopTypeEmoji(item.type, item.effect);
             const description = this.getShopItemDescription(item);
             const priceMeta = this.getShopItemPriceMeta(item);
             const buttonLabel = this.getShopButtonLabel(item);
+            const ownedCount = Math.max(0, Number(CryptoZoo.shopSystem?.getOwnedCount?.(item.id)) || 0);
+            const canAfford = !!CryptoZoo.shopSystem?.canAfford?.(item);
 
             return `
                 <div class="shop-item">
@@ -854,8 +875,13 @@ CryptoZoo.ui = {
                             <div style="font-size:16px; font-weight:900; margin-bottom:4px;">
                                 ${typeEmoji} ${item.name}
                             </div>
-                            <div style="display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; background:rgba(255,255,255,0.08); font-size:11px; font-weight:800; color:rgba(255,255,255,0.82);">
-                                ${typeLabel}
+                            <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                                <div style="display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; background:rgba(255,255,255,0.08); font-size:11px; font-weight:800; color:rgba(255,255,255,0.82);">
+                                    ${typeLabel}
+                                </div>
+                                <div style="display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; background:rgba(255,191,0,0.10); font-size:11px; font-weight:800; color:rgba(255,235,170,0.92);">
+                                    Owned: ${CryptoZoo.formatNumber(ownedCount)}
+                                </div>
                             </div>
                         </div>
                         <div style="text-align:right; flex-shrink:0;">
@@ -868,7 +894,11 @@ CryptoZoo.ui = {
                         ${description}
                     </div>
 
-                    <button id="buy-shop-${item.id}" type="button">${buttonLabel}</button>
+                    <button
+                        id="buy-shop-${item.id}"
+                        type="button"
+                        style="${canAfford ? "" : "opacity:0.72;"}"
+                    >${buttonLabel}</button>
                 </div>
             `;
         }).join("");
