@@ -89,14 +89,14 @@ CryptoZoo.gameplay = {
             );
         }
 
-        this.normalizeBoostState();
-        this.normalizeOfflineBoostState();
-
         CryptoZoo.state.level = Math.max(1, Number(CryptoZoo.state.level) || 1);
         CryptoZoo.state.lastAwardedLevel = Math.max(
             1,
             Number(CryptoZoo.state.lastAwardedLevel) || CryptoZoo.state.level || 1
         );
+
+        this.normalizeBoostState();
+        this.normalizeOfflineBoostState();
     },
 
     normalizeBoostTimestamp(value) {
@@ -187,6 +187,7 @@ CryptoZoo.gameplay = {
 
         this.recalculateLevel();
 
+        CryptoZoo.audio?.play?.("tap");
         CryptoZoo.ui?.animateCoin?.(safeTapCount);
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
@@ -266,7 +267,9 @@ CryptoZoo.gameplay = {
 
     bindDailyRewardButton() {
         const btn = document.getElementById("homeDailyBtn");
-        if (btn) btn.onclick = () => CryptoZoo.dailyReward?.claim?.();
+        if (btn) {
+            btn.onclick = () => CryptoZoo.dailyReward?.claim?.();
+        }
     },
 
     applyOfflineEarnings() {
@@ -352,6 +355,7 @@ CryptoZoo.gameplay = {
             totalGems > 0 ? `+${CryptoZoo.formatNumber(totalGems)} gem` : ""
         ].filter(Boolean).join(" • ");
 
+        CryptoZoo.audio?.play?.("win");
         CryptoZoo.ui?.showToast?.(`🎉 ${rewardText}`);
         return true;
     },
@@ -393,6 +397,7 @@ CryptoZoo.gameplay = {
             this.normalizeOfflineBoostState();
             CryptoZoo.ui?.renderBoostStatus?.();
             CryptoZoo.ui?.renderDailyRewardStatus?.();
+
             if (this.activeScreen === "missions") {
                 CryptoZoo.ui?.renderExpeditions?.();
             }
