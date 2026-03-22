@@ -9,6 +9,7 @@ CryptoZoo.shopSystem = {
     ensurePurchaseState() {
         CryptoZoo.state = CryptoZoo.state || {};
         CryptoZoo.state.shopPurchases = CryptoZoo.state.shopPurchases || {};
+        CryptoZoo.state.minigames = CryptoZoo.state.minigames || {};
     },
 
     getOwnedCount(itemId) {
@@ -92,6 +93,7 @@ CryptoZoo.shopSystem = {
 
     applyClickUpgrade(item) {
         const bonus = Math.max(1, Number(item?.clickValueBonus) || 1);
+
         CryptoZoo.state.coinsPerClick =
             Math.max(1, Number(CryptoZoo.state?.coinsPerClick) || 1) + bonus;
 
@@ -112,6 +114,7 @@ CryptoZoo.shopSystem = {
 
     applyExpeditionUpgrade(item) {
         const bonus = Math.max(1, Number(item?.expeditionBonus) || 1);
+
         CryptoZoo.state.expeditionBoost =
             Math.max(0, Number(CryptoZoo.state?.expeditionBoost) || 0) + bonus;
 
@@ -126,41 +129,59 @@ CryptoZoo.shopSystem = {
         CryptoZoo.state.offlineBoostMultiplier = multiplier;
         CryptoZoo.state.offlineBoostActiveUntil = Date.now() + durationSeconds * 1000;
 
+        CryptoZoo.offline?.normalizeState?.();
+
         return `Offline x${CryptoZoo.formatNumber(multiplier)} przez ${CryptoZoo.ui?.formatDurationLabel?.(durationSeconds) || `${durationSeconds}s`}`;
     },
 
     applyCoinPack(item) {
-        const amount = Math.max(1, Number(item?.coinPackAmount) || Number(item?.coinsAmount) || 1000);
+        const amount = Math.max(
+            1,
+            Number(item?.coinPackAmount) || Number(item?.coinsAmount) || 1000
+        );
+
         CryptoZoo.state.coins = (Number(CryptoZoo.state?.coins) || 0) + amount;
         return `+${CryptoZoo.formatNumber(amount)} coins`;
     },
 
     applyExtraSpin(item) {
+        this.ensurePurchaseState();
+
         const count = Math.max(1, Number(item?.spinCount) || 1);
 
-        CryptoZoo.state.minigames = CryptoZoo.state.minigames || {};
-        CryptoZoo.state.minigames.wheelCooldownUntil = 0;
+        CryptoZoo.state.minigames.extraWheelSpins =
+            Math.max(0, Number(CryptoZoo.state.minigames.extraWheelSpins) || 0) + count;
 
-        if (count > 1) {
-            CryptoZoo.state.minigames.extraWheelSpins =
-                Math.max(0, Number(CryptoZoo.state.minigames.extraWheelSpins) || 0) + (count - 1);
+        if ((Number(CryptoZoo.state.minigames.wheelCooldownUntil) || 0) > 0) {
+            CryptoZoo.state.minigames.wheelCooldownUntil = 0;
         }
 
         CryptoZoo.minigames?.renderCooldowns?.();
-        return "Wheel ready now";
+        CryptoZoo.minigames?.renderWheelState?.();
+
+        return count > 1
+            ? `+${CryptoZoo.formatNumber(count)} extra spins`
+            : "+1 extra spin";
     },
 
     applySkipWheelCooldown() {
-        CryptoZoo.state.minigames = CryptoZoo.state.minigames || {};
+        this.ensurePurchaseState();
+
         CryptoZoo.state.minigames.wheelCooldownUntil = 0;
+
         CryptoZoo.minigames?.renderCooldowns?.();
+        CryptoZoo.minigames?.renderWheelState?.();
+
         return "Wheel cooldown skipped";
     },
 
     applyBoost2x(item) {
         const durationSeconds = Math.max(60, Number(item?.boostDurationSeconds) || 600);
+
         CryptoZoo.state.boost2xActiveUntil = Date.now() + durationSeconds * 1000;
         CryptoZoo.gameplay?.normalizeBoostState?.();
+        CryptoZoo.ui?.renderBoostStatus?.();
+
         return `X2 Boost przez ${CryptoZoo.ui?.formatDurationLabel?.(durationSeconds) || `${durationSeconds}s`}`;
     },
 
@@ -226,6 +247,8 @@ CryptoZoo.shopSystem = {
         const resultText = this.applyItemEffect(item);
         this.addOwnedCount(item.id, 1);
 
+        CryptoZoo.state.lastLogin = Date.now();
+
         CryptoZoo.gameplay?.recalculateProgress?.();
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
@@ -258,7 +281,9 @@ CryptoZoo.shopSystem = {
 
                 if (CryptoZoo.boostSystem?.isActive?.()) {
                     const left = CryptoZoo.boostSystem?.getTimeLeft?.() || 0;
-                    CryptoZoo.ui?.showToast?.(`Boost aktywny: ${CryptoZoo.ui?.formatTimeLeft?.(left) || left}`);
+                    CryptoZoo.ui?.showToast?.(
+                        `Boost aktywny: ${CryptoZoo.ui?.formatTimeLeft?.(left) || left}`
+                    );
                     return;
                 }
 
@@ -268,6 +293,8 @@ CryptoZoo.shopSystem = {
                 }
 
                 CryptoZoo.state.gems = gems - 1;
+                CryptoZoo.state.lastLogin = Date.now();
+
                 CryptoZoo.boostSystem?.activate?.();
                 CryptoZoo.ui?.render?.();
                 CryptoZoo.api?.savePlayer?.();
