@@ -45,6 +45,12 @@ CryptoZoo.gameplay = {
             epic: 0,
             legendary: 0
         };
+        CryptoZoo.state.shopPurchases = CryptoZoo.state.shopPurchases || {};
+        CryptoZoo.state.minigames = CryptoZoo.state.minigames || {
+            wheelCooldownUntil: 0,
+            memoryCooldownUntil: 0,
+            extraWheelSpins: 0
+        };
 
         const animals = CryptoZoo.config?.animals || {};
         Object.keys(animals).forEach((type) => {
@@ -92,6 +98,19 @@ CryptoZoo.gameplay = {
         CryptoZoo.state.lastAwardedLevel = Math.max(
             1,
             Number(CryptoZoo.state.lastAwardedLevel) || CryptoZoo.state.level || 1
+        );
+
+        CryptoZoo.state.minigames.wheelCooldownUntil = Math.max(
+            0,
+            Number(CryptoZoo.state.minigames.wheelCooldownUntil) || 0
+        );
+        CryptoZoo.state.minigames.memoryCooldownUntil = Math.max(
+            0,
+            Number(CryptoZoo.state.minigames.memoryCooldownUntil) || 0
+        );
+        CryptoZoo.state.minigames.extraWheelSpins = Math.max(
+            0,
+            Number(CryptoZoo.state.minigames.extraWheelSpins) || 0
         );
 
         this.normalizeBoostState();
