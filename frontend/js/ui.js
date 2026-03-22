@@ -261,10 +261,23 @@ CryptoZoo.ui = {
 
         if (!titleEl || !subtitleEl || !iconEl) return;
 
+        CryptoZoo.dailyReward?.ensureFirstUnlockTimerStarted?.();
+
+        const hasClaimedAtLeastOnce =
+            CryptoZoo.dailyReward?.hasClaimedAtLeastOnce?.() || false;
+
+        const firstUnlockLeftSeconds = Math.max(
+            0,
+            Number(CryptoZoo.dailyReward?.getRemainingUnlockSeconds?.()) || 0
+        );
+
         const isUnlocked = CryptoZoo.dailyReward?.isUnlocked?.() || false;
         const canClaim = CryptoZoo.dailyReward?.canClaim?.() || false;
-        const timeLeftMs = Math.max(0, Number(CryptoZoo.dailyReward?.getTimeLeftMs?.()) || 0);
-        const timeLeftSeconds = Math.ceil(timeLeftMs / 1000);
+
+        const cooldownLeftSeconds = Math.max(
+            0,
+            Math.ceil((Number(CryptoZoo.dailyReward?.getTimeLeftMs?.()) || 0) / 1000)
+        );
 
         const rewardCoins = Math.max(0, Number(CryptoZoo.dailyReward?.getCoinsAmount?.()) || 0);
         const rewardGems = Math.max(0, Number(CryptoZoo.dailyReward?.getGemsAmount?.()) || 0);
@@ -277,8 +290,8 @@ CryptoZoo.ui = {
         subtitleEl.style.overflowWrap = "anywhere";
         subtitleEl.style.lineHeight = "1.35";
 
-        if (!isUnlocked) {
-            subtitleEl.textContent = `Unlock in ${this.formatTimeLeft(timeLeftSeconds)}`;
+        if (!hasClaimedAtLeastOnce && !isUnlocked) {
+            subtitleEl.textContent = `Unlock in ${this.formatTimeLeft(firstUnlockLeftSeconds)}`;
             iconEl.textContent = "🔒";
             return;
         }
@@ -292,7 +305,7 @@ CryptoZoo.ui = {
             return;
         }
 
-        subtitleEl.textContent = `${streakLabel} • Next reward in ${this.formatTimeLeft(timeLeftSeconds)}`;
+        subtitleEl.textContent = `${streakLabel} • Next reward in ${this.formatTimeLeft(cooldownLeftSeconds)}`;
         iconEl.textContent = "⏳";
     },
 
