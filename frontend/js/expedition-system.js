@@ -28,13 +28,12 @@ CryptoZoo.expeditions = {
 
     getExpeditionBoostMultiplier() {
         const boostLevel = Math.max(0, Number(CryptoZoo.state?.expeditionBoost) || 0);
-        return 1 + boostLevel * 0.15; // 🔧 nerf z 0.2 → 0.15
+        return 1 + boostLevel * 0.15;
     },
 
     rollRewardRarity(expedition) {
         const rareChance = Math.max(0, Number(expedition?.rareChance) || 0);
         const epicChance = Math.max(0, Number(expedition?.epicChance) || 0);
-
         const roll = Math.random();
 
         if (roll < epicChance) return "epic";
@@ -42,7 +41,6 @@ CryptoZoo.expeditions = {
         return "common";
     },
 
-    // 🔥 KLUCZOWY BALANS REWARD BALANCE
     getRewardBalanceAmount(expedition) {
         if (!expedition) return 0;
 
@@ -58,48 +56,61 @@ CryptoZoo.expeditions = {
 
         const hours = durationSeconds / 3600;
 
-        // 🔧 NOWY BALANS (wolniejszy, stabilny)
         let base = 0.015 + hours * 0.045;
 
-        const rarity = expedition.rewardRarity || "common";
-
+        const rarity = String(expedition.rewardRarity || "common");
         let rarityMultiplier = 1;
+
         if (rarity === "rare") rarityMultiplier = 1.6;
         if (rarity === "epic") rarityMultiplier = 2.6;
 
-        const boost = this.getExpeditionBoostMultiplier();
+        const boostMultiplier = this.getExpeditionBoostMultiplier();
 
-        let reward = base * rarityMultiplier * boost;
+        let reward = base * rarityMultiplier * boostMultiplier;
 
-        // 🔒 HARD CAP (ważne!)
         reward = Math.min(reward, 1.25);
 
         return Number(reward.toFixed(3));
     },
 
-    getCoinsReward(expeditionConfig, rarity) {
+    getCoinsReward(expeditionConfig, rewardRarity) {
         const baseCoins = Math.max(0, Number(expeditionConfig?.baseCoins) || 0);
-        const boost = this.getExpeditionBoostMultiplier();
+        const boostMultiplier = this.getExpeditionBoostMultiplier();
 
-        let mult = 1;
-        if (rarity === "rare") mult = 1.4;
-        if (rarity === "epic") mult = 2;
+        let rarityMultiplier = 1;
+        if (rewardRarity === "rare") rarityMultiplier = 1.4;
+        if (rewardRarity === "epic") rarityMultiplier = 2.0;
 
-        return Math.floor(baseCoins * mult * boost);
+        return Math.floor(baseCoins * rarityMultiplier * boostMultiplier);
     },
 
-    // 🔥 GEM BALANS (ważne)
-    getGemsReward(expeditionConfig, rarity) {
-        const base = Math.max(0, Number(expeditionConfig?.baseGems) || 0);
-        const boost = this.getExpeditionBoostMultiplier();
+    getGemsReward(expeditionConfig, rewardRarity) {
+        const baseGems = Math.max(0, Number(expeditionConfig?.baseGems) || 0);
+        const boostMultiplier = this.getExpeditionBoostMultiplier();
 
-        let gems = Math.floor(base * boost);
+        let gems = Math.floor(baseGems * boostMultiplier);
 
-        if (rarity === "rare") gems += 1;
-        if (rarity === "epic") gems += 2;
+        if (rewardRarity === "rare") gems += 1;
+        if (rewardRarity === "epic") gems += 2;
 
-        // 🔒 LIMIT żeby nie spamować gemów
         return Math.min(gems, 5);
+    },
+
+    buildActiveExpedition(expeditionConfig) {
+        const now = Date.now();
+        const rewardRarity = this.rollRewardRarity(expeditionConfig);
+        const rewardCoins = this.getCoinsReward(expeditionConfig, rewardRarity);
+        const rewardGems = this.getGemsReward(expeditionConfig, rewardRarity);
+
+        return {
+            id: expeditionConfig.id,
+            name: expeditionConfig.name,
+            startTime: now,
+            endTime: now + Math.max(1, Number(expeditionConfig.duration) || 0) * 1000,
+            rewardRarity,
+            rewardCoins,
+            rewardGems
+        };
     },
 
     start(expeditionId) {
@@ -122,26 +133,11 @@ CryptoZoo.expeditions = {
             return false;
         }
 
-        const now = Date.now();
-        const rarity = this.rollRewardRarity(expeditionConfig);
-
-        const coins = this.getCoinsReward(expeditionConfig, rarity);
-        const gems = this.getGemsReward(expeditionConfig, rarity);
-
-        CryptoZoo.state.expedition = {
-            id: expeditionConfig.id,
-            name: expeditionConfig.name,
-            startTime: now,
-            endTime: now + Math.max(1, Number(expeditionConfig.duration) || 0) * 1000,
-            rewardRarity: rarity,
-            rewardCoins: coins,
-            rewardGems: gems
-        };
+        CryptoZoo.state.expedition = this.buildActiveExpedition(expeditionConfig);
 
         CryptoZoo.audio?.play?.("click");
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
-
         CryptoZoo.ui?.showToast?.(`🌍 Start: ${expeditionConfig.name}`);
 
         return true;
@@ -170,12 +166,13 @@ CryptoZoo.expeditions = {
 
         const coins = Math.max(0, Number(expedition.rewardCoins) || 0);
         const gems = Math.max(0, Number(expedition.rewardGems) || 0);
-        const reward = this.getRewardBalanceAmount(expedition);
+        const rewardBalance = this.getRewardBalanceAmount(expedition);
 
-        CryptoZoo.state.coins += coins;
-        CryptoZoo.state.gems += gems;
-        CryptoZoo.state.rewardBalance =
-            Number(((Number(CryptoZoo.state.rewardBalance) || 0) + reward).toFixed(3));
+        CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + coins;
+        CryptoZoo.state.gems = (Number(CryptoZoo.state.gems) || 0) + gems;
+        CryptoZoo.state.rewardBalance = Number(
+            ((Number(CryptoZoo.state.rewardBalance) || 0) + rewardBalance).toFixed(3)
+        );
 
         CryptoZoo.state.expedition = null;
 
@@ -184,14 +181,13 @@ CryptoZoo.expeditions = {
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
 
-        const text = [
+        const rewardText = [
             `+${CryptoZoo.formatNumber(coins)} coins`,
-            gems > 0 ? `+${gems} gem` : "",
-            reward > 0 ? `+${reward.toFixed(3)} reward` : ""
+            gems > 0 ? `+${CryptoZoo.formatNumber(gems)} gem` : "",
+            rewardBalance > 0 ? `+${rewardBalance.toFixed(3)} reward` : ""
         ].filter(Boolean).join(" • ");
 
-        CryptoZoo.ui?.showToast?.(`🎁 Expedition complete • ${text}`);
-
+        CryptoZoo.ui?.showToast?.(`🎁 Expedition complete • ${rewardText}`);
         return true;
     }
 };
