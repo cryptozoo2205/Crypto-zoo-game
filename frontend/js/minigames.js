@@ -7,6 +7,7 @@ CryptoZoo.minigames = {
     wheelRotation: 0,
     wheelBuilt: false,
     cooldownTimerStarted: false,
+    activeWheelRewardId: "",
 
     memoryCards: [],
     memoryFlipped: [],
@@ -92,10 +93,9 @@ CryptoZoo.minigames = {
     buildWheelVisual() {
         const wheel = document.getElementById("wheel");
         if (!wheel) return;
-
         if (this.wheelBuilt) return;
-        this.wheelBuilt = true;
 
+        this.wheelBuilt = true;
         wheel.innerHTML = "";
         wheel.style.position = "relative";
         wheel.style.overflow = "hidden";
@@ -105,6 +105,7 @@ CryptoZoo.minigames = {
         rewards.forEach((reward) => {
             const label = document.createElement("div");
             label.className = "wheel-label";
+            label.dataset.rewardId = reward.id;
             label.textContent = reward.label;
 
             label.style.position = "absolute";
@@ -116,7 +117,6 @@ CryptoZoo.minigames = {
             label.style.fontSize = "18px";
             label.style.lineHeight = "1";
             label.style.color = "#ffffff";
-            label.style.textShadow = "0 2px 8px rgba(0,0,0,0.35)";
             label.style.pointerEvents = "none";
             label.style.zIndex = "2";
             label.style.letterSpacing = "0.3px";
@@ -185,6 +185,19 @@ CryptoZoo.minigames = {
         return CryptoZoo.ui?.formatTimeLeft?.(seconds) || "00:00:00";
     },
 
+    setWheelHighlight(rewardId = "") {
+        this.activeWheelRewardId = rewardId;
+
+        const labels = document.querySelectorAll(".wheel-label");
+        labels.forEach((label) => {
+            if (label.dataset.rewardId === rewardId) {
+                label.classList.add("wheel-label-active");
+            } else {
+                label.classList.remove("wheel-label-active");
+            }
+        });
+    },
+
     renderCooldowns() {
         const spinBtn = document.getElementById("spinWheelBtn");
         const wheelStatus = document.getElementById("wheelRewardText");
@@ -198,12 +211,12 @@ CryptoZoo.minigames = {
             if (this.wheelSpinning) {
                 spinBtn.disabled = true;
                 spinBtn.textContent = "Spinning...";
-                spinBtn.style.opacity = "0.78";
+                spinBtn.style.opacity = "0.82";
                 spinBtn.style.cursor = "not-allowed";
             } else if (wheelLeft > 0) {
                 spinBtn.disabled = true;
                 spinBtn.textContent = `Next spin in ${this.formatCooldown(wheelLeft)}`;
-                spinBtn.style.opacity = "0.7";
+                spinBtn.style.opacity = "0.82";
                 spinBtn.style.cursor = "not-allowed";
             } else {
                 spinBtn.disabled = false;
@@ -214,10 +227,14 @@ CryptoZoo.minigames = {
         }
 
         if (wheelStatus && !this.wheelSpinning) {
-            if (wheelLeft > 0) {
-                wheelStatus.textContent = `⏳ Free spin in ${this.formatCooldown(wheelLeft)}`;
-            } else if (!wheelStatus.dataset.rewardLocked) {
+            if (wheelStatus.dataset.rewardLocked === "1") {
+                wheelStatus.textContent = "🎲 Spinning...";
+            } else if (wheelStatus.dataset.rewardText) {
+                wheelStatus.textContent = wheelStatus.dataset.rewardText;
+            } else if (wheelLeft <= 0) {
                 wheelStatus.textContent = "🎁 Free spin ready";
+            } else {
+                wheelStatus.textContent = "";
             }
         }
 
@@ -283,17 +300,18 @@ CryptoZoo.minigames = {
         const reward = rewards[Math.floor(Math.random() * rewards.length)];
 
         this.wheelSpinning = true;
+        this.setWheelHighlight("");
         CryptoZoo.audio?.play?.("spin");
 
         if (wheelStatus) {
             wheelStatus.textContent = "🎲 Spinning...";
             wheelStatus.dataset.rewardLocked = "1";
+            wheelStatus.dataset.rewardText = "";
         }
 
         const fullSpins = 7 + Math.floor(Math.random() * 4);
         const currentRotation = ((Number(this.wheelRotation) || 0) % 360 + 360) % 360;
 
-        /* pointer is at top = 270deg in conic system */
         const targetRotation = 270 - reward.centerAngle;
         const finalRotation = currentRotation + fullSpins * 360 + targetRotation;
 
@@ -319,9 +337,12 @@ CryptoZoo.minigames = {
             wheel.style.transition = "none";
             wheel.style.transform = `rotate(${normalized}deg)`;
 
+            this.setWheelHighlight(reward.id);
+
             if (wheelStatus) {
                 wheelStatus.textContent = `🎉 +${reward.label}`;
                 wheelStatus.dataset.rewardLocked = "";
+                wheelStatus.dataset.rewardText = `🎉 +${reward.label}`;
             }
 
             CryptoZoo.audio?.play?.("win");
