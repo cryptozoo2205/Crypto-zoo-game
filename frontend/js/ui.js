@@ -167,7 +167,10 @@ CryptoZoo.ui = {
     bindClick(id, handler) {
         const el = document.getElementById(id);
         if (el) {
-            el.onclick = handler;
+            el.onclick = () => {
+                CryptoZoo.audio?.play?.("click");
+                handler();
+            };
         }
     },
 
@@ -294,20 +297,40 @@ CryptoZoo.ui = {
     },
 
     renderXpBar() {
-        const xp = Math.max(0, Number(CryptoZoo.state?.xp) || 0);
+        const progress = CryptoZoo.gameplay?.getLevelProgressData?.();
+        const currentLevel = Math.max(1, Number(CryptoZoo.state?.level) || 1);
 
-        let level = 1;
-        let req = 100;
-        let used = 0;
+        let currentXp = 0;
+        let requiredXp = 100;
 
-        while (xp >= used + req) {
-            used += req;
-            level += 1;
-            req += 100;
+        if (progress) {
+            currentXp = Math.max(0, Number(progress.currentXp) || 0);
+            requiredXp = Math.max(1, Number(progress.requiredXp) || 100);
+        } else {
+            const xp = Math.max(0, Number(CryptoZoo.state?.xp) || 0);
+            let req = 100;
+            let used = 0;
+
+            while (xp >= used + req) {
+                used += req;
+                req += 100;
+            }
+
+            currentXp = Math.max(0, xp - used);
+            requiredXp = req;
         }
 
-        const currentXp = Math.max(0, xp - used);
-        const percent = req > 0 ? Math.max(0, Math.min(100, (currentXp / req) * 100)) : 0;
+        const percent = Math.max(0, Math.min(100, (currentXp / requiredXp) * 100));
+        const nextLevel = currentLevel + 1;
+
+        let rewardCoins = 0;
+        let rewardGems = 0;
+
+        if (CryptoZoo.gameplay?.getLevelReward) {
+            const reward = CryptoZoo.gameplay.getLevelReward(nextLevel);
+            rewardCoins = Math.max(0, Number(reward?.coins) || 0);
+            rewardGems = Math.max(0, Number(reward?.gems) || 0);
+        }
 
         const fill = document.getElementById("homeXpFill");
         const text = document.getElementById("homeXpText");
@@ -317,7 +340,11 @@ CryptoZoo.ui = {
         }
 
         if (text) {
-            text.textContent = `${CryptoZoo.formatNumber(currentXp)} / ${CryptoZoo.formatNumber(req)} XP`;
+            const rewardLabel = rewardGems > 0
+                ? `Next lvl: +${CryptoZoo.formatNumber(rewardCoins)} coins +${CryptoZoo.formatNumber(rewardGems)} gem`
+                : `Next lvl: +${CryptoZoo.formatNumber(rewardCoins)} coins`;
+
+            text.textContent = `${CryptoZoo.formatNumber(currentXp)} / ${CryptoZoo.formatNumber(requiredXp)} XP • ${rewardLabel}`;
         }
     },
 
@@ -414,6 +441,8 @@ CryptoZoo.ui = {
         if (boostBtn && !boostBtn.dataset.bound) {
             boostBtn.dataset.bound = "1";
             boostBtn.onclick = () => {
+                CryptoZoo.audio?.play?.("click");
+
                 const gems = Number(CryptoZoo.state?.gems) || 0;
 
                 if (CryptoZoo.boostSystem?.isActive?.()) {
@@ -436,6 +465,7 @@ CryptoZoo.ui = {
         if (zooPreviewBtn && !zooPreviewBtn.dataset.bound) {
             zooPreviewBtn.dataset.bound = "1";
             zooPreviewBtn.onclick = () => {
+                CryptoZoo.audio?.play?.("click");
                 CryptoZoo.navigation?.show?.("zoo");
             };
         }
@@ -444,6 +474,7 @@ CryptoZoo.ui = {
         if (homeDailyBtn && !homeDailyBtn.dataset.bound) {
             homeDailyBtn.dataset.bound = "1";
             homeDailyBtn.onclick = () => {
+                CryptoZoo.audio?.play?.("click");
                 CryptoZoo.dailyReward?.claim?.();
             };
         }
@@ -452,6 +483,7 @@ CryptoZoo.ui = {
         if (homeEventsBtn && !homeEventsBtn.dataset.bound) {
             homeEventsBtn.dataset.bound = "1";
             homeEventsBtn.onclick = () => {
+                CryptoZoo.audio?.play?.("click");
                 this.showToast("Eventy w przygotowaniu");
             };
         }
@@ -460,6 +492,7 @@ CryptoZoo.ui = {
         if (homeBoostInfoBtn && !homeBoostInfoBtn.dataset.bound) {
             homeBoostInfoBtn.dataset.bound = "1";
             homeBoostInfoBtn.onclick = () => {
+                CryptoZoo.audio?.play?.("click");
                 this.goToBoostShop();
             };
         }
@@ -475,6 +508,7 @@ CryptoZoo.ui = {
             if (buyBtn && !buyBtn.dataset.bound) {
                 buyBtn.dataset.bound = "1";
                 buyBtn.onclick = () => {
+                    CryptoZoo.audio?.play?.("click");
                     CryptoZoo.animalsSystem?.buy?.(item.type);
                 };
             }
@@ -483,6 +517,7 @@ CryptoZoo.ui = {
             if (upgradeBtn && !upgradeBtn.dataset.bound) {
                 upgradeBtn.dataset.bound = "1";
                 upgradeBtn.onclick = () => {
+                    CryptoZoo.audio?.play?.("click");
                     CryptoZoo.animalsSystem?.upgrade?.(item.type);
                 };
             }
@@ -492,6 +527,7 @@ CryptoZoo.ui = {
         if (settingsBtn && !settingsBtn.dataset.bound) {
             settingsBtn.dataset.bound = "1";
             settingsBtn.onclick = () => {
+                CryptoZoo.audio?.play?.("click");
                 CryptoZoo.uiSettings?.openSettingsModal?.();
             };
         }
@@ -500,6 +536,7 @@ CryptoZoo.ui = {
         if (eventsBtn && !eventsBtn.dataset.bound) {
             eventsBtn.dataset.bound = "1";
             eventsBtn.onclick = () => {
+                CryptoZoo.audio?.play?.("click");
                 this.showToast("Eventy / daily rewards w przygotowaniu");
             };
         }
