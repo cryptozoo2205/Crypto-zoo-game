@@ -1,87 +1,124 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.uiFaq = {
-    renderSettingsFaq() {
-        const mount = document.getElementById("settingsFaqMount");
-        if (!mount) return;
+    isOpen: false,
 
-        mount.innerHTML = `
-            <div
-                id="settingsFaqPanel"
-                class="profile-boost-row hidden"
-            >
-                <div class="profile-boost-left">
-                    <div class="profile-boost-label">FAQ / Help</div>
-                    <div class="profile-boost-value" style="font-size:14px; line-height:1.45; font-weight:700;">
-                        <div style="margin-bottom:10px;">
-                            <strong>🎮 Player Level</strong><br>
-                            Poziom gracza rośnie za XP. Wyższy poziom odblokowuje kolejne ekspedycje.
-                        </div>
+    getContent() {
+        return `
+        <div style="
+            margin-top:12px;
+            padding:14px;
+            border-radius:16px;
+            background:linear-gradient(180deg, rgba(18,28,48,0.96) 0%, rgba(10,17,31,0.96) 100%);
+            border:1px solid rgba(255,255,255,0.08);
+            color:#ffffff;
+            font-size:14px;
+            line-height:1.5;
+            font-weight:700;
+        ">
 
-                        <div style="margin-bottom:10px;">
-                            <strong>🐾 Animal Level</strong><br>
-                            Poziom zwierzęcia zwiększa dochód każdej posiadanej sztuki danego gatunku.
-                        </div>
-
-                        <div style="margin-bottom:10px;">
-                            <strong>🛒 Kup / Buy</strong><br>
-                            Kupuje nową sztukę zwierzęcia i zwiększa liczbę posiadanych zwierząt.
-                        </div>
-
-                        <div style="margin-bottom:10px;">
-                            <strong>⬆ Lvl Up / Ulepsz</strong><br>
-                            Zwiększa efektywność już posiadanych sztuk tego zwierzęcia.
-                        </div>
-
-                        <div style="margin-bottom:10px;">
-                            <strong>💰 Zoo Income</strong><br>
-                            To coins zdobywane automatycznie co sekundę z posiadanych zwierząt.
-                        </div>
-
-                        <div style="margin-bottom:10px;">
-                            <strong>👆 Coins Per Click</strong><br>
-                            Określa ile coins dostajesz za jedno kliknięcie / tap.
-                        </div>
-
-                        <div style="margin-bottom:10px;">
-                            <strong>🎁 Daily Reward</strong><br>
-                            Codzienna nagroda odblokowuje się po czasie gry i później działa na cooldownie.
-                        </div>
-
-                        <div style="margin-bottom:10px;">
-                            <strong>🌍 Expeditions</strong><br>
-                            Ekspedycje dają pasywne nagrody po czasie: coins, gems i czasem reward.
-                        </div>
-
-                        <div style="margin-bottom:10px;">
-                            <strong>⚡ Boosts</strong><br>
-                            Boost X2 podwaja klik i dochód zoo na ograniczony czas.
-                        </div>
-
-                        <div>
-                            <strong>💎 Reward / Wallet</strong><br>
-                            Reward to zdobyty zasób. Wallet to miejsce, do którego możesz go przenieść z profilu.
-                        </div>
-                    </div>
-
-                    <button
-                        id="closeFaqBtn"
-                        class="profile-close-btn"
-                        type="button"
-                        style="margin-top:14px; background:linear-gradient(180deg, rgba(42, 52, 76, 0.95) 0%, rgba(25, 32, 48, 0.95) 100%); color:#ffffff; border:1px solid rgba(255,255,255,0.08);"
-                    >
-                        Zamknij FAQ
-                    </button>
-                </div>
+            <div style="font-size:16px; font-weight:900; margin-bottom:12px;">
+                📘 FAQ – Crypto Zoo
             </div>
+
+            <div style="margin-bottom:12px;">
+                <strong>🎮 Na czym polega gra?</strong><br>
+                Klikasz, zdobywasz coins i rozwijasz swoje zoo. Zwierzęta generują dochód automatycznie.
+            </div>
+
+            <div style="margin-bottom:12px;">
+                <strong>👆 Klikanie (Tap)</strong><br>
+                Każdy klik daje coins oraz XP. Możesz używać wielu palców, ale system liczy maksymalnie jako x3.
+            </div>
+
+            <div style="margin-bottom:12px;">
+                <strong>🐾 Zwierzęta</strong><br>
+                Kupujesz zwierzęta, które generują coins co sekundę (dochód pasywny).
+            </div>
+
+            <div style="margin-bottom:12px;">
+                <strong>⬆ Ulepszenia (Lvl Up)</strong><br>
+                Zwiększają wydajność wszystkich posiadanych zwierząt danego typu.
+            </div>
+
+            <div style="margin-bottom:12px;">
+                <strong>💰 Dochód zoo</strong><br>
+                Coins są generowane automatycznie nawet bez klikania.
+            </div>
+
+            <div style="margin-bottom:12px;">
+                <strong>🎮 Poziom gracza</strong><br>
+                Zdobywasz XP i levelujesz. Wyższy poziom odblokowuje nowe ekspedycje.
+            </div>
+
+            <div style="margin-bottom:12px;">
+                <strong>🎁 Daily Reward</strong><br>
+                Codzienna nagroda dostępna co 24h. Streak zwiększa wartość nagród.
+            </div>
+
+            <div style="margin-bottom:12px;">
+                <strong>🌍 Expeditions</strong><br>
+                Wysyłasz zwierzęta na misje, które po czasie dają coins, gems i reward.
+            </div>
+
+            <div style="margin-bottom:12px;">
+                <strong>⚡ Boost X2</strong><br>
+                Podwaja klik i dochód zoo przez ograniczony czas.
+            </div>
+
+            <div style="margin-bottom:12px;">
+                <strong>💎 Gems</strong><br>
+                Rzadki zasób używany do boostów i specjalnych zakupów.
+            </div>
+
+            <div style="margin-bottom:12px;">
+                <strong>💠 Reward</strong><br>
+                Specjalna waluta zdobywana z ekspedycji. Można ją przenieść do Wallet.
+            </div>
+
+            <div style="margin-bottom:12px;">
+                <strong>🏦 Wallet</strong><br>
+                Miejsce przechowywania rewardów przygotowane pod przyszłe wypłaty.
+            </div>
+
+            <div style="margin-bottom:12px;">
+                <strong>💤 Offline earnings</strong><br>
+                Gra zarabia coins nawet gdy jesteś offline (do określonego limitu czasu).
+            </div>
+
+            <button id="faqCloseBtn" style="
+                margin-top:14px;
+                width:100%;
+                padding:12px;
+                border-radius:12px;
+                border:none;
+                font-weight:900;
+                background:linear-gradient(180deg,#2a344c,#1a2236);
+                color:#fff;
+            ">
+                Zamknij FAQ
+            </button>
+
+        </div>
         `;
     },
 
-    init() {
-        this.renderSettingsFaq();
+    open() {
+        const mount = document.getElementById("settingsFaqMount");
+        if (!mount) return;
+
+        mount.innerHTML = this.getContent();
+        this.isOpen = true;
+
+        const btn = document.getElementById("faqCloseBtn");
+        if (btn) btn.onclick = () => this.close();
+    },
+
+    close() {
+        const mount = document.getElementById("settingsFaqMount");
+        if (!mount) return;
+
+        mount.innerHTML = "";
+        this.isOpen = false;
     }
 };
-
-document.addEventListener("DOMContentLoaded", () => {
-    CryptoZoo.uiFaq?.init?.();
-});
