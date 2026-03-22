@@ -6,7 +6,6 @@ CryptoZoo.gameplay = {
     boostTimerStarted: false,
     suppressClickUntil: 0,
     touchTapLock: false,
-    currentTouchTapCount: 1,
     touchTapTimer: null,
     touchTapTriggered: false,
     maxOfflineSeconds: 1 * 60 * 60,
@@ -131,72 +130,57 @@ CryptoZoo.gameplay = {
 
         tapButton.onclick = (e) => {
             e?.preventDefault?.();
+
             if (Date.now() < this.suppressClickUntil) return;
-            this.handleTap(1);
+            this.handleTap();
         };
 
         tapButton.addEventListener("touchstart", (e) => {
-            const touchCount = this.getTapCountFromTouches(e.touches?.length || 1);
-
             e.preventDefault();
 
-            if (!this.touchTapLock) {
-                this.touchTapLock = true;
-                this.touchTapTriggered = false;
-                this.currentTouchTapCount = touchCount;
-                this.suppressClickUntil = Date.now() + 700;
+            if (this.touchTapLock) return;
 
-                clearTimeout(this.touchTapTimer);
-                this.touchTapTimer = setTimeout(() => {
-                    this.touchTapTriggered = true;
-                    this.handleTap(this.currentTouchTapCount);
-                }, 35);
+            this.touchTapLock = true;
+            this.touchTapTriggered = false;
+            this.suppressClickUntil = Date.now() + 700;
 
-                return;
-            }
-
-            this.currentTouchTapCount = Math.max(this.currentTouchTapCount, touchCount);
+            clearTimeout(this.touchTapTimer);
+            this.touchTapTimer = setTimeout(() => {
+                this.touchTapTriggered = true;
+                this.handleTap();
+            }, 20);
         }, { passive: false });
 
         tapButton.addEventListener("touchmove", (e) => {
-            if (!this.touchTapLock) return;
-
-            const touchCount = this.getTapCountFromTouches(e.touches?.length || 1);
-            this.currentTouchTapCount = Math.max(this.currentTouchTapCount, touchCount);
             e.preventDefault();
         }, { passive: false });
 
-        const unlock = () => {
+        const unlock = (e) => {
+            const stillTouching = Number(e?.touches?.length) || 0;
+            if (stillTouching > 0) return;
+
             this.touchTapLock = false;
-            this.currentTouchTapCount = 1;
             this.touchTapTriggered = false;
             this.touchTapTimer = null;
         };
 
-        tapButton.addEventListener("touchend", unlock);
-        tapButton.addEventListener("touchcancel", unlock);
+        tapButton.addEventListener("touchend", unlock, { passive: false });
+        tapButton.addEventListener("touchcancel", unlock, { passive: false });
     },
 
-    handleTap(tapCount = 1) {
-        const safeTapCount = this.getTapCountFromTouches(tapCount);
-        const value = this.getEffectiveCoinsPerClick(safeTapCount);
+    handleTap() {
+        const value = this.getEffectiveCoinsPerClick();
 
         CryptoZoo.state.coins += value;
-        CryptoZoo.state.xp += safeTapCount;
+        CryptoZoo.state.xp += 1;
         CryptoZoo.state.lastLogin = Date.now();
 
         this.recalculateLevel();
 
         CryptoZoo.audio?.play?.("tap");
-        CryptoZoo.ui?.animateCoin?.(safeTapCount);
+        CryptoZoo.ui?.animateCoin?.(1);
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
-    },
-
-    getTapCountFromTouches(touchCount) {
-        const count = Number(touchCount) || 1;
-        if (count <= 1) return 1;
-        return 3;
     },
 
     getBaseCoinsPerClick() {
@@ -208,10 +192,8 @@ CryptoZoo.gameplay = {
         );
     },
 
-    getEffectiveCoinsPerClick(tapCount = 1) {
-        return this.getBaseCoinsPerClick() *
-            this.getBoost2xMultiplier() *
-            this.getTapCountFromTouches(tapCount);
+    getEffectiveCoinsPerClick() {
+        return this.getBaseCoinsPerClick() * this.getBoost2xMultiplier();
     },
 
     getEffectiveZooIncome() {
@@ -317,10 +299,27 @@ CryptoZoo.gameplay = {
 
     getLevelReward(level) {
         const safeLevel = Math.max(1, Number(level) || 1);
-        const coins = Math.floor(50 * safeLevel + 25 * Math.max(0, safeLevel - 1));
-        const gems = safeLevel % 5 === 0 ? 1 : 0;
 
-        return { coins, gems };
+        const rewardTable = {
+            2: { coins: 20, gems: 0 },
+            3: { coins: 35, gems: 0 },
+            4: { coins: 55, gems: 0 },
+            5: { coins: 80, gems: 0 },
+            6: { coins: 110, gems: 0 },
+            7: { coins: 145, gems: 0 },
+            8: { coins: 185, gems: 0 },
+            9: { coins: 230, gems: 0 },
+            10: { coins: 280, gems: 1 }
+        };
+
+        if (rewardTable[safeLevel]) {
+            return rewardTable[safeLevel];
+        }
+
+        return {
+            coins: Math.floor(30 * Math.pow(safeLevel, 1.28)),
+            gems: safeLevel % 10 === 0 ? 1 : 0
+        };
     },
 
     awardPendingLevelRewards() {
