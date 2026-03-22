@@ -44,6 +44,7 @@ CryptoZoo.dailyReward = {
 
         window.addEventListener("focus", () => {
             this.ensureFirstUnlockTimerStarted();
+            CryptoZoo.ui?.renderDailyRewardStatus?.();
         });
     },
 
@@ -61,7 +62,10 @@ CryptoZoo.dailyReward = {
     },
 
     setFirstUnlockStartedAt(timestamp) {
-        localStorage.setItem(this.firstUnlockStorageKey, String(Math.max(0, Number(timestamp) || 0)));
+        localStorage.setItem(
+            this.firstUnlockStorageKey,
+            String(Math.max(0, Number(timestamp) || 0))
+        );
     },
 
     ensureFirstUnlockTimerStarted() {
@@ -126,6 +130,11 @@ CryptoZoo.dailyReward = {
         );
     },
 
+    getNextClaimDay() {
+        const streak = this.getStreak();
+        return Math.max(1, Math.min(this.getMaxStreak(), streak > 0 ? streak : 1));
+    },
+
     getTimeLeftMs() {
         if (!this.isUnlocked()) {
             return this.getRemainingUnlockSeconds() * 1000;
@@ -141,34 +150,30 @@ CryptoZoo.dailyReward = {
         return this.isUnlocked() && this.getTimeLeftMs() <= 0;
     },
 
+    getRewardForDay(day) {
+        const safeDay = Math.max(1, Math.min(this.getMaxStreak(), Number(day) || 1));
+
+        const table = {
+            1: { coins: 200, gems: 0 },
+            2: { coins: 300, gems: 0 },
+            3: { coins: 500, gems: 1 },
+            4: { coins: 800, gems: 0 },
+            5: { coins: 1200, gems: 1 },
+            6: { coins: 1800, gems: 0 },
+            7: { coins: 3000, gems: 2 }
+        };
+
+        return table[safeDay] || table[1];
+    },
+
     getCoinsAmount() {
-        const level = Math.max(1, Number(CryptoZoo.state?.level) || 1);
-        const income = Math.max(0, Number(CryptoZoo.state?.zooIncome) || 0);
-        const click = Math.max(1, Number(CryptoZoo.state?.coinsPerClick) || 1);
-        const streak = this.getStreak();
-
-        const base = Math.max(
-            100,
-            Math.floor(level * 35 + income * 12 + click * 10)
-        );
-
-        return Math.floor(base * (1 + streak * 0.08));
+        const nextDay = this.getNextClaimDay();
+        return Math.max(0, Number(this.getRewardForDay(nextDay).coins) || 0);
     },
 
     getGemsAmount() {
-        const level = Math.max(1, Number(CryptoZoo.state?.level) || 1);
-        const income = Math.max(0, Number(CryptoZoo.state?.zooIncome) || 0);
-        const streak = this.getStreak();
-
-        let gems = 0;
-
-        if (level >= 40 || income >= 20000) gems = 3;
-        else if (level >= 20 || income >= 3000) gems = 2;
-        else if (level >= 8 || income >= 250) gems = 1;
-
-        if (streak >= this.getMaxStreak()) gems += 1;
-
-        return gems;
+        const nextDay = this.getNextClaimDay();
+        return Math.max(0, Number(this.getRewardForDay(nextDay).gems) || 0);
     },
 
     updateStreak() {
@@ -193,6 +198,15 @@ CryptoZoo.dailyReward = {
         return CryptoZoo.state.dailyRewardStreak;
     },
 
+    getInfoText() {
+        const nextDay = this.getNextClaimDay();
+        const reward = this.getRewardForDay(nextDay);
+
+        return reward.gems > 0
+            ? `Day ${nextDay}: ${CryptoZoo.formatNumber(reward.coins)} coins + ${CryptoZoo.formatNumber(reward.gems)} gem`
+            : `Day ${nextDay}: ${CryptoZoo.formatNumber(reward.coins)} coins`;
+    },
+
     claim() {
         if (!this.isUnlocked()) {
             const left = Math.ceil(this.getRemainingUnlockSeconds());
@@ -213,8 +227,9 @@ CryptoZoo.dailyReward = {
         CryptoZoo.state = CryptoZoo.state || {};
 
         const streak = this.updateStreak();
-        const coins = this.getCoinsAmount();
-        const gems = this.getGemsAmount();
+        const reward = this.getRewardForDay(streak);
+        const coins = Math.max(0, Number(reward.coins) || 0);
+        const gems = Math.max(0, Number(reward.gems) || 0);
 
         CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + coins;
         CryptoZoo.state.gems = (Number(CryptoZoo.state.gems) || 0) + gems;
@@ -226,7 +241,7 @@ CryptoZoo.dailyReward = {
         CryptoZoo.api?.savePlayer?.();
 
         CryptoZoo.ui?.showToast?.(
-            `🎁 Day ${streak} • +${CryptoZoo.formatNumber(coins)} coins${gems ? ` +${gems} gem` : ""}`
+            `🎁 Day ${streak} • +${CryptoZoo.formatNumber(coins)} coins${gems ? ` +${CryptoZoo.formatNumber(gems)} gem` : ""}`
         );
 
         return true;
