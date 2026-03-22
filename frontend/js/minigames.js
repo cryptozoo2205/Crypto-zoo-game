@@ -111,9 +111,6 @@ CryptoZoo.minigames = {
         const pointer = document.getElementById("wheelPointer");
 
         if (!wheel) return;
-        if (this.wheelBuilt) return;
-
-        this.wheelBuilt = true;
 
         wheel.innerHTML = "";
         wheel.style.position = "relative";
@@ -121,7 +118,7 @@ CryptoZoo.minigames = {
         wheel.style.backgroundImage = `url("${this.wheelImagePath}")`;
         wheel.style.backgroundRepeat = "no-repeat";
         wheel.style.backgroundPosition = "center";
-        wheel.style.backgroundSize = "contain";
+        wheel.style.backgroundSize = "118%";
 
         if (pointer) {
             pointer.textContent = "";
@@ -138,10 +135,10 @@ CryptoZoo.minigames = {
             label.style.position = "absolute";
             label.style.left = "50%";
             label.style.top = "50%";
-            label.style.width = "84px";
+            label.style.width = "68px";
             label.style.textAlign = "center";
             label.style.fontWeight = "900";
-            label.style.fontSize = "17px";
+            label.style.fontSize = "14px";
             label.style.lineHeight = "1";
             label.style.color = "#fff6c7";
             label.style.pointerEvents = "none";
@@ -154,10 +151,12 @@ CryptoZoo.minigames = {
 
             const angle = reward.centerAngle;
             label.style.transform =
-                `translate(-50%, -50%) rotate(${angle}deg) translateY(-108px) rotate(90deg)`;
+                `translate(-50%, -50%) rotate(${angle}deg) translateY(-74px) rotate(90deg)`;
 
             wheel.appendChild(label);
         });
+
+        this.wheelBuilt = true;
     },
 
     resetWheelTransform() {
