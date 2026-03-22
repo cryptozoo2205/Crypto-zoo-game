@@ -196,7 +196,7 @@ CryptoZoo.uiProfile = {
         this.modalOpen = false;
     },
 
-    transferRewardToWallet() {
+    async transferRewardToWallet() {
         CryptoZoo.state = CryptoZoo.state || {};
 
         const rewardBalance = this.getRewardBalanceValue();
@@ -216,15 +216,13 @@ CryptoZoo.uiProfile = {
         CryptoZoo.audio?.play?.("win");
         this.refreshProfileModalData();
         CryptoZoo.ui?.render?.();
-        CryptoZoo.api?.savePlayer?.();
+        await CryptoZoo.api?.savePlayer?.();
 
         CryptoZoo.ui?.showToast?.(`💎 Transfer +${rewardBalance.toFixed(3)} reward`);
         return true;
     },
 
-    requestWithdraw() {
-        CryptoZoo.state = CryptoZoo.state || {};
-
+    async requestWithdraw() {
         const walletReward = this.getRewardWalletValue();
 
         if (walletReward < this.minWithdrawReward) {
@@ -235,20 +233,28 @@ CryptoZoo.uiProfile = {
             return false;
         }
 
-        CryptoZoo.state.rewardWallet = 0;
-        CryptoZoo.state.withdrawPending = Number(
-            ((Number(CryptoZoo.state.withdrawPending) || 0) + walletReward).toFixed(3)
-        );
+        try {
+            CryptoZoo.ui?.showToast?.("Tworzenie withdraw request...");
 
-        CryptoZoo.audio?.play?.("win");
-        this.refreshProfileModalData();
-        CryptoZoo.ui?.render?.();
-        CryptoZoo.api?.savePlayer?.();
+            await CryptoZoo.api?.createWithdrawRequest?.(walletReward);
 
-        CryptoZoo.ui?.showToast?.(
-            `📤 Withdraw request +${walletReward.toFixed(3)} reward`
-        );
-        return true;
+            CryptoZoo.audio?.play?.("win");
+            this.refreshProfileModalData();
+            CryptoZoo.ui?.render?.();
+
+            CryptoZoo.ui?.showToast?.(
+                `📤 Withdraw request +${walletReward.toFixed(3)} reward`
+            );
+
+            return true;
+        } catch (error) {
+            console.error("Withdraw request error:", error);
+            CryptoZoo.ui?.showToast?.(
+                error?.message || "Nie udało się utworzyć withdraw request"
+            );
+            this.refreshProfileModalData();
+            return false;
+        }
     },
 
     bindProfileModal() {
@@ -283,17 +289,17 @@ CryptoZoo.uiProfile = {
 
         if (transferBtn && !transferBtn.dataset.bound) {
             transferBtn.dataset.bound = "1";
-            transferBtn.onclick = () => {
+            transferBtn.onclick = async () => {
                 CryptoZoo.audio?.play?.("click");
-                this.transferRewardToWallet();
+                await this.transferRewardToWallet();
             };
         }
 
         if (withdrawBtn && !withdrawBtn.dataset.bound) {
             withdrawBtn.dataset.bound = "1";
-            withdrawBtn.onclick = () => {
+            withdrawBtn.onclick = async () => {
                 CryptoZoo.audio?.play?.("click");
-                this.requestWithdraw();
+                await this.requestWithdraw();
             };
         }
     }
