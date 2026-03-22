@@ -8,7 +8,7 @@ CryptoZoo.minigames = {
     memoryLocked: false,
     cooldownTimerStarted: false,
 
-    wheelCooldownSeconds: 30 * 60,
+    wheelCooldownSeconds: 2 * 60 * 60,
     memoryCooldownSeconds: 15 * 60,
     wheelBaseRotation: 0,
 
@@ -25,10 +25,10 @@ CryptoZoo.minigames = {
         CryptoZoo.state.minigames = CryptoZoo.state.minigames || {};
 
         CryptoZoo.state.minigames.wheelCooldownUntil =
-            Number(CryptoZoo.state.minigames.wheelCooldownUntil) || 0;
+            Math.max(0, Number(CryptoZoo.state.minigames.wheelCooldownUntil) || 0);
 
         CryptoZoo.state.minigames.memoryCooldownUntil =
-            Number(CryptoZoo.state.minigames.memoryCooldownUntil) || 0;
+            Math.max(0, Number(CryptoZoo.state.minigames.memoryCooldownUntil) || 0);
     },
 
     isMiniGamesVisible() {
@@ -120,7 +120,7 @@ CryptoZoo.minigames = {
                 spinBtn.style.cursor = "not-allowed";
             } else if (wheelLeft > 0) {
                 spinBtn.disabled = true;
-                spinBtn.textContent = `Wheel CD ${this.formatCooldown(wheelLeft)}`;
+                spinBtn.textContent = `Next spin in ${this.formatCooldown(wheelLeft)}`;
                 spinBtn.style.opacity = "0.6";
                 spinBtn.style.cursor = "not-allowed";
             } else {
@@ -133,9 +133,9 @@ CryptoZoo.minigames = {
 
         if (wheelStatus && !this.wheelSpinning) {
             if (wheelLeft > 0) {
-                wheelStatus.textContent = `Next spin in ${this.formatCooldown(wheelLeft)}`;
+                wheelStatus.textContent = `⏳ Free spin in ${this.formatCooldown(wheelLeft)}`;
             } else if (!wheelStatus.dataset.rewardLocked) {
-                wheelStatus.textContent = "🎁 Tap to spin";
+                wheelStatus.textContent = "🎁 Free spin ready";
             }
         }
 
@@ -185,7 +185,7 @@ CryptoZoo.minigames = {
 
         const wheelLeft = this.getWheelCooldownLeft();
         if (wheelLeft > 0) {
-            CryptoZoo.ui?.showToast?.(`Wheel ready in ${this.formatCooldown(wheelLeft)}`);
+            CryptoZoo.ui?.showToast?.(`Next free spin in ${this.formatCooldown(wheelLeft)}`);
             this.renderCooldowns();
             return;
         }
