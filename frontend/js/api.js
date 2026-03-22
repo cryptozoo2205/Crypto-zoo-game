@@ -1,7 +1,7 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.api = {
-    testResetMode: true,
+    testResetMode: false,
 
     getApiBase() {
         const fromStorage = localStorage.getItem("cryptozoo_api_base");
@@ -135,7 +135,11 @@ window.CryptoZoo.api = {
                 epic: 0,
                 legendary: 0
             },
-            expedition: null
+            expedition: null,
+            minigames: {
+                wheelCooldownUntil: 0,
+                memoryCooldownUntil: 0
+            }
         };
     },
 
@@ -189,6 +193,13 @@ window.CryptoZoo.api = {
         };
     },
 
+    normalizeMinigames(rawMinigames) {
+        return {
+            wheelCooldownUntil: Math.max(0, Number(rawMinigames?.wheelCooldownUntil) || 0),
+            memoryCooldownUntil: Math.max(0, Number(rawMinigames?.memoryCooldownUntil) || 0)
+        };
+    },
+
     recalculateZooIncomeFromAnimals(animals) {
         const configAnimals = CryptoZoo.config?.animals || {};
         const safeAnimals = animals || {};
@@ -215,6 +226,7 @@ window.CryptoZoo.api = {
             data.boost2xActiveUntil ?? base.boost2xActiveUntil
         );
         const derivedZooIncome = this.recalculateZooIncomeFromAnimals(animals);
+        const minigames = this.normalizeMinigames(data.minigames || {});
 
         return {
             ...base,
@@ -243,7 +255,8 @@ window.CryptoZoo.api = {
                 epic: Math.max(0, Number(data.boxes?.epic) || 0),
                 legendary: Math.max(0, Number(data.boxes?.legendary) || 0)
             },
-            expedition: this.normalizeExpedition(data.expedition)
+            expedition: this.normalizeExpedition(data.expedition),
+            minigames
         };
     },
 
@@ -283,7 +296,8 @@ window.CryptoZoo.api = {
             boost2xActiveUntil: state.boost2xActiveUntil,
             animals: state.animals,
             boxes: state.boxes,
-            expedition: state.expedition
+            expedition: state.expedition,
+            minigames: state.minigames
         };
     },
 
@@ -395,6 +409,7 @@ window.CryptoZoo.api = {
                 CryptoZoo.gameplay.recalculateProgress();
             }
 
+            localStorage.setItem("cryptozoo_save", JSON.stringify(CryptoZoo.state));
             return CryptoZoo.state;
         }
 
