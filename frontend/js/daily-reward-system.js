@@ -3,7 +3,7 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.dailyReward = {
     unlockAfterSeconds: 60 * 60,
     timerStarted: false,
-    sessionStartedAt: 0,
+    lastTickAt: 0,
     persistCounter: 0,
 
     init() {
@@ -30,7 +30,7 @@ CryptoZoo.dailyReward = {
             );
         }
 
-        this.refreshSessionTracking();
+        this.lastTickAt = Date.now();
         this.startTimer();
     },
 
@@ -39,7 +39,7 @@ CryptoZoo.dailyReward = {
         this.timerStarted = true;
 
         setInterval(() => {
-            this.refreshSessionTracking();
+            this.updatePlayTime();
             CryptoZoo.ui?.renderDailyRewardStatus?.();
 
             this.persistCounter += 1;
@@ -50,53 +50,37 @@ CryptoZoo.dailyReward = {
         }, 1000);
 
         document.addEventListener("visibilitychange", () => {
-            this.refreshSessionTracking(true);
+            this.lastTickAt = Date.now();
             CryptoZoo.ui?.renderDailyRewardStatus?.();
         });
 
+        window.addEventListener("focus", () => {
+            this.lastTickAt = Date.now();
+        });
+
         window.addEventListener("beforeunload", () => {
-            this.refreshSessionTracking(true);
+            this.updatePlayTime(true);
         });
     },
 
-    isGameplaySessionActive() {
-        const isVisible = document.visibilityState === "visible";
-        const isGameScreen = (CryptoZoo.gameplay?.activeScreen || "game") === "game";
-        return isVisible && isGameScreen;
-    },
-
-    refreshSessionTracking(forceCommit = false) {
+    updatePlayTime(forceSave = false) {
         CryptoZoo.state = CryptoZoo.state || {};
-        CryptoZoo.state.playTimeSeconds = Math.max(
-            0,
-            Number(CryptoZoo.state.playTimeSeconds) || 0
-        );
 
         const now = Date.now();
-        const isActive = this.isGameplaySessionActive();
+        const previous = Number(this.lastTickAt) || now;
+        this.lastTickAt = now;
 
-        if (isActive) {
-            if (!this.sessionStartedAt) {
-                this.sessionStartedAt = now;
-            }
+        if (document.visibilityState !== "visible" && !forceSave) {
             return;
         }
 
-        if (this.sessionStartedAt || forceCommit) {
-            const startedAt = Number(this.sessionStartedAt) || 0;
+        const elapsedSeconds = Math.max(0, Math.floor((now - previous) / 1000));
 
-            if (startedAt > 0) {
-                const elapsedSeconds = Math.max(
-                    0,
-                    Math.floor((now - startedAt) / 1000)
-                );
-
-                if (elapsedSeconds > 0) {
-                    CryptoZoo.state.playTimeSeconds += elapsedSeconds;
-                }
-            }
-
-            this.sessionStartedAt = 0;
+        if (elapsedSeconds > 0) {
+            CryptoZoo.state.playTimeSeconds = Math.max(
+                0,
+                Number(CryptoZoo.state.playTimeSeconds) || 0
+            ) + elapsedSeconds;
         }
     },
 
@@ -117,20 +101,7 @@ CryptoZoo.dailyReward = {
     },
 
     getPlayTimeSeconds() {
-        CryptoZoo.state = CryptoZoo.state || {};
-
-        const stored = Math.max(0, Number(CryptoZoo.state.playTimeSeconds) || 0);
-
-        if (!this.sessionStartedAt) {
-            return stored;
-        }
-
-        const liveExtra = Math.max(
-            0,
-            Math.floor((Date.now() - this.sessionStartedAt) / 1000)
-        );
-
-        return stored + liveExtra;
+        return Math.max(0, Number(CryptoZoo.state?.playTimeSeconds) || 0);
     },
 
     getRemainingUnlockSeconds() {
