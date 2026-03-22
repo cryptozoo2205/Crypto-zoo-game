@@ -273,7 +273,12 @@ CryptoZoo.gameplay = {
 
     getLevelRequirement(level) {
         const safeLevel = Math.max(1, Number(level) || 1);
-        return 100 + (safeLevel - 1) * 100;
+
+        if (safeLevel <= 5) {
+            return 60 + safeLevel * 40;
+        }
+
+        return Math.floor(120 * Math.pow(safeLevel, 1.25));
     },
 
     getLevelProgressData() {
@@ -301,15 +306,15 @@ CryptoZoo.gameplay = {
         const safeLevel = Math.max(1, Number(level) || 1);
 
         const rewardTable = {
-            2: { coins: 20, gems: 0 },
-            3: { coins: 35, gems: 0 },
-            4: { coins: 55, gems: 0 },
-            5: { coins: 80, gems: 0 },
-            6: { coins: 110, gems: 0 },
-            7: { coins: 145, gems: 0 },
-            8: { coins: 185, gems: 0 },
-            9: { coins: 230, gems: 0 },
-            10: { coins: 280, gems: 1 }
+            2: { coins: 25, gems: 0 },
+            3: { coins: 45, gems: 0 },
+            4: { coins: 70, gems: 0 },
+            5: { coins: 100, gems: 0 },
+            6: { coins: 140, gems: 0 },
+            7: { coins: 190, gems: 0 },
+            8: { coins: 250, gems: 0 },
+            9: { coins: 320, gems: 0 },
+            10: { coins: 400, gems: 1 }
         };
 
         if (rewardTable[safeLevel]) {
@@ -317,7 +322,7 @@ CryptoZoo.gameplay = {
         }
 
         return {
-            coins: Math.floor(30 * Math.pow(safeLevel, 1.28)),
+            coins: Math.floor(40 * Math.pow(safeLevel, 1.35)),
             gems: safeLevel % 10 === 0 ? 1 : 0
         };
     },
