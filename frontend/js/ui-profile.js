@@ -2,6 +2,7 @@ window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.uiProfile = {
     modalOpen: false,
+    minWithdrawReward: 10,
 
     getPlayerName() {
         const username =
@@ -67,6 +68,26 @@ CryptoZoo.uiProfile = {
         return `Aktywny • ${formatted}`;
     },
 
+    getRewardBalanceValue() {
+        return Number(((Number(CryptoZoo.state?.rewardBalance) || 0)).toFixed(3));
+    },
+
+    getRewardWalletValue() {
+        return Number(((Number(CryptoZoo.state?.rewardWallet) || 0)).toFixed(3));
+    },
+
+    getWithdrawPendingValue() {
+        return Number(((Number(CryptoZoo.state?.withdrawPending) || 0)).toFixed(3));
+    },
+
+    formatRewardValue(value) {
+        return Number((Number(value) || 0).toFixed(3)).toString();
+    },
+
+    canWithdraw() {
+        return this.getRewardWalletValue() >= this.minWithdrawReward;
+    },
+
     renderTopBarProfile() {
         const nameEl = document.getElementById("topPlayerName");
         const statusEl = document.getElementById("topPlayerStatus");
@@ -81,8 +102,6 @@ CryptoZoo.uiProfile = {
     },
 
     refreshProfileModalData() {
-        const state = CryptoZoo.state || {};
-
         const profileName = document.getElementById("profileName");
         const profileSubtitle = document.getElementById("profileSubtitle");
         const animalsTotal = document.getElementById("profileAnimalsTotal");
@@ -94,6 +113,11 @@ CryptoZoo.uiProfile = {
         const withdrawPending = document.getElementById("profileWithdrawPending");
         const boostStatus = document.getElementById("profileBoostStatus");
         const transferBtn = document.getElementById("transferRewardBtn");
+        const withdrawBtn = document.getElementById("requestWithdrawBtn");
+
+        const availableReward = this.getRewardBalanceValue();
+        const walletReward = this.getRewardWalletValue();
+        const pendingReward = this.getWithdrawPendingValue();
 
         if (profileName) {
             profileName.textContent = this.getPlayerName();
@@ -120,21 +144,15 @@ CryptoZoo.uiProfile = {
         }
 
         if (rewardBalance) {
-            rewardBalance.textContent = Number(
-                (Number(state.rewardBalance) || 0).toFixed(3)
-            ).toString();
+            rewardBalance.textContent = this.formatRewardValue(availableReward);
         }
 
         if (rewardWallet) {
-            rewardWallet.textContent = Number(
-                (Number(state.rewardWallet) || 0).toFixed(3)
-            ).toString();
+            rewardWallet.textContent = this.formatRewardValue(walletReward);
         }
 
         if (withdrawPending) {
-            withdrawPending.textContent = Number(
-                (Number(state.withdrawPending) || 0).toFixed(3)
-            ).toString();
+            withdrawPending.textContent = this.formatRewardValue(pendingReward);
         }
 
         if (boostStatus) {
@@ -142,13 +160,22 @@ CryptoZoo.uiProfile = {
         }
 
         if (transferBtn) {
-            const availableReward = Number(state.rewardBalance) || 0;
             transferBtn.disabled = availableReward <= 0;
             transferBtn.style.opacity = availableReward > 0 ? "1" : "0.6";
             transferBtn.textContent =
                 availableReward > 0
                     ? `Transfer Reward (${availableReward.toFixed(3)})`
                     : "Brak Reward do transferu";
+        }
+
+        if (withdrawBtn) {
+            const canWithdraw = this.canWithdraw();
+
+            withdrawBtn.disabled = !canWithdraw;
+            withdrawBtn.style.opacity = canWithdraw ? "1" : "0.6";
+            withdrawBtn.textContent = canWithdraw
+                ? `Withdraw Request (${walletReward.toFixed(3)})`
+                : `Min withdraw ${this.minWithdrawReward.toFixed(3)}`;
         }
     },
 
@@ -172,7 +199,7 @@ CryptoZoo.uiProfile = {
     transferRewardToWallet() {
         CryptoZoo.state = CryptoZoo.state || {};
 
-        const rewardBalance = Number(CryptoZoo.state.rewardBalance) || 0;
+        const rewardBalance = this.getRewardBalanceValue();
 
         if (rewardBalance <= 0) {
             CryptoZoo.ui?.showToast?.("Brak Reward do transferu");
@@ -180,10 +207,8 @@ CryptoZoo.uiProfile = {
             return false;
         }
 
-        const roundedAmount = Number(rewardBalance.toFixed(3));
-
         CryptoZoo.state.rewardWallet = Number(
-            ((Number(CryptoZoo.state.rewardWallet) || 0) + roundedAmount).toFixed(3)
+            ((Number(CryptoZoo.state.rewardWallet) || 0) + rewardBalance).toFixed(3)
         );
 
         CryptoZoo.state.rewardBalance = 0;
@@ -193,7 +218,36 @@ CryptoZoo.uiProfile = {
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
 
-        CryptoZoo.ui?.showToast?.(`💎 Transfer +${roundedAmount.toFixed(3)} reward`);
+        CryptoZoo.ui?.showToast?.(`💎 Transfer +${rewardBalance.toFixed(3)} reward`);
+        return true;
+    },
+
+    requestWithdraw() {
+        CryptoZoo.state = CryptoZoo.state || {};
+
+        const walletReward = this.getRewardWalletValue();
+
+        if (walletReward < this.minWithdrawReward) {
+            CryptoZoo.ui?.showToast?.(
+                `Min withdraw ${this.minWithdrawReward.toFixed(3)} reward`
+            );
+            this.refreshProfileModalData();
+            return false;
+        }
+
+        CryptoZoo.state.rewardWallet = 0;
+        CryptoZoo.state.withdrawPending = Number(
+            ((Number(CryptoZoo.state.withdrawPending) || 0) + walletReward).toFixed(3)
+        );
+
+        CryptoZoo.audio?.play?.("win");
+        this.refreshProfileModalData();
+        CryptoZoo.ui?.render?.();
+        CryptoZoo.api?.savePlayer?.();
+
+        CryptoZoo.ui?.showToast?.(
+            `📤 Withdraw request +${walletReward.toFixed(3)} reward`
+        );
         return true;
     },
 
@@ -202,6 +256,7 @@ CryptoZoo.uiProfile = {
         const closeBtn = document.getElementById("closeProfileBtn");
         const backdrop = document.getElementById("profileBackdrop");
         const transferBtn = document.getElementById("transferRewardBtn");
+        const withdrawBtn = document.getElementById("requestWithdrawBtn");
 
         if (openBtn && !openBtn.dataset.bound) {
             openBtn.dataset.bound = "1";
@@ -231,6 +286,14 @@ CryptoZoo.uiProfile = {
             transferBtn.onclick = () => {
                 CryptoZoo.audio?.play?.("click");
                 this.transferRewardToWallet();
+            };
+        }
+
+        if (withdrawBtn && !withdrawBtn.dataset.bound) {
+            withdrawBtn.dataset.bound = "1";
+            withdrawBtn.onclick = () => {
+                CryptoZoo.audio?.play?.("click");
+                this.requestWithdraw();
             };
         }
     }
