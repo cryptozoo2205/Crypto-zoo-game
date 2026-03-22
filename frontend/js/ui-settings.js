@@ -54,9 +54,21 @@ CryptoZoo.uiSettings = {
         CryptoZoo.settings.sound = safeSettings.sound;
     },
 
+    syncAudioWithSettings(settings) {
+        const safeSettings = settings || this.getSettings();
+
+        if (!CryptoZoo.audio) return;
+
+        CryptoZoo.audio.enabled = !!safeSettings.sound;
+        if (typeof CryptoZoo.audio.saveSettings === "function") {
+            CryptoZoo.audio.saveSettings();
+        }
+    },
+
     initSettings() {
         const settings = this.getSettings();
         this.applySettings(settings);
+        this.syncAudioWithSettings(settings);
         this.refreshSettingsModalData();
     },
 
@@ -107,6 +119,7 @@ CryptoZoo.uiSettings = {
 
         const saved = this.saveSettings(next);
         this.applySettings(saved);
+        this.syncAudioWithSettings(saved);
         this.refreshSettingsModalData();
 
         CryptoZoo.ui?.showToast?.(
@@ -114,54 +127,36 @@ CryptoZoo.uiSettings = {
         );
     },
 
-    openFaq() {
-        const panel = document.getElementById("settingsFaqPanel");
-        const openBtn = document.getElementById("openFaqBtn");
-        if (!panel) return;
-
-        panel.classList.remove("hidden");
-
-        if (openBtn) {
-            openBtn.style.display = "none";
-        }
-
-        const modal = document.getElementById("settingsModal");
-        const card = modal?.querySelector(".profile-card");
-        if (card) {
-            setTimeout(() => {
-                card.scrollTop = card.scrollHeight;
-            }, 50);
-        }
-    },
-
-    closeFaq() {
-        const panel = document.getElementById("settingsFaqPanel");
-        const openBtn = document.getElementById("openFaqBtn");
-        if (!panel) return;
-
-        panel.classList.add("hidden");
-
-        if (openBtn) {
-            openBtn.style.display = "block";
-        }
-    },
-
     openSettingsModal() {
         const modal = document.getElementById("settingsModal");
         if (!modal) return;
 
         this.refreshSettingsModalData();
-        this.closeFaq();
         modal.classList.remove("hidden");
-
-        const card = modal.querySelector(".profile-card");
-        if (card) {
-            card.scrollTop = 0;
-        }
     },
 
     closeSettingsModal() {
         document.getElementById("settingsModal")?.classList.add("hidden");
+        CryptoZoo.uiFaq?.close?.();
+    },
+
+    openFaq() {
+        CryptoZoo.uiFaq?.open?.();
+    },
+
+    closeFaq() {
+        CryptoZoo.uiFaq?.close?.();
+    },
+
+    bindFaqButtons() {
+        const openFaqBtn = document.getElementById("openFaqBtn");
+        if (openFaqBtn && !openFaqBtn.dataset.bound) {
+            openFaqBtn.dataset.bound = "1";
+            openFaqBtn.addEventListener("click", () => {
+                CryptoZoo.audio?.play?.("click");
+                this.openFaq();
+            });
+        }
     },
 
     bindSettingsModal() {
@@ -169,6 +164,7 @@ CryptoZoo.uiSettings = {
         if (closeBtn && !closeBtn.dataset.bound) {
             closeBtn.dataset.bound = "1";
             closeBtn.addEventListener("click", () => {
+                CryptoZoo.audio?.play?.("click");
                 this.closeSettingsModal();
             });
         }
@@ -188,6 +184,7 @@ CryptoZoo.uiSettings = {
             languageBox.dataset.bound = "1";
             languageBox.style.cursor = "pointer";
             languageBox.addEventListener("click", () => {
+                CryptoZoo.audio?.play?.("click");
                 this.toggleLanguage();
             });
         }
@@ -199,26 +196,11 @@ CryptoZoo.uiSettings = {
             soundBox.dataset.bound = "1";
             soundBox.style.cursor = "pointer";
             soundBox.addEventListener("click", () => {
+                CryptoZoo.audio?.play?.("click");
                 this.toggleSound();
             });
         }
 
-        const openFaqBtn = document.getElementById("openFaqBtn");
-        if (openFaqBtn && !openFaqBtn.dataset.bound) {
-            openFaqBtn.dataset.bound = "1";
-            openFaqBtn.addEventListener("click", () => {
-                this.openFaq();
-            });
-        }
-
-        const closeFaqBtn = document.getElementById("closeFaqBtn");
-        if (closeFaqBtn && !closeFaqBtn.dataset.bound) {
-            closeFaqBtn.dataset.bound = "1";
-            closeFaqBtn.addEventListener("click", () => {
-                this.closeFaq();
-            });
-        }
+        this.bindFaqButtons();
     }
 };
-
-CryptoZoo.uiSettings.initSettings();
