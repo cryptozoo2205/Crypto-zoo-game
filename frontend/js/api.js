@@ -301,6 +301,37 @@ window.CryptoZoo.api = {
         };
     },
 
+    readLocalSave() {
+        const localSave = localStorage.getItem("cryptozoo_save");
+        if (!localSave) {
+            return this.normalizeState(this.getDefaultState());
+        }
+
+        try {
+            return this.normalizeState(JSON.parse(localSave));
+        } catch (error) {
+            console.error("Local save parse error:", error);
+            return this.normalizeState(this.getDefaultState());
+        }
+    },
+
+    writeLocalSave(state) {
+        const safeState = this.normalizeState(state);
+        localStorage.setItem("cryptozoo_save", JSON.stringify(safeState));
+        return safeState;
+    },
+
+    init() {
+        const localState = this.readLocalSave();
+        CryptoZoo.state = localState;
+
+        if (CryptoZoo.gameplay?.recalculateProgress) {
+            CryptoZoo.gameplay.recalculateProgress();
+        }
+
+        return CryptoZoo.state;
+    },
+
     async request(path, options = {}) {
         const apiBase = this.getApiBase();
         const finalUrl = `${apiBase}${path}`;
@@ -367,6 +398,7 @@ window.CryptoZoo.api = {
                 CryptoZoo.gameplay.recalculateProgress();
             }
 
+            this.writeLocalSave(CryptoZoo.state);
             return CryptoZoo.state;
         }
 
@@ -374,19 +406,7 @@ window.CryptoZoo.api = {
             loaded = await this.loadPlayerFromBackend();
         } catch (error) {
             console.warn("Backend load failed, fallback to local save:", error);
-
-            const localSave = localStorage.getItem("cryptozoo_save");
-
-            if (localSave) {
-                try {
-                    loaded = this.normalizeState(JSON.parse(localSave));
-                } catch (parseError) {
-                    console.error("Local load error:", parseError);
-                    loaded = this.normalizeState(CryptoZoo.state);
-                }
-            } else {
-                loaded = this.normalizeState(CryptoZoo.state);
-            }
+            loaded = this.readLocalSave();
         }
 
         CryptoZoo.state = loaded;
@@ -395,7 +415,7 @@ window.CryptoZoo.api = {
             CryptoZoo.gameplay.recalculateProgress();
         }
 
-        localStorage.setItem("cryptozoo_save", JSON.stringify(CryptoZoo.state));
+        this.writeLocalSave(CryptoZoo.state);
         return CryptoZoo.state;
     },
 
@@ -409,7 +429,7 @@ window.CryptoZoo.api = {
                 CryptoZoo.gameplay.recalculateProgress();
             }
 
-            localStorage.setItem("cryptozoo_save", JSON.stringify(CryptoZoo.state));
+            this.writeLocalSave(CryptoZoo.state);
             return CryptoZoo.state;
         }
 
@@ -424,7 +444,7 @@ window.CryptoZoo.api = {
             CryptoZoo.gameplay.recalculateProgress();
         }
 
-        localStorage.setItem("cryptozoo_save", JSON.stringify(CryptoZoo.state));
+        this.writeLocalSave(CryptoZoo.state);
         return CryptoZoo.state;
     },
 
