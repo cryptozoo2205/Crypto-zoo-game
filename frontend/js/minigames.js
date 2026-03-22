@@ -18,6 +18,7 @@ CryptoZoo.minigames = {
 
     init() {
         this.ensureState();
+        this.ensureEffects();
         this.bindButtons();
         this.buildWheelVisual();
         this.resetWheelTransform();
@@ -38,6 +39,28 @@ CryptoZoo.minigames = {
             0,
             Number(CryptoZoo.state.minigames.memoryCooldownUntil) || 0
         );
+    },
+
+    ensureEffects() {
+        if (!document.getElementById("wheelWinFlash")) {
+            const flash = document.createElement("div");
+            flash.id = "wheelWinFlash";
+            flash.className = "wheel-win-flash";
+            document.body.appendChild(flash);
+        }
+    },
+
+    triggerWinFlash() {
+        const flash = document.getElementById("wheelWinFlash");
+        if (!flash) return;
+
+        flash.classList.remove("active");
+        void flash.offsetWidth;
+        flash.classList.add("active");
+
+        setTimeout(() => {
+            flash.classList.remove("active");
+        }, 520);
     },
 
     isMiniGamesVisible() {
@@ -140,13 +163,13 @@ CryptoZoo.minigames = {
             label.style.fontWeight = "900";
             label.style.fontSize = "14px";
             label.style.lineHeight = "1";
-            label.style.color = "#fff6c7";
+            label.style.color = "#fff7cf";
             label.style.pointerEvents = "none";
             label.style.zIndex = "4";
             label.style.letterSpacing = "0.2px";
             label.style.userSelect = "none";
             label.style.textShadow =
-                "0 2px 8px rgba(0,0,0,0.45), 0 0 10px rgba(255,220,120,0.15)";
+                "0 2px 8px rgba(0,0,0,0.48), 0 0 10px rgba(255,220,120,0.14)";
             label.style.transformOrigin = "center center";
 
             const angle = reward.centerAngle;
@@ -226,6 +249,24 @@ CryptoZoo.minigames = {
                 label.classList.remove("wheel-label-active");
             }
         });
+    },
+
+    setSpinVisualState(isActive) {
+        const wheel = document.getElementById("wheel");
+        const pointer = document.getElementById("wheelPointer");
+        const container = document.querySelector(".wheel-container");
+
+        if (wheel) {
+            wheel.classList.toggle("wheel-spinning", !!isActive);
+        }
+
+        if (pointer) {
+            pointer.classList.toggle("wheel-pointer-spinning", !!isActive);
+        }
+
+        if (container) {
+            container.classList.toggle("wheel-container-spinning", !!isActive);
+        }
     },
 
     renderCooldowns() {
@@ -331,6 +372,7 @@ CryptoZoo.minigames = {
 
         this.wheelSpinning = true;
         this.setWheelHighlight("");
+        this.setSpinVisualState(true);
         CryptoZoo.audio?.play?.("spin");
 
         if (wheelStatus) {
@@ -344,18 +386,24 @@ CryptoZoo.minigames = {
 
         const targetRotation = 270 - reward.centerAngle;
         const finalRotation = currentRotation + fullSpins * 360 + targetRotation;
+        const overshootRotation = finalRotation + 8;
 
         wheel.style.transition = "none";
         wheel.style.transform = `rotate(${currentRotation}deg)`;
 
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-                wheel.style.transition = "transform 6.8s cubic-bezier(0.08, 0.82, 0.16, 1)";
-                wheel.style.transform = `rotate(${finalRotation}deg)`;
+                wheel.style.transition = "transform 6.4s cubic-bezier(0.08, 0.82, 0.16, 1)";
+                wheel.style.transform = `rotate(${overshootRotation}deg)`;
             });
         });
 
         this.renderCooldowns();
+
+        setTimeout(() => {
+            wheel.style.transition = "transform 0.26s cubic-bezier(0.2, 0.9, 0.25, 1)";
+            wheel.style.transform = `rotate(${finalRotation}deg)`;
+        }, 6400);
 
         setTimeout(() => {
             this.applyWheelReward(reward);
@@ -368,6 +416,8 @@ CryptoZoo.minigames = {
             wheel.style.transform = `rotate(${normalized}deg)`;
 
             this.setWheelHighlight(reward.id);
+            this.setSpinVisualState(false);
+            this.triggerWinFlash();
 
             if (wheelStatus) {
                 wheelStatus.textContent = `🎉 +${reward.label}`;
@@ -382,7 +432,7 @@ CryptoZoo.minigames = {
 
             this.wheelSpinning = false;
             this.renderCooldowns();
-        }, 6800);
+        }, 6760);
     },
 
     createMemoryDeck() {
