@@ -3,35 +3,101 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.dailyReward = {
     unlockAfterSeconds: 60 * 60,
     timerStarted: false,
-    playTimeTimerStarted: false,
+    sessionStartedAt: 0,
+    persistCounter: 0,
+
+    init() {
+        CryptoZoo.state = CryptoZoo.state || {};
+
+        CryptoZoo.state.playTimeSeconds = Math.max(
+            0,
+            Number(CryptoZoo.state.playTimeSeconds) || 0
+        );
+
+        CryptoZoo.state.lastDailyRewardAt = Math.max(
+            0,
+            Number(CryptoZoo.state.lastDailyRewardAt) || 0
+        );
+
+        CryptoZoo.state.dailyRewardStreak = Math.max(
+            0,
+            Number(CryptoZoo.state.dailyRewardStreak) || 0
+        );
+
+        if (typeof CryptoZoo.state.dailyRewardClaimDayKey !== "string") {
+            CryptoZoo.state.dailyRewardClaimDayKey = String(
+                CryptoZoo.state.dailyRewardClaimDayKey || ""
+            );
+        }
+
+        this.refreshSessionTracking();
+        this.startTimer();
+    },
 
     startTimer() {
         if (this.timerStarted) return;
         this.timerStarted = true;
 
         setInterval(() => {
+            this.refreshSessionTracking();
             CryptoZoo.ui?.renderDailyRewardStatus?.();
+
+            this.persistCounter += 1;
+            if (this.persistCounter >= 15) {
+                this.persistCounter = 0;
+                CryptoZoo.api?.savePlayer?.();
+            }
         }, 1000);
+
+        document.addEventListener("visibilitychange", () => {
+            this.refreshSessionTracking(true);
+            CryptoZoo.ui?.renderDailyRewardStatus?.();
+        });
+
+        window.addEventListener("beforeunload", () => {
+            this.refreshSessionTracking(true);
+        });
     },
 
-    startPlayTimeTimer() {
-        if (this.playTimeTimerStarted) return;
-        this.playTimeTimerStarted = true;
+    isGameplaySessionActive() {
+        const isVisible = document.visibilityState === "visible";
+        const isGameScreen = (CryptoZoo.gameplay?.activeScreen || "game") === "game";
+        return isVisible && isGameScreen;
+    },
 
-        setInterval(() => {
-            const gameplay = CryptoZoo.gameplay;
-            const isGameScreen = gameplay?.activeScreen === "game";
-            const isDocumentVisible = document.visibilityState === "visible";
+    refreshSessionTracking(forceCommit = false) {
+        CryptoZoo.state = CryptoZoo.state || {};
+        CryptoZoo.state.playTimeSeconds = Math.max(
+            0,
+            Number(CryptoZoo.state.playTimeSeconds) || 0
+        );
 
-            if (!isDocumentVisible) return;
-            if (!isGameScreen) return;
+        const now = Date.now();
+        const isActive = this.isGameplaySessionActive();
 
-            CryptoZoo.state = CryptoZoo.state || {};
-            CryptoZoo.state.playTimeSeconds = Math.max(
-                0,
-                Number(CryptoZoo.state.playTimeSeconds) || 0
-            ) + 1;
-        }, 1000);
+        if (isActive) {
+            if (!this.sessionStartedAt) {
+                this.sessionStartedAt = now;
+            }
+            return;
+        }
+
+        if (this.sessionStartedAt || forceCommit) {
+            const startedAt = Number(this.sessionStartedAt) || 0;
+
+            if (startedAt > 0) {
+                const elapsedSeconds = Math.max(
+                    0,
+                    Math.floor((now - startedAt) / 1000)
+                );
+
+                if (elapsedSeconds > 0) {
+                    CryptoZoo.state.playTimeSeconds += elapsedSeconds;
+                }
+            }
+
+            this.sessionStartedAt = 0;
+        }
     },
 
     getCooldownMs() {
@@ -46,12 +112,25 @@ CryptoZoo.dailyReward = {
         return Math.max(0, Number(this.unlockAfterSeconds) || 0);
     },
 
-    getPlayTimeSeconds() {
-        return Math.max(0, Number(CryptoZoo.state?.playTimeSeconds) || 0);
-    },
-
     hasClaimedAtLeastOnce() {
         return Math.max(0, Number(CryptoZoo.state?.lastDailyRewardAt) || 0) > 0;
+    },
+
+    getPlayTimeSeconds() {
+        CryptoZoo.state = CryptoZoo.state || {};
+
+        const stored = Math.max(0, Number(CryptoZoo.state.playTimeSeconds) || 0);
+
+        if (!this.sessionStartedAt) {
+            return stored;
+        }
+
+        const liveExtra = Math.max(
+            0,
+            Math.floor((Date.now() - this.sessionStartedAt) / 1000)
+        );
+
+        return stored + liveExtra;
     },
 
     getRemainingUnlockSeconds() {
@@ -192,22 +271,6 @@ CryptoZoo.dailyReward = {
         );
 
         return true;
-    },
-
-    init() {
-        CryptoZoo.state = CryptoZoo.state || {};
-        CryptoZoo.state.playTimeSeconds = Math.max(0, Number(CryptoZoo.state.playTimeSeconds) || 0);
-        CryptoZoo.state.lastDailyRewardAt = Math.max(0, Number(CryptoZoo.state.lastDailyRewardAt) || 0);
-        CryptoZoo.state.dailyRewardStreak = Math.max(0, Number(CryptoZoo.state.dailyRewardStreak) || 0);
-
-        if (typeof CryptoZoo.state.dailyRewardClaimDayKey !== "string") {
-            CryptoZoo.state.dailyRewardClaimDayKey = String(
-                CryptoZoo.state.dailyRewardClaimDayKey || ""
-            );
-        }
-
-        this.startTimer();
-        this.startPlayTimeTimer();
     }
 };
 
