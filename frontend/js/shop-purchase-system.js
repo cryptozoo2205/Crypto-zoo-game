@@ -6,15 +6,18 @@ CryptoZoo.shopSystem = {
         return items.find((item) => item.id === itemId) || null;
     },
 
-    getOwnedCount(itemId) {
+    ensurePurchaseState() {
         CryptoZoo.state = CryptoZoo.state || {};
         CryptoZoo.state.shopPurchases = CryptoZoo.state.shopPurchases || {};
+    },
+
+    getOwnedCount(itemId) {
+        this.ensurePurchaseState();
         return Math.max(0, Number(CryptoZoo.state.shopPurchases[itemId]) || 0);
     },
 
     addOwnedCount(itemId, amount = 1) {
-        CryptoZoo.state = CryptoZoo.state || {};
-        CryptoZoo.state.shopPurchases = CryptoZoo.state.shopPurchases || {};
+        this.ensurePurchaseState();
         CryptoZoo.state.shopPurchases[itemId] =
             this.getOwnedCount(itemId) + Math.max(1, Number(amount) || 1);
     },
@@ -22,7 +25,7 @@ CryptoZoo.shopSystem = {
     getScaledCoinPrice(item) {
         const basePrice = Math.max(0, Number(item?.price) || 0);
         const owned = this.getOwnedCount(item?.id);
-        const scale = Math.max(1, Number(item?.priceScale) || 1.18);
+        const scale = Math.max(1, Number(item?.priceScale) || 1);
 
         if (basePrice <= 0) return 0;
         return Math.floor(basePrice * Math.pow(scale, owned));
@@ -96,32 +99,23 @@ CryptoZoo.shopSystem = {
     },
 
     applyIncomeUpgrade(item) {
-        const animals = CryptoZoo.config?.animals || {};
         const incomeBonus = Math.max(1, Number(item?.incomeBonus) || 1);
+        const animals = CryptoZoo.state?.animals || {};
 
-        if (item?.targetAnimal && CryptoZoo.state?.animals?.[item.targetAnimal]) {
-            const animalType = item.targetAnimal;
-            const owned = Math.max(0, Number(CryptoZoo.state.animals[animalType].count) || 0);
-
-            if (owned <= 0) {
-                return `Najpierw kup ${animals[animalType]?.name || animalType}`;
-            }
-
-            CryptoZoo.state.animals[animalType].level =
-                Math.max(1, Number(CryptoZoo.state.animals[animalType].level) || 1) + incomeBonus;
-
-            CryptoZoo.gameplay?.recalculateProgress?.();
-            return `${animals[animalType]?.name || animalType} lvl +${CryptoZoo.formatNumber(incomeBonus)}`;
-        }
-
-        const allAnimalTypes = Object.keys(CryptoZoo.state?.animals || {});
-        allAnimalTypes.forEach((type) => {
-            CryptoZoo.state.animals[type].level =
-                Math.max(1, Number(CryptoZoo.state.animals[type].level) || 1) + incomeBonus;
+        Object.keys(animals).forEach((type) => {
+            animals[type].level = Math.max(1, Number(animals[type]?.level) || 1) + incomeBonus;
         });
 
         CryptoZoo.gameplay?.recalculateProgress?.();
-        return `Zoo income boost +${CryptoZoo.formatNumber(incomeBonus)}`;
+        return `Zoo income boost +${CryptoZoo.formatNumber(incomeBonus)} lvl`;
+    },
+
+    applyExpeditionUpgrade(item) {
+        const bonus = Math.max(1, Number(item?.expeditionBonus) || 1);
+        CryptoZoo.state.expeditionBoost =
+            Math.max(0, Number(CryptoZoo.state?.expeditionBoost) || 0) + bonus;
+
+        return `Expedition boost +${CryptoZoo.formatNumber(bonus)}`;
     },
 
     applyOfflineBoost(item) {
@@ -165,7 +159,6 @@ CryptoZoo.shopSystem = {
 
     applyBoost2x(item) {
         const durationSeconds = Math.max(60, Number(item?.boostDurationSeconds) || 600);
-
         CryptoZoo.state.boost2xActiveUntil = Date.now() + durationSeconds * 1000;
         CryptoZoo.gameplay?.normalizeBoostState?.();
         return `X2 Boost przez ${CryptoZoo.ui?.formatDurationLabel?.(durationSeconds) || `${durationSeconds}s`}`;
@@ -180,6 +173,10 @@ CryptoZoo.shopSystem = {
 
         if (effect === "income") {
             return this.applyIncomeUpgrade(item);
+        }
+
+        if (effect === "expedition") {
+            return this.applyExpeditionUpgrade(item);
         }
 
         if (effect === "offline") {
@@ -200,14 +197,6 @@ CryptoZoo.shopSystem = {
 
         if (effect === "boost2x" || effect === "boost") {
             return this.applyBoost2x(item);
-        }
-
-        if (effect === "expedition") {
-            CryptoZoo.state.expeditionBoost =
-                Math.max(0, Number(CryptoZoo.state?.expeditionBoost) || 0) +
-                Math.max(1, Number(item?.expeditionBonus) || 1);
-
-            return `Expedition boost +${CryptoZoo.formatNumber(Math.max(1, Number(item?.expeditionBonus) || 1))}`;
         }
 
         return item?.name || "Kupiono";
