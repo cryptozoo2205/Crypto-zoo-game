@@ -252,53 +252,54 @@
             </section>
 
             <section id="screen-minigames" class="screen hidden">
-                <div class="panel card minigames-screen-card">
-                    <div class="minigames-screen-header">
-                        <div class="minigames-screen-title">🎮 Mini Games</div>
-                        <div class="minigames-screen-subtitle">Zakreć kołem albo zagraj w memory i odbierz nagrody</div>
+                <div class="panel card minigames-card">
+
+                    <div class="minigames-header">
+                        <div class="minigames-title">🎮 Mini Games</div>
+                        <div class="minigames-subtitle">
+                            Zakręć kołem albo zagraj w memory i odbierz nagrody
+                        </div>
                     </div>
 
-                    <div id="minigamesWrap" class="minigames-grid">
-                        <div id="wheelGame" class="minigame-card">
-                            <div class="minigame-card-head">
-                                <div>
-                                    <div class="minigame-card-title">Wheel Of Fortune</div>
-                                    <div class="minigame-card-subtitle">Losowa nagroda po każdym spinie</div>
+                    <div id="minigamesWrap">
+
+                        <div id="wheelGame" class="minigame-box">
+                            <div class="minigame-box-header">
+                                <div class="minigame-name">Wheel Of Fortune</div>
+                                <div class="minigame-desc">
+                                    Losowa nagroda po każdym spinie
                                 </div>
-                                <div class="minigame-badge">LUCK</div>
                             </div>
 
-                            <div class="minigame-status-box">
-                                <div class="minigame-status-label">Status koła</div>
-                                <div id="wheelRewardText" class="minigame-status-value">🎁 Tap to spin</div>
-                            </div>
-
-                            <div class="wheel-stage">
+                            <div class="wheel-container">
                                 <div id="wheelPointer" class="wheel-pointer">▼</div>
-                                <div id="wheel" class="wheel-surface"></div>
+                                <div id="wheel" class="wheel"></div>
                             </div>
 
-                            <button id="spinWheelBtn" class="minigame-main-btn" type="button">Spin Wheel</button>
+                            <button id="spinWheelBtn" type="button">Spin Wheel</button>
+
+                            <div id="wheelRewardText" class="minigame-status">
+                                🎁 Tap to spin
+                            </div>
                         </div>
 
-                        <div id="memoryGame" class="minigame-card">
-                            <div class="minigame-card-head">
-                                <div>
-                                    <div class="minigame-card-title">Memory Animals</div>
-                                    <div class="minigame-card-subtitle">Znajdź wszystkie pary i odbierz reward</div>
+                        <div id="memoryGame" class="minigame-box">
+                            <div class="minigame-box-header">
+                                <div class="minigame-name">Memory Animals</div>
+                                <div class="minigame-desc">
+                                    Znajdź wszystkie pary i odbierz reward
                                 </div>
-                                <div class="minigame-badge">SKILL</div>
                             </div>
 
-                            <div class="minigame-status-box">
-                                <div class="minigame-status-label">Status memory</div>
-                                <div id="memoryStatus" class="minigame-status-value">Find all pairs</div>
+                            <div id="memoryBoard" class="memory-grid"></div>
+
+                            <button id="startMemoryBtn" type="button">Start Memory</button>
+
+                            <div id="memoryStatus" class="minigame-status">
+                                Find all pairs
                             </div>
-
-                            <div id="memoryBoard" class="memory-board"></div>
-
-                            <button id="startMemoryBtn" class="minigame-main-btn secondary" type="button">Start Memory</button>
                         </div>
+
                     </div>
                 </div>
             </section>
