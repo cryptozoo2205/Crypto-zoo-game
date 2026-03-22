@@ -2,33 +2,39 @@ window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.minigames = {
     wheelSpinning: false,
+    wheelCooldownSeconds: 2 * 60 * 60,
+    memoryCooldownSeconds: 15 * 60,
+    wheelRotation: 0,
+    wheelBuilt: false,
+    cooldownTimerStarted: false,
+
     memoryCards: [],
     memoryFlipped: [],
     memoryMatched: 0,
     memoryLocked: false,
-    cooldownTimerStarted: false,
-
-    wheelCooldownSeconds: 2 * 60 * 60,
-    memoryCooldownSeconds: 15 * 60,
-    wheelBaseRotation: 0,
 
     init() {
         this.ensureState();
         this.bindButtons();
+        this.buildWheelVisual();
+        this.resetWheelTransform();
         this.startCooldownTimer();
         this.renderCooldowns();
-        this.resetWheelIfNeeded();
     },
 
     ensureState() {
         CryptoZoo.state = CryptoZoo.state || {};
         CryptoZoo.state.minigames = CryptoZoo.state.minigames || {};
 
-        CryptoZoo.state.minigames.wheelCooldownUntil =
-            Math.max(0, Number(CryptoZoo.state.minigames.wheelCooldownUntil) || 0);
+        CryptoZoo.state.minigames.wheelCooldownUntil = Math.max(
+            0,
+            Number(CryptoZoo.state.minigames.wheelCooldownUntil) || 0
+        );
 
-        CryptoZoo.state.minigames.memoryCooldownUntil =
-            Math.max(0, Number(CryptoZoo.state.minigames.memoryCooldownUntil) || 0);
+        CryptoZoo.state.minigames.memoryCooldownUntil = Math.max(
+            0,
+            Number(CryptoZoo.state.minigames.memoryCooldownUntil) || 0
+        );
     },
 
     isMiniGamesVisible() {
@@ -36,12 +42,99 @@ CryptoZoo.minigames = {
         return !!(screen && !screen.classList.contains("hidden"));
     },
 
-    resetWheelIfNeeded() {
+    getWheelRewards() {
+        return [
+            {
+                id: "coins_1000",
+                label: "1000C",
+                type: "coins",
+                value: 1000,
+                centerAngle: 30
+            },
+            {
+                id: "gems_2",
+                label: "2G",
+                type: "gems",
+                value: 2,
+                centerAngle: 90
+            },
+            {
+                id: "reward_1",
+                label: "1R",
+                type: "reward",
+                value: 1,
+                centerAngle: 150
+            },
+            {
+                id: "coins_2500",
+                label: "2500C",
+                type: "coins",
+                value: 2500,
+                centerAngle: 210
+            },
+            {
+                id: "gems_1",
+                label: "1G",
+                type: "gems",
+                value: 1,
+                centerAngle: 270
+            },
+            {
+                id: "coins_5000",
+                label: "5000C",
+                type: "coins",
+                value: 5000,
+                centerAngle: 330
+            }
+        ];
+    },
+
+    buildWheelVisual() {
         const wheel = document.getElementById("wheel");
         if (!wheel) return;
 
-        const normalized = ((Number(this.wheelBaseRotation) || 0) % 360 + 360) % 360;
-        this.wheelBaseRotation = normalized;
+        if (this.wheelBuilt) return;
+        this.wheelBuilt = true;
+
+        wheel.innerHTML = "";
+        wheel.style.position = "relative";
+        wheel.style.overflow = "hidden";
+
+        const rewards = this.getWheelRewards();
+
+        rewards.forEach((reward) => {
+            const label = document.createElement("div");
+            label.className = "wheel-label";
+            label.textContent = reward.label;
+
+            label.style.position = "absolute";
+            label.style.left = "50%";
+            label.style.top = "50%";
+            label.style.width = "78px";
+            label.style.textAlign = "center";
+            label.style.fontWeight = "900";
+            label.style.fontSize = "18px";
+            label.style.lineHeight = "1";
+            label.style.color = "#ffffff";
+            label.style.textShadow = "0 2px 8px rgba(0,0,0,0.35)";
+            label.style.pointerEvents = "none";
+            label.style.zIndex = "2";
+            label.style.letterSpacing = "0.3px";
+
+            const angle = reward.centerAngle;
+            label.style.transform =
+                `translate(-50%, -50%) rotate(${angle}deg) translateY(-95px) rotate(90deg)`;
+
+            wheel.appendChild(label);
+        });
+    },
+
+    resetWheelTransform() {
+        const wheel = document.getElementById("wheel");
+        if (!wheel) return;
+
+        const normalized = ((Number(this.wheelRotation) || 0) % 360 + 360) % 360;
+        this.wheelRotation = normalized;
         wheel.style.transition = "none";
         wheel.style.transform = `rotate(${normalized}deg)`;
     },
@@ -69,7 +162,7 @@ CryptoZoo.minigames = {
     },
 
     isWheelReady() {
-        return this.getWheelCooldownLeft() <= 0 && !this.wheelSpinning;
+        return !this.wheelSpinning && this.getWheelCooldownLeft() <= 0;
     },
 
     isMemoryReady() {
@@ -92,17 +185,6 @@ CryptoZoo.minigames = {
         return CryptoZoo.ui?.formatTimeLeft?.(seconds) || "00:00:00";
     },
 
-    getWheelRewards() {
-        return [
-            { label: "1000 Coins", type: "coins", value: 1000, angle: 30 },
-            { label: "2 Gems", type: "gems", value: 2, angle: 90 },
-            { label: "1 Reward", type: "reward", value: 1, angle: 150 },
-            { label: "2500 Coins", type: "coins", value: 2500, angle: 210 },
-            { label: "1 Gem", type: "gems", value: 1, angle: 270 },
-            { label: "5000 Coins", type: "coins", value: 5000, angle: 330 }
-        ];
-    },
-
     renderCooldowns() {
         const spinBtn = document.getElementById("spinWheelBtn");
         const wheelStatus = document.getElementById("wheelRewardText");
@@ -115,13 +197,13 @@ CryptoZoo.minigames = {
         if (spinBtn) {
             if (this.wheelSpinning) {
                 spinBtn.disabled = true;
-                spinBtn.textContent = "Kręci się...";
-                spinBtn.style.opacity = "0.75";
+                spinBtn.textContent = "Spinning...";
+                spinBtn.style.opacity = "0.78";
                 spinBtn.style.cursor = "not-allowed";
             } else if (wheelLeft > 0) {
                 spinBtn.disabled = true;
                 spinBtn.textContent = `Next spin in ${this.formatCooldown(wheelLeft)}`;
-                spinBtn.style.opacity = "0.6";
+                spinBtn.style.opacity = "0.7";
                 spinBtn.style.cursor = "not-allowed";
             } else {
                 spinBtn.disabled = false;
@@ -143,7 +225,7 @@ CryptoZoo.minigames = {
             if (memoryLeft > 0) {
                 memoryBtn.disabled = true;
                 memoryBtn.textContent = `Memory CD ${this.formatCooldown(memoryLeft)}`;
-                memoryBtn.style.opacity = "0.6";
+                memoryBtn.style.opacity = "0.7";
                 memoryBtn.style.cursor = "not-allowed";
             } else {
                 memoryBtn.disabled = false;
@@ -195,6 +277,11 @@ CryptoZoo.minigames = {
 
         if (!wheel) return;
 
+        this.buildWheelVisual();
+
+        const rewards = this.getWheelRewards();
+        const reward = rewards[Math.floor(Math.random() * rewards.length)];
+
         this.wheelSpinning = true;
         CryptoZoo.audio?.play?.("spin");
 
@@ -203,21 +290,20 @@ CryptoZoo.minigames = {
             wheelStatus.dataset.rewardLocked = "1";
         }
 
-        const rewards = this.getWheelRewards();
-        const reward = rewards[Math.floor(Math.random() * rewards.length)];
+        const fullSpins = 7 + Math.floor(Math.random() * 4);
+        const currentRotation = ((Number(this.wheelRotation) || 0) % 360 + 360) % 360;
 
-        const extraSpins = 8 + Math.floor(Math.random() * 5);
-        const spins = 360 * extraSpins;
-        const targetAngle = 360 - reward.angle;
-        const finalDeg = this.wheelBaseRotation + spins + targetAngle;
+        /* pointer is at top = 270deg in conic system */
+        const targetRotation = 270 - reward.centerAngle;
+        const finalRotation = currentRotation + fullSpins * 360 + targetRotation;
 
         wheel.style.transition = "none";
-        wheel.style.transform = `rotate(${this.wheelBaseRotation}deg)`;
+        wheel.style.transform = `rotate(${currentRotation}deg)`;
 
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-                wheel.style.transition = "transform 6.6s cubic-bezier(0.12, 0.82, 0.16, 1)";
-                wheel.style.transform = `rotate(${finalDeg}deg)`;
+                wheel.style.transition = "transform 6.4s cubic-bezier(0.08, 0.82, 0.16, 1)";
+                wheel.style.transform = `rotate(${finalRotation}deg)`;
             });
         });
 
@@ -227,8 +313,8 @@ CryptoZoo.minigames = {
             this.applyWheelReward(reward);
             this.startWheelCooldown();
 
-            const normalized = ((finalDeg % 360) + 360) % 360;
-            this.wheelBaseRotation = normalized;
+            const normalized = ((finalRotation % 360) + 360) % 360;
+            this.wheelRotation = normalized;
 
             wheel.style.transition = "none";
             wheel.style.transform = `rotate(${normalized}deg)`;
@@ -245,7 +331,7 @@ CryptoZoo.minigames = {
 
             this.wheelSpinning = false;
             this.renderCooldowns();
-        }, 6600);
+        }, 6400);
     },
 
     createMemoryDeck() {
@@ -355,7 +441,6 @@ CryptoZoo.minigames = {
         if (!this.isMemoryReady() && this.memoryCards.length === 0) return;
 
         const card = this.memoryCards.find((c) => c.id === cardId);
-
         if (!card || card.flipped || card.matched) return;
 
         card.flipped = true;
