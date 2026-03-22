@@ -293,6 +293,34 @@ CryptoZoo.ui = {
         iconEl.textContent = "⏳";
     },
 
+    renderXpBar() {
+        const xp = Math.max(0, Number(CryptoZoo.state?.xp) || 0);
+
+        let level = 1;
+        let req = 100;
+        let used = 0;
+
+        while (xp >= used + req) {
+            used += req;
+            level += 1;
+            req += 100;
+        }
+
+        const currentXp = Math.max(0, xp - used);
+        const percent = req > 0 ? Math.max(0, Math.min(100, (currentXp / req) * 100)) : 0;
+
+        const fill = document.getElementById("homeXpFill");
+        const text = document.getElementById("homeXpText");
+
+        if (fill) {
+            fill.style.width = percent + "%";
+        }
+
+        if (text) {
+            text.textContent = `${CryptoZoo.formatNumber(currentXp)} / ${CryptoZoo.formatNumber(req)} XP`;
+        }
+    },
+
     getShopTypeLabel(type) {
         if (type === "click") return "Click Boost";
         if (type === "income") return "Income Boost";
@@ -586,6 +614,8 @@ CryptoZoo.ui = {
         this.updateText("homePandaLevel", CryptoZoo.formatNumber(pandaLevel));
         this.updateText("homeLionCount", CryptoZoo.formatNumber(lionCount));
         this.updateText("homeLionLevel", CryptoZoo.formatNumber(lionLevel));
+
+        this.renderXpBar();
 
         CryptoZoo.uiProfile?.renderTopBarProfile?.();
         CryptoZoo.uiProfile?.bindProfileModal?.();
