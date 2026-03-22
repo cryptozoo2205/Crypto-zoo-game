@@ -3,6 +3,7 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.dailyReward = {
     unlockAfterSeconds: 60 * 60,
     timerStarted: false,
+    firstUnlockStorageKey: "cryptozoo_first_daily_unlock_started_at",
 
     init() {
         CryptoZoo.state = CryptoZoo.state || {};
@@ -15,11 +16,6 @@ CryptoZoo.dailyReward = {
         CryptoZoo.state.dailyRewardStreak = Math.max(
             0,
             Number(CryptoZoo.state.dailyRewardStreak) || 0
-        );
-
-        CryptoZoo.state.firstDailyUnlockStartedAt = Math.max(
-            0,
-            Number(CryptoZoo.state.firstDailyUnlockStartedAt) || 0
         );
 
         if (typeof CryptoZoo.state.dailyRewardClaimDayKey !== "string") {
@@ -40,6 +36,15 @@ CryptoZoo.dailyReward = {
             this.ensureFirstUnlockTimerStarted();
             CryptoZoo.ui?.renderDailyRewardStatus?.();
         }, 1000);
+
+        document.addEventListener("visibilitychange", () => {
+            this.ensureFirstUnlockTimerStarted();
+            CryptoZoo.ui?.renderDailyRewardStatus?.();
+        });
+
+        window.addEventListener("focus", () => {
+            this.ensureFirstUnlockTimerStarted();
+        });
     },
 
     isVisibleAndPlayable() {
@@ -50,14 +55,22 @@ CryptoZoo.dailyReward = {
         return Math.max(0, Number(CryptoZoo.state?.lastDailyRewardAt) || 0) > 0;
     },
 
-    ensureFirstUnlockTimerStarted() {
-        CryptoZoo.state = CryptoZoo.state || {};
+    getFirstUnlockStartedAt() {
+        const raw = localStorage.getItem(this.firstUnlockStorageKey);
+        return Math.max(0, Number(raw) || 0);
+    },
 
+    setFirstUnlockStartedAt(timestamp) {
+        localStorage.setItem(this.firstUnlockStorageKey, String(Math.max(0, Number(timestamp) || 0)));
+    },
+
+    ensureFirstUnlockTimerStarted() {
         if (this.hasClaimedAtLeastOnce()) return;
         if (!this.isVisibleAndPlayable()) return;
 
-        if (!CryptoZoo.state.firstDailyUnlockStartedAt) {
-            CryptoZoo.state.firstDailyUnlockStartedAt = Date.now();
+        const startedAt = this.getFirstUnlockStartedAt();
+        if (!startedAt) {
+            this.setFirstUnlockStartedAt(Date.now());
         }
     },
 
@@ -78,11 +91,7 @@ CryptoZoo.dailyReward = {
             return 0;
         }
 
-        const startedAt = Math.max(
-            0,
-            Number(CryptoZoo.state?.firstDailyUnlockStartedAt) || 0
-        );
-
+        const startedAt = this.getFirstUnlockStartedAt();
         if (!startedAt) {
             return this.getUnlockAfterSeconds();
         }
