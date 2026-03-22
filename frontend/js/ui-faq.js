@@ -22,67 +22,67 @@ CryptoZoo.uiFaq = {
             </div>
 
             <div style="margin-bottom:12px;">
-                <strong>🎮 Na czym polega gra?</strong><br>
-                Klikasz, zdobywasz coins i rozwijasz swoje zoo. Zwierzęta generują dochód automatycznie.
+                <strong>🎮 O co chodzi w grze?</strong><br>
+                Budujesz swoje zoo, zdobywasz coins i rozwijasz dochód pasywny. Klikanie przyspiesza progres.
             </div>
 
             <div style="margin-bottom:12px;">
                 <strong>👆 Klikanie (Tap)</strong><br>
-                Każdy klik daje coins oraz XP. Możesz używać wielu palców, ale system liczy maksymalnie jako x3.
+                Każdy klik daje coins i XP. Możesz używać kilku palców – system optymalizuje to dla balansu gry.
             </div>
 
             <div style="margin-bottom:12px;">
                 <strong>🐾 Zwierzęta</strong><br>
-                Kupujesz zwierzęta, które generują coins co sekundę (dochód pasywny).
+                Zwierzęta generują coins automatycznie co sekundę (dochód pasywny).
             </div>
 
             <div style="margin-bottom:12px;">
                 <strong>⬆ Ulepszenia (Lvl Up)</strong><br>
-                Zwiększają wydajność wszystkich posiadanych zwierząt danego typu.
+                Zwiększają efektywność wszystkich posiadanych zwierząt danego typu.
             </div>
 
             <div style="margin-bottom:12px;">
                 <strong>💰 Dochód zoo</strong><br>
-                Coins są generowane automatycznie nawet bez klikania.
+                Twój zoo income działa cały czas – nawet bez klikania.
             </div>
 
             <div style="margin-bottom:12px;">
-                <strong>🎮 Poziom gracza</strong><br>
-                Zdobywasz XP i levelujesz. Wyższy poziom odblokowuje nowe ekspedycje.
+                <strong>📊 Poziom gracza</strong><br>
+                Zdobywasz XP i awansujesz na kolejne poziomy. Odblokowują one nowe funkcje i ekspedycje.
             </div>
 
             <div style="margin-bottom:12px;">
                 <strong>🎁 Daily Reward</strong><br>
-                Codzienna nagroda dostępna co 24h. Streak zwiększa wartość nagród.
+                Codzienna nagroda dostępna co 24h. Streak zwiększa jej wartość.
             </div>
 
             <div style="margin-bottom:12px;">
                 <strong>🌍 Expeditions</strong><br>
-                Wysyłasz zwierzęta na misje, które po czasie dają coins, gems i reward.
+                Wysyłasz ekspedycje, które po czasie dają coins, gems i reward.
             </div>
 
             <div style="margin-bottom:12px;">
                 <strong>⚡ Boost X2</strong><br>
-                Podwaja klik i dochód zoo przez ograniczony czas.
+                Tymczasowo podwaja klik i dochód zoo.
             </div>
 
             <div style="margin-bottom:12px;">
                 <strong>💎 Gems</strong><br>
-                Rzadki zasób używany do boostów i specjalnych zakupów.
+                Rzadka waluta używana do boostów i specjalnych zakupów.
             </div>
 
             <div style="margin-bottom:12px;">
                 <strong>💠 Reward</strong><br>
-                Specjalna waluta zdobywana z ekspedycji. Można ją przenieść do Wallet.
+                Specjalny zasób zdobywany głównie z ekspedycji.
             </div>
 
             <div style="margin-bottom:12px;">
                 <strong>🏦 Wallet</strong><br>
-                Miejsce przechowywania rewardów przygotowane pod przyszłe wypłaty.
+                Miejsce przechowywania rewardów (przygotowane pod przyszłe funkcje wypłat).
             </div>
 
             <div style="margin-bottom:12px;">
-                <strong>💤 Offline earnings</strong><br>
+                <strong>💤 Offline Earnings</strong><br>
                 Gra zarabia coins nawet gdy jesteś offline (do określonego limitu czasu).
             </div>
 
