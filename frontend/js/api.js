@@ -205,9 +205,10 @@ window.CryptoZoo.api = {
 
     normalizeShopPurchases(rawShopPurchases) {
         const result = {};
-        const source = rawShopPurchases && typeof rawShopPurchases === "object"
-            ? rawShopPurchases
-            : {};
+        const source =
+            rawShopPurchases && typeof rawShopPurchases === "object"
+                ? rawShopPurchases
+                : {};
 
         Object.keys(source).forEach((key) => {
             result[key] = Math.max(0, Number(source[key]) || 0);
@@ -565,5 +566,21 @@ window.CryptoZoo.api = {
         });
 
         return Array.isArray(result?.requests) ? result.requests : [];
+    },
+
+    async loadWithdrawHistory() {
+        const telegramId = this.getPlayerId();
+
+        try {
+            const result = await this.request(`/withdraw/${encodeURIComponent(telegramId)}`, {
+                method: "GET"
+            });
+
+            const list = result?.requests || result?.history || result?.data || [];
+            return Array.isArray(list) ? list : [];
+        } catch (error) {
+            console.warn("Withdraw history load failed:", error);
+            return [];
+        }
     }
 };
