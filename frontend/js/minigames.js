@@ -71,31 +71,31 @@ CryptoZoo.minigames = {
     getWheelRewards() {
         return [
             {
+                id: "coins_100",
+                label: "100C",
+                type: "coins",
+                value: 100,
+                centerAngle: 22.5
+            },
+            {
+                id: "coins_250",
+                label: "250C",
+                type: "coins",
+                value: 250,
+                centerAngle: 67.5
+            },
+            {
+                id: "coins_500",
+                label: "500C",
+                type: "coins",
+                value: 500,
+                centerAngle: 112.5
+            },
+            {
                 id: "coins_1000",
                 label: "1000C",
                 type: "coins",
                 value: 1000,
-                centerAngle: 22.5
-            },
-            {
-                id: "gems_2",
-                label: "2G",
-                type: "gems",
-                value: 2,
-                centerAngle: 67.5
-            },
-            {
-                id: "reward_1",
-                label: "1R",
-                type: "reward",
-                value: 1,
-                centerAngle: 112.5
-            },
-            {
-                id: "coins_2500",
-                label: "2500C",
-                type: "coins",
-                value: 2500,
                 centerAngle: 157.5
             },
             {
@@ -106,21 +106,21 @@ CryptoZoo.minigames = {
                 centerAngle: 202.5
             },
             {
-                id: "coins_5000",
-                label: "5000C",
-                type: "coins",
-                value: 5000,
+                id: "gems_2",
+                label: "2G",
+                type: "gems",
+                value: 2,
                 centerAngle: 247.5
             },
             {
-                id: "coins_10000",
-                label: "10000C",
-                type: "coins",
-                value: 10000,
+                id: "reward_1",
+                label: "1R",
+                type: "reward",
+                value: 1,
                 centerAngle: 292.5
             },
             {
-                id: "coins_2500_b",
+                id: "coins_2500",
                 label: "2500C",
                 type: "coins",
                 value: 2500,
