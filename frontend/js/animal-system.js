@@ -25,10 +25,9 @@ CryptoZoo.animalsSystem = {
         CryptoZoo.state = CryptoZoo.state || {};
         CryptoZoo.state.animals = CryptoZoo.state.animals || {};
 
-        const buyCost = Number(config.buyCost || 0);
-        const coinsBeforeSpend = Number(CryptoZoo.state?.coins) || 0;
+        const buyCost = Math.max(0, Number(config.buyCost) || 0);
 
-        if (coinsBeforeSpend < buyCost) {
+        if ((Number(CryptoZoo.state?.coins) || 0) < buyCost) {
             CryptoZoo.ui?.showToast?.("Za mało coins");
             return false;
         }
@@ -37,10 +36,14 @@ CryptoZoo.animalsSystem = {
             CryptoZoo.state.animals[type] = { count: 0, level: 1 };
         }
 
-        CryptoZoo.state.coins -= buyCost;
-        CryptoZoo.state.animals[type].count += 1;
+        CryptoZoo.state.coins = Math.max(
+            0,
+            (Number(CryptoZoo.state.coins) || 0) - buyCost
+        );
 
-        CryptoZoo.gameplay?.applyLevelDropBySpend?.(buyCost, coinsBeforeSpend);
+        CryptoZoo.state.animals[type].count =
+            Math.max(0, Number(CryptoZoo.state.animals[type].count) || 0) + 1;
+
         CryptoZoo.gameplay?.persistAndRender?.();
         CryptoZoo.ui?.showToast?.(`Kupiono ${config.name}`);
 
@@ -76,17 +79,19 @@ CryptoZoo.animalsSystem = {
         }
 
         const cost = this.getUpgradeCost(type);
-        const coinsBeforeSpend = Number(CryptoZoo.state.coins) || 0;
 
-        if (coinsBeforeSpend < cost) {
+        if ((Number(CryptoZoo.state?.coins) || 0) < cost) {
             CryptoZoo.ui?.showToast?.("Za mało coins");
             return false;
         }
 
-        CryptoZoo.state.coins -= cost;
-        animal.level += 1;
+        CryptoZoo.state.coins = Math.max(
+            0,
+            (Number(CryptoZoo.state.coins) || 0) - cost
+        );
 
-        CryptoZoo.gameplay?.applyLevelDropBySpend?.(cost, coinsBeforeSpend);
+        animal.level = Math.max(1, Number(animal.level) || 1) + 1;
+
         CryptoZoo.gameplay?.persistAndRender?.();
         CryptoZoo.ui?.showToast?.(`Ulepszono ${config.name}`);
 
