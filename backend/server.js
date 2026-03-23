@@ -31,37 +31,6 @@ const LIMITS = {
 
 const ADMIN_SECRET = String(process.env.ADMIN_SECRET || "");
 
-const SHOP_CONFIG = {
-    click: {
-        click1: 1,
-        click2: 2,
-        click3: 3,
-        click4: 5,
-        click5: 8
-    },
-    expedition: {
-        expedition1: 1,
-        expedition2: 1,
-        expedition3: 1
-    }
-};
-
-const ANIMAL_BASE_INCOME = {
-    monkey: 1,
-    panda: 3,
-    lion: 8,
-    tiger: 18,
-    elephant: 42,
-    giraffe: 95,
-    zebra: 210,
-    hippo: 470,
-    penguin: 1050,
-    bear: 2300,
-    crocodile: 5000,
-    kangaroo: 10800,
-    wolf: 23000
-};
-
 /* =========================
    DB
 ========================= */
@@ -135,31 +104,37 @@ function safeString(value, fallback = "") {
     return String(value || fallback).trim();
 }
 
-/* =========================
-   PLAYER DEFAULTS / NORMALIZE
-========================= */
-
 function getDefaultPlayer(telegramId = "local-player", username = "Gracz") {
     return {
         telegramId: String(telegramId),
         username: String(username || "Gracz"),
+
         coins: 0,
         gems: 0,
         rewardBalance: 0,
         rewardWallet: 0,
         withdrawPending: 0,
+
         level: 1,
         xp: 0,
         coinsPerClick: 1,
         upgradeCost: 50,
         zooIncome: 0,
         expeditionBoost: 0,
+
+        offlineMaxSeconds: 1 * 60 * 60,
+        offlineBoostMultiplier: 1,
+        offlineBoostActiveUntil: 0,
         offlineBoost: 1,
+
         lastLogin: Date.now(),
         lastDailyRewardAt: 0,
         dailyRewardStreak: 0,
         dailyRewardClaimDayKey: "",
         boost2xActiveUntil: 0,
+        playTimeSeconds: 0,
+        lastAwardedLevel: 1,
+
         animals: {
             monkey: { count: 0, level: 1 },
             panda: { count: 0, level: 1 },
@@ -175,19 +150,35 @@ function getDefaultPlayer(telegramId = "local-player", username = "Gracz") {
             kangaroo: { count: 0, level: 1 },
             wolf: { count: 0, level: 1 }
         },
+
         boxes: {
             common: 0,
             rare: 0,
             epic: 0,
             legendary: 0
         },
+
         expedition: null,
+
         minigames: {
             wheelCooldownUntil: 0,
             memoryCooldownUntil: 0,
             extraWheelSpins: 0
         },
-        shopPurchases: {}
+
+        shopPurchases: {},
+
+        expeditionStats: {
+            rareChanceBonus: 0,
+            epicChanceBonus: 0,
+            timeReductionSeconds: 0
+        },
+
+        dailyMissions: {
+            dayKey: "",
+            missions: [],
+            claimedCount: 0
+        }
     };
 }
 
@@ -244,9 +235,41 @@ function normalizeExpedition(rawExpedition) {
         name: String(rawExpedition.name || "Expedition"),
         startTime: normalizeNumber(rawExpedition.startTime, Date.now()),
         endTime: normalizeNumber(rawExpedition.endTime, 0),
+        duration: Math.max(0, normalizeNumber(rawExpedition.duration, 0)),
         rewardRarity: String(rawExpedition.rewardRarity || "common"),
         rewardCoins: Math.max(0, normalizeNumber(rawExpedition.rewardCoins, 0)),
         rewardGems: Math.max(0, normalizeNumber(rawExpedition.rewardGems, 0))
+    };
+}
+
+function normalizeExpeditionStats(rawExpeditionStats) {
+    return {
+        rareChanceBonus: Math.max(0, normalizeNumber(rawExpeditionStats?.rareChanceBonus, 0)),
+        epicChanceBonus: Math.max(0, normalizeNumber(rawExpeditionStats?.epicChanceBonus, 0)),
+        timeReductionSeconds: Math.max(0, normalizeNumber(rawExpeditionStats?.timeReductionSeconds, 0))
+    };
+}
+
+function normalizeDailyMissions(rawDailyMissions) {
+    const safe = rawDailyMissions && typeof rawDailyMissions === "object"
+        ? rawDailyMissions
+        : {};
+
+    return {
+        dayKey: String(safe.dayKey || ""),
+        claimedCount: Math.max(0, normalizeNumber(safe.claimedCount, 0)),
+        missions: Array.isArray(safe.missions)
+            ? safe.missions.map((mission) => ({
+                id: String(mission?.id || ""),
+                type: String(mission?.type || ""),
+                target: Math.max(1, normalizeNumber(mission?.target, 1)),
+                progress: Math.max(0, normalizeNumber(mission?.progress, 0)),
+                title: String(mission?.title || "Misja"),
+                rewardCoins: Math.max(0, normalizeNumber(mission?.rewardCoins, 0)),
+                rewardGems: Math.max(0, normalizeNumber(mission?.rewardGems, 0)),
+                claimed: !!mission?.claimed
+            }))
+            : []
     };
 }
 
@@ -255,30 +278,43 @@ function normalizePlayer(input) {
 
     return {
         ...base,
+
         telegramId: String(input?.telegramId || base.telegramId),
         username: String(input?.username || base.username),
+
         coins: clamp(Math.max(0, normalizeNumber(input?.coins, base.coins)), 0, LIMITS.MAX_COINS),
         gems: clamp(Math.max(0, normalizeNumber(input?.gems, base.gems)), 0, LIMITS.MAX_GEMS),
         rewardBalance: normalizeRewardNumber(input?.rewardBalance, base.rewardBalance),
         rewardWallet: normalizeRewardNumber(input?.rewardWallet, base.rewardWallet),
         withdrawPending: normalizeRewardNumber(input?.withdrawPending, base.withdrawPending),
+
         level: clamp(Math.max(1, normalizeNumber(input?.level, base.level)), 1, LIMITS.MAX_LEVEL),
         xp: clamp(Math.max(0, normalizeNumber(input?.xp, base.xp)), 0, LIMITS.MAX_XP),
         coinsPerClick: Math.max(1, normalizeNumber(input?.coinsPerClick, base.coinsPerClick)),
         upgradeCost: Math.max(0, normalizeNumber(input?.upgradeCost, base.upgradeCost)),
         zooIncome: Math.max(0, normalizeNumber(input?.zooIncome, base.zooIncome)),
         expeditionBoost: Math.max(0, normalizeNumber(input?.expeditionBoost, base.expeditionBoost)),
+
+        offlineMaxSeconds: Math.max(0, normalizeNumber(input?.offlineMaxSeconds, base.offlineMaxSeconds)),
+        offlineBoostMultiplier: Math.max(1, normalizeNumber(input?.offlineBoostMultiplier, base.offlineBoostMultiplier)),
+        offlineBoostActiveUntil: Math.max(0, normalizeNumber(input?.offlineBoostActiveUntil, base.offlineBoostActiveUntil)),
         offlineBoost: Math.max(1, normalizeNumber(input?.offlineBoost, base.offlineBoost)),
+
         lastLogin: normalizeNumber(input?.lastLogin, Date.now()),
         lastDailyRewardAt: Math.max(0, normalizeNumber(input?.lastDailyRewardAt, 0)),
         dailyRewardStreak: Math.max(0, normalizeNumber(input?.dailyRewardStreak, 0)),
         dailyRewardClaimDayKey: String(input?.dailyRewardClaimDayKey || ""),
         boost2xActiveUntil: Math.max(0, normalizeNumber(input?.boost2xActiveUntil, 0)),
+        playTimeSeconds: Math.max(0, normalizeNumber(input?.playTimeSeconds, 0)),
+        lastAwardedLevel: Math.max(1, normalizeNumber(input?.lastAwardedLevel, base.lastAwardedLevel)),
+
         animals: normalizeAnimalState(input?.animals, base.animals),
         boxes: normalizeBoxes(input?.boxes),
         expedition: normalizeExpedition(input?.expedition),
         minigames: normalizeMinigames(input?.minigames),
-        shopPurchases: normalizeShopPurchases(input?.shopPurchases)
+        shopPurchases: normalizeShopPurchases(input?.shopPurchases),
+        expeditionStats: normalizeExpeditionStats(input?.expeditionStats),
+        dailyMissions: normalizeDailyMissions(input?.dailyMissions)
     };
 }
 
@@ -291,50 +327,6 @@ function getPlayerOrCreate(db, telegramId, username = "Gracz") {
 
     return db.players[id];
 }
-
-/* =========================
-   DERIVED VALUES
-========================= */
-
-function recalcZooIncome(animals) {
-    let total = 0;
-
-    Object.keys(ANIMAL_BASE_INCOME).forEach((type) => {
-        const baseIncome = ANIMAL_BASE_INCOME[type];
-        const animal = animals[type] || { count: 0, level: 1 };
-
-        total +=
-            Math.max(0, normalizeNumber(animal.count, 0)) *
-            Math.max(1, normalizeNumber(animal.level, 1)) *
-            Math.max(0, baseIncome);
-    });
-
-    return total;
-}
-
-function recalcCoinsPerClick(shopPurchases) {
-    let total = 1;
-
-    Object.entries(SHOP_CONFIG.click).forEach(([id, bonus]) => {
-        total += Math.max(0, normalizeNumber(shopPurchases[id], 0)) * bonus;
-    });
-
-    return total;
-}
-
-function recalcExpeditionBoost(shopPurchases) {
-    let total = 0;
-
-    Object.entries(SHOP_CONFIG.expedition).forEach(([id, bonus]) => {
-        total += Math.max(0, normalizeNumber(shopPurchases[id], 0)) * bonus;
-    });
-
-    return total;
-}
-
-/* =========================
-   ANTI-CHEAT
-========================= */
 
 function validateProgress(oldPlayer, newPlayer) {
     if (!oldPlayer) return newPlayer;
@@ -358,27 +350,6 @@ function validateProgress(oldPlayer, newPlayer) {
     if (newPlayer.xp < oldPlayer.xp && oldPlayer.xp - newPlayer.xp > 5000) {
         newPlayer.xp = oldPlayer.xp;
     }
-
-    return newPlayer;
-}
-
-function buildSafePlayerState(oldPlayer, incomingRaw) {
-    const incoming = normalizePlayer(incomingRaw || {});
-    const safe = normalizePlayer({
-        ...(oldPlayer || getDefaultPlayer(incoming.telegramId, incoming.username)),
-        ...incoming
-    });
-
-    safe.zooIncome = recalcZooIncome(safe.animals);
-    safe.coinsPerClick = recalcCoinsPerClick(safe.shopPurchases);
-    safe.expeditionBoost = recalcExpeditionBoost(safe.shopPurchases);
-
-    return validateProgress(oldPlayer, safe);
-}
-
-/* =========================
-   WITHDRAW HELPERS
-========================= */
 
 function createWithdrawRequest({ telegramId, username, amount }) {
     return {
@@ -594,7 +565,6 @@ app.get("/api/withdraw/:telegramId", (req, res) => {
 
 /* =========================
    WITHDRAW STATUS UPDATE
-   pending -> approved / rejected
 ========================= */
 
 app.post("/api/withdraw/update", (req, res) => {
@@ -655,3 +625,15 @@ ensureDb();
 app.listen(PORT, () => {
     console.log(`Crypto Zoo backend running on port ${PORT}`);
 });
+    return newPlayer;
+}
+
+function buildSafePlayerState(oldPlayer, incomingRaw) {
+    const incoming = normalizePlayer(incomingRaw || {});
+    const safe = normalizePlayer({
+        ...(oldPlayer || getDefaultPlayer(incoming.telegramId, incoming.username)),
+        ...incoming
+    });
+
+    return validateProgress(oldPlayer, safe);
+}
