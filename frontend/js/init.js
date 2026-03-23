@@ -30,65 +30,67 @@ CryptoZoo.init = {
         }, 350);
     },
 
-    runSafe(fn) {
+    async runSafe(fn) {
         try {
             if (typeof fn === "function") {
-                fn();
+                return await fn();
             }
         } catch (error) {
             console.error(error);
         }
+
+        return null;
     },
 
-    start() {
+    async start() {
         if (this.started) return;
         this.started = true;
 
         this.setLoadingProgress(5);
 
-        this.runSafe(() => {
+        await this.runSafe(async () => {
             CryptoZoo.uiSettings?.initSettings?.();
         });
 
         this.setLoadingProgress(15);
 
-        this.runSafe(() => {
+        await this.runSafe(async () => {
             CryptoZoo.audio?.init?.();
         });
 
         this.setLoadingProgress(25);
 
-        this.runSafe(() => {
-            CryptoZoo.api?.init?.();
+        await this.runSafe(async () => {
+            await CryptoZoo.api?.init?.();
         });
 
         this.setLoadingProgress(40);
 
-        this.runSafe(() => {
+        await this.runSafe(async () => {
             CryptoZoo.telegram?.init?.();
         });
 
         this.setLoadingProgress(55);
 
-        this.runSafe(() => {
+        await this.runSafe(async () => {
             CryptoZoo.uiFaq?.close?.();
         });
 
         this.setLoadingProgress(65);
 
-        this.runSafe(() => {
+        await this.runSafe(async () => {
             CryptoZoo.gameplay?.init?.();
         });
 
         this.setLoadingProgress(82);
 
-        this.runSafe(() => {
+        await this.runSafe(async () => {
             CryptoZoo.minigames?.init?.();
         });
 
         this.setLoadingProgress(92);
 
-        this.runSafe(() => {
+        await this.runSafe(async () => {
             CryptoZoo.ui?.render?.();
         });
 
@@ -100,6 +102,6 @@ CryptoZoo.init = {
     }
 };
 
-document.addEventListener("DOMContentLoaded", () => {
-    CryptoZoo.init.start();
+document.addEventListener("DOMContentLoaded", async () => {
+    await CryptoZoo.init.start();
 });
