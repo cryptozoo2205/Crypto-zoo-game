@@ -198,3 +198,37 @@ main#game {
         padding-bottom: calc(var(--menu-height) + var(--menu-gap) + var(--menu-safe-bottom) + 54px);
     }
 }
+
+/* =========================
+   BOTTOM MENU FIX
+========================= */
+
+.bottom-menu {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100px;
+
+    z-index: 9999;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background: rgba(10, 18, 30, 0.95);
+    backdrop-filter: blur(10px);
+}
+
+/* IKONY WIĘKSZE */
+.bottom-menu .menu-item img {
+    width: 52px;
+    height: 52px;
+    object-fit: contain;
+}
+
+/* MNIEJSZA RAMKA */
+.bottom-menu .menu-item {
+    width: 72px;
+    height: 72px;
+}
