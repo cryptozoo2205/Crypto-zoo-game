@@ -3,7 +3,11 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.dailyReward = {
     unlockAfterSeconds: 60 * 60,
     timerStarted: false,
-    firstUnlockStorageKey: "cryptozoo_first_daily_unlock_started_at",
+
+    getFirstUnlockStorageKey() {
+        const playerId = CryptoZoo.api?.getPlayerId?.() || "local-player";
+        return `cryptozoo_first_daily_unlock_started_at_${playerId}`;
+    },
 
     init() {
         CryptoZoo.state = CryptoZoo.state || {};
@@ -24,6 +28,7 @@ CryptoZoo.dailyReward = {
             );
         }
 
+        this.syncFirstUnlockState();
         this.ensureFirstUnlockTimerStarted();
         this.startTimer();
     },
@@ -33,16 +38,19 @@ CryptoZoo.dailyReward = {
         this.timerStarted = true;
 
         setInterval(() => {
+            this.syncFirstUnlockState();
             this.ensureFirstUnlockTimerStarted();
             CryptoZoo.ui?.renderDailyRewardStatus?.();
         }, 1000);
 
         document.addEventListener("visibilitychange", () => {
+            this.syncFirstUnlockState();
             this.ensureFirstUnlockTimerStarted();
             CryptoZoo.ui?.renderDailyRewardStatus?.();
         });
 
         window.addEventListener("focus", () => {
+            this.syncFirstUnlockState();
             this.ensureFirstUnlockTimerStarted();
             CryptoZoo.ui?.renderDailyRewardStatus?.();
         });
@@ -57,15 +65,32 @@ CryptoZoo.dailyReward = {
     },
 
     getFirstUnlockStartedAt() {
-        const raw = localStorage.getItem(this.firstUnlockStorageKey);
+        const raw = localStorage.getItem(this.getFirstUnlockStorageKey());
         return Math.max(0, Number(raw) || 0);
     },
 
     setFirstUnlockStartedAt(timestamp) {
         localStorage.setItem(
-            this.firstUnlockStorageKey,
+            this.getFirstUnlockStorageKey(),
             String(Math.max(0, Number(timestamp) || 0))
         );
+    },
+
+    clearFirstUnlockStartedAt() {
+        localStorage.removeItem(this.getFirstUnlockStorageKey());
+    },
+
+    syncFirstUnlockState() {
+        if (this.hasClaimedAtLeastOnce()) {
+            this.clearFirstUnlockStartedAt();
+            return;
+        }
+
+        const startedAt = this.getFirstUnlockStartedAt();
+
+        if (startedAt > Date.now()) {
+            this.clearFirstUnlockStartedAt();
+        }
     },
 
     ensureFirstUnlockTimerStarted() {
@@ -234,6 +259,8 @@ CryptoZoo.dailyReward = {
         CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + coins;
         CryptoZoo.state.gems = (Number(CryptoZoo.state.gems) || 0) + gems;
         CryptoZoo.state.lastDailyRewardAt = Date.now();
+
+        this.clearFirstUnlockStartedAt();
 
         CryptoZoo.audio?.play?.("win");
         CryptoZoo.gameplay?.recalculateProgress?.();
