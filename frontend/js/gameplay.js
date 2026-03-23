@@ -198,6 +198,8 @@ CryptoZoo.gameplay = {
 
         this.recalculateLevel();
 
+        CryptoZoo.dailyMissions?.recordTap?.(1);
+
         CryptoZoo.audio?.play?.("tap");
         CryptoZoo.ui?.animateCoin?.(1);
         CryptoZoo.ui?.render?.();
