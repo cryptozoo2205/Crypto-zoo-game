@@ -74,8 +74,10 @@ CryptoZoo.offline = {
 
     getMaxSeconds() {
         return Math.max(
-            Number(CryptoZoo.gameplay?.maxOfflineSeconds) || 0,
-            Number(CryptoZoo.state?.offlineMaxSeconds) || Number(CryptoZoo.gameplay?.maxOfflineSeconds) || 0
+            0,
+            Number(CryptoZoo.state?.offlineMaxSeconds) ||
+            Number(CryptoZoo.gameplay?.maxOfflineSeconds) ||
+            0
         );
     },
 
@@ -127,9 +129,6 @@ CryptoZoo.offline = {
         }
 
         CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + offlineCoins;
-        CryptoZoo.state.xp = (Number(CryptoZoo.state.xp) || 0) + Math.max(1, Math.floor(cappedSeconds / 60));
-
-        CryptoZoo.gameplay?.recalculateLevel?.();
 
         const timeLabel = this.formatDuration(cappedSeconds);
         const capLabel = wasCapped ? ` • limit ${this.formatDuration(maxOfflineSeconds)}` : "";
