@@ -5,9 +5,8 @@ CryptoZoo.gameplay = {
     expeditionTimerStarted: false,
     boostTimerStarted: false,
     suppressClickUntil: 0,
-    touchTapLock: false,
-    touchTapTimer: null,
-    touchTapTriggered: false,
+    touchBurstActive: false,
+    touchReleaseTimer: null,
     maxOfflineSeconds: 1 * 60 * 60,
     dailyRewardCooldownMs: 24 * 60 * 60 * 1000,
     dailyRewardMaxStreak: 7,
@@ -145,46 +144,49 @@ CryptoZoo.gameplay = {
 
     bindTap() {
         const tapButton = document.getElementById("tapButton");
-        if (!tapButton) return;
+        if (!tapButton || tapButton.dataset.tapBound === "1") return;
+
+        tapButton.dataset.tapBound = "1";
 
         tapButton.onclick = (e) => {
             e?.preventDefault?.();
 
             if (Date.now() < this.suppressClickUntil) return;
+            if (this.touchBurstActive) return;
+
+            this.suppressClickUntil = Date.now() + 250;
             this.handleTap();
         };
 
         tapButton.addEventListener("touchstart", (e) => {
             e.preventDefault();
 
-            if (this.touchTapLock) return;
+            clearTimeout(this.touchReleaseTimer);
 
-            this.touchTapLock = true;
-            this.touchTapTriggered = false;
-            this.suppressClickUntil = Date.now() + 700;
+            if (this.touchBurstActive) return;
 
-            clearTimeout(this.touchTapTimer);
-            this.touchTapTimer = setTimeout(() => {
-                this.touchTapTriggered = true;
-                this.handleTap();
-            }, 20);
+            this.touchBurstActive = true;
+            this.suppressClickUntil = Date.now() + 800;
+
+            this.handleTap();
         }, { passive: false });
 
         tapButton.addEventListener("touchmove", (e) => {
             e.preventDefault();
         }, { passive: false });
 
-        const unlock = (e) => {
+        const unlockTouchBurst = (e) => {
             const stillTouching = Number(e?.touches?.length) || 0;
             if (stillTouching > 0) return;
 
-            this.touchTapLock = false;
-            this.touchTapTriggered = false;
-            this.touchTapTimer = null;
+            clearTimeout(this.touchReleaseTimer);
+            this.touchReleaseTimer = setTimeout(() => {
+                this.touchBurstActive = false;
+            }, 40);
         };
 
-        tapButton.addEventListener("touchend", unlock, { passive: false });
-        tapButton.addEventListener("touchcancel", unlock, { passive: false });
+        tapButton.addEventListener("touchend", unlockTouchBurst, { passive: false });
+        tapButton.addEventListener("touchcancel", unlockTouchBurst, { passive: false });
     },
 
     handleTap() {
