@@ -65,11 +65,16 @@ CryptoZoo.uiSettings = {
         }
     },
 
+    renderExtraPanels() {
+        CryptoZoo.uiUpdates?.render?.();
+    },
+
     initSettings() {
         const settings = this.getSettings();
         this.applySettings(settings);
         this.syncAudioWithSettings(settings);
         this.refreshSettingsModalData();
+        this.renderExtraPanels();
     },
 
     getLanguageLabel(language) {
@@ -104,6 +109,7 @@ CryptoZoo.uiSettings = {
         const saved = this.saveSettings(next);
         this.applySettings(saved);
         this.refreshSettingsModalData();
+        this.renderExtraPanels();
 
         CryptoZoo.ui?.showToast?.(
             saved.language === "en" ? "Language: English" : "Język: Polski"
@@ -121,6 +127,7 @@ CryptoZoo.uiSettings = {
         this.applySettings(saved);
         this.syncAudioWithSettings(saved);
         this.refreshSettingsModalData();
+        this.renderExtraPanels();
 
         CryptoZoo.ui?.showToast?.(
             saved.sound ? "Dźwięki: ON" : "Dźwięki: OFF"
@@ -132,6 +139,7 @@ CryptoZoo.uiSettings = {
         if (!modal) return;
 
         this.refreshSettingsModalData();
+        this.renderExtraPanels();
         modal.classList.remove("hidden");
     },
 
