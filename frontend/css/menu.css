@@ -115,24 +115,6 @@
     transform: scale(1);
 }
 
-#app {
-    padding-bottom: calc(var(--menu-height) + var(--menu-gap) + var(--menu-safe-bottom) + 72px);
-}
-
-main#game {
-    padding-bottom: calc(var(--menu-height) + var(--menu-gap) + var(--menu-safe-bottom) + 56px);
-}
-
-.screen {
-    padding-bottom: calc(var(--menu-height) + var(--menu-gap) + var(--menu-safe-bottom) + 28px);
-}
-
-.screen:last-child,
-.panel:last-child,
-.card:last-child {
-    margin-bottom: 0;
-}
-
 @media (max-width: 560px) {
     :root {
         --menu-height: 82px;
@@ -155,14 +137,6 @@ main#game {
     .menu-icon {
         width: 44px;
         height: 44px;
-    }
-
-    #app {
-        padding-bottom: calc(var(--menu-height) + var(--menu-gap) + var(--menu-safe-bottom) + 72px);
-    }
-
-    main#game {
-        padding-bottom: calc(var(--menu-height) + var(--menu-gap) + var(--menu-safe-bottom) + 56px);
     }
 }
 
@@ -189,46 +163,4 @@ main#game {
         width: 42px;
         height: 42px;
     }
-
-    #app {
-        padding-bottom: calc(var(--menu-height) + var(--menu-gap) + var(--menu-safe-bottom) + 70px);
-    }
-
-    main#game {
-        padding-bottom: calc(var(--menu-height) + var(--menu-gap) + var(--menu-safe-bottom) + 54px);
-    }
-}
-
-/* =========================
-   BOTTOM MENU FIX
-========================= */
-
-.bottom-menu {
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    height: 100px;
-
-    z-index: 9999;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    background: rgba(10, 18, 30, 0.95);
-    backdrop-filter: blur(10px);
-}
-
-/* IKONY WIĘKSZE */
-.bottom-menu .menu-item img {
-    width: 52px;
-    height: 52px;
-    object-fit: contain;
-}
-
-/* MNIEJSZA RAMKA */
-.bottom-menu .menu-item {
-    width: 72px;
-    height: 72px;
 }
