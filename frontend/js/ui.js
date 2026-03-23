@@ -784,10 +784,85 @@ CryptoZoo.ui = {
         CryptoZoo.animalsSystem?.bindButtons?.();
     },
 
+    renderDailyMissionsSection() {
+        const missions = CryptoZoo.dailyMissions?.getAll?.() || [];
+
+        const completedCount = missions.filter((mission) => !!mission.claimed).length;
+        const totalCount = missions.length;
+
+        const cards = missions.map((mission) => {
+            const target = Math.max(1, Number(mission.target) || 1);
+            const progress = Math.max(0, Number(mission.progress) || 0);
+            const safeProgress = Math.min(progress, target);
+            const percent = Math.max(0, Math.min(100, (safeProgress / target) * 100));
+            const isCompleted = !!CryptoZoo.dailyMissions?.isCompleted?.(mission);
+            const isClaimed = !!mission.claimed;
+
+            let statusText = "W toku";
+            if (isClaimed) statusText = "Odebrane";
+            else if (isCompleted) statusText = "Gotowe";
+
+            let buttonLabel = "W toku";
+            let buttonDisabled = true;
+
+            if (isClaimed) {
+                buttonLabel = "Odebrane";
+                buttonDisabled = true;
+            } else if (isCompleted) {
+                buttonLabel = "Odbierz";
+                buttonDisabled = false;
+            }
+
+            const rewardText = mission.rewardGems > 0
+                ? `+${CryptoZoo.formatNumber(mission.rewardCoins)} coins • +${CryptoZoo.formatNumber(mission.rewardGems)} gem`
+                : `+${CryptoZoo.formatNumber(mission.rewardCoins)} coins`;
+
+            return `
+                <div class="expedition-card" style="margin-bottom:12px;">
+                    <h3>🎯 ${mission.title}</h3>
+                    <div>Status: ${statusText}</div>
+                    <div>Postęp: ${CryptoZoo.formatNumber(safeProgress)} / ${CryptoZoo.formatNumber(target)}</div>
+                    <div style="margin-top:8px; width:100%; height:10px; border-radius:999px; background:rgba(255,255,255,0.08); overflow:hidden;">
+                        <div style="width:${percent}%; height:100%; border-radius:999px; background:linear-gradient(90deg,#4facfe 0%, #00f2fe 100%);"></div>
+                    </div>
+                    <div style="margin-top:8px;">Nagroda: ${rewardText}</div>
+                    <button
+                        id="claim-mission-${mission.id}"
+                        type="button"
+                        ${buttonDisabled ? "disabled" : ""}
+                        style="${buttonDisabled ? "opacity:0.72; cursor:not-allowed;" : ""} margin-top:10px;"
+                    >${buttonLabel}</button>
+                </div>
+            `;
+        }).join("");
+
+        return `
+            <div class="expedition-card" style="margin-bottom:12px;">
+                <h3>📅 Daily Missions</h3>
+                <div>Ukończone: ${CryptoZoo.formatNumber(completedCount)} / ${CryptoZoo.formatNumber(totalCount)}</div>
+            </div>
+            ${cards}
+        `;
+    },
+
+    bindDailyMissionButtons() {
+        const missions = CryptoZoo.dailyMissions?.getAll?.() || [];
+
+        missions.forEach((mission) => {
+            const isCompleted = !!CryptoZoo.dailyMissions?.isCompleted?.(mission);
+            if (!isCompleted || mission.claimed) return;
+
+            this.bindClick(`claim-mission-${mission.id}`, () => {
+                CryptoZoo.dailyMissions?.claimMission?.(mission.id);
+            });
+        });
+    },
+
     renderExpeditions() {
         const container = document.getElementById("missionsList");
         if (!container) return;
 
+        const dailyMissionsHtml = this.renderDailyMissionsSection();
         const expedition = CryptoZoo.state?.expedition;
 
         if (expedition) {
@@ -806,6 +881,7 @@ CryptoZoo.ui = {
             };
 
             container.innerHTML = `
+                ${dailyMissionsHtml}
                 <div class="expedition-card">
                     <h3>Aktywna ekspedycja: ${expedition.name}</h3>
                     <div>Pozostało: ${this.formatTimeLeft(timeLeft)}</div>
@@ -825,6 +901,7 @@ CryptoZoo.ui = {
                 </div>
             `;
 
+            this.bindDailyMissionButtons();
             this.bindClick("collect-expedition-btn", () => {
                 CryptoZoo.expeditions?.collect?.();
             });
@@ -855,7 +932,7 @@ CryptoZoo.ui = {
             </div>
         `;
 
-        container.innerHTML = expeditionInfoCard + expeditions.map((exp) => {
+        container.innerHTML = dailyMissionsHtml + expeditionInfoCard + expeditions.map((exp) => {
             const rewardRangeText = this.getExpeditionRewardRangeText(exp);
             const isUnlocked = CryptoZoo.expeditions?.isUnlocked?.(exp) || false;
             const requiredLevel = CryptoZoo.expeditions?.getUnlockRequirement?.(exp) || 1;
@@ -903,6 +980,8 @@ CryptoZoo.ui = {
             `;
         }).join("");
 
+        this.bindDailyMissionButtons();
+
         expeditions.forEach((exp) => {
             if (CryptoZoo.expeditions?.isUnlocked?.(exp)) {
                 this.bindClick(`start-expedition-${exp.id}`, () => {
@@ -912,7 +991,7 @@ CryptoZoo.ui = {
         });
     },
 
-renderShopItems() {
+    renderShopItems() {
         const shopList = document.getElementById("shopList");
         if (!shopList) return;
 
