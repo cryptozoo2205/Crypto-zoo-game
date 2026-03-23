@@ -417,6 +417,8 @@ CryptoZoo.minigames = {
                 wheelStatus.dataset.rewardText = `🎉 +${reward.label}`;
             }
 
+            CryptoZoo.dailyMissions?.recordSpinWheel?.(1);
+
             CryptoZoo.audio?.play?.("win");
             CryptoZoo.ui?.showToast?.(`🎉 ${reward.label}`);
             CryptoZoo.ui?.render?.();
