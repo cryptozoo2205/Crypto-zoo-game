@@ -1,117 +1,183 @@
+:root {
+    --menu-height: 96px;
+    --menu-gap: 14px;
+    --menu-safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 .menu {
     position: fixed;
-    left: 50%;
-    bottom: calc(var(--menu-gap) + var(--menu-safe-bottom));
-    transform: translateX(-50%);
-    z-index: 1200;
-
-    width: min(
-        calc(100vw - (max(var(--app-side-padding), var(--safe-left)) + max(var(--app-side-padding), var(--safe-right)))),
-        var(--app-max-width)
-    );
+    left: 12px;
+    right: 12px;
+    bottom: calc(12px + var(--menu-safe-bottom));
+    z-index: 1000;
 
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
 
-    padding: 10px 10px 12px;
-    border-radius: 24px;
+    padding: 10px;
+    min-height: var(--menu-height);
 
-    background: linear-gradient(
-        180deg,
-        rgba(13, 19, 33, 0.94) 0%,
-        rgba(8, 13, 24, 0.96) 100%
-    );
-    border: 1px solid rgba(255,255,255,0.08);
+    background:
+        linear-gradient(180deg, rgba(12, 20, 38, 0.96) 0%, rgba(6, 12, 26, 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 26px;
+
     box-shadow:
-        0 16px 32px rgba(0,0,0,0.28),
-        inset 0 1px 0 rgba(255,255,255,0.04);
-    backdrop-filter: blur(10px);
+        0 18px 50px rgba(0, 0, 0, 0.42),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
 }
 
 .menu-btn {
+    position: relative;
     min-width: 0;
-    height: 64px;
-    border: none;
-    border-radius: 18px;
+    height: 76px;
     padding: 0;
-    cursor: pointer;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    background: rgba(255,255,255,0.06);
-    box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.04),
-        0 8px 18px rgba(0,0,0,0.18);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 22px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+    cursor: pointer;
 
-    transition: transform 0.12s ease, opacity 0.12s ease, box-shadow 0.12s ease;
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        border-color 0.18s ease,
+        background 0.18s ease,
+        opacity 0.18s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.menu-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.10), transparent 58%);
+    opacity: 0.9;
 }
 
 .menu-btn:active {
-    transform: scale(0.95);
+    transform: scale(0.96);
 }
 
 .menu-btn:hover {
-    opacity: 0.98;
-}
-
-.menu-btn.active-nav {
-    background: linear-gradient(
-        180deg,
-        rgba(255, 207, 74, 0.28) 0%,
-        rgba(255, 180, 0, 0.18) 100%
-    );
-    box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.06),
-        0 10px 20px rgba(255, 183, 0, 0.16);
+    border-color: rgba(255, 255, 255, 0.10);
 }
 
 .menu-icon {
-    max-width: 36px;
-    max-height: 36px;
-    width: auto;
-    height: auto;
-    display: block;
+    width: 42px;
+    height: 42px;
     object-fit: contain;
-    pointer-events: none;
-    user-select: none;
-    mix-blend-mode: multiply;
+    display: block;
+    filter:
+        drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35))
+        saturate(0.95)
+        brightness(0.95);
+    transition:
+        transform 0.18s ease,
+        filter 0.18s ease,
+        opacity 0.18s ease;
+    opacity: 0.86;
 }
 
-@media (max-width: 520px) {
+.menu-btn.active-nav {
+    border-color: rgba(255, 213, 79, 0.22);
+    background:
+        radial-gradient(circle at 50% 22%, rgba(255, 220, 110, 0.20), transparent 54%),
+        linear-gradient(180deg, rgba(255, 214, 82, 0.28) 0%, rgba(255, 190, 40, 0.12) 100%);
+    box-shadow:
+        0 10px 26px rgba(255, 190, 40, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.10);
+}
+
+.menu-btn.active-nav .menu-icon {
+    opacity: 1;
+    transform: scale(1.08);
+    filter:
+        drop-shadow(0 0 18px rgba(255, 210, 80, 0.42))
+        drop-shadow(0 6px 12px rgba(0, 0, 0, 0.28))
+        saturate(1.12)
+        brightness(1.05);
+}
+
+.menu-btn:not(.active-nav) .menu-icon {
+    transform: scale(1);
+}
+
+#app {
+    padding-bottom: calc(var(--menu-height) + var(--menu-gap) + var(--menu-safe-bottom) + 18px);
+}
+
+main#game {
+    padding-bottom: calc(var(--menu-height) + var(--menu-gap) + var(--menu-safe-bottom) + 6px);
+}
+
+.screen:last-child,
+.panel:last-child,
+.card:last-child {
+    margin-bottom: 0;
+}
+
+@media (max-width: 560px) {
+    :root {
+        --menu-height: 92px;
+    }
+
     .menu {
-        gap: 6px;
-        padding: 8px 8px 10px;
+        left: 10px;
+        right: 10px;
+        bottom: calc(10px + var(--menu-safe-bottom));
+        gap: 8px;
+        padding: 8px;
+        border-radius: 24px;
+    }
+
+    .menu-btn {
+        height: 72px;
         border-radius: 20px;
     }
 
-    .menu-btn {
-        height: 58px;
-        border-radius: 16px;
+    .menu-icon {
+        width: 38px;
+        height: 38px;
     }
 
-    .menu-icon {
-        max-width: 32px;
-        max-height: 32px;
+    #app {
+        padding-bottom: calc(var(--menu-height) + var(--menu-gap) + var(--menu-safe-bottom) + 14px);
     }
 }
 
-@media (max-width: 380px) {
+@media (max-width: 400px) {
+    :root {
+        --menu-height: 88px;
+    }
+
     .menu {
-        gap: 5px;
-        padding: 7px 7px 9px;
-        border-radius: 18px;
+        left: 8px;
+        right: 8px;
+        bottom: calc(8px + var(--menu-safe-bottom));
+        gap: 7px;
+        padding: 7px;
+        border-radius: 22px;
     }
 
     .menu-btn {
-        height: 54px;
-        border-radius: 14px;
+        height: 68px;
+        border-radius: 18px;
     }
 
     .menu-icon {
-        max-width: 28px;
-        max-height: 28px;
+        width: 34px;
+        height: 34px;
     }
 }
