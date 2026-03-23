@@ -29,6 +29,27 @@ CryptoZoo.dailyMissions = {
         if (!Array.isArray(CryptoZoo.state.dailyMissions.missions)) {
             CryptoZoo.state.dailyMissions.missions = [];
         }
+
+        CryptoZoo.state.dailyMissions.missions = CryptoZoo.state.dailyMissions.missions.map((mission) => {
+            const normalized = {
+                id: String(mission?.id || ""),
+                type: String(mission?.type || ""),
+                target: Math.max(1, Number(mission?.target) || 1),
+                progress: Math.max(0, Number(mission?.progress) || 0),
+                title: String(mission?.title || "Misja"),
+                rewardCoins: Math.max(0, Number(mission?.rewardCoins) || 0),
+                rewardGems: Math.max(0, Number(mission?.rewardGems) || 0),
+                claimed: !!mission?.claimed
+            };
+
+            if (normalized.progress > normalized.target) {
+                normalized.progress = normalized.target;
+            }
+
+            return normalized;
+        });
+
+        CryptoZoo.state.dailyMissions.claimedCount = this.getCompletedCount();
     },
 
     getTodayKey() {
@@ -176,6 +197,7 @@ CryptoZoo.dailyMissions = {
         const state = CryptoZoo.state.dailyMissions;
 
         if (state.dayKey === todayKey && Array.isArray(state.missions) && state.missions.length > 0) {
+            state.claimedCount = this.getCompletedCount();
             return false;
         }
 
@@ -225,6 +247,43 @@ CryptoZoo.dailyMissions = {
         }
     },
 
+    getVisibleMissionIndex() {
+        const missions = this.getAll();
+
+        if (!missions.length) {
+            return -1;
+        }
+
+        const firstUnclaimedIndex = missions.findIndex((mission) => !mission.claimed);
+
+        if (firstUnclaimedIndex !== -1) {
+            return firstUnclaimedIndex;
+        }
+
+        return missions.length - 1;
+    },
+
+    getVisibleMission() {
+        const index = this.getVisibleMissionIndex();
+        const missions = this.getAll();
+
+        if (index < 0 || !missions[index]) {
+            return null;
+        }
+
+        return missions[index];
+    },
+
+    getVisibleMissions() {
+        const mission = this.getVisibleMission();
+        return mission ? [mission] : [];
+    },
+
+    hasNextMission() {
+        const missions = this.getAll();
+        return missions.some((mission) => !mission.claimed);
+    },
+
     addProgress(type, amount = 1) {
         this.ensureState();
         this.refreshDayIfNeeded();
@@ -248,6 +307,7 @@ CryptoZoo.dailyMissions = {
         });
 
         if (changed) {
+            CryptoZoo.state.dailyMissions.claimedCount = this.getCompletedCount();
             CryptoZoo.ui?.render?.();
             CryptoZoo.api?.savePlayer?.();
         }
