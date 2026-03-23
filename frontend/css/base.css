@@ -9,6 +9,7 @@
     --safe-right: env(safe-area-inset-right, 0px);
     --safe-left: env(safe-area-inset-left, 0px);
     --app-height: 100dvh;
+    --content-bottom-space: calc(var(--menu-height) + var(--menu-gap) + var(--menu-safe-bottom) + 20px);
 }
 
 * {
@@ -148,7 +149,7 @@ body.telegram-webapp {
     padding:
         max(10px, var(--safe-top))
         max(var(--app-side-padding), var(--safe-right))
-        0
+        var(--content-bottom-space)
         max(var(--app-side-padding), var(--safe-left));
     display: flex;
     flex-direction: column;
@@ -230,6 +231,7 @@ img {
         --screen-gap: 8px;
         --menu-gap: 10px;
         --menu-height: 82px;
+        --content-bottom-space: calc(var(--menu-height) + var(--menu-gap) + var(--menu-safe-bottom) + 18px);
     }
 
     .loading-visual {
@@ -266,6 +268,7 @@ img {
         --app-side-padding: 6px;
         --menu-gap: 8px;
         --menu-height: 78px;
+        --content-bottom-space: calc(var(--menu-height) + var(--menu-gap) + var(--menu-safe-bottom) + 16px);
     }
 
     .panel.card {
