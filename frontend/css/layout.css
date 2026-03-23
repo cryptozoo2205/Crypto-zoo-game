@@ -1154,3 +1154,26 @@ main#game {
         max-height: 86vh;
     }
 }
+
+/* =========================
+   FIX: CONTENT UNDER BOTTOM MENU
+========================= */
+
+html, body {
+    padding-bottom: 120px;
+}
+
+/* jeśli masz wrappery */
+#app,
+.app,
+.main-content,
+.screen {
+    padding-bottom: 120px;
+}
+
+/* zabezpieczenie dla sekcji */
+section,
+.container,
+.content {
+    padding-bottom: 120px;
+}
