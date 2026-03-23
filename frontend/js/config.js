@@ -22,336 +22,51 @@ CryptoZoo.config = {
     },
 
     expeditions: [
-        {
-            id: "forest",
-            name: "Magic Forest",
-            duration: 5 * 60,
-            baseCoins: 450,
-            baseGems: 0,
-            rareChance: 0.16,
-            epicChance: 0.03,
-            unlockLevel: 1
-        },
-        {
-            id: "river",
-            name: "Crystal River",
-            duration: 15 * 60,
-            baseCoins: 1200,
-            baseGems: 0,
-            rareChance: 0.18,
-            epicChance: 0.04,
-            unlockLevel: 3
-        },
-        {
-            id: "volcano",
-            name: "Golden Volcano",
-            duration: 30 * 60,
-            baseCoins: 2800,
-            baseGems: 1,
-            rareChance: 0.20,
-            epicChance: 0.05,
-            unlockLevel: 5
-        },
-        {
-            id: "canyon",
-            name: "Sunstone Canyon",
-            duration: 60 * 60,
-            baseCoins: 6500,
-            baseGems: 1,
-            rareChance: 0.21,
-            epicChance: 0.05,
-            unlockLevel: 7
-        },
-        {
-            id: "glacier",
-            name: "Frozen Glacier",
-            duration: 2 * 60 * 60,
-            baseCoins: 15000,
-            baseGems: 1,
-            rareChance: 0.23,
-            epicChance: 0.06,
-            unlockLevel: 10
-        },
-        {
-            id: "jungle",
-            name: "Emerald Jungle",
-            duration: 4 * 60 * 60,
-            baseCoins: 32000,
-            baseGems: 2,
-            rareChance: 0.24,
-            epicChance: 0.07,
-            unlockLevel: 14
-        },
-        {
-            id: "temple",
-            name: "Ancient Temple",
-            duration: 8 * 60 * 60,
-            baseCoins: 70000,
-            baseGems: 2,
-            rareChance: 0.26,
-            epicChance: 0.08,
-            unlockLevel: 18
-        },
-        {
-            id: "oasis",
-            name: "Royal Oasis",
-            duration: 12 * 60 * 60,
-            baseCoins: 115000,
-            baseGems: 3,
-            rareChance: 0.27,
-            epicChance: 0.08,
-            unlockLevel: 22
-        },
-        {
-            id: "kingdom",
-            name: "Lost Beast Kingdom",
-            duration: 24 * 60 * 60,
-            baseCoins: 260000,
-            baseGems: 4,
-            rareChance: 0.29,
-            epicChance: 0.09,
-            unlockLevel: 28
-        }
+        { id: "forest", name: "Magic Forest", duration: 300, baseCoins: 450, baseGems: 0, rareChance: 0.16, epicChance: 0.03, unlockLevel: 1 },
+        { id: "river", name: "Crystal River", duration: 900, baseCoins: 1200, baseGems: 0, rareChance: 0.18, epicChance: 0.04, unlockLevel: 3 },
+        { id: "volcano", name: "Golden Volcano", duration: 1800, baseCoins: 2800, baseGems: 1, rareChance: 0.20, epicChance: 0.05, unlockLevel: 5 },
+        { id: "canyon", name: "Sunstone Canyon", duration: 3600, baseCoins: 6500, baseGems: 1, rareChance: 0.21, epicChance: 0.05, unlockLevel: 7 },
+        { id: "glacier", name: "Frozen Glacier", duration: 7200, baseCoins: 15000, baseGems: 1, rareChance: 0.23, epicChance: 0.06, unlockLevel: 10 },
+        { id: "jungle", name: "Emerald Jungle", duration: 14400, baseCoins: 32000, baseGems: 2, rareChance: 0.24, epicChance: 0.07, unlockLevel: 14 },
+        { id: "temple", name: "Ancient Temple", duration: 28800, baseCoins: 70000, baseGems: 2, rareChance: 0.26, epicChance: 0.08, unlockLevel: 18 },
+        { id: "oasis", name: "Royal Oasis", duration: 43200, baseCoins: 115000, baseGems: 3, rareChance: 0.27, epicChance: 0.08, unlockLevel: 22 },
+        { id: "kingdom", name: "Lost Beast Kingdom", duration: 86400, baseCoins: 260000, baseGems: 4, rareChance: 0.29, epicChance: 0.09, unlockLevel: 28 }
     ],
 
     shopItems: [
-        {
-            id: "click1",
-            name: "Click Upgrade I",
-            desc: "+1 coin per click",
-            price: 2200,
-            priceScale: 1.24,
-            type: "click",
-            clickValueBonus: 1
-        },
-        {
-            id: "click2",
-            name: "Click Upgrade II",
-            desc: "+2 coins per click",
-            price: 7800,
-            priceScale: 1.24,
-            type: "click",
-            clickValueBonus: 2
-        },
-        {
-            id: "click3",
-            name: "Strong Finger",
-            desc: "+3 coins per click",
-            price: 22000,
-            priceScale: 1.24,
-            type: "click",
-            clickValueBonus: 3
-        },
-        {
-            id: "click4",
-            name: "Turbo Tap",
-            desc: "+5 coins per click",
-            price: 62000,
-            priceScale: 1.24,
-            type: "click",
-            clickValueBonus: 5
-        },
-        {
-            id: "click5",
-            name: "Diamond Claw",
-            desc: "+8 coins per click",
-            price: 180000,
-            priceScale: 1.24,
-            type: "click",
-            clickValueBonus: 8
-        },
+        // CLICK (4 poziomy)
+        { id: "click1", name: "Click Upgrade I", desc: "+1 coin per click", price: 2500, priceScale: 1.24, type: "click", clickValueBonus: 1 },
+        { id: "click2", name: "Click Upgrade II", desc: "+2 coins per click", price: 10000, priceScale: 1.25, type: "click", clickValueBonus: 2 },
+        { id: "click3", name: "Strong Finger", desc: "+4 coins per click", price: 35000, priceScale: 1.26, type: "click", clickValueBonus: 4 },
+        { id: "click4", name: "Turbo Tap", desc: "+7 coins per click", price: 120000, priceScale: 1.27, type: "click", clickValueBonus: 7 },
 
-        {
-            id: "income1",
-            name: "Zoo Manager",
-            desc: "+1 level to all owned animals",
-            price: 15000,
-            priceScale: 1.26,
-            type: "income",
-            incomeBonus: 1
-        },
-        {
-            id: "income2",
-            name: "VIP Caretaker",
-            desc: "+1 level to all owned animals",
-            price: 52000,
-            priceScale: 1.26,
-            type: "income",
-            incomeBonus: 1
-        },
-        {
-            id: "income3",
-            name: "Automation Crew",
-            desc: "+1 level to all owned animals",
-            price: 145000,
-            priceScale: 1.26,
-            type: "income",
-            incomeBonus: 1
-        },
-        {
-            id: "income4",
-            name: "Golden Feeding System",
-            desc: "+1 level to all owned animals",
-            price: 390000,
-            priceScale: 1.26,
-            type: "income",
-            incomeBonus: 1
-        },
-        {
-            id: "income5",
-            name: "Elite Zoo Director",
-            desc: "+1 level to all owned animals",
-            price: 980000,
-            priceScale: 1.26,
-            type: "income",
-            incomeBonus: 1
-        },
+        // INCOME (3 poziomy)
+        { id: "income1", name: "Zoo Manager", desc: "+1 level do wszystkich zwierząt", price: 18000, priceScale: 1.27, type: "income", incomeBonus: 1 },
+        { id: "income2", name: "Automation Crew", desc: "+3 level do wszystkich zwierząt", price: 95000, priceScale: 1.30, type: "income", incomeBonus: 3 },
+        { id: "income3", name: "Elite Zoo Director", desc: "+5 level do wszystkich zwierząt", price: 420000, priceScale: 1.32, type: "income", incomeBonus: 5 },
 
-        {
-            id: "expedition1",
-            name: "Better Expedition Gear",
-            desc: "+1 expedition boost",
-            price: 32000,
-            priceScale: 1.30,
-            type: "expedition",
-            expeditionBonus: 1
-        },
-        {
-            id: "expedition2",
-            name: "Rare Route Maps",
-            desc: "+1 expedition boost",
-            price: 92000,
-            priceScale: 1.30,
-            type: "expedition",
-            expeditionBonus: 1
-        },
-        {
-            id: "expedition3",
-            name: "Epic Explorer Team",
-            desc: "+1 expedition boost",
-            price: 240000,
-            priceScale: 1.30,
-            type: "expedition",
-            expeditionBonus: 1
-        },
+        // EXPEDITIONS
+        { id: "expedition1", name: "Better Expedition Gear", desc: "+1 expedition boost", price: 32000, priceScale: 1.30, type: "expedition", expeditionBonus: 1 },
+        { id: "expedition2", name: "Rare Route Maps", desc: "+1 expedition boost", price: 92000, priceScale: 1.30, type: "expedition", expeditionBonus: 1 },
+        { id: "expedition3", name: "Epic Explorer Team", desc: "+1 expedition boost", price: 240000, priceScale: 1.30, type: "expedition", expeditionBonus: 1 },
 
-        {
-            id: "offline10m",
-            name: "Offline Boost 10m",
-            desc: "x2 offline income przez 10 minut",
-            gemPrice: 2,
-            type: "offline",
-            offlineMultiplier: 2,
-            offlineDurationSeconds: 10 * 60
-        },
-        {
-            id: "offline1h",
-            name: "Offline Boost 1h",
-            desc: "x2 offline income przez 1 godzinę",
-            gemPrice: 5,
-            type: "offline",
-            offlineMultiplier: 2,
-            offlineDurationSeconds: 60 * 60
-        },
-        {
-            id: "offline3h",
-            name: "Offline Boost 3h",
-            desc: "x2 offline income przez 3 godziny",
-            gemPrice: 10,
-            type: "offline",
-            offlineMultiplier: 2,
-            offlineDurationSeconds: 3 * 60 * 60
-        },
-        {
-            id: "offline5h",
-            name: "Offline Boost 5h",
-            desc: "x2 offline income przez 5 godzin",
-            gemPrice: 15,
-            type: "offline",
-            offlineMultiplier: 2,
-            offlineDurationSeconds: 5 * 60 * 60
-        },
+        // OFFLINE
+        { id: "offline1", name: "Offline Boost 10m", desc: "x2 offline income", gemPrice: 2, type: "offline", offlineMultiplier: 2, offlineDurationSeconds: 600 },
+        { id: "offline2", name: "Offline Boost 1h", desc: "x2 offline income", gemPrice: 5, type: "offline", offlineMultiplier: 2, offlineDurationSeconds: 3600 },
 
-        {
-            id: "extra_spin",
-            name: "Extra Spin",
-            desc: "Natychmiastowy spin wheel",
-            effect: "extraSpin",
-            gemPrice: 1,
-            spinCount: 1
-        },
-        {
-            id: "skip_wheel_cd",
-            name: "Skip Wheel Cooldown",
-            desc: "Resetuje cooldown wheel",
-            effect: "skipWheelCooldown",
-            gemPrice: 1
-        },
-        {
-            id: "coin_pack_small",
-            name: "Coin Pack",
-            desc: "+2000 coins",
-            effect: "coinPack",
-            gemPrice: 1,
-            coinPackAmount: 2000
-        },
-        {
-            id: "coin_pack_big",
-            name: "Big Coin Pack",
-            desc: "+12000 coins",
-            effect: "coinPack",
-            gemPrice: 4,
-            coinPackAmount: 12000
-        },
-        {
-            id: "boost_2x_shop",
-            name: "X2 Boost 10m",
-            desc: "Podwaja klik i dochód zoo przez 10 minut",
-            effect: "boost2x",
-            gemPrice: 1,
-            boostDurationSeconds: 10 * 60
-        },
-        {
-            id: "boost_2x_long",
-            name: "X2 Boost 30m",
-            desc: "Podwaja klik i dochód zoo przez 30 minut",
-            effect: "boost2x",
-            gemPrice: 3,
-            boostDurationSeconds: 30 * 60
-        }
+        // SPECIAL
+        { id: "spin", name: "Extra Spin", desc: "Free spin", effect: "extraSpin", gemPrice: 1 },
+        { id: "boost", name: "X2 Boost", desc: "2x income + click", effect: "boost2x", gemPrice: 1, boostDurationSeconds: 600 }
     ]
 };
 
 CryptoZoo.formatNumber = function (value) {
     const num = Number(value) || 0;
 
-    if (num >= 1000000000000) {
-        return (num / 1000000000000)
-            .toFixed(num >= 10000000000000 ? 0 : 1)
-            .replace(/\.0$/, "") + "T";
-    }
+    if (num >= 1e12) return (num / 1e12).toFixed(1).replace(/\.0$/, "") + "T";
+    if (num >= 1e9) return (num / 1e9).toFixed(1).replace(/\.0$/, "") + "B";
+    if (num >= 1e6) return (num / 1e6).toFixed(1).replace(/\.0$/, "") + "M";
+    if (num >= 1e3) return (num / 1e3).toFixed(1).replace(/\.0$/, "") + "K";
 
-    if (num >= 1000000000) {
-        return (num / 1000000000)
-            .toFixed(num >= 10000000000 ? 0 : 1)
-            .replace(/\.0$/, "") + "B";
-    }
-
-    if (num >= 1000000) {
-        return (num / 1000000)
-            .toFixed(num >= 10000000 ? 0 : 1)
-            .replace(/\.0$/, "") + "M";
-    }
-
-    if (num >= 1000) {
-        return (num / 1000)
-            .toFixed(num >= 10000 ? 0 : 1)
-            .replace(/\.0$/, "") + "K";
-    }
-
-    if (Number.isInteger(num)) {
-        return String(num);
-    }
-
-    return num.toFixed(2).replace(/\.00$/, "");
+    return Number.isInteger(num) ? String(num) : num.toFixed(2);
 };
