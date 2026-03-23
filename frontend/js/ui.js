@@ -352,6 +352,7 @@ CryptoZoo.ui = {
         if (type === "click") return "Click Boost";
         if (type === "income") return "Income Boost";
         if (type === "expedition") return "Expedition Boost";
+        if (type === "expeditionTime") return "Expedition Time";
         if (type === "offline") return "Offline Boost";
         return "Special";
     },
@@ -360,6 +361,7 @@ CryptoZoo.ui = {
         if (type === "click") return "👆";
         if (type === "income") return "💰";
         if (type === "expedition") return "🧭";
+        if (type === "expeditionTime") return "⏱";
         if (type === "offline") return "💤";
         if (effect === "extraSpin") return "🎡";
         if (effect === "skipWheelCooldown") return "⏩";
@@ -371,9 +373,13 @@ CryptoZoo.ui = {
     getExpeditionRewardRangeText(expeditionConfig) {
         if (!expeditionConfig) return "0 reward";
 
+        const durationSeconds =
+            CryptoZoo.expeditions?.getEffectiveDurationSeconds?.(expeditionConfig) ||
+            Number(expeditionConfig.duration || 0);
+
         const baseExpedition = {
             startTime: 0,
-            endTime: Number(expeditionConfig.duration || 0) * 1000,
+            endTime: Number(durationSeconds) * 1000,
             rewardRarity: "common"
         };
 
@@ -409,8 +415,28 @@ CryptoZoo.ui = {
         }
 
         if (item.type === "expedition") {
+            if (item.desc) return item.desc;
+
+            const rareBonus = Number(item.rareChanceBonus) || 0;
+            const epicBonus = Number(item.epicChanceBonus) || 0;
+
+            if (epicBonus > 0) {
+                return "Zwiększa szansę na Epic nagrody";
+            }
+
+            if (rareBonus > 0) {
+                return "Zwiększa szansę na Rare nagrody";
+            }
+
             const bonus = Math.max(1, Number(item.expeditionBonus) || 1);
-            return `+${CryptoZoo.formatNumber(bonus)} expedition boost`;
+            return `Zwiększa nagrody z ekspedycji (+${CryptoZoo.formatNumber(bonus)})`;
+        }
+
+        if (item.type === "expeditionTime") {
+            if (item.desc) return item.desc;
+
+            const reductionSeconds = Math.max(0, Number(item.timeReductionSeconds) || 0);
+            return `Skraca czas ekspedycji o ${this.formatDurationLabel(reductionSeconds)}`;
         }
 
         if (item.type === "offline") {
@@ -807,17 +833,50 @@ CryptoZoo.ui = {
         }
 
         const expeditions = CryptoZoo.config?.expeditions || [];
+        const rareBonus = Math.max(
+            0,
+            Number(CryptoZoo.expeditions?.getRareChanceBonus?.() || 0)
+        );
+        const epicBonus = Math.max(
+            0,
+            Number(CryptoZoo.expeditions?.getEpicChanceBonus?.() || 0)
+        );
+        const timeReductionSeconds = Math.max(
+            0,
+            Number(CryptoZoo.expeditions?.getTimeReductionSeconds?.() || 0)
+        );
 
-        container.innerHTML = expeditions.map((exp) => {
+        const expeditionInfoCard = `
+            <div class="expedition-card" style="margin-bottom:12px;">
+                <h3>🧭 Expedition Upgrades</h3>
+                <div>Rare bonus: +${(rareBonus * 100).toFixed(0)}%</div>
+                <div>Epic bonus: +${(epicBonus * 100).toFixed(0)}%</div>
+                <div>Time reduction: ${timeReductionSeconds > 0 ? this.formatDurationLabel(timeReductionSeconds) : "0s"}</div>
+            </div>
+        `;
+
+        container.innerHTML = expeditionInfoCard + expeditions.map((exp) => {
             const rewardRangeText = this.getExpeditionRewardRangeText(exp);
             const isUnlocked = CryptoZoo.expeditions?.isUnlocked?.(exp) || false;
             const requiredLevel = CryptoZoo.expeditions?.getUnlockRequirement?.(exp) || 1;
             const buttonLabel = isUnlocked ? "Start" : `Lvl ${CryptoZoo.formatNumber(requiredLevel)}`;
 
+            const effectiveDuration =
+                CryptoZoo.expeditions?.getEffectiveDurationSeconds?.(exp) ||
+                Number(exp.duration || 0);
+
+            const effectiveRareChance =
+                CryptoZoo.expeditions?.getEffectiveRareChance?.(exp) ||
+                Number(exp.rareChance || 0);
+
+            const effectiveEpicChance =
+                CryptoZoo.expeditions?.getEffectiveEpicChance?.(exp) ||
+                Number(exp.epicChance || 0);
+
             return `
                 <div class="expedition-card">
                     <h3>${exp.name}</h3>
-                    <div>Czas: ${this.formatTimeLeft(exp.duration)}</div>
+                    <div>Czas: ${this.formatTimeLeft(effectiveDuration)}</div>
                     <div>
                         Nagroda bazowa:
                         ${CryptoZoo.formatNumber(exp.baseCoins)} coins +
@@ -831,8 +890,8 @@ CryptoZoo.ui = {
                     </div>
                     <div>
                         Szansa na bonus:
-                        Rare ${(exp.rareChance * 100).toFixed(0)}% /
-                        Epic ${(exp.epicChance * 100).toFixed(0)}%
+                        Rare ${(effectiveRareChance * 100).toFixed(0)}% /
+                        Epic ${(effectiveEpicChance * 100).toFixed(0)}%
                     </div>
                     <button
                         id="start-expedition-${exp.id}"
@@ -853,7 +912,7 @@ CryptoZoo.ui = {
         });
     },
 
-    renderShopItems() {
+renderShopItems() {
         const shopList = document.getElementById("shopList");
         if (!shopList) return;
 
