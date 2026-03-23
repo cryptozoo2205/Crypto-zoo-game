@@ -9,7 +9,7 @@
     --safe-right: env(safe-area-inset-right, 0px);
     --safe-left: env(safe-area-inset-left, 0px);
     --app-height: 100dvh;
-    --content-bottom-space: calc(var(--menu-height) + var(--menu-gap) + var(--menu-safe-bottom) + 20px);
+    --content-bottom-space: calc(var(--menu-height) + var(--menu-gap) + var(--menu-safe-bottom) + 24px);
 }
 
 * {
@@ -170,6 +170,7 @@ main,
     display: none;
     width: 100%;
     min-width: 0;
+    padding-bottom: 0;
 }
 
 .screen:not(.hidden),
@@ -231,7 +232,7 @@ img {
         --screen-gap: 8px;
         --menu-gap: 10px;
         --menu-height: 82px;
-        --content-bottom-space: calc(var(--menu-height) + var(--menu-gap) + var(--menu-safe-bottom) + 18px);
+        --content-bottom-space: calc(var(--menu-height) + var(--menu-gap) + var(--menu-safe-bottom) + 22px);
     }
 
     .loading-visual {
@@ -268,7 +269,7 @@ img {
         --app-side-padding: 6px;
         --menu-gap: 8px;
         --menu-height: 78px;
-        --content-bottom-space: calc(var(--menu-height) + var(--menu-gap) + var(--menu-safe-bottom) + 16px);
+        --content-bottom-space: calc(var(--menu-height) + var(--menu-gap) + var(--menu-safe-bottom) + 20px);
     }
 
     .panel.card {
