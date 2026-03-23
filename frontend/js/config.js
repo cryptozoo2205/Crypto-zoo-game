@@ -28,8 +28,8 @@ CryptoZoo.config = {
             duration: 5 * 60,
             baseCoins: 450,
             baseGems: 0,
-            rareChance: 0.18,
-            epicChance: 0.04,
+            rareChance: 0.16,
+            epicChance: 0.03,
             unlockLevel: 1
         },
         {
@@ -38,8 +38,8 @@ CryptoZoo.config = {
             duration: 15 * 60,
             baseCoins: 1200,
             baseGems: 0,
-            rareChance: 0.20,
-            epicChance: 0.05,
+            rareChance: 0.18,
+            epicChance: 0.04,
             unlockLevel: 3
         },
         {
@@ -48,8 +48,8 @@ CryptoZoo.config = {
             duration: 30 * 60,
             baseCoins: 2800,
             baseGems: 1,
-            rareChance: 0.22,
-            epicChance: 0.06,
+            rareChance: 0.20,
+            epicChance: 0.05,
             unlockLevel: 5
         },
         {
@@ -58,8 +58,8 @@ CryptoZoo.config = {
             duration: 60 * 60,
             baseCoins: 6500,
             baseGems: 1,
-            rareChance: 0.24,
-            epicChance: 0.07,
+            rareChance: 0.21,
+            epicChance: 0.05,
             unlockLevel: 7
         },
         {
@@ -68,8 +68,8 @@ CryptoZoo.config = {
             duration: 2 * 60 * 60,
             baseCoins: 15000,
             baseGems: 1,
-            rareChance: 0.26,
-            epicChance: 0.08,
+            rareChance: 0.23,
+            epicChance: 0.06,
             unlockLevel: 10
         },
         {
@@ -78,8 +78,8 @@ CryptoZoo.config = {
             duration: 4 * 60 * 60,
             baseCoins: 32000,
             baseGems: 2,
-            rareChance: 0.28,
-            epicChance: 0.09,
+            rareChance: 0.24,
+            epicChance: 0.07,
             unlockLevel: 14
         },
         {
@@ -88,8 +88,8 @@ CryptoZoo.config = {
             duration: 8 * 60 * 60,
             baseCoins: 70000,
             baseGems: 2,
-            rareChance: 0.30,
-            epicChance: 0.10,
+            rareChance: 0.26,
+            epicChance: 0.08,
             unlockLevel: 18
         },
         {
@@ -98,8 +98,8 @@ CryptoZoo.config = {
             duration: 12 * 60 * 60,
             baseCoins: 115000,
             baseGems: 3,
-            rareChance: 0.32,
-            epicChance: 0.11,
+            rareChance: 0.27,
+            epicChance: 0.08,
             unlockLevel: 22
         },
         {
@@ -108,8 +108,8 @@ CryptoZoo.config = {
             duration: 24 * 60 * 60,
             baseCoins: 260000,
             baseGems: 4,
-            rareChance: 0.35,
-            epicChance: 0.12,
+            rareChance: 0.29,
+            epicChance: 0.09,
             unlockLevel: 28
         }
     ],
@@ -119,8 +119,8 @@ CryptoZoo.config = {
             id: "click1",
             name: "Click Upgrade I",
             desc: "+1 coin per click",
-            price: 1800,
-            priceScale: 1.22,
+            price: 2200,
+            priceScale: 1.24,
             type: "click",
             clickValueBonus: 1
         },
@@ -128,8 +128,8 @@ CryptoZoo.config = {
             id: "click2",
             name: "Click Upgrade II",
             desc: "+2 coins per click",
-            price: 6500,
-            priceScale: 1.22,
+            price: 7800,
+            priceScale: 1.24,
             type: "click",
             clickValueBonus: 2
         },
@@ -137,8 +137,8 @@ CryptoZoo.config = {
             id: "click3",
             name: "Strong Finger",
             desc: "+3 coins per click",
-            price: 18000,
-            priceScale: 1.22,
+            price: 22000,
+            priceScale: 1.24,
             type: "click",
             clickValueBonus: 3
         },
@@ -146,8 +146,8 @@ CryptoZoo.config = {
             id: "click4",
             name: "Turbo Tap",
             desc: "+5 coins per click",
-            price: 52000,
-            priceScale: 1.22,
+            price: 62000,
+            priceScale: 1.24,
             type: "click",
             clickValueBonus: 5
         },
@@ -155,8 +155,8 @@ CryptoZoo.config = {
             id: "click5",
             name: "Diamond Claw",
             desc: "+8 coins per click",
-            price: 150000,
-            priceScale: 1.22,
+            price: 180000,
+            priceScale: 1.24,
             type: "click",
             clickValueBonus: 8
         },
@@ -165,8 +165,8 @@ CryptoZoo.config = {
             id: "income1",
             name: "Zoo Manager",
             desc: "+1 level to all owned animals",
-            price: 12000,
-            priceScale: 1.24,
+            price: 15000,
+            priceScale: 1.26,
             type: "income",
             incomeBonus: 1
         },
@@ -174,8 +174,8 @@ CryptoZoo.config = {
             id: "income2",
             name: "VIP Caretaker",
             desc: "+1 level to all owned animals",
-            price: 42000,
-            priceScale: 1.24,
+            price: 52000,
+            priceScale: 1.26,
             type: "income",
             incomeBonus: 1
         },
@@ -183,8 +183,8 @@ CryptoZoo.config = {
             id: "income3",
             name: "Automation Crew",
             desc: "+1 level to all owned animals",
-            price: 120000,
-            priceScale: 1.24,
+            price: 145000,
+            priceScale: 1.26,
             type: "income",
             incomeBonus: 1
         },
@@ -192,8 +192,8 @@ CryptoZoo.config = {
             id: "income4",
             name: "Golden Feeding System",
             desc: "+1 level to all owned animals",
-            price: 320000,
-            priceScale: 1.24,
+            price: 390000,
+            priceScale: 1.26,
             type: "income",
             incomeBonus: 1
         },
@@ -201,8 +201,8 @@ CryptoZoo.config = {
             id: "income5",
             name: "Elite Zoo Director",
             desc: "+1 level to all owned animals",
-            price: 850000,
-            priceScale: 1.24,
+            price: 980000,
+            priceScale: 1.26,
             type: "income",
             incomeBonus: 1
         },
@@ -211,8 +211,8 @@ CryptoZoo.config = {
             id: "expedition1",
             name: "Better Expedition Gear",
             desc: "+1 expedition boost",
-            price: 25000,
-            priceScale: 1.28,
+            price: 32000,
+            priceScale: 1.30,
             type: "expedition",
             expeditionBonus: 1
         },
@@ -220,8 +220,8 @@ CryptoZoo.config = {
             id: "expedition2",
             name: "Rare Route Maps",
             desc: "+1 expedition boost",
-            price: 75000,
-            priceScale: 1.28,
+            price: 92000,
+            priceScale: 1.30,
             type: "expedition",
             expeditionBonus: 1
         },
@@ -229,8 +229,8 @@ CryptoZoo.config = {
             id: "expedition3",
             name: "Epic Explorer Team",
             desc: "+1 expedition boost",
-            price: 200000,
-            priceScale: 1.28,
+            price: 240000,
+            priceScale: 1.30,
             type: "expedition",
             expeditionBonus: 1
         },
