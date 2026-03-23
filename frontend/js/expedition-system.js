@@ -11,6 +11,45 @@ CryptoZoo.expeditions = {
         return this.getAll().find((exp) => exp.id === id) || null;
     },
 
+    ensureExpeditionStats() {
+        CryptoZoo.state = CryptoZoo.state || {};
+        CryptoZoo.state.expeditionStats = CryptoZoo.state.expeditionStats || {
+            rareChanceBonus: 0,
+            epicChanceBonus: 0,
+            timeReductionSeconds: 0
+        };
+
+        CryptoZoo.state.expeditionStats.rareChanceBonus = Math.max(
+            0,
+            Number(CryptoZoo.state.expeditionStats.rareChanceBonus) || 0
+        );
+
+        CryptoZoo.state.expeditionStats.epicChanceBonus = Math.max(
+            0,
+            Number(CryptoZoo.state.expeditionStats.epicChanceBonus) || 0
+        );
+
+        CryptoZoo.state.expeditionStats.timeReductionSeconds = Math.max(
+            0,
+            Number(CryptoZoo.state.expeditionStats.timeReductionSeconds) || 0
+        );
+    },
+
+    getRareChanceBonus() {
+        this.ensureExpeditionStats();
+        return Math.max(0, Number(CryptoZoo.state.expeditionStats.rareChanceBonus) || 0);
+    },
+
+    getEpicChanceBonus() {
+        this.ensureExpeditionStats();
+        return Math.max(0, Number(CryptoZoo.state.expeditionStats.epicChanceBonus) || 0);
+    },
+
+    getTimeReductionSeconds() {
+        this.ensureExpeditionStats();
+        return Math.max(0, Number(CryptoZoo.state.expeditionStats.timeReductionSeconds) || 0);
+    },
+
     getUnlockRequirement(expedition) {
         if (!expedition) return 1;
         return Math.max(1, Number(expedition.unlockLevel) || 1);
@@ -31,9 +70,27 @@ CryptoZoo.expeditions = {
         return 1 + boostLevel * 0.15;
     },
 
+    getEffectiveDurationSeconds(expeditionConfig) {
+        const baseDuration = Math.max(60, Number(expeditionConfig?.duration) || 60);
+        const reduction = this.getTimeReductionSeconds();
+        return Math.max(60, baseDuration - reduction);
+    },
+
+    getEffectiveRareChance(expedition) {
+        const baseRareChance = Math.max(0, Number(expedition?.rareChance) || 0);
+        const bonus = this.getRareChanceBonus();
+        return Math.min(0.95, baseRareChance + bonus);
+    },
+
+    getEffectiveEpicChance(expedition) {
+        const baseEpicChance = Math.max(0, Number(expedition?.epicChance) || 0);
+        const bonus = this.getEpicChanceBonus();
+        return Math.min(0.90, baseEpicChance + bonus);
+    },
+
     rollRewardRarity(expedition) {
-        const rareChance = Math.max(0, Number(expedition?.rareChance) || 0);
-        const epicChance = Math.max(0, Number(expedition?.epicChance) || 0);
+        const epicChance = this.getEffectiveEpicChance(expedition);
+        const rareChance = this.getEffectiveRareChance(expedition);
         const roll = Math.random();
 
         if (roll < epicChance) return "epic";
@@ -51,7 +108,11 @@ CryptoZoo.expeditions = {
 
         const durationSeconds = Math.max(
             60,
-            Math.floor(durationMs > 0 ? durationMs / 1000 : Number(expedition.duration) || 0)
+            Math.floor(
+                durationMs > 0
+                    ? durationMs / 1000
+                    : Number(expedition.duration) || 0
+            )
         );
 
         const hours = durationSeconds / 3600;
@@ -98,6 +159,7 @@ CryptoZoo.expeditions = {
 
     buildActiveExpedition(expeditionConfig) {
         const now = Date.now();
+        const durationSeconds = this.getEffectiveDurationSeconds(expeditionConfig);
         const rewardRarity = this.rollRewardRarity(expeditionConfig);
         const rewardCoins = this.getCoinsReward(expeditionConfig, rewardRarity);
         const rewardGems = this.getGemsReward(expeditionConfig, rewardRarity);
@@ -106,7 +168,8 @@ CryptoZoo.expeditions = {
             id: expeditionConfig.id,
             name: expeditionConfig.name,
             startTime: now,
-            endTime: now + Math.max(1, Number(expeditionConfig.duration) || 0) * 1000,
+            endTime: now + durationSeconds * 1000,
+            duration: durationSeconds,
             rewardRarity,
             rewardCoins,
             rewardGems
@@ -115,6 +178,7 @@ CryptoZoo.expeditions = {
 
     start(expeditionId) {
         CryptoZoo.state = CryptoZoo.state || {};
+        this.ensureExpeditionStats();
 
         if (this.hasActiveExpedition()) {
             CryptoZoo.ui?.showToast?.("Masz już aktywną ekspedycję");
