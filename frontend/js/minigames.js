@@ -39,6 +39,11 @@ CryptoZoo.minigames = {
             0,
             Number(CryptoZoo.state.minigames.memoryCooldownUntil) || 0
         );
+
+        CryptoZoo.state.minigames.extraWheelSpins = Math.max(
+            0,
+            Number(CryptoZoo.state.minigames.extraWheelSpins) || 0
+        );
     },
 
     ensureEffects() {
@@ -70,62 +75,14 @@ CryptoZoo.minigames = {
 
     getWheelRewards() {
         return [
-            {
-                id: "coins_100",
-                label: "100C",
-                type: "coins",
-                value: 100,
-                centerAngle: 22.5
-            },
-            {
-                id: "coins_250",
-                label: "250C",
-                type: "coins",
-                value: 250,
-                centerAngle: 67.5
-            },
-            {
-                id: "coins_500",
-                label: "500C",
-                type: "coins",
-                value: 500,
-                centerAngle: 112.5
-            },
-            {
-                id: "coins_1000",
-                label: "1000C",
-                type: "coins",
-                value: 1000,
-                centerAngle: 157.5
-            },
-            {
-                id: "gems_1",
-                label: "1G",
-                type: "gems",
-                value: 1,
-                centerAngle: 202.5
-            },
-            {
-                id: "gems_2",
-                label: "2G",
-                type: "gems",
-                value: 2,
-                centerAngle: 247.5
-            },
-            {
-                id: "reward_1",
-                label: "1R",
-                type: "reward",
-                value: 1,
-                centerAngle: 292.5
-            },
-            {
-                id: "coins_2500",
-                label: "2500C",
-                type: "coins",
-                value: 2500,
-                centerAngle: 337.5
-            }
+            { id: "coins_100", label: "100C", type: "coins", value: 100, centerAngle: 22.5 },
+            { id: "coins_250", label: "250C", type: "coins", value: 250, centerAngle: 67.5 },
+            { id: "coins_500", label: "500C", type: "coins", value: 500, centerAngle: 112.5 },
+            { id: "coins_1000", label: "1000C", type: "coins", value: 1000, centerAngle: 157.5 },
+            { id: "gems_1", label: "1G", type: "gems", value: 1, centerAngle: 202.5 },
+            { id: "gems_2", label: "2G", type: "gems", value: 2, centerAngle: 247.5 },
+            { id: "reward_1", label: "1R", type: "reward", value: 1, centerAngle: 292.5 },
+            { id: "coins_2500", label: "2500C", type: "coins", value: 2500, centerAngle: 337.5 }
         ];
     },
 
@@ -214,8 +171,17 @@ CryptoZoo.minigames = {
         );
     },
 
+    getExtraWheelSpins() {
+        this.ensureState();
+        return Math.max(0, Number(CryptoZoo.state.minigames.extraWheelSpins) || 0);
+    },
+
+    hasExtraWheelSpin() {
+        return this.getExtraWheelSpins() > 0;
+    },
+
     isWheelReady() {
-        return !this.wheelSpinning && this.getWheelCooldownLeft() <= 0;
+        return !this.wheelSpinning && (this.hasExtraWheelSpin() || this.getWheelCooldownLeft() <= 0);
     },
 
     isMemoryReady() {
@@ -232,6 +198,14 @@ CryptoZoo.minigames = {
         this.ensureState();
         CryptoZoo.state.minigames.memoryCooldownUntil =
             Date.now() + this.memoryCooldownSeconds * 1000;
+    },
+
+    consumeExtraWheelSpin() {
+        this.ensureState();
+        CryptoZoo.state.minigames.extraWheelSpins = Math.max(
+            0,
+            this.getExtraWheelSpins() - 1
+        );
     },
 
     formatCooldown(seconds) {
@@ -277,6 +251,7 @@ CryptoZoo.minigames = {
 
         const wheelLeft = this.getWheelCooldownLeft();
         const memoryLeft = this.getMemoryCooldownLeft();
+        const extraSpins = this.getExtraWheelSpins();
 
         if (spinBtn) {
             if (this.wheelSpinning) {
@@ -284,6 +259,11 @@ CryptoZoo.minigames = {
                 spinBtn.textContent = "Spinning...";
                 spinBtn.style.opacity = "0.84";
                 spinBtn.style.cursor = "not-allowed";
+            } else if (extraSpins > 0) {
+                spinBtn.disabled = false;
+                spinBtn.textContent = `Spin Wheel (${extraSpins} extra)`;
+                spinBtn.style.opacity = "1";
+                spinBtn.style.cursor = "pointer";
             } else if (wheelLeft > 0) {
                 spinBtn.disabled = true;
                 spinBtn.textContent = `Next spin in ${this.formatCooldown(wheelLeft)}`;
@@ -302,6 +282,8 @@ CryptoZoo.minigames = {
                 wheelStatus.textContent = "🎲 Spinning...";
             } else if (wheelStatus.dataset.rewardText) {
                 wheelStatus.textContent = wheelStatus.dataset.rewardText;
+            } else if (extraSpins > 0) {
+                wheelStatus.textContent = `🎁 Extra spin available (${extraSpins})`;
             } else if (wheelLeft <= 0) {
                 wheelStatus.textContent = "🎁 Free spin ready";
             } else {
@@ -344,8 +326,9 @@ CryptoZoo.minigames = {
         }
 
         if (reward.type === "reward") {
-            CryptoZoo.state.rewardBalance =
-                (Number(CryptoZoo.state.rewardBalance) || 0) + reward.value;
+            CryptoZoo.state.rewardBalance = Number(
+                ((Number(CryptoZoo.state.rewardBalance) || 0) + reward.value).toFixed(3)
+            );
         }
     },
 
@@ -353,8 +336,10 @@ CryptoZoo.minigames = {
         if (!this.isMiniGamesVisible()) return;
         if (this.wheelSpinning) return;
 
+        const hasExtraSpin = this.hasExtraWheelSpin();
         const wheelLeft = this.getWheelCooldownLeft();
-        if (wheelLeft > 0) {
+
+        if (!hasExtraSpin && wheelLeft > 0) {
             CryptoZoo.ui?.showToast?.(`Next free spin in ${this.formatCooldown(wheelLeft)}`);
             this.renderCooldowns();
             return;
@@ -369,6 +354,10 @@ CryptoZoo.minigames = {
 
         const rewards = this.getWheelRewards();
         const reward = rewards[Math.floor(Math.random() * rewards.length)];
+
+        if (hasExtraSpin) {
+            this.consumeExtraWheelSpin();
+        }
 
         this.wheelSpinning = true;
         this.setWheelHighlight("");
@@ -407,7 +396,10 @@ CryptoZoo.minigames = {
 
         setTimeout(() => {
             this.applyWheelReward(reward);
-            this.startWheelCooldown();
+
+            if (!hasExtraSpin) {
+                this.startWheelCooldown();
+            }
 
             const normalized = ((finalRotation % 360) + 360) % 360;
             this.wheelRotation = normalized;
