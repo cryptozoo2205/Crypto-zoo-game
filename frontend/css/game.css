@@ -1,20 +1,262 @@
-/* =========================
-   GAME MAIN LAYOUT FIX
-========================= */
+.top-bar {
+    width: 100%;
+    margin: 0 0 10px;
+}
+
+.top-bar-shell {
+    width: 100%;
+    min-height: 88px;
+    border-radius: 22px;
+    background:
+        radial-gradient(circle at 20% 30%, rgba(66, 220, 255, 0.12) 0%, rgba(66, 220, 255, 0) 28%),
+        radial-gradient(circle at 72% 20%, rgba(255, 214, 102, 0.10) 0%, rgba(255, 214, 102, 0) 24%),
+        linear-gradient(180deg, rgba(20, 31, 56, 0.98) 0%, rgba(10, 17, 32, 0.98) 100%);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow:
+        0 12px 22px rgba(0, 0, 0, 0.18),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+    backdrop-filter: blur(8px);
+    overflow: hidden;
+    position: relative;
+}
+
+.top-bar-shell::before {
+    content: "";
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    top: 10px;
+    bottom: 10px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+    border: 1px solid rgba(255,255,255,0.04);
+    pointer-events: none;
+}
+
+.top-bar-main {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    min-height: 88px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.top-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.top-profile-trigger {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    flex: 0 0 auto;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    border-radius: 50%;
+}
+
+.top-profile-trigger:active {
+    transform: scale(0.97);
+}
+
+.top-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+    background:
+        radial-gradient(circle at 35% 30%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.03) 26%, rgba(255,255,255,0) 27%),
+        linear-gradient(180deg, rgba(49, 72, 110, 0.95) 0%, rgba(30, 46, 72, 0.98) 100%);
+    border: 2px solid rgba(255,255,255,0.14);
+    box-shadow:
+        0 8px 18px rgba(0,0,0,0.24),
+        0 0 0 4px rgba(88, 219, 255, 0.06),
+        inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+.top-profile-ring {
+    position: absolute;
+    right: 2px;
+    bottom: 2px;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #6dff8b 0%, #29cb5a 100%);
+    border: 2px solid rgba(9, 17, 32, 0.95);
+    box-shadow: 0 0 10px rgba(89, 255, 124, 0.45);
+    pointer-events: none;
+}
+
+.top-user-meta {
+    min-width: 0;
+}
+
+.top-user-name {
+    font-size: 22px;
+    font-weight: 900;
+    color: #ffffff;
+    line-height: 1.05;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
+}
+
+.top-user-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #8af7a5;
+    line-height: 1;
+    white-space: nowrap;
+    background: rgba(8, 17, 30, 0.34);
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.22);
+}
+
+.top-bar-overlay-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.top-icon-chip {
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 900;
+    color: #ffffff;
+    background: rgba(10, 18, 35, 0.52);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.08),
+        0 8px 18px rgba(0, 0, 0, 0.20);
+    backdrop-filter: blur(10px);
+    transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease, opacity 0.16s ease;
+    animation: topIconFloat 2.8s ease-in-out infinite;
+}
+
+.top-icon-chip:active {
+    transform: scale(0.94);
+}
+
+.top-icon-chip:hover {
+    filter: brightness(1.06);
+}
+
+.top-icon-chip-star {
+    animation-delay: 0s;
+}
+
+.top-icon-chip-settings {
+    animation-delay: 0.2s;
+}
+
+.stats-panel {
+    display: none;
+}
+
+main#game {
+    width: 100%;
+    min-width: 0;
+    flex: 1 1 auto;
+    padding-bottom: 0;
+}
+
+#screen-game,
+#screen-zoo,
+#screen-shop,
+#screen-missions,
+#screen-minigames,
+#screen-ranking {
+    width: 100%;
+    min-width: 0;
+}
 
 .game-main-card {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
     backdrop-filter: none !important;
-    padding: 4px 0 14px !important;
+    padding: 4px 0 0 !important;
     position: relative;
     overflow: visible !important;
 }
 
-/* =========================
-   TAP AREA
-========================= */
+.home-stats-panel {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+    margin: 0 0 12px;
+}
+
+.home-stat-box {
+    position: relative;
+    min-width: 0;
+    min-height: 78px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: linear-gradient(
+        180deg,
+        rgba(24, 33, 58, 0.96) 0%,
+        rgba(13, 20, 37, 0.94) 100%
+    );
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    padding: 11px 12px;
+    box-shadow:
+        0 14px 24px rgba(0, 0, 0, 0.18),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+    backdrop-filter: blur(8px);
+    overflow: hidden;
+}
+
+.home-stat-box::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 42%);
+    pointer-events: none;
+}
+
+.home-stat-title {
+    font-size: 10px;
+    color: rgba(255,255,255,0.68);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.home-stat-value {
+    font-size: 20px;
+    font-weight: 900;
+    color: #ffffff;
+    line-height: 1.05;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
 
 .tap-area {
     width: 100%;
@@ -57,20 +299,48 @@
     z-index: 2;
     width: 208px;
     height: 208px;
+    display: block;
     border: none;
     border-radius: 50%;
     cursor: pointer;
+    padding: 0;
+    outline: none;
     background: url("../assets/buttons/tap_button_main.png") center center / contain no-repeat;
     box-shadow:
         0 0 0 10px rgba(255,255,255,0.03),
         0 0 28px rgba(91, 255, 110, 0.18),
         0 14px 30px rgba(0, 0, 0, 0.22);
-    transition: transform 0.10s ease;
+    transition: transform 0.10s ease, filter 0.10s ease, box-shadow 0.14s ease;
+    overflow: visible;
+    flex: 0 0 auto;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
-/* =========================
-   TAP TEXT
-========================= */
+.tap-button::before {
+    content: "";
+    position: absolute;
+    inset: 18%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(119,255,129,0.22) 0%, rgba(119,255,129,0.08) 55%, rgba(119,255,129,0) 100%);
+    z-index: -1;
+}
+
+.tap-button::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.tap-button:active {
+    transform: scale(0.92);
+    filter: brightness(0.95);
+}
+
+.tap-button.tap-hit {
+    animation: tapHitPulse 0.18s ease-out;
+}
 
 .home-tap-caption {
     text-align: center;
@@ -82,6 +352,10 @@
     font-size: 24px;
     font-weight: 900;
     color: #ffffff;
+    letter-spacing: 0.4px;
+    text-shadow:
+        0 3px 10px rgba(0,0,0,0.28),
+        0 0 16px rgba(255,255,255,0.04);
 }
 
 .home-tap-subtitle {
@@ -90,9 +364,61 @@
     color: rgba(255,255,255,0.76);
 }
 
-/* =========================
-   INCOME STRIP
-========================= */
+.coin-pop {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    font-size: 32px;
+    font-weight: 900;
+    line-height: 1;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 6;
+    color: #ffd54f;
+    text-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.32),
+        0 0 14px rgba(255, 213, 79, 0.20);
+    white-space: nowrap;
+}
+
+.coin-pop.animate {
+    animation: coinFloat 0.85s ease-out forwards;
+}
+
+.coin-pop.boost-pop {
+    color: #ffe88b;
+    text-shadow:
+        0 2px 10px rgba(0, 0, 0, 0.32),
+        0 0 18px rgba(255, 216, 76, 0.34),
+        0 0 30px rgba(255, 196, 0, 0.20);
+    animation: coinFloatBoost 0.95s ease-out forwards;
+}
+
+.tap-spark {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 5;
+    background: radial-gradient(circle, rgba(255,245,180,0.95) 0%, rgba(255,210,80,0.9) 55%, rgba(255,210,80,0) 100%);
+    box-shadow: 0 0 12px rgba(255, 214, 102, 0.28);
+    animation: sparkFly 0.6s ease-out forwards;
+}
+
+.screen-boost-flash {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 40;
+    background: radial-gradient(circle at center, rgba(255, 224, 122, 0.16) 0%, rgba(255, 224, 122, 0.05) 28%, rgba(255, 224, 122, 0) 58%);
+    opacity: 0;
+}
+
+.screen-boost-flash.active {
+    animation: boostFlash 0.24s ease-out forwards;
+}
 
 .home-income-strip {
     width: 100%;
@@ -100,55 +426,199 @@
     margin-bottom: 12px;
     padding: 14px 15px;
     display: flex;
-    flex-direction: column;
-    gap: 10px;
-
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
     background: linear-gradient(
         180deg,
         rgba(22, 31, 54, 0.95) 0%,
         rgba(11, 18, 34, 0.95) 100%
     );
+    border: 1px solid rgba(255,255,255,0.08);
     border-radius: 20px;
+    box-shadow:
+        0 14px 24px rgba(0, 0, 0, 0.18),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+    backdrop-filter: blur(8px);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.home-income-strip.boost-active {
+    border-color: rgba(255, 195, 0, 0.34);
+    box-shadow:
+        0 14px 24px rgba(0, 0, 0, 0.20),
+        0 0 28px rgba(255, 196, 0, 0.14),
+        inset 0 1px 0 rgba(255,255,255,0.06);
+    transform: translateY(-1px);
+}
+
+.home-income-left {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.home-income-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.74);
+    margin-bottom: 5px;
 }
 
 .home-income-value {
     font-size: 22px;
     font-weight: 900;
     color: #6cff7d;
+    line-height: 1.05;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.home-boost-right {
+    flex: 0 0 auto;
+    text-align: right;
+    min-width: 138px;
+}
+
+.home-boost-title {
+    font-size: 11px;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 6px;
+}
+
+.home-boost-button {
+    border: none;
+    border-radius: 13px;
+    padding: 11px 16px;
+    font-weight: 900;
+    font-size: 14px;
+    cursor: pointer;
+    color: #1a1a1a;
+    background: linear-gradient(180deg, #ffe27a 0%, #ffbf00 100%);
+    box-shadow:
+        0 8px 16px rgba(255, 191, 0, 0.18),
+        inset 0 1px 0 rgba(255,255,255,0.35);
+    transition: transform 0.12s ease, opacity 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+}
+
+.home-boost-button:active {
+    transform: scale(0.97);
+}
+
+.home-boost-button:hover {
+    opacity: 0.97;
+}
+
+.home-boost-button.boost-active {
+    color: #1b1b1b;
+    background: linear-gradient(180deg, #fff0a5 0%, #ffd54d 100%);
+    box-shadow:
+        0 8px 18px rgba(255, 191, 0, 0.26),
+        0 0 20px rgba(255, 208, 0, 0.18);
+    animation: boostPulse 1.4s ease-in-out infinite;
+}
+
+.home-boost-status {
+    margin-top: 7px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 21px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.76);
+    background: rgba(255,255,255,0.05);
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+.home-boost-status.boost-active {
+    color: #1b1b1b;
+    background: linear-gradient(180deg, #fff0a5 0%, #ffd54d 100%);
+    box-shadow: 0 4px 14px rgba(255, 196, 0, 0.18);
+}
+
+.home-boost-status.boost-active::before {
+    content: "⚡";
+    font-size: 12px;
+    line-height: 1;
+    flex: 0 0 auto;
+}
+
+.home-xp-bar-wrap {
+    margin-top: 8px;
+}
+
+.home-xp-bar {
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.28);
+}
+
+.home-xp-fill {
+    width: 0%;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+    box-shadow: 0 0 12px rgba(79, 172, 254, 0.28);
+    transition: width 0.25s ease;
+}
+
+.home-xp-text {
+    margin-top: 5px;
+    font-size: 11px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.72);
+    line-height: 1.2;
 }
 
 /* =========================
-   CRITICAL FIX (NAJWAŻNIEJSZE)
-========================= */
-
-/* 🔥 TO ROZWIĄZUJE TWÓJ PROBLEM */
-
-#screen-game,
-#screen-zoo,
-#screen-shop,
-#screen-missions,
-#screen-minigames,
-#screen-ranking {
-    padding-bottom: 140px !important;
-}
-
-/* ostatni element nigdy nie wchodzi pod menu */
-.panel:last-child,
-.card:last-child,
-.home-quick-card:last-child,
-.home-zoo-preview:last-child {
-    margin-bottom: 120px !important;
-}
-/* =========================
-   ZOO LIST / CARDS
+   ZOO PREVIEW
 ========================= */
 
 .home-zoo-preview {
     width: 100%;
     margin-top: 10px;
     margin-bottom: 10px;
+    background: linear-gradient(
+        180deg,
+        rgba(20, 29, 49, 0.92) 0%,
+        rgba(11, 18, 34, 0.94) 100%
+    );
+    border: 1px solid rgba(255,255,255,0.08);
     border-radius: 22px;
     padding: 14px;
+    box-shadow:
+        0 14px 24px rgba(0, 0, 0, 0.18),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+.home-zoo-preview-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.home-zoo-preview-title {
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.home-zoo-preview-button {
+    border: none;
+    border-radius: 14px;
+    padding: 9px 13px;
+    font-weight: 800;
+    cursor: pointer;
+    color: #1a1a1a;
+    background: linear-gradient(180deg, #ffe27a 0%, #ffbf00 100%);
 }
 
 .home-zoo-preview-list {
@@ -158,10 +628,10 @@
 }
 
 .home-zoo-preview-card {
-    min-width: 0;
     border-radius: 18px;
     padding: 10px 8px;
     text-align: center;
+    background: rgba(255,255,255,0.04);
 }
 
 .home-zoo-preview-card img {
@@ -170,14 +640,37 @@
     margin: 0 auto 8px;
 }
 
+.home-zoo-preview-name {
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.home-zoo-preview-meta {
+    font-size: 11px;
+    margin-bottom: 8px;
+}
+
+.home-zoo-preview-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.home-zoo-preview-actions button {
+    border: none;
+    border-radius: 11px;
+    padding: 8px;
+    font-size: 10px;
+    font-weight: 800;
+}
+
 /* =========================
-   QUICK PANELS (DAILY / EVENTS / BOOST)
+   QUICK PANEL
 ========================= */
 
 .home-quick-panel {
     width: 100%;
     display: grid;
-    grid-template-columns: 1fr;
     gap: 10px;
 }
 
@@ -188,61 +681,84 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    background: linear-gradient(
+        180deg,
+        rgba(18, 28, 48, 0.96) 0%,
+        rgba(10, 17, 31, 0.95) 100%
+    );
+}
+
+.home-quick-icon {
+    width: 46px;
+    height: 46px;
+}
+
+.home-quick-title {
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.home-quick-subtitle {
+    font-size: 11px;
 }
 
 /* =========================
-   SCROLL FIX (MEGA IMPORTANT)
+   ANIMATIONS
 ========================= */
 
-/* 🔥 usuwa dziwną przerwę na dole */
-body {
-    padding-bottom: 0 !important;
+@keyframes tapPulse {
+    0% { transform: scale(0.96); opacity: 0.75; }
+    50% { transform: scale(1.04); opacity: 1; }
+    100% { transform: scale(0.96); opacity: 0.75; }
 }
 
-/* 🔥 pozwala scrollować poprawnie */
-#app {
-    overflow-x: hidden;
-    overflow-y: auto;
-}
-
-/* 🔥 usuwa sztuczne powiększenie */
-.screen {
-    min-height: auto !important;
+@keyframes boostPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); }
 }
 
 /* =========================
-   MOBILE FIX
+   MOBILE
 ========================= */
 
 @media (max-width: 520px) {
 
-    #screen-game,
-    #screen-zoo,
-    #screen-shop,
-    #screen-missions,
-    #screen-minigames,
-    #screen-ranking {
-        padding-bottom: 160px !important;
-    }
-
-    .panel:last-child,
-    .card:last-child,
-    .home-quick-card:last-child,
-    .home-zoo-preview:last-child {
-        margin-bottom: 140px !important;
+    .tap-area {
+        min-height: 232px;
+        padding: 10px 0 4px;
     }
 
     .tap-button {
         width: 176px;
         height: 176px;
     }
+
+    .home-income-strip {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .home-boost-button {
+        width: 100%;
+    }
+
+    .home-zoo-preview-list {
+        gap: 6px;
+    }
+
+    .home-zoo-preview-card img {
+        width: 42px;
+        height: 42px;
+    }
 }
 
 /* =========================
-   EXTRA SAFETY (KONIEC PROBLEMU)
+   ❗ FINAL FIX (JEDYNY POTRZEBNY)
 ========================= */
 
-/* absolutny fix – ostatni element */
-#app > *:last-child {
-    margin-bottom: 160px !important;
+/* tylko to zostaje — reszta fixów wywalona */
+
+.screen {
+    padding-bottom: 0;
 }
