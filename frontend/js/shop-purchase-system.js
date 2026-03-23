@@ -93,6 +93,9 @@ CryptoZoo.shopSystem = {
             0,
             (Number(CryptoZoo.state?.coins) || 0) - meta.amount
         );
+
+        CryptoZoo.dailyMissions?.recordSpendCoins?.(meta.amount);
+
         return true;
     },
 
