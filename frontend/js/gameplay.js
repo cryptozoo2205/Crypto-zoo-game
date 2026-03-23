@@ -294,10 +294,10 @@ CryptoZoo.gameplay = {
         const safeLevel = Math.max(1, Number(level) || 1);
 
         if (safeLevel <= 5) {
-            return 60 + safeLevel * 40;
+            return 55 + safeLevel * 30;
         }
 
-        return Math.floor(120 * Math.pow(safeLevel, 1.25));
+        return Math.floor(95 * Math.pow(safeLevel, 1.24));
     },
 
     getLevelProgressData() {
