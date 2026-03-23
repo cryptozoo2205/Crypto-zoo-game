@@ -5,14 +5,19 @@ window.CryptoZoo.api = {
     initialized: false,
 
     async init() {
-        if (this.initialized) return CryptoZoo.state;
+        if (this.initialized) {
+            return CryptoZoo.state;
+        }
+
         this.initialized = true;
 
         try {
             await this.loadPlayer();
         } catch (error) {
             console.error("API init load failed:", error);
-            CryptoZoo.state = this.normalizeState(CryptoZoo.state || this.getDefaultState());
+            CryptoZoo.state = this.normalizeState(
+                CryptoZoo.state || this.getDefaultState()
+            );
         }
 
         return CryptoZoo.state;
@@ -264,9 +269,15 @@ window.CryptoZoo.api = {
             ...data,
             coins: Math.max(0, Number(data.coins ?? base.coins) || 0),
             gems: Math.max(0, Number(data.gems ?? base.gems) || 0),
-            rewardBalance: Number((Math.max(0, Number(data.rewardBalance ?? base.rewardBalance) || 0)).toFixed(3)),
-            rewardWallet: Number((Math.max(0, Number(data.rewardWallet ?? base.rewardWallet) || 0)).toFixed(3)),
-            withdrawPending: Number((Math.max(0, Number(data.withdrawPending ?? base.withdrawPending) || 0)).toFixed(3)),
+            rewardBalance: Number(
+                (Math.max(0, Number(data.rewardBalance ?? base.rewardBalance) || 0)).toFixed(3)
+            ),
+            rewardWallet: Number(
+                (Math.max(0, Number(data.rewardWallet ?? base.rewardWallet) || 0)).toFixed(3)
+            ),
+            withdrawPending: Number(
+                (Math.max(0, Number(data.withdrawPending ?? base.withdrawPending) || 0)).toFixed(3)
+            ),
             level: Math.max(1, Number(data.level ?? base.level) || 1),
             xp: Math.max(0, Number(data.xp ?? base.xp) || 0),
             coinsPerClick: Math.max(1, Number(data.coinsPerClick ?? base.coinsPerClick) || 1),
