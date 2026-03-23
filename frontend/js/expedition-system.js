@@ -198,6 +198,7 @@ CryptoZoo.expeditions = {
         }
 
         CryptoZoo.state.expedition = this.buildActiveExpedition(expeditionConfig);
+        CryptoZoo.dailyMissions?.recordStartExpedition?.(1);
 
         CryptoZoo.audio?.play?.("click");
         CryptoZoo.ui?.render?.();
