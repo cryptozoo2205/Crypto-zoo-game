@@ -785,76 +785,100 @@ CryptoZoo.ui = {
     },
 
     renderDailyMissionsSection() {
-        const missions = CryptoZoo.dailyMissions?.getAll?.() || [];
+        const allMissions = CryptoZoo.dailyMissions?.getAll?.() || [];
+        const visibleMission =
+            CryptoZoo.dailyMissions?.getVisibleMission?.() ||
+            allMissions.find((mission) => !mission.claimed) ||
+            allMissions[allMissions.length - 1] ||
+            null;
 
-        const completedCount = missions.filter((mission) => !!mission.claimed).length;
-        const totalCount = missions.length;
+        const completedCount = allMissions.filter((mission) => !!mission.claimed).length;
+        const totalCount = allMissions.length;
+        const remainingCount = Math.max(0, totalCount - completedCount);
 
-        const cards = missions.map((mission) => {
-            const target = Math.max(1, Number(mission.target) || 1);
-            const progress = Math.max(0, Number(mission.progress) || 0);
+        let missionCardHtml = `
+            <div class="expedition-card" style="margin-bottom:12px;">
+                <h3>🎯 Daily Mission</h3>
+                <div style="color:rgba(255,255,255,0.72);">Brak misji na dzisiaj</div>
+            </div>
+        `;
+
+        if (visibleMission) {
+            const target = Math.max(1, Number(visibleMission.target) || 1);
+            const progress = Math.max(0, Number(visibleMission.progress) || 0);
             const safeProgress = Math.min(progress, target);
             const percent = Math.max(0, Math.min(100, (safeProgress / target) * 100));
-            const isCompleted = !!CryptoZoo.dailyMissions?.isCompleted?.(mission);
-            const isClaimed = !!mission.claimed;
+            const isCompleted = !!CryptoZoo.dailyMissions?.isCompleted?.(visibleMission);
+            const isClaimed = !!visibleMission.claimed;
+            const isAllClaimed = totalCount > 0 && completedCount >= totalCount;
 
-            let statusText = "W toku";
-            if (isClaimed) statusText = "Odebrane";
-            else if (isCompleted) statusText = "Gotowe";
+            let statusText = "In progress";
+            if (isClaimed) statusText = "Claimed";
+            else if (isCompleted) statusText = "Ready";
 
-            let buttonLabel = "W toku";
+            let buttonLabel = "In progress";
             let buttonDisabled = true;
 
             if (isClaimed) {
-                buttonLabel = "Odebrane";
+                buttonLabel = "Claimed";
                 buttonDisabled = true;
             } else if (isCompleted) {
-                buttonLabel = "Odbierz";
+                buttonLabel = "Claim";
                 buttonDisabled = false;
             }
 
-            const rewardText = mission.rewardGems > 0
-                ? `+${CryptoZoo.formatNumber(mission.rewardCoins)} coins • +${CryptoZoo.formatNumber(mission.rewardGems)} gem`
-                : `+${CryptoZoo.formatNumber(mission.rewardCoins)} coins`;
+            const rewardText = visibleMission.rewardGems > 0
+                ? `+${CryptoZoo.formatNumber(visibleMission.rewardCoins)} coins • +${CryptoZoo.formatNumber(visibleMission.rewardGems)} gem`
+                : `+${CryptoZoo.formatNumber(visibleMission.rewardCoins)} coins`;
 
-            return `
+            const queueText = isAllClaimed
+                ? "All daily missions completed"
+                : remainingCount > 1
+                    ? `Next missions locked: ${CryptoZoo.formatNumber(Math.max(0, remainingCount - 1))}`
+                    : "This is the last mission today";
+
+            missionCardHtml = `
                 <div class="expedition-card" style="margin-bottom:12px;">
-                    <h3>🎯 ${mission.title}</h3>
-                    <div>Status: ${statusText}</div>
-                    <div>Postęp: ${CryptoZoo.formatNumber(safeProgress)} / ${CryptoZoo.formatNumber(target)}</div>
+                    <h3>🎯 Daily Mission</h3>
+                    <div style="font-size:15px; font-weight:900; margin-top:6px;">${visibleMission.title}</div>
+                    <div style="margin-top:8px;">Status: ${statusText}</div>
+                    <div>Progress: ${CryptoZoo.formatNumber(safeProgress)} / ${CryptoZoo.formatNumber(target)}</div>
                     <div style="margin-top:8px; width:100%; height:10px; border-radius:999px; background:rgba(255,255,255,0.08); overflow:hidden;">
                         <div style="width:${percent}%; height:100%; border-radius:999px; background:linear-gradient(90deg,#4facfe 0%, #00f2fe 100%);"></div>
                     </div>
-                    <div style="margin-top:8px;">Nagroda: ${rewardText}</div>
+                    <div style="margin-top:8px;">Reward: ${rewardText}</div>
+                    <div style="margin-top:8px; font-size:12px; color:rgba(255,255,255,0.68);">${queueText}</div>
                     <button
-                        id="claim-mission-${mission.id}"
+                        id="claim-mission-${visibleMission.id}"
                         type="button"
                         ${buttonDisabled ? "disabled" : ""}
                         style="${buttonDisabled ? "opacity:0.72; cursor:not-allowed;" : ""} margin-top:10px;"
                     >${buttonLabel}</button>
                 </div>
             `;
-        }).join("");
+        }
 
         return `
             <div class="expedition-card" style="margin-bottom:12px;">
                 <h3>📅 Daily Missions</h3>
-                <div>Ukończone: ${CryptoZoo.formatNumber(completedCount)} / ${CryptoZoo.formatNumber(totalCount)}</div>
+                <div>Completed: ${CryptoZoo.formatNumber(completedCount)} / ${CryptoZoo.formatNumber(totalCount)}</div>
             </div>
-            ${cards}
+            ${missionCardHtml}
         `;
     },
 
     bindDailyMissionButtons() {
-        const missions = CryptoZoo.dailyMissions?.getAll?.() || [];
+        const mission =
+            CryptoZoo.dailyMissions?.getVisibleMission?.() ||
+            null;
 
-        missions.forEach((mission) => {
-            const isCompleted = !!CryptoZoo.dailyMissions?.isCompleted?.(mission);
-            if (!isCompleted || mission.claimed) return;
+        if (!mission) return;
 
-            this.bindClick(`claim-mission-${mission.id}`, () => {
-                CryptoZoo.dailyMissions?.claimMission?.(mission.id);
-            });
+        const isCompleted = !!CryptoZoo.dailyMissions?.isCompleted?.(mission);
+        if (!isCompleted || mission.claimed) return;
+
+        this.bindClick(`claim-mission-${mission.id}`, () => {
+            CryptoZoo.dailyMissions?.claimMission?.(mission.id);
         });
     },
 
