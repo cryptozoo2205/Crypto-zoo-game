@@ -10,6 +10,11 @@ CryptoZoo.shopSystem = {
         CryptoZoo.state = CryptoZoo.state || {};
         CryptoZoo.state.shopPurchases = CryptoZoo.state.shopPurchases || {};
         CryptoZoo.state.minigames = CryptoZoo.state.minigames || {};
+        CryptoZoo.state.expeditionStats = CryptoZoo.state.expeditionStats || {
+            rareChanceBonus: 0,
+            epicChanceBonus: 0,
+            timeReductionSeconds: 0
+        };
     },
 
     getOwnedCount(itemId) {
@@ -109,16 +114,45 @@ CryptoZoo.shopSystem = {
         });
 
         CryptoZoo.gameplay?.recalculateProgress?.();
-        return `Zoo income boost +${CryptoZoo.formatNumber(incomeBonus)} lvl`;
+        return `Zoo income +${CryptoZoo.formatNumber(incomeBonus)} lvl`;
     },
 
-    applyExpeditionUpgrade(item) {
-        const bonus = Math.max(1, Number(item?.expeditionBonus) || 1);
+    applyExpeditionRewardUpgrade(item) {
+        this.ensurePurchaseState();
 
+        const rareBonus = Math.max(0, Number(item?.rareChanceBonus) || 0);
+        const epicBonus = Math.max(0, Number(item?.epicChanceBonus) || 0);
+
+        CryptoZoo.state.expeditionStats.rareChanceBonus =
+            Math.max(0, Number(CryptoZoo.state.expeditionStats.rareChanceBonus) || 0) + rareBonus;
+
+        CryptoZoo.state.expeditionStats.epicChanceBonus =
+            Math.max(0, Number(CryptoZoo.state.expeditionStats.epicChanceBonus) || 0) + epicBonus;
+
+        if (epicBonus > 0) {
+            return "Większa szansa na Epic nagrody";
+        }
+
+        if (rareBonus > 0) {
+            return "Większa szansa na Rare nagrody";
+        }
+
+        const bonus = Math.max(1, Number(item?.expeditionBonus) || 1);
         CryptoZoo.state.expeditionBoost =
             Math.max(0, Number(CryptoZoo.state?.expeditionBoost) || 0) + bonus;
 
-        return `Expedition boost +${CryptoZoo.formatNumber(bonus)}`;
+        return `Expedition reward boost +${CryptoZoo.formatNumber(bonus)}`;
+    },
+
+    applyExpeditionTimeReduction(item) {
+        this.ensurePurchaseState();
+
+        const reductionSeconds = Math.max(0, Number(item?.timeReductionSeconds) || 0);
+
+        CryptoZoo.state.expeditionStats.timeReductionSeconds =
+            Math.max(0, Number(CryptoZoo.state.expeditionStats.timeReductionSeconds) || 0) + reductionSeconds;
+
+        return `Ekspedycje krótsze o ${CryptoZoo.ui?.formatDurationLabel?.(reductionSeconds) || `${reductionSeconds}s`}`;
     },
 
     applyOfflineBoost(item) {
@@ -197,7 +231,11 @@ CryptoZoo.shopSystem = {
         }
 
         if (effect === "expedition") {
-            return this.applyExpeditionUpgrade(item);
+            return this.applyExpeditionRewardUpgrade(item);
+        }
+
+        if (effect === "expeditiontime") {
+            return this.applyExpeditionTimeReduction(item);
         }
 
         if (effect === "offline") {
