@@ -16,7 +16,8 @@ CryptoZoo.expeditions = {
         CryptoZoo.state.expeditionStats = CryptoZoo.state.expeditionStats || {
             rareChanceBonus: 0,
             epicChanceBonus: 0,
-            timeReductionSeconds: 0
+            timeReductionSeconds: 0,
+            timeBoostCharges: []
         };
 
         CryptoZoo.state.expeditionStats.rareChanceBonus = Math.max(
@@ -33,6 +34,14 @@ CryptoZoo.expeditions = {
             0,
             Number(CryptoZoo.state.expeditionStats.timeReductionSeconds) || 0
         );
+
+        if (!Array.isArray(CryptoZoo.state.expeditionStats.timeBoostCharges)) {
+            CryptoZoo.state.expeditionStats.timeBoostCharges = [];
+        }
+
+        CryptoZoo.state.expeditionStats.timeBoostCharges = CryptoZoo.state.expeditionStats.timeBoostCharges
+            .map((value) => Math.max(0, Number(value) || 0))
+            .filter((value) => value > 0);
     },
 
     getRareChanceBonus() {
@@ -45,36 +54,93 @@ CryptoZoo.expeditions = {
         return Math.max(0, Number(CryptoZoo.state.expeditionStats.epicChanceBonus) || 0);
     },
 
-    getTimeReductionSeconds() {
+    getLegacyTimeReductionSeconds() {
         this.ensureExpeditionStats();
         return Math.max(0, Number(CryptoZoo.state.expeditionStats.timeReductionSeconds) || 0);
     },
 
-    getAppliedTimeReductionSeconds(expeditionConfig) {
-        const baseDuration = Math.max(60, Number(expeditionConfig?.duration) || 60);
-        const ownedReduction = this.getTimeReductionSeconds();
-        return Math.min(Math.max(0, baseDuration - 60), ownedReduction);
+    getTimeBoostCharges() {
+        this.ensureExpeditionStats();
+        return Array.isArray(CryptoZoo.state.expeditionStats.timeBoostCharges)
+            ? CryptoZoo.state.expeditionStats.timeBoostCharges
+            : [];
     },
 
-    addTimeReduction(seconds) {
+    getTimeBoostChargesCount() {
+        return this.getTimeBoostCharges().length;
+    },
+
+    addTimeBoostCharge(seconds) {
         this.ensureExpeditionStats();
 
         const safeSeconds = Math.max(0, Number(seconds) || 0);
-        if (safeSeconds <= 0) {
-            return false;
-        }
+        if (safeSeconds <= 0) return false;
 
-        const before = this.getTimeReductionSeconds();
-
-        CryptoZoo.state.expeditionStats.timeReductionSeconds = Math.max(
-            0,
-            before + safeSeconds
-        );
-
-        CryptoZoo.ui?.render?.();
-        CryptoZoo.api?.savePlayer?.();
+        CryptoZoo.state.expeditionStats.timeBoostCharges.push(safeSeconds);
+        CryptoZoo.state.expeditionStats.timeBoostCharges.sort((a, b) => a - b);
 
         return true;
+    },
+
+    peekBestTimeBoostCharge(baseDuration) {
+        const charges = this.getTimeBoostCharges();
+        if (!charges.length) return 0;
+
+        const safeBaseDuration = Math.max(60, Number(baseDuration) || 60);
+        const maxAllowedReduction = Math.max(0, safeBaseDuration - 60);
+
+        if (maxAllowedReduction <= 0) {
+            return 0;
+        }
+
+        let best = 0;
+
+        charges.forEach((charge) => {
+            const safeCharge = Math.max(0, Number(charge) || 0);
+            const applied = Math.min(safeCharge, maxAllowedReduction);
+
+            if (applied > best) {
+                best = applied;
+            }
+        });
+
+        return best;
+    },
+
+    consumeBestTimeBoostCharge(baseDuration) {
+        this.ensureExpeditionStats();
+
+        const charges = this.getTimeBoostCharges();
+        if (!charges.length) {
+            return 0;
+        }
+
+        const safeBaseDuration = Math.max(60, Number(baseDuration) || 60);
+        const maxAllowedReduction = Math.max(0, safeBaseDuration - 60);
+
+        if (maxAllowedReduction <= 0) {
+            return 0;
+        }
+
+        let bestApplied = 0;
+        let bestIndex = -1;
+
+        charges.forEach((charge, index) => {
+            const safeCharge = Math.max(0, Number(charge) || 0);
+            const applied = Math.min(safeCharge, maxAllowedReduction);
+
+            if (applied > bestApplied) {
+                bestApplied = applied;
+                bestIndex = index;
+            }
+        });
+
+        if (bestIndex === -1 || bestApplied <= 0) {
+            return 0;
+        }
+
+        CryptoZoo.state.expeditionStats.timeBoostCharges.splice(bestIndex, 1);
+        return bestApplied;
     },
 
     getUnlockRequirement(expedition) {
@@ -99,8 +165,8 @@ CryptoZoo.expeditions = {
 
     getEffectiveDurationSeconds(expeditionConfig) {
         const baseDuration = Math.max(60, Number(expeditionConfig?.duration) || 60);
-        const reduction = this.getAppliedTimeReductionSeconds(expeditionConfig);
-        return Math.max(60, baseDuration - reduction);
+        const previewChargeReduction = this.peekBestTimeBoostCharge(baseDuration);
+        return Math.max(60, baseDuration - previewChargeReduction);
     },
 
     getEffectiveRareChance(expedition) {
@@ -186,17 +252,21 @@ CryptoZoo.expeditions = {
 
     buildActiveExpedition(expeditionConfig) {
         const now = Date.now();
-        const durationSeconds = this.getEffectiveDurationSeconds(expeditionConfig);
+        const baseDuration = Math.max(60, Number(expeditionConfig?.duration) || 60);
+        const consumedReduction = this.consumeBestTimeBoostCharge(baseDuration);
+        const durationSeconds = Math.max(60, baseDuration - consumedReduction);
         const rewardRarity = this.rollRewardRarity(expeditionConfig);
         const rewardCoins = this.getCoinsReward(expeditionConfig, rewardRarity);
         const rewardGems = this.getGemsReward(expeditionConfig, rewardRarity);
 
         return {
-            id: String(expeditionConfig.id || ""),
-            name: String(expeditionConfig.name || "Expedition"),
+            id: expeditionConfig.id,
+            name: expeditionConfig.name,
             startTime: now,
             endTime: now + durationSeconds * 1000,
             duration: durationSeconds,
+            baseDuration,
+            timeReductionUsed: consumedReduction,
             rewardRarity,
             rewardCoins,
             rewardGems
@@ -230,7 +300,13 @@ CryptoZoo.expeditions = {
         CryptoZoo.audio?.play?.("click");
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
-        CryptoZoo.ui?.showToast?.(`🌍 Start: ${expeditionConfig.name}`);
+
+        const reductionUsed = Math.max(0, Number(CryptoZoo.state.expedition?.timeReductionUsed) || 0);
+        const reductionText = reductionUsed > 0
+            ? ` • boost czasu -${CryptoZoo.ui?.formatDurationLabel?.(reductionUsed) || `${reductionUsed}s`}`
+            : "";
+
+        CryptoZoo.ui?.showToast?.(`🌍 Start: ${expeditionConfig.name}${reductionText}`);
 
         return true;
     },
