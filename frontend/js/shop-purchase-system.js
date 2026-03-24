@@ -15,6 +15,21 @@ CryptoZoo.shopSystem = {
             epicChanceBonus: 0,
             timeReductionSeconds: 0
         };
+
+        CryptoZoo.state.expeditionStats.rareChanceBonus = Math.max(
+            0,
+            Number(CryptoZoo.state.expeditionStats.rareChanceBonus) || 0
+        );
+
+        CryptoZoo.state.expeditionStats.epicChanceBonus = Math.max(
+            0,
+            Number(CryptoZoo.state.expeditionStats.epicChanceBonus) || 0
+        );
+
+        CryptoZoo.state.expeditionStats.timeReductionSeconds = Math.max(
+            0,
+            Number(CryptoZoo.state.expeditionStats.timeReductionSeconds) || 0
+        );
     },
 
     getOwnedCount(itemId) {
@@ -151,9 +166,15 @@ CryptoZoo.shopSystem = {
         this.ensurePurchaseState();
 
         const reductionSeconds = Math.max(0, Number(item?.timeReductionSeconds) || 0);
+        if (reductionSeconds <= 0) {
+            return "Brak skrócenia czasu";
+        }
 
-        CryptoZoo.state.expeditionStats.timeReductionSeconds =
-            Math.max(0, Number(CryptoZoo.state.expeditionStats.timeReductionSeconds) || 0) + reductionSeconds;
+        const changed = CryptoZoo.expeditions?.addTimeReduction?.(reductionSeconds);
+
+        if (!changed) {
+            return "Brak skrócenia czasu";
+        }
 
         return `Ekspedycje krótsze o ${CryptoZoo.ui?.formatDurationLabel?.(reductionSeconds) || `${reductionSeconds}s`}`;
     },
