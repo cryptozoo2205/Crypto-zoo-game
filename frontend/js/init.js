@@ -70,7 +70,7 @@ CryptoZoo.init = {
             CryptoZoo.telegram?.init?.();
         });
 
-        // 🔥 TU DODAJEMY LANG
+        // 🔥 LANG INIT (po Telegram)
         this.setLoadingProgress(48);
 
         await this.runSafe(async () => {
