@@ -260,8 +260,8 @@ CryptoZoo.expeditions = {
         const rewardGems = this.getGemsReward(expeditionConfig, rewardRarity);
 
         return {
-            id: expeditionConfig.id,
-            name: expeditionConfig.name,
+            id: String(expeditionConfig.id || ""),
+            name: String(expeditionConfig.name || "Expedition"),
             startTime: now,
             endTime: now + durationSeconds * 1000,
             duration: durationSeconds,
