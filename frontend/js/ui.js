@@ -348,25 +348,32 @@ CryptoZoo.ui = {
         }
     },
 
-    getShopTypeLabel(type) {
-        if (type === "click") return "Click Boost";
-        if (type === "income") return "Income Boost";
-        if (type === "expedition") return "Expedition Boost";
-        if (type === "expeditionTime") return "Expedition Time";
-        if (type === "offline") return "Offline Boost";
+    getShopTypeLabel(type, effect) {
+        const normalizedType = String(type || "").toLowerCase();
+        const normalizedEffect = String(effect || "").toLowerCase();
+
+        if (normalizedType === "click") return "Click Boost";
+        if (normalizedType === "income") return "Income Boost";
+        if (normalizedType === "expedition") return "Expedition Boost";
+        if (normalizedType === "expeditiontime" || normalizedEffect === "expeditiontime") return "Time Consumable";
+        if (normalizedType === "offline") return "Offline Boost";
+        if (normalizedEffect === "extraspin") return "Consumable";
         return "Special";
     },
 
     getShopTypeEmoji(type, effect) {
-        if (type === "click") return "👆";
-        if (type === "income") return "💰";
-        if (type === "expedition") return "🧭";
-        if (type === "expeditionTime") return "⏱";
-        if (type === "offline") return "💤";
-        if (effect === "extraSpin") return "🎡";
-        if (effect === "skipWheelCooldown") return "⏩";
-        if (effect === "coinPack") return "🪙";
-        if (effect === "boost2x") return "⚡";
+        const normalizedType = String(type || "").toLowerCase();
+        const normalizedEffect = String(effect || "").toLowerCase();
+
+        if (normalizedType === "click") return "👆";
+        if (normalizedType === "income") return "💰";
+        if (normalizedType === "expedition") return "🧭";
+        if (normalizedType === "expeditiontime" || normalizedEffect === "expeditiontime") return "⏱";
+        if (normalizedType === "offline") return "💤";
+        if (normalizedEffect === "extraspin") return "🎡";
+        if (normalizedEffect === "skipwheelcooldown") return "⏩";
+        if (normalizedEffect === "coinpack") return "🪙";
+        if (normalizedEffect === "boost2x") return "⚡";
         return "✨";
     },
 
@@ -406,12 +413,12 @@ CryptoZoo.ui = {
 
         if (item.type === "click") {
             const bonus = Math.max(1, Number(item.clickValueBonus) || 1);
-            return `+${CryptoZoo.formatNumber(bonus)} coin${bonus !== 1 ? "s" : ""} per click`;
+            return `+${CryptoZoo.formatNumber(bonus)} coin${bonus !== 1 ? "s" : ""} do każdego kliknięcia`;
         }
 
         if (item.type === "income") {
             const bonus = Math.max(1, Number(item.incomeBonus) || 1);
-            return `+${CryptoZoo.formatNumber(bonus)} level do wszystkich kupionych zwierząt`;
+            return `+${CryptoZoo.formatNumber(bonus)} level do wszystkich posiadanych zwierząt`;
         }
 
         if (item.type === "expedition") {
@@ -429,14 +436,14 @@ CryptoZoo.ui = {
             }
 
             const bonus = Math.max(1, Number(item.expeditionBonus) || 1);
-            return `Zwiększa nagrody z ekspedycji (+${CryptoZoo.formatNumber(bonus)})`;
+            return `Zwiększa reward z ekspedycji (+${CryptoZoo.formatNumber(bonus)})`;
         }
 
-        if (item.type === "expeditionTime") {
+        if (item.type === "expeditionTime" || item.effect === "expeditionTime") {
             if (item.desc) return item.desc;
 
             const reductionSeconds = Math.max(0, Number(item.timeReductionSeconds) || 0);
-            return `Skraca czas ekspedycji o ${this.formatDurationLabel(reductionSeconds)}`;
+            return `Skraca czas jednej aktywnej ekspedycji o ${this.formatDurationLabel(reductionSeconds)}`;
         }
 
         if (item.type === "offline") {
@@ -446,11 +453,11 @@ CryptoZoo.ui = {
         }
 
         if (item.effect === "extraSpin") {
-            return item.desc || "Natychmiastowy spin koła";
+            return item.desc || "Daje 1 dodatkowy spin koła";
         }
 
         if (item.effect === "skipWheelCooldown") {
-            return item.desc || "Resetuje cooldown wheel";
+            return item.desc || "Resetuje cooldown koła";
         }
 
         if (item.effect === "coinPack") {
@@ -492,6 +499,44 @@ CryptoZoo.ui = {
     getShopButtonLabel(item) {
         if (!item) return "Kup";
         return Math.max(0, Number(item.gemPrice) || 0) > 0 ? "Kup za gemy" : "Kup";
+    },
+
+    getShopItemStockMeta(item) {
+        if (!item) {
+            return {
+                label: "Owned",
+                value: "0"
+            };
+        }
+
+        const effect = String(item.effect || "").toLowerCase();
+        const type = String(item.type || "").toLowerCase();
+
+        if (type === "expeditiontime" || effect === "expeditiontime") {
+            const charges =
+                CryptoZoo.expeditions?.getTimeBoostChargesCount?.() ||
+                CryptoZoo.state?.expeditionStats?.timeBoostCharges?.length ||
+                0;
+
+            return {
+                label: "Charges",
+                value: CryptoZoo.formatNumber(charges)
+            };
+        }
+
+        if (effect === "extraspin") {
+            const available = Math.max(0, Number(CryptoZoo.state?.minigames?.extraWheelSpins) || 0);
+            return {
+                label: "Available",
+                value: CryptoZoo.formatNumber(available)
+            };
+        }
+
+        const ownedCount = Math.max(0, Number(CryptoZoo.shopSystem?.getOwnedCount?.(item.id)) || 0);
+        return {
+            label: "Owned",
+            value: CryptoZoo.formatNumber(ownedCount)
+        };
     },
 
     bindHomeButtons() {
@@ -1075,12 +1120,12 @@ CryptoZoo.ui = {
         const items = CryptoZoo.config?.shopItems || [];
 
         shopList.innerHTML = items.map((item) => {
-            const typeLabel = this.getShopTypeLabel(item.type);
+            const typeLabel = this.getShopTypeLabel(item.type, item.effect);
             const typeEmoji = this.getShopTypeEmoji(item.type, item.effect);
             const description = this.getShopItemDescription(item);
             const priceMeta = this.getShopItemPriceMeta(item);
             const buttonLabel = this.getShopButtonLabel(item);
-            const ownedCount = Math.max(0, Number(CryptoZoo.shopSystem?.getOwnedCount?.(item.id)) || 0);
+            const stockMeta = this.getShopItemStockMeta(item);
             const canAfford = !!CryptoZoo.shopSystem?.canAfford?.(item);
 
             return `
@@ -1095,7 +1140,7 @@ CryptoZoo.ui = {
                                     ${typeLabel}
                                 </div>
                                 <div style="display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; background:rgba(255,191,0,0.10); font-size:11px; font-weight:800; color:rgba(255,235,170,0.92);">
-                                    Owned: ${CryptoZoo.formatNumber(ownedCount)}
+                                    ${stockMeta.label}: ${stockMeta.value}
                                 </div>
                             </div>
                         </div>
