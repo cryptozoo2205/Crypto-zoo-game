@@ -165,8 +165,7 @@ CryptoZoo.expeditions = {
 
     getEffectiveDurationSeconds(expeditionConfig) {
         const baseDuration = Math.max(60, Number(expeditionConfig?.duration) || 60);
-        const previewChargeReduction = this.peekBestTimeBoostCharge(baseDuration);
-        return Math.max(60, baseDuration - previewChargeReduction);
+        return baseDuration;
     },
 
     getEffectiveRareChance(expedition) {
@@ -241,18 +240,12 @@ CryptoZoo.expeditions = {
     getGemsReward(expeditionConfig, rewardRarity) {
         const baseGems = Math.max(0, Number(expeditionConfig?.baseGems) || 0);
 
-        // DONE:
-        // Gemy mają być zgodne z opisem ekspedycji z configu.
-        // Nie mnożymy gemów przez expedition boost
-        // i nie dodajemy bonusu za rare/epic.
         return baseGems;
     },
 
     buildActiveExpedition(expeditionConfig) {
         const now = Date.now();
         const baseDuration = Math.max(60, Number(expeditionConfig?.duration) || 60);
-        const consumedReduction = this.consumeBestTimeBoostCharge(baseDuration);
-        const durationSeconds = Math.max(60, baseDuration - consumedReduction);
         const rewardRarity = this.rollRewardRarity(expeditionConfig);
         const rewardCoins = this.getCoinsReward(expeditionConfig, rewardRarity);
         const rewardGems = this.getGemsReward(expeditionConfig, rewardRarity);
@@ -261,10 +254,10 @@ CryptoZoo.expeditions = {
             id: String(expeditionConfig.id || ""),
             name: String(expeditionConfig.name || "Expedition"),
             startTime: now,
-            endTime: now + durationSeconds * 1000,
-            duration: durationSeconds,
+            endTime: now + baseDuration * 1000,
+            duration: baseDuration,
             baseDuration,
-            timeReductionUsed: consumedReduction,
+            timeReductionUsed: 0,
             rewardRarity,
             rewardCoins,
             rewardGems
@@ -298,13 +291,57 @@ CryptoZoo.expeditions = {
         CryptoZoo.audio?.play?.("click");
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
+        CryptoZoo.ui?.showToast?.(`🌍 Start: ${expeditionConfig.name}`);
 
-        const reductionUsed = Math.max(0, Number(CryptoZoo.state.expedition?.timeReductionUsed) || 0);
-        const reductionText = reductionUsed > 0
-            ? ` • boost czasu -${CryptoZoo.ui?.formatDurationLabel?.(reductionUsed) || `${reductionUsed}s`}`
-            : "";
+        return true;
+    },
 
-        CryptoZoo.ui?.showToast?.(`🌍 Start: ${expeditionConfig.name}${reductionText}`);
+    useTimeBoostOnActiveExpedition() {
+        CryptoZoo.state = CryptoZoo.state || {};
+        this.ensureExpeditionStats();
+
+        const expedition = CryptoZoo.state.expedition;
+        if (!expedition) {
+            CryptoZoo.ui?.showToast?.("Brak aktywnej ekspedycji");
+            return false;
+        }
+
+        const remainingSeconds = Math.max(
+            0,
+            Math.floor((Number(expedition.endTime) - Date.now()) / 1000)
+        );
+
+        if (remainingSeconds <= 0) {
+            CryptoZoo.ui?.showToast?.("Ekspedycja jest już gotowa");
+            return false;
+        }
+
+        const reductionSeconds = this.consumeBestTimeBoostCharge(remainingSeconds);
+
+        if (reductionSeconds <= 0) {
+            CryptoZoo.ui?.showToast?.("Brak dostępnego boosta czasu");
+            return false;
+        }
+
+        expedition.endTime = Math.max(
+            Date.now(),
+            Number(expedition.endTime) - reductionSeconds * 1000
+        );
+
+        expedition.duration = Math.max(
+            60,
+            Math.floor((Number(expedition.endTime) - Number(expedition.startTime)) / 1000)
+        );
+
+        expedition.timeReductionUsed = Math.max(
+            0,
+            Number(expedition.timeReductionUsed) || 0
+        ) + reductionSeconds;
+
+        CryptoZoo.audio?.play?.("click");
+        CryptoZoo.ui?.render?.();
+        CryptoZoo.api?.savePlayer?.();
+        CryptoZoo.ui?.showToast?.(`⏩ Skrócono o ${CryptoZoo.ui?.formatDurationLabel?.(reductionSeconds) || `${reductionSeconds}s`}`);
 
         return true;
     },
