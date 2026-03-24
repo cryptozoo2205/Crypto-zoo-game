@@ -194,21 +194,19 @@ CryptoZoo.config = {
         },
         {
             id: "expeditionTime1",
-            name: "Quick Route Planning",
-            desc: "Skraca czas ekspedycji o 1 minutę",
-            price: 28000,
-            priceScale: 1.28,
-            type: "expeditionTime",
-            timeReductionSeconds: 60
+            name: "Quick Expedition",
+            desc: "Skraca czas jednej ekspedycji o 10 minut",
+            gemPrice: 2,
+            effect: "expeditionTime",
+            timeReductionSeconds: 600
         },
         {
             id: "expeditionTime2",
-            name: "Elite Expedition Timer",
-            desc: "Skraca czas ekspedycji o 3 minuty",
-            price: 95000,
-            priceScale: 1.30,
-            type: "expeditionTime",
-            timeReductionSeconds: 180
+            name: "Instant Expedition",
+            desc: "Skraca czas jednej ekspedycji o 30 minut",
+            gemPrice: 5,
+            effect: "expeditionTime",
+            timeReductionSeconds: 1800
         },
 
         // OFFLINE
