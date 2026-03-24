@@ -52,6 +52,20 @@ CryptoZoo.shopSystem = {
             this.getOwnedCount(itemId) + Math.max(1, Number(amount) || 1);
     },
 
+    shouldTrackOwnedCount(item) {
+        const effect = String(item?.effect || "").toLowerCase();
+        const type = String(item?.type || "").toLowerCase();
+
+        if (effect === "expeditiontime" || type === "expeditiontime") return false;
+        if (effect === "extraspin") return false;
+        if (effect === "skipwheelcooldown") return false;
+        if (effect === "coinpack" || effect === "coins") return false;
+        if (type === "offline") return false;
+        if (effect === "boost2x" || effect === "boost") return false;
+
+        return true;
+    },
+
     getScaledCoinPrice(item) {
         const basePrice = Math.max(0, Number(item?.price) || 0);
         const owned = this.getOwnedCount(item?.id);
@@ -318,7 +332,10 @@ CryptoZoo.shopSystem = {
         this.spendPrice(item);
 
         const resultText = this.applyItemEffect(item);
-        this.addOwnedCount(item.id, 1);
+
+        if (this.shouldTrackOwnedCount(item)) {
+            this.addOwnedCount(item.id, 1);
+        }
 
         CryptoZoo.state.lastLogin = Date.now();
 
