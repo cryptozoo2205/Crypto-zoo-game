@@ -240,14 +240,12 @@ CryptoZoo.expeditions = {
 
     getGemsReward(expeditionConfig, rewardRarity) {
         const baseGems = Math.max(0, Number(expeditionConfig?.baseGems) || 0);
-        const boostMultiplier = this.getExpeditionBoostMultiplier();
 
-        let gems = Math.floor(baseGems * boostMultiplier);
-
-        if (rewardRarity === "rare") gems += 1;
-        if (rewardRarity === "epic") gems += 2;
-
-        return Math.min(gems, 5);
+        // DONE:
+        // Gemy mają być zgodne z opisem ekspedycji z configu.
+        // Nie mnożymy gemów przez expedition boost
+        // i nie dodajemy bonusu za rare/epic.
+        return baseGems;
     },
 
     buildActiveExpedition(expeditionConfig) {
