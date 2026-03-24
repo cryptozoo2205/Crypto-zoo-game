@@ -119,7 +119,7 @@ CryptoZoo.config = {
         {
             id: "click1",
             name: "Click Upgrade I",
-            desc: "+1 coin per click",
+            desc: "+1 coin do każdego kliknięcia",
             price: 2500,
             priceScale: 1.25,
             type: "click",
@@ -128,7 +128,7 @@ CryptoZoo.config = {
         {
             id: "click2",
             name: "Strong Finger",
-            desc: "+3 coins per click",
+            desc: "+3 coins do każdego kliknięcia",
             price: 16000,
             priceScale: 1.27,
             type: "click",
@@ -137,7 +137,7 @@ CryptoZoo.config = {
         {
             id: "click3",
             name: "Turbo Tap",
-            desc: "+5 coins per click",
+            desc: "+5 coins do każdego kliknięcia",
             price: 70000,
             priceScale: 1.29,
             type: "click",
@@ -148,7 +148,7 @@ CryptoZoo.config = {
         {
             id: "income1",
             name: "Zoo Manager",
-            desc: "+1 level do wszystkich kupionych zwierząt",
+            desc: "+1 level do wszystkich posiadanych zwierząt",
             price: 18000,
             priceScale: 1.28,
             type: "income",
@@ -157,7 +157,7 @@ CryptoZoo.config = {
         {
             id: "income2",
             name: "Automation Crew",
-            desc: "+3 level do wszystkich kupionych zwierząt",
+            desc: "+3 level do wszystkich posiadanych zwierząt",
             price: 120000,
             priceScale: 1.31,
             type: "income",
@@ -166,7 +166,7 @@ CryptoZoo.config = {
         {
             id: "income3",
             name: "Elite Zoo Director",
-            desc: "+5 level do wszystkich kupionych zwierząt",
+            desc: "+5 level do wszystkich posiadanych zwierząt",
             price: 480000,
             priceScale: 1.34,
             type: "income",
@@ -177,7 +177,7 @@ CryptoZoo.config = {
         {
             id: "expedition1",
             name: "Better Expedition Gear",
-            desc: "Zwiększa nagrody z ekspedycji",
+            desc: "Zwiększa reward z każdej ekspedycji",
             price: 32000,
             priceScale: 1.30,
             type: "expedition",
@@ -186,7 +186,7 @@ CryptoZoo.config = {
         {
             id: "expedition2",
             name: "Rare Route Maps",
-            desc: "Mocniej zwiększa nagrody z ekspedycji",
+            desc: "Mocniej zwiększa reward z każdej ekspedycji",
             price: 92000,
             priceScale: 1.31,
             type: "expedition",
@@ -195,7 +195,7 @@ CryptoZoo.config = {
         {
             id: "expeditionTime1",
             name: "Quick Expedition",
-            desc: "Skraca czas jednej ekspedycji o 10 minut",
+            desc: "Skraca czas jednej aktywnej ekspedycji o 10 minut",
             gemPrice: 2,
             effect: "expeditionTime",
             timeReductionSeconds: 600
@@ -203,7 +203,7 @@ CryptoZoo.config = {
         {
             id: "expeditionTime2",
             name: "Instant Expedition",
-            desc: "Skraca czas jednej ekspedycji o 30 minut",
+            desc: "Skraca czas jednej aktywnej ekspedycji o 30 minut",
             gemPrice: 5,
             effect: "expeditionTime",
             timeReductionSeconds: 1800
@@ -213,7 +213,7 @@ CryptoZoo.config = {
         {
             id: "offline1",
             name: "Offline Boost 10m",
-            desc: "x2 offline income przez 10m",
+            desc: "x2 offline income przez 10 minut",
             gemPrice: 2,
             type: "offline",
             offlineMultiplier: 2,
@@ -222,7 +222,7 @@ CryptoZoo.config = {
         {
             id: "offline2",
             name: "Offline Boost 1h",
-            desc: "x2 offline income przez 1h",
+            desc: "x2 offline income przez 1 godzinę",
             gemPrice: 5,
             type: "offline",
             offlineMultiplier: 2,
@@ -233,7 +233,7 @@ CryptoZoo.config = {
         {
             id: "spin",
             name: "Extra Spin",
-            desc: "Free spin",
+            desc: "Daje 1 dodatkowy spin koła",
             effect: "extraSpin",
             gemPrice: 1,
             spinCount: 1
