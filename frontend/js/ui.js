@@ -7,6 +7,10 @@ CryptoZoo.ui = {
     rankingLastFetchAt: 0,
     rankingCacheTtl: 15000,
 
+    t(key, fallback) {
+        return CryptoZoo.lang?.t?.(key) || fallback || key;
+    },
+
     showToast(message) {
         let toast = document.getElementById("toast");
 
@@ -240,13 +244,13 @@ CryptoZoo.ui = {
 
         const boostLabel =
             offlineBoost > 1
-                ? `Aktywny mnożnik offline x${CryptoZoo.formatNumber(offlineBoost)}`
-                : "Standardowy mnożnik offline x1";
+                ? `${this.t("activeMultiplier", "Aktywny mnożnik")} offline x${CryptoZoo.formatNumber(offlineBoost)}`
+                : `${this.t("standardMultiplier", "Standardowy mnożnik")} offline x1`;
 
         bar.innerHTML = `
-            <div style="font-size:13px; font-weight:900; margin-bottom:4px;">💤 Offline Earnings</div>
+            <div style="font-size:13px; font-weight:900; margin-bottom:4px;">💤 ${this.t("offlineEarnings", "Offline Earnings")}</div>
             <div style="color: rgba(255,255,255,0.78);">
-                Limit bazowy: ${maxOfflineLabel} • ${boostLabel}
+                ${this.t("baseLimit", "Limit bazowy")}: ${maxOfflineLabel} • ${boostLabel}
             </div>
         `;
     },
@@ -269,16 +273,16 @@ CryptoZoo.ui = {
         const rewardCoins = Math.max(0, Number(CryptoZoo.dailyReward?.getCoinsAmount?.()) || 0);
         const rewardGems = Math.max(0, Number(CryptoZoo.dailyReward?.getGemsAmount?.()) || 0);
         const streak = Math.max(0, Number(CryptoZoo.dailyReward?.getStreak?.()) || 0);
-        const streakLabel = `Day ${Math.max(1, streak || 1)}`;
+        const streakLabel = `${this.t("day", "Day")} ${Math.max(1, streak || 1)}`;
 
-        titleEl.textContent = "Daily Reward";
+        titleEl.textContent = this.t("dailyReward", "Daily Reward");
         subtitleEl.style.whiteSpace = "normal";
         subtitleEl.style.wordBreak = "break-word";
         subtitleEl.style.overflowWrap = "anywhere";
         subtitleEl.style.lineHeight = "1.35";
 
         if (!isUnlocked) {
-            subtitleEl.textContent = `Unlock in ${this.formatTimeLeft(timeLeftSeconds)}`;
+            subtitleEl.textContent = `${this.t("unlockIn", "Unlock in")} ${this.formatTimeLeft(timeLeftSeconds)}`;
             iconEl.textContent = "🔒";
             return;
         }
@@ -286,13 +290,13 @@ CryptoZoo.ui = {
         if (canClaim) {
             subtitleEl.textContent =
                 rewardGems > 0
-                    ? `${streakLabel} • READY • ${CryptoZoo.formatNumber(rewardCoins)} coins + ${CryptoZoo.formatNumber(rewardGems)} gem`
-                    : `${streakLabel} • READY • ${CryptoZoo.formatNumber(rewardCoins)} coins`;
+                    ? `${streakLabel} • ${this.t("ready", "READY")} • ${CryptoZoo.formatNumber(rewardCoins)} ${this.t("coins", "coins")} + ${CryptoZoo.formatNumber(rewardGems)} ${this.t("gem", "gem")}`
+                    : `${streakLabel} • ${this.t("ready", "READY")} • ${CryptoZoo.formatNumber(rewardCoins)} ${this.t("coins", "coins")}`;
             iconEl.textContent = "🎁";
             return;
         }
 
-        subtitleEl.textContent = `${streakLabel} • Next reward in ${this.formatTimeLeft(timeLeftSeconds)}`;
+        subtitleEl.textContent = `${streakLabel} • ${this.t("nextRewardIn", "Next reward in")} ${this.formatTimeLeft(timeLeftSeconds)}`;
         iconEl.textContent = "⏳";
     },
 
@@ -341,8 +345,8 @@ CryptoZoo.ui = {
 
         if (text) {
             const rewardLabel = rewardGems > 0
-                ? `Next lvl: +${CryptoZoo.formatNumber(rewardCoins)} coins +${CryptoZoo.formatNumber(rewardGems)} gem`
-                : `Next lvl: +${CryptoZoo.formatNumber(rewardCoins)} coins`;
+                ? `${this.t("nextLvl", "Next lvl")}: +${CryptoZoo.formatNumber(rewardCoins)} ${this.t("coins", "coins")} +${CryptoZoo.formatNumber(rewardGems)} ${this.t("gem", "gem")}`
+                : `${this.t("nextLvl", "Next lvl")}: +${CryptoZoo.formatNumber(rewardCoins)} ${this.t("coins", "coins")}`;
 
             text.textContent = `${CryptoZoo.formatNumber(currentXp)} / ${CryptoZoo.formatNumber(requiredXp)} XP • ${rewardLabel}`;
         }
@@ -352,13 +356,15 @@ CryptoZoo.ui = {
         const normalizedType = String(type || "").toLowerCase();
         const normalizedEffect = String(effect || "").toLowerCase();
 
-        if (normalizedType === "click") return "Click Boost";
-        if (normalizedType === "income") return "Income Boost";
-        if (normalizedType === "expedition") return "Expedition Boost";
-        if (normalizedType === "expeditiontime" || normalizedEffect === "expeditiontime") return "Time Consumable";
-        if (normalizedType === "offline") return "Offline Boost";
-        if (normalizedEffect === "extraspin") return "Consumable";
-        return "Special";
+        if (normalizedType === "click") return this.t("clickBoost", "Click Boost");
+        if (normalizedType === "income") return this.t("incomeBoost", "Income Boost");
+        if (normalizedType === "expedition") return this.t("expeditionBoost", "Expedition Boost");
+        if (normalizedType === "expeditiontime" || normalizedEffect === "expeditiontime") {
+            return this.t("timeConsumable", "Time Consumable");
+        }
+        if (normalizedType === "offline") return this.t("offlineBoost", "Offline Boost");
+        if (normalizedEffect === "extraspin") return this.t("consumable", "Consumable");
+        return this.t("special", "Special");
     },
 
     getShopTypeEmoji(type, effect) {
@@ -378,7 +384,7 @@ CryptoZoo.ui = {
     },
 
     getExpeditionRewardRangeText(expeditionConfig) {
-        if (!expeditionConfig) return "0 reward";
+        if (!expeditionConfig) return `0 ${this.t("rewardWord", "reward")}`;
 
         const durationSeconds =
             CryptoZoo.expeditions?.getEffectiveDurationSeconds?.(expeditionConfig) ||
@@ -402,10 +408,10 @@ CryptoZoo.ui = {
         );
 
         if (commonReward === epicReward) {
-            return `${commonReward.toFixed(3)} reward`;
+            return `${commonReward.toFixed(3)} ${this.t("rewardWord", "reward")}`;
         }
 
-        return `${commonReward.toFixed(3)} - ${epicReward.toFixed(3)} reward`;
+        return `${commonReward.toFixed(3)} - ${epicReward.toFixed(3)} ${this.t("rewardWord", "reward")}`;
     },
 
     getShopItemDescription(item) {
@@ -413,12 +419,12 @@ CryptoZoo.ui = {
 
         if (item.type === "click") {
             const bonus = Math.max(1, Number(item.clickValueBonus) || 1);
-            return `+${CryptoZoo.formatNumber(bonus)} coin${bonus !== 1 ? "s" : ""} do każdego kliknięcia`;
+            return `+${CryptoZoo.formatNumber(bonus)} ${this.t("coinPerClickDesc", "coin do każdego kliknięcia")}${bonus !== 1 ? "" : ""}`;
         }
 
         if (item.type === "income") {
             const bonus = Math.max(1, Number(item.incomeBonus) || 1);
-            return `+${CryptoZoo.formatNumber(bonus)} level do wszystkich posiadanych zwierząt`;
+            return `+${CryptoZoo.formatNumber(bonus)} ${this.t("levelAllOwnedAnimals", "level do wszystkich posiadanych zwierząt")}`;
         }
 
         if (item.type === "expedition") {
@@ -428,46 +434,46 @@ CryptoZoo.ui = {
             const epicBonus = Number(item.epicChanceBonus) || 0;
 
             if (epicBonus > 0) {
-                return "Zwiększa szansę na Epic nagrody";
+                return this.t("increaseEpicChance", "Zwiększa szansę na Epic nagrody");
             }
 
             if (rareBonus > 0) {
-                return "Zwiększa szansę na Rare nagrody";
+                return this.t("increaseRareChance", "Zwiększa szansę na Rare nagrody");
             }
 
             const bonus = Math.max(1, Number(item.expeditionBonus) || 1);
-            return `Zwiększa reward z ekspedycji (+${CryptoZoo.formatNumber(bonus)})`;
+            return `${this.t("increaseExpeditionReward", "Zwiększa reward z ekspedycji")} (+${CryptoZoo.formatNumber(bonus)})`;
         }
 
         if (item.type === "expeditionTime" || item.effect === "expeditionTime") {
             if (item.desc) return item.desc;
 
             const reductionSeconds = Math.max(0, Number(item.timeReductionSeconds) || 0);
-            return `Skraca czas jednej aktywnej ekspedycji o ${this.formatDurationLabel(reductionSeconds)}`;
+            return `${this.t("reduceOneActiveExpedition", "Skraca czas jednej aktywnej ekspedycji o")} ${this.formatDurationLabel(reductionSeconds)}`;
         }
 
         if (item.type === "offline") {
             const multiplier = Math.max(1, Number(item.offlineMultiplier) || 2);
             const durationSeconds = Math.max(60, Number(item.offlineDurationSeconds) || 600);
-            return `x${CryptoZoo.formatNumber(multiplier)} offline income przez ${this.formatDurationLabel(durationSeconds)}`;
+            return `x${CryptoZoo.formatNumber(multiplier)} ${this.t("offlineIncomeFor", "offline income przez")} ${this.formatDurationLabel(durationSeconds)}`;
         }
 
         if (item.effect === "extraSpin") {
-            return item.desc || "Daje 1 dodatkowy spin koła";
+            return item.desc || this.t("extraSpinDesc", "Daje 1 dodatkowy spin koła");
         }
 
         if (item.effect === "skipWheelCooldown") {
-            return item.desc || "Resetuje cooldown koła";
+            return item.desc || this.t("resetWheelCooldown", "Resetuje cooldown koła");
         }
 
         if (item.effect === "coinPack") {
             const amount = Math.max(0, Number(item.coinPackAmount) || 0);
-            return `+${CryptoZoo.formatNumber(amount)} coins`;
+            return `+${CryptoZoo.formatNumber(amount)} ${this.t("coins", "coins")}`;
         }
 
         if (item.effect === "boost2x") {
             const durationSeconds = Math.max(60, Number(item.boostDurationSeconds) || 600);
-            return `X2 klik i zoo income przez ${this.formatDurationLabel(durationSeconds)}`;
+            return `X2 ${this.t("clickAndZooIncomeFor", "klik i zoo income przez")} ${this.formatDurationLabel(durationSeconds)}`;
         }
 
         return item.desc || "";
@@ -475,36 +481,42 @@ CryptoZoo.ui = {
 
     getShopItemPriceMeta(item) {
         if (!item) {
-            return { label: "Koszt", value: "0" };
+            return { label: this.t("cost", "Koszt"), value: "0" };
         }
 
         if (CryptoZoo.shopSystem?.getCurrentPriceMeta) {
-            return CryptoZoo.shopSystem.getCurrentPriceMeta(item);
+            const meta = CryptoZoo.shopSystem.getCurrentPriceMeta(item);
+            return {
+                ...meta,
+                label: this.t("cost", meta.label || "Koszt")
+            };
         }
 
         const gemPrice = Number(item.gemPrice) || 0;
         if (gemPrice > 0) {
             return {
-                label: "Koszt",
-                value: `${CryptoZoo.formatNumber(gemPrice)} gem`
+                label: this.t("cost", "Koszt"),
+                value: `${CryptoZoo.formatNumber(gemPrice)} ${this.t("gem", "gem")}`
             };
         }
 
         return {
-            label: "Koszt",
+            label: this.t("cost", "Koszt"),
             value: `${CryptoZoo.formatNumber(Number(item.price) || 0)}`
         };
     },
 
     getShopButtonLabel(item) {
-        if (!item) return "Kup";
-        return Math.max(0, Number(item.gemPrice) || 0) > 0 ? "Kup za gemy" : "Kup";
+        if (!item) return this.t("buy", "Kup");
+        return Math.max(0, Number(item.gemPrice) || 0) > 0
+            ? this.t("buyWithGems", "Kup za gemy")
+            : this.t("buy", "Kup");
     },
 
     getShopItemStockMeta(item) {
         if (!item) {
             return {
-                label: "Owned",
+                label: this.t("owned", "Owned"),
                 value: "0"
             };
         }
@@ -519,7 +531,7 @@ CryptoZoo.ui = {
                 0;
 
             return {
-                label: "Charges",
+                label: this.t("charges", "Charges"),
                 value: CryptoZoo.formatNumber(charges)
             };
         }
@@ -527,14 +539,14 @@ CryptoZoo.ui = {
         if (effect === "extraspin") {
             const available = Math.max(0, Number(CryptoZoo.state?.minigames?.extraWheelSpins) || 0);
             return {
-                label: "Available",
+                label: this.t("available", "Available"),
                 value: CryptoZoo.formatNumber(available)
             };
         }
 
         const ownedCount = Math.max(0, Number(CryptoZoo.shopSystem?.getOwnedCount?.(item.id)) || 0);
         return {
-            label: "Owned",
+            label: this.t("owned", "Owned"),
             value: CryptoZoo.formatNumber(ownedCount)
         };
     },
@@ -550,7 +562,7 @@ CryptoZoo.ui = {
 
                 if (CryptoZoo.boostSystem?.isActive?.()) {
                     const left = CryptoZoo.boostSystem?.getTimeLeft?.() || 0;
-                    this.showToast(`Boost aktywny: ${this.formatTimeLeft(left)}`);
+                    this.showToast(`${this.t("boostActive", "Boost aktywny")}: ${this.formatTimeLeft(left)}`);
                     return;
                 }
 
@@ -560,7 +572,7 @@ CryptoZoo.ui = {
                 }
 
                 this.goToBoostShop();
-                this.showToast("Potrzebujesz 1 gema na X2 Boost");
+                this.showToast(this.t("needGemBoost", "Potrzebujesz 1 gema na X2 Boost"));
             };
         }
 
@@ -587,7 +599,7 @@ CryptoZoo.ui = {
             homeEventsBtn.dataset.bound = "1";
             homeEventsBtn.onclick = () => {
                 CryptoZoo.audio?.play?.("click");
-                this.showToast("Eventy w przygotowaniu");
+                this.showToast(this.t("eventsSoon", "Eventy w przygotowaniu"));
             };
         }
 
@@ -640,7 +652,7 @@ CryptoZoo.ui = {
             eventsBtn.dataset.bound = "1";
             eventsBtn.onclick = () => {
                 CryptoZoo.audio?.play?.("click");
-                this.showToast("Eventy / daily rewards w przygotowaniu");
+                this.showToast(this.t("eventsSoon", "Eventy / daily rewards w przygotowaniu"));
             };
         }
     },
@@ -662,7 +674,7 @@ CryptoZoo.ui = {
 
         if (isActive) {
             const timeText = this.formatTimeLeft(left);
-            const text = `⚡ Aktywny • ${timeText}`;
+            const text = `⚡ ${this.t("active", "Aktywny")} • ${timeText}`;
 
             if (homeStatus) {
                 homeStatus.textContent = text;
@@ -675,12 +687,12 @@ CryptoZoo.ui = {
 
             if (buyBtn) {
                 buyBtn.disabled = true;
-                buyBtn.textContent = "Boost aktywny";
+                buyBtn.textContent = this.t("boostActive", "Boost aktywny");
             }
 
             if (homeBtn) {
                 homeBtn.classList.add("boost-active");
-                homeBtn.textContent = "Aktywny";
+                homeBtn.textContent = this.t("active", "Aktywny");
             }
 
             if (incomeStrip) {
@@ -692,22 +704,22 @@ CryptoZoo.ui = {
             }
         } else {
             if (homeStatus) {
-                homeStatus.textContent = "Nieaktywny";
+                homeStatus.textContent = this.t("inactive", "Nieaktywny");
                 homeStatus.classList.remove("boost-active");
             }
 
             if (shopStatus) {
-                shopStatus.textContent = "Nieaktywny";
+                shopStatus.textContent = this.t("inactive", "Nieaktywny");
             }
 
             if (buyBtn) {
                 buyBtn.disabled = false;
-                buyBtn.textContent = "Kup X2 Boost";
+                buyBtn.textContent = this.t("buyX2Boost", "Kup X2 Boost");
             }
 
             if (homeBtn) {
                 homeBtn.classList.remove("boost-active");
-                homeBtn.textContent = "Aktywuj";
+                homeBtn.textContent = this.t("activate", "Aktywuj");
             }
 
             if (incomeStrip) {
@@ -810,17 +822,17 @@ CryptoZoo.ui = {
                         <div class="animal-text">
                             <div class="animal-name">${config.name}</div>
                             <div class="animal-desc">
-                                Dochód ${CryptoZoo.formatNumber(config.baseIncome)}/sek • Koszt ${CryptoZoo.formatNumber(config.buyCost)}
+                                ${this.t("incomePerSec", "Dochód")} ${CryptoZoo.formatNumber(config.baseIncome)}/${this.t("secShort", "sek")} • ${this.t("cost", "Koszt")} ${CryptoZoo.formatNumber(config.buyCost)}
                             </div>
                             <div class="animal-owned">
-                                Posiadasz: ${CryptoZoo.formatNumber(count)} • Poziom: ${CryptoZoo.formatNumber(displayLevel)}
+                                ${this.t("owned", "Posiadasz")}: ${CryptoZoo.formatNumber(count)} • ${this.t("level", "Poziom")}: ${CryptoZoo.formatNumber(displayLevel)}
                             </div>
                         </div>
                     </div>
 
                     <div class="animal-actions">
-                        <button id="buy-${type}-btn" type="button">Kup</button>
-                        <button id="upgrade-${type}-btn" type="button">Lvl Up (${CryptoZoo.formatNumber(upgradeCost)})</button>
+                        <button id="buy-${type}-btn" type="button">${this.t("buy", "Kup")}</button>
+                        <button id="upgrade-${type}-btn" type="button">${this.t("lvlUp", "Lvl Up")} (${CryptoZoo.formatNumber(upgradeCost)})</button>
                     </div>
                 </div>
             `;
@@ -843,8 +855,8 @@ CryptoZoo.ui = {
 
         let missionCardHtml = `
             <div class="expedition-card" style="margin-bottom:12px;">
-                <h3>🎯 Daily Mission</h3>
-                <div style="color:rgba(255,255,255,0.72);">Brak misji na dzisiaj</div>
+                <h3>🎯 ${this.t("dailyMission", "Daily Mission")}</h3>
+                <div style="color:rgba(255,255,255,0.72);">${this.t("noMissionsToday", "Brak misji na dzisiaj")}</div>
             </div>
         `;
 
@@ -857,41 +869,41 @@ CryptoZoo.ui = {
             const isClaimed = !!visibleMission.claimed;
             const isAllClaimed = totalCount > 0 && completedCount >= totalCount;
 
-            let statusText = "In progress";
-            if (isClaimed) statusText = "Claimed";
-            else if (isCompleted) statusText = "Ready";
+            let statusText = this.t("inProgress", "In progress");
+            if (isClaimed) statusText = this.t("claimed", "Claimed");
+            else if (isCompleted) statusText = this.t("ready", "Ready");
 
-            let buttonLabel = "In progress";
+            let buttonLabel = this.t("inProgress", "In progress");
             let buttonDisabled = true;
 
             if (isClaimed) {
-                buttonLabel = "Claimed";
+                buttonLabel = this.t("claimed", "Claimed");
                 buttonDisabled = true;
             } else if (isCompleted) {
-                buttonLabel = "Claim";
+                buttonLabel = this.t("claim", "Claim");
                 buttonDisabled = false;
             }
 
             const rewardText = visibleMission.rewardGems > 0
-                ? `+${CryptoZoo.formatNumber(visibleMission.rewardCoins)} coins • +${CryptoZoo.formatNumber(visibleMission.rewardGems)} gem`
-                : `+${CryptoZoo.formatNumber(visibleMission.rewardCoins)} coins`;
+                ? `+${CryptoZoo.formatNumber(visibleMission.rewardCoins)} ${this.t("coins", "coins")} • +${CryptoZoo.formatNumber(visibleMission.rewardGems)} ${this.t("gem", "gem")}`
+                : `+${CryptoZoo.formatNumber(visibleMission.rewardCoins)} ${this.t("coins", "coins")}`;
 
             const queueText = isAllClaimed
-                ? "All daily missions completed"
+                ? this.t("allDailyMissionsCompleted", "All daily missions completed")
                 : remainingCount > 1
-                    ? `Next missions locked: ${CryptoZoo.formatNumber(Math.max(0, remainingCount - 1))}`
-                    : "This is the last mission today";
+                    ? `${this.t("nextMissionsLocked", "Next missions locked")}: ${CryptoZoo.formatNumber(Math.max(0, remainingCount - 1))}`
+                    : this.t("lastMissionToday", "This is the last mission today");
 
             missionCardHtml = `
                 <div class="expedition-card" style="margin-bottom:12px;">
-                    <h3>🎯 Daily Mission</h3>
+                    <h3>🎯 ${this.t("dailyMission", "Daily Mission")}</h3>
                     <div style="font-size:15px; font-weight:900; margin-top:6px;">${visibleMission.title}</div>
-                    <div style="margin-top:8px;">Status: ${statusText}</div>
-                    <div>Progress: ${CryptoZoo.formatNumber(safeProgress)} / ${CryptoZoo.formatNumber(target)}</div>
+                    <div style="margin-top:8px;">${this.t("status", "Status")}: ${statusText}</div>
+                    <div>${this.t("progress", "Progress")}: ${CryptoZoo.formatNumber(safeProgress)} / ${CryptoZoo.formatNumber(target)}</div>
                     <div style="margin-top:8px; width:100%; height:10px; border-radius:999px; background:rgba(255,255,255,0.08); overflow:hidden;">
                         <div style="width:${percent}%; height:100%; border-radius:999px; background:linear-gradient(90deg,#4facfe 0%, #00f2fe 100%);"></div>
                     </div>
-                    <div style="margin-top:8px;">Reward: ${rewardText}</div>
+                    <div style="margin-top:8px;">${this.t("reward", "Reward")}: ${rewardText}</div>
                     <div style="margin-top:8px; font-size:12px; color:rgba(255,255,255,0.68);">${queueText}</div>
                     <button
                         id="claim-mission-${visibleMission.id}"
@@ -905,8 +917,8 @@ CryptoZoo.ui = {
 
         return `
             <div class="expedition-card" style="margin-bottom:12px;">
-                <h3>📅 Daily Missions</h3>
-                <div>Completed: ${CryptoZoo.formatNumber(completedCount)} / ${CryptoZoo.formatNumber(totalCount)}</div>
+                <h3>📅 ${this.t("dailyMissions", "Daily Missions")}</h3>
+                <div>${this.t("completed", "Completed")}: ${CryptoZoo.formatNumber(completedCount)} / ${CryptoZoo.formatNumber(totalCount)}</div>
             </div>
             ${missionCardHtml}
         `;
@@ -944,9 +956,9 @@ CryptoZoo.ui = {
             );
 
             const rarityMap = {
-                common: "Common",
-                rare: "Rare",
-                epic: "Epic"
+                common: this.t("common", "Common"),
+                rare: this.t("rare", "Rare"),
+                epic: this.t("epic", "Epic")
             };
 
             const timeBoostChargesCount =
@@ -957,34 +969,34 @@ CryptoZoo.ui = {
             container.innerHTML = `
                 ${dailyMissionsHtml}
                 <div class="expedition-card">
-                    <h3>Aktywna ekspedycja: ${expedition.name}</h3>
-                    <div>Pozostało: ${this.formatTimeLeft(timeLeft)}</div>
-                    <div>Jakość nagrody: ${rarityMap[expedition.rewardRarity] || "Common"}</div>
+                    <h3>${this.t("activeExpedition", "Aktywna ekspedycja")}: ${expedition.name}</h3>
+                    <div>${this.t("timeLeft", "Pozostało")}: ${this.formatTimeLeft(timeLeft)}</div>
+                    <div>${this.t("rewardQuality", "Jakość nagrody")}: ${rarityMap[expedition.rewardRarity] || this.t("common", "Common")}</div>
                     <div>
-                        Przewidywana nagroda:
-                        ${CryptoZoo.formatNumber(expedition.rewardCoins)} coins +
-                        ${CryptoZoo.formatNumber(expedition.rewardGems)} gems
+                        ${this.t("expectedReward", "Przewidywana nagroda")}:
+                        ${CryptoZoo.formatNumber(expedition.rewardCoins)} ${this.t("coins", "coins")} +
+                        ${CryptoZoo.formatNumber(expedition.rewardGems)} ${this.t("gems", "gems")}
                     </div>
                     <div>
-                        Reward Wallet:
-                        ${rewardBalanceAmount.toFixed(3)} reward
+                        ${this.t("rewardWallet", "Reward Wallet")}:
+                        ${rewardBalanceAmount.toFixed(3)} ${this.t("rewardWord", "reward")}
                     </div>
                     ${
                         canCollect
                             ? `
                                 <button id="collect-expedition-btn" type="button">
-                                    Odbierz nagrodę
+                                    ${this.t("collectReward", "Odbierz nagrodę")}
                                 </button>
                             `
                             : timeBoostChargesCount > 0
                                 ? `
                                     <button id="use-expedition-time-boost-btn" type="button">
-                                        ⏩ Użyj skracania czasu (${CryptoZoo.formatNumber(timeBoostChargesCount)})
+                                        ⏩ ${this.t("useTimeReduction", "Użyj skracania czasu")} (${CryptoZoo.formatNumber(timeBoostChargesCount)})
                                     </button>
                                 `
                                 : `
                                     <button id="collect-expedition-btn" type="button" disabled>
-                                        Trwa ekspedycja
+                                        ${this.t("expeditionInProgress", "Trwa ekspedycja")}
                                     </button>
                                 `
                     }
@@ -1024,10 +1036,10 @@ CryptoZoo.ui = {
 
         const expeditionInfoCard = `
             <div class="expedition-card" style="margin-bottom:12px;">
-                <h3>🧭 Expedition Upgrades</h3>
-                <div>Rare bonus: +${(rareBonus * 100).toFixed(0)}%</div>
-                <div>Epic bonus: +${(epicBonus * 100).toFixed(0)}%</div>
-                <div>Time boosts available: ${CryptoZoo.formatNumber(timeBoostChargesCount)}</div>
+                <h3>🧭 ${this.t("expeditionUpgrades", "Expedition Upgrades")}</h3>
+                <div>${this.t("rareBonus", "Rare bonus")}: +${(rareBonus * 100).toFixed(0)}%</div>
+                <div>${this.t("epicBonus", "Epic bonus")}: +${(epicBonus * 100).toFixed(0)}%</div>
+                <div>${this.t("timeBoostsAvailable", "Time boosts available")}: ${CryptoZoo.formatNumber(timeBoostChargesCount)}</div>
             </div>
         `;
 
@@ -1035,7 +1047,7 @@ CryptoZoo.ui = {
             const rewardRangeText = this.getExpeditionRewardRangeText(exp);
             const isUnlocked = CryptoZoo.expeditions?.isUnlocked?.(exp) || false;
             const requiredLevel = CryptoZoo.expeditions?.getUnlockRequirement?.(exp) || 1;
-            const buttonLabel = isUnlocked ? "Start" : `Lvl ${CryptoZoo.formatNumber(requiredLevel)}`;
+            const buttonLabel = isUnlocked ? this.t("start", "Start") : `${this.t("lvl", "Lvl")} ${CryptoZoo.formatNumber(requiredLevel)}`;
 
             const effectiveDuration =
                 CryptoZoo.expeditions?.getEffectiveDurationSeconds?.(exp) ||
@@ -1052,22 +1064,22 @@ CryptoZoo.ui = {
             return `
                 <div class="expedition-card">
                     <h3>${exp.name}</h3>
-                    <div>Czas: ${this.formatTimeLeft(effectiveDuration)}</div>
+                    <div>${this.t("time", "Czas")}: ${this.formatTimeLeft(effectiveDuration)}</div>
                     <div>
-                        Nagroda bazowa:
-                        ${CryptoZoo.formatNumber(exp.baseCoins)} coins +
-                        ${CryptoZoo.formatNumber(exp.baseGems)} gems
+                        ${this.t("baseReward", "Nagroda bazowa")}:
+                        ${CryptoZoo.formatNumber(exp.baseCoins)} ${this.t("coins", "coins")} +
+                        ${CryptoZoo.formatNumber(exp.baseGems)} ${this.t("gems", "gems")}
                     </div>
                     <div>
-                        Reward Wallet: ${rewardRangeText}
+                        ${this.t("rewardWallet", "Reward Wallet")}: ${rewardRangeText}
                     </div>
                     <div>
-                        Wymagany poziom: ${CryptoZoo.formatNumber(requiredLevel)}
+                        ${this.t("requiredLevel", "Wymagany poziom")}: ${CryptoZoo.formatNumber(requiredLevel)}
                     </div>
                     <div>
-                        Szansa na bonus:
-                        Rare ${(effectiveRareChance * 100).toFixed(0)}% /
-                        Epic ${(effectiveEpicChance * 100).toFixed(0)}%
+                        ${this.t("bonusChance", "Szansa na bonus")}:
+                        ${this.t("rare", "Rare")} ${(effectiveRareChance * 100).toFixed(0)}% /
+                        ${this.t("epic", "Epic")} ${(effectiveEpicChance * 100).toFixed(0)}%
                     </div>
                     <button
                         id="start-expedition-${exp.id}"
