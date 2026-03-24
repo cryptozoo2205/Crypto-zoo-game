@@ -5,6 +5,283 @@ CryptoZoo.uiProfile = {
     minWithdrawReward: 10,
     withdrawHistory: [],
     withdrawHistoryLoading: false,
+    avatarStorageKey: "cryptozoo_profile_avatar",
+
+    getDefaultAvatar() {
+        return {
+            emoji: "🦁",
+            bg: "#5b8cff"
+        };
+    },
+
+    getAvatarPresets() {
+        return [
+            { emoji: "🦁", bg: "#5b8cff" },
+            { emoji: "🐼", bg: "#0f172a" },
+            { emoji: "🐵", bg: "#b7791f" },
+            { emoji: "🐯", bg: "#ea580c" },
+            { emoji: "🐘", bg: "#64748b" },
+            { emoji: "🦒", bg: "#ca8a04" },
+            { emoji: "🐻", bg: "#7c3aed" },
+            { emoji: "🐺", bg: "#334155" }
+        ];
+    },
+
+    getAvatarColors() {
+        return [
+            "#5b8cff",
+            "#0f172a",
+            "#b7791f",
+            "#ea580c",
+            "#64748b",
+            "#ca8a04",
+            "#7c3aed",
+            "#0f766e"
+        ];
+    },
+
+    getSavedAvatar() {
+        try {
+            const raw = localStorage.getItem(this.avatarStorageKey);
+            if (!raw) return this.getDefaultAvatar();
+
+            const parsed = JSON.parse(raw);
+            return {
+                emoji: String(parsed?.emoji || this.getDefaultAvatar().emoji),
+                bg: String(parsed?.bg || this.getDefaultAvatar().bg)
+            };
+        } catch (error) {
+            console.error("Avatar parse error:", error);
+            return this.getDefaultAvatar();
+        }
+    },
+
+    saveAvatar(avatar) {
+        const safe = {
+            emoji: String(avatar?.emoji || this.getDefaultAvatar().emoji),
+            bg: String(avatar?.bg || this.getDefaultAvatar().bg)
+        };
+
+        localStorage.setItem(this.avatarStorageKey, JSON.stringify(safe));
+        this.renderTopBarProfile();
+        this.refreshProfileModalData();
+    },
+
+    setAvatarEmoji(emoji) {
+        const current = this.getSavedAvatar();
+        this.saveAvatar({
+            ...current,
+            emoji: String(emoji || current.emoji)
+        });
+    },
+
+    setAvatarColor(color) {
+        const current = this.getSavedAvatar();
+        this.saveAvatar({
+            ...current,
+            bg: String(color || current.bg)
+        });
+    },
+
+    ensureTopBarAvatar() {
+        const profileBtn = document.getElementById("topProfileBtn");
+        if (!profileBtn) return null;
+
+        let avatar = document.getElementById("topProfileAvatar");
+
+        if (!avatar) {
+            avatar = document.createElement("div");
+            avatar.id = "topProfileAvatar";
+            avatar.style.width = "36px";
+            avatar.style.height = "36px";
+            avatar.style.minWidth = "36px";
+            avatar.style.borderRadius = "50%";
+            avatar.style.display = "inline-flex";
+            avatar.style.alignItems = "center";
+            avatar.style.justifyContent = "center";
+            avatar.style.fontSize = "18px";
+            avatar.style.fontWeight = "900";
+            avatar.style.boxShadow = "0 8px 18px rgba(0,0,0,0.22)";
+            avatar.style.border = "1px solid rgba(255,255,255,0.16)";
+            avatar.style.marginRight = "10px";
+            avatar.style.flexShrink = "0";
+
+            if (
+                profileBtn.firstElementChild &&
+                profileBtn.firstElementChild.id !== "topProfileAvatar"
+            ) {
+                profileBtn.insertBefore(avatar, profileBtn.firstElementChild);
+            } else {
+                profileBtn.appendChild(avatar);
+            }
+
+            profileBtn.style.display = "flex";
+            profileBtn.style.alignItems = "center";
+        }
+
+        return avatar;
+    },
+
+    ensureProfileModalAvatar() {
+        const profileName = document.getElementById("profileName");
+        if (!profileName || !profileName.parentElement) return null;
+
+        let wrap = document.getElementById("profileAvatarWrap");
+        let avatar = document.getElementById("profileAvatar");
+
+        if (!wrap) {
+            wrap = document.createElement("div");
+            wrap.id = "profileAvatarWrap";
+            wrap.style.display = "flex";
+            wrap.style.alignItems = "center";
+            wrap.style.justifyContent = "center";
+            wrap.style.marginBottom = "12px";
+
+            profileName.parentElement.insertBefore(wrap, profileName);
+        }
+
+        if (!avatar) {
+            avatar = document.createElement("div");
+            avatar.id = "profileAvatar";
+            avatar.style.width = "72px";
+            avatar.style.height = "72px";
+            avatar.style.borderRadius = "50%";
+            avatar.style.display = "inline-flex";
+            avatar.style.alignItems = "center";
+            avatar.style.justifyContent = "center";
+            avatar.style.fontSize = "34px";
+            avatar.style.fontWeight = "900";
+            avatar.style.boxShadow = "0 14px 28px rgba(0,0,0,0.24)";
+            avatar.style.border = "1px solid rgba(255,255,255,0.16)";
+
+            wrap.appendChild(avatar);
+        }
+
+        return avatar;
+    },
+
+    ensureAvatarSettingsSection() {
+        const subtitle = document.getElementById("profileSubtitle");
+        if (!subtitle || !subtitle.parentElement) return null;
+
+        let section = document.getElementById("profileAvatarSettings");
+        if (!section) {
+            section = document.createElement("div");
+            section.id = "profileAvatarSettings";
+            section.style.marginTop = "14px";
+            section.style.marginBottom = "14px";
+            section.style.padding = "14px";
+            section.style.borderRadius = "18px";
+            section.style.background = "linear-gradient(180deg, rgba(18, 28, 48, 0.96) 0%, rgba(10, 17, 31, 0.96) 100%)";
+            section.style.border = "1px solid rgba(255,255,255,0.08)";
+
+            subtitle.parentElement.insertAdjacentElement("afterend", section);
+        }
+
+        return section;
+    },
+
+    bindAvatarControls() {
+        const emojiButtons = document.querySelectorAll("[data-avatar-emoji]");
+        const colorButtons = document.querySelectorAll("[data-avatar-color]");
+
+        emojiButtons.forEach((btn) => {
+            if (btn.dataset.bound === "1") return;
+            btn.dataset.bound = "1";
+            btn.onclick = () => {
+                CryptoZoo.audio?.play?.("click");
+                this.setAvatarEmoji(btn.dataset.avatarEmoji || "🦁");
+            };
+        });
+
+        colorButtons.forEach((btn) => {
+            if (btn.dataset.bound === "1") return;
+            btn.dataset.bound = "1";
+            btn.onclick = () => {
+                CryptoZoo.audio?.play?.("click");
+                this.setAvatarColor(btn.dataset.avatarColor || this.getDefaultAvatar().bg);
+            };
+        });
+    },
+
+    renderAvatarSettings() {
+        const section = this.ensureAvatarSettingsSection();
+        if (!section) return;
+
+        const avatar = this.getSavedAvatar();
+        const presets = this.getAvatarPresets();
+        const colors = this.getAvatarColors();
+
+        section.innerHTML = `
+            <div style="font-size:13px; font-weight:900; color:#ffffff; margin-bottom:10px;">
+                Avatar
+            </div>
+
+            <div style="font-size:12px; font-weight:800; color:rgba(255,255,255,0.72); margin-bottom:8px;">
+                Emoji
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
+                ${presets.map((preset) => `
+                    <button
+                        type="button"
+                        data-avatar-emoji="${preset.emoji}"
+                        style="
+                            width:42px;
+                            height:42px;
+                            border-radius:12px;
+                            border:${avatar.emoji === preset.emoji ? "1px solid rgba(91,140,255,0.95)" : "1px solid rgba(255,255,255,0.10)"};
+                            background:${avatar.emoji === preset.emoji ? "rgba(91,140,255,0.16)" : "rgba(255,255,255,0.05)"};
+                            font-size:20px;
+                            cursor:pointer;
+                        "
+                    >${preset.emoji}</button>
+                `).join("")}
+            </div>
+
+            <div style="font-size:12px; font-weight:800; color:rgba(255,255,255,0.72); margin-bottom:8px;">
+                Kolor
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                ${colors.map((color) => `
+                    <button
+                        type="button"
+                        data-avatar-color="${color}"
+                        style="
+                            width:28px;
+                            height:28px;
+                            border-radius:999px;
+                            border:${avatar.bg === color ? "2px solid #ffffff" : "1px solid rgba(255,255,255,0.18)"};
+                            background:${color};
+                            cursor:pointer;
+                            box-shadow:0 6px 14px rgba(0,0,0,0.18);
+                        "
+                    ></button>
+                `).join("")}
+            </div>
+        `;
+
+        this.bindAvatarControls();
+    },
+
+    renderTopBarAvatar() {
+        const avatar = this.getSavedAvatar();
+        const el = this.ensureTopBarAvatar();
+        if (!el) return;
+
+        el.textContent = avatar.emoji;
+        el.style.background = avatar.bg;
+        el.style.color = "#ffffff";
+    },
+
+    renderProfileModalAvatar() {
+        const avatar = this.getSavedAvatar();
+        const el = this.ensureProfileModalAvatar();
+        if (!el) return;
+
+        el.textContent = avatar.emoji;
+        el.style.background = avatar.bg;
+        el.style.color = "#ffffff";
+    },
 
     getPlayerName() {
         const username =
@@ -272,6 +549,8 @@ CryptoZoo.uiProfile = {
         if (statusEl) {
             statusEl.textContent = "● Online";
         }
+
+        this.renderTopBarAvatar();
     },
 
     refreshProfileModalData() {
@@ -351,6 +630,8 @@ CryptoZoo.uiProfile = {
                 : `Min withdraw ${this.minWithdrawReward.toFixed(3)}`;
         }
 
+        this.renderProfileModalAvatar();
+        this.renderAvatarSettings();
         this.renderWithdrawHistory();
     },
 
