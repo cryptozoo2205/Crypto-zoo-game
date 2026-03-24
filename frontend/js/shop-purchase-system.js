@@ -13,7 +13,8 @@ CryptoZoo.shopSystem = {
         CryptoZoo.state.expeditionStats = CryptoZoo.state.expeditionStats || {
             rareChanceBonus: 0,
             epicChanceBonus: 0,
-            timeReductionSeconds: 0
+            timeReductionSeconds: 0,
+            timeBoostCharges: []
         };
 
         CryptoZoo.state.expeditionStats.rareChanceBonus = Math.max(
@@ -30,6 +31,14 @@ CryptoZoo.shopSystem = {
             0,
             Number(CryptoZoo.state.expeditionStats.timeReductionSeconds) || 0
         );
+
+        if (!Array.isArray(CryptoZoo.state.expeditionStats.timeBoostCharges)) {
+            CryptoZoo.state.expeditionStats.timeBoostCharges = [];
+        }
+
+        CryptoZoo.state.expeditionStats.timeBoostCharges = CryptoZoo.state.expeditionStats.timeBoostCharges
+            .map((value) => Math.max(0, Number(value) || 0))
+            .filter((value) => value > 0);
     },
 
     getOwnedCount(itemId) {
@@ -167,16 +176,18 @@ CryptoZoo.shopSystem = {
 
         const reductionSeconds = Math.max(0, Number(item?.timeReductionSeconds) || 0);
         if (reductionSeconds <= 0) {
-            return "Brak skrócenia czasu";
+            return "Brak boosta czasu";
         }
 
-        const changed = CryptoZoo.expeditions?.addTimeReduction?.(reductionSeconds);
-
-        if (!changed) {
-            return "Brak skrócenia czasu";
+        const added = CryptoZoo.expeditions?.addTimeBoostCharge?.(reductionSeconds);
+        if (!added) {
+            return "Brak boosta czasu";
         }
 
-        return `Ekspedycje krótsze o ${CryptoZoo.ui?.formatDurationLabel?.(reductionSeconds) || `${reductionSeconds}s`}`;
+        const count = CryptoZoo.expeditions?.getTimeBoostChargesCount?.() || 0;
+        const label = CryptoZoo.ui?.formatDurationLabel?.(reductionSeconds) || `${reductionSeconds}s`;
+
+        return `+1 boost czasu ekspedycji (${label}) • Charges: ${CryptoZoo.formatNumber(count)}`;
     },
 
     applyOfflineBoost(item) {
