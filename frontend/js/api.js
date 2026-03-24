@@ -177,7 +177,8 @@ window.CryptoZoo.api = {
             expeditionStats: {
                 rareChanceBonus: 0,
                 epicChanceBonus: 0,
-                timeReductionSeconds: 0
+                timeReductionSeconds: 0,
+                timeBoostCharges: []
             },
 
             dailyMissions: {
@@ -225,6 +226,8 @@ window.CryptoZoo.api = {
             startTime: Number(rawExpedition.startTime) || Date.now(),
             endTime: Number(rawExpedition.endTime) || 0,
             duration: Math.max(0, Number(rawExpedition.duration) || 0),
+            baseDuration: Math.max(0, Number(rawExpedition.baseDuration) || 0),
+            timeReductionUsed: Math.max(0, Number(rawExpedition.timeReductionUsed) || 0),
             rewardRarity: String(rawExpedition.rewardRarity || "common"),
             rewardCoins: Math.max(0, Number(rawExpedition.rewardCoins) || 0),
             rewardGems: Math.max(0, Number(rawExpedition.rewardGems) || 0)
@@ -254,10 +257,17 @@ window.CryptoZoo.api = {
     },
 
     normalizeExpeditionStats(rawExpeditionStats) {
+        const timeBoostCharges = Array.isArray(rawExpeditionStats?.timeBoostCharges)
+            ? rawExpeditionStats.timeBoostCharges
+                .map((value) => Math.max(0, Number(value) || 0))
+                .filter((value) => value > 0)
+            : [];
+
         return {
             rareChanceBonus: Math.max(0, Number(rawExpeditionStats?.rareChanceBonus) || 0),
             epicChanceBonus: Math.max(0, Number(rawExpeditionStats?.epicChanceBonus) || 0),
-            timeReductionSeconds: Math.max(0, Number(rawExpeditionStats?.timeReductionSeconds) || 0)
+            timeReductionSeconds: Math.max(0, Number(rawExpeditionStats?.timeReductionSeconds) || 0),
+            timeBoostCharges
         };
     },
 
