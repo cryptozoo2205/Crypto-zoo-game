@@ -1001,30 +1001,7 @@ CryptoZoo.ui = {
 
             if (!canCollect && timeBoostChargesCount > 0) {
                 this.bindClick("use-expedition-time-boost-btn", () => {
-                    const activeExpedition = CryptoZoo.state?.expedition;
-                    if (!activeExpedition) return;
-
-                    const remainingSeconds = Math.max(
-                        0,
-                        Math.floor((Number(activeExpedition.endTime) - Date.now()) / 1000)
-                    );
-
-                    const reductionSeconds =
-                        CryptoZoo.expeditions?.consumeBestTimeBoostCharge?.(remainingSeconds) || 0;
-
-                    if (reductionSeconds <= 0) {
-                        this.showToast("Brak dostępnego boosta czasu");
-                        return;
-                    }
-
-                    activeExpedition.endTime = Math.max(
-                        Date.now(),
-                        Number(activeExpedition.endTime) - reductionSeconds * 1000
-                    );
-
-                    this.showToast(`⏩ Skrócono o ${this.formatDurationLabel(reductionSeconds)}`);
-                    this.render?.();
-                    CryptoZoo.api?.savePlayer?.();
+                    CryptoZoo.expeditions?.useTimeBoostOnActiveExpedition?.();
                 });
             }
 
