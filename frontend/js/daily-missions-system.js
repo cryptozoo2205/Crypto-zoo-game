@@ -18,9 +18,7 @@ CryptoZoo.dailyMissions = {
             CryptoZoo.state.dailyMissions = this.getDefaultState();
         }
 
-        CryptoZoo.state.dailyMissions.dayKey =
-            String(CryptoZoo.state.dailyMissions.dayKey || "");
-
+        CryptoZoo.state.dailyMissions.dayKey = String(CryptoZoo.state.dailyMissions.dayKey || "");
         CryptoZoo.state.dailyMissions.claimedCount = Math.max(
             0,
             Number(CryptoZoo.state.dailyMissions.claimedCount) || 0
@@ -48,8 +46,6 @@ CryptoZoo.dailyMissions = {
 
             return normalized;
         });
-
-        CryptoZoo.state.dailyMissions.claimedCount = this.getCompletedCount();
     },
 
     getTodayKey() {
@@ -190,6 +186,11 @@ CryptoZoo.dailyMissions = {
         return picked.map((template) => this.makeMission(template));
     },
 
+    countClaimedMissions(missions) {
+        const list = Array.isArray(missions) ? missions : [];
+        return list.filter((mission) => !!mission?.claimed).length;
+    },
+
     refreshDayIfNeeded() {
         this.ensureState();
 
@@ -197,13 +198,13 @@ CryptoZoo.dailyMissions = {
         const state = CryptoZoo.state.dailyMissions;
 
         if (state.dayKey === todayKey && Array.isArray(state.missions) && state.missions.length > 0) {
-            state.claimedCount = this.getCompletedCount();
+            state.claimedCount = this.countClaimedMissions(state.missions);
             return false;
         }
 
         state.dayKey = todayKey;
-        state.claimedCount = 0;
         state.missions = this.generateDailyMissions(todayKey);
+        state.claimedCount = 0;
         return true;
     },
 
@@ -219,9 +220,13 @@ CryptoZoo.dailyMissions = {
     getAll() {
         this.ensureState();
         this.refreshDayIfNeeded();
-        return Array.isArray(CryptoZoo.state.dailyMissions.missions)
+
+        const missions = Array.isArray(CryptoZoo.state.dailyMissions.missions)
             ? CryptoZoo.state.dailyMissions.missions
             : [];
+
+        CryptoZoo.state.dailyMissions.claimedCount = this.countClaimedMissions(missions);
+        return missions;
     },
 
     getById(missionId) {
@@ -229,7 +234,7 @@ CryptoZoo.dailyMissions = {
     },
 
     getCompletedCount() {
-        return this.getAll().filter((mission) => mission.claimed).length;
+        return this.countClaimedMissions(this.getAll());
     },
 
     isCompleted(mission) {
@@ -307,7 +312,9 @@ CryptoZoo.dailyMissions = {
         });
 
         if (changed) {
-            CryptoZoo.state.dailyMissions.claimedCount = this.getCompletedCount();
+            CryptoZoo.state.dailyMissions.claimedCount = this.countClaimedMissions(
+                CryptoZoo.state.dailyMissions.missions
+            );
             CryptoZoo.ui?.render?.();
             CryptoZoo.api?.savePlayer?.();
         }
@@ -356,7 +363,9 @@ CryptoZoo.dailyMissions = {
         CryptoZoo.state.gems = (Number(CryptoZoo.state?.gems) || 0) + rewardGems;
 
         mission.claimed = true;
-        CryptoZoo.state.dailyMissions.claimedCount = this.getCompletedCount();
+        CryptoZoo.state.dailyMissions.claimedCount = this.countClaimedMissions(
+            CryptoZoo.state.dailyMissions.missions
+        );
 
         CryptoZoo.audio?.play?.("win");
         CryptoZoo.gameplay?.recalculateProgress?.();
