@@ -192,6 +192,24 @@ CryptoZoo.config = {
             type: "expedition",
             expeditionBonus: 1
         },
+        {
+            id: "expeditionTime1",
+            name: "Quick Route Planning",
+            desc: "Skraca czas ekspedycji o 1 minutę",
+            price: 28000,
+            priceScale: 1.28,
+            type: "expeditionTime",
+            timeReductionSeconds: 60
+        },
+        {
+            id: "expeditionTime2",
+            name: "Elite Expedition Timer",
+            desc: "Skraca czas ekspedycji o 3 minuty",
+            price: 95000,
+            priceScale: 1.30,
+            type: "expeditionTime",
+            timeReductionSeconds: 180
+        },
 
         // OFFLINE
         {
