@@ -904,6 +904,11 @@ CryptoZoo.ui = {
                 epic: "Epic"
             };
 
+            const timeBoostChargesCount =
+                CryptoZoo.expeditions?.getTimeBoostChargesCount?.() ||
+                CryptoZoo.state?.expeditionStats?.timeBoostCharges?.length ||
+                0;
+
             container.innerHTML = `
                 ${dailyMissionsHtml}
                 <div class="expedition-card">
@@ -919,16 +924,64 @@ CryptoZoo.ui = {
                         Reward Wallet:
                         ${rewardBalanceAmount.toFixed(3)} reward
                     </div>
-                    <button id="collect-expedition-btn" type="button" ${canCollect ? "" : "disabled"}>
-                        ${canCollect ? "Odbierz nagrodę" : "Trwa ekspedycja"}
-                    </button>
+                    ${
+                        canCollect
+                            ? `
+                                <button id="collect-expedition-btn" type="button">
+                                    Odbierz nagrodę
+                                </button>
+                            `
+                            : timeBoostChargesCount > 0
+                                ? `
+                                    <button id="use-expedition-time-boost-btn" type="button">
+                                        ⏩ Użyj skracania czasu (${CryptoZoo.formatNumber(timeBoostChargesCount)})
+                                    </button>
+                                `
+                                : `
+                                    <button id="collect-expedition-btn" type="button" disabled>
+                                        Trwa ekspedycja
+                                    </button>
+                                `
+                    }
                 </div>
             `;
 
             this.bindDailyMissionButtons();
-            this.bindClick("collect-expedition-btn", () => {
-                CryptoZoo.expeditions?.collect?.();
-            });
+
+            if (canCollect) {
+                this.bindClick("collect-expedition-btn", () => {
+                    CryptoZoo.expeditions?.collect?.();
+                });
+            }
+
+            if (!canCollect && timeBoostChargesCount > 0) {
+                this.bindClick("use-expedition-time-boost-btn", () => {
+                    const activeExpedition = CryptoZoo.state?.expedition;
+                    if (!activeExpedition) return;
+
+                    const remainingSeconds = Math.max(
+                        0,
+                        Math.floor((Number(activeExpedition.endTime) - Date.now()) / 1000)
+                    );
+
+                    const reductionSeconds =
+                        CryptoZoo.expeditions?.consumeBestTimeBoostCharge?.(remainingSeconds) || 0;
+
+                    if (reductionSeconds <= 0) {
+                        this.showToast("Brak dostępnego boosta czasu");
+                        return;
+                    }
+
+                    activeExpedition.endTime = Math.max(
+                        Date.now(),
+                        Number(activeExpedition.endTime) - reductionSeconds * 1000
+                    );
+
+                    this.showToast(`⏩ Skrócono o ${this.formatDurationLabel(reductionSeconds)}`);
+                    this.render?.();
+                    CryptoZoo.api?.savePlayer?.();
+                });
+            }
 
             return;
         }
@@ -942,17 +995,17 @@ CryptoZoo.ui = {
             0,
             Number(CryptoZoo.expeditions?.getEpicChanceBonus?.() || 0)
         );
-        const timeReductionSeconds = Math.max(
-            0,
-            Number(CryptoZoo.expeditions?.getTimeReductionSeconds?.() || 0)
-        );
+        const timeBoostChargesCount =
+            CryptoZoo.expeditions?.getTimeBoostChargesCount?.() ||
+            CryptoZoo.state?.expeditionStats?.timeBoostCharges?.length ||
+            0;
 
         const expeditionInfoCard = `
             <div class="expedition-card" style="margin-bottom:12px;">
                 <h3>🧭 Expedition Upgrades</h3>
                 <div>Rare bonus: +${(rareBonus * 100).toFixed(0)}%</div>
                 <div>Epic bonus: +${(epicBonus * 100).toFixed(0)}%</div>
-                <div>Time reduction: ${timeReductionSeconds > 0 ? this.formatDurationLabel(timeReductionSeconds) : "0s"}</div>
+                <div>Time boosts available: ${CryptoZoo.formatNumber(timeBoostChargesCount)}</div>
             </div>
         `;
 
