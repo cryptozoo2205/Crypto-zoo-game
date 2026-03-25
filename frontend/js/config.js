@@ -1,8 +1,12 @@
-window.CryptoZoo = window.CryptoZoo || {};
+window.CryptoZoo = window.CryptoZoo || {}
+
 
 CryptoZoo.config = {
     apiBase: "/api",
-
+limits: {
+    maxOwnedPerAnimal: 50,
+    maxLevelPerAnimal: 100
+},
     clickValue: 1,
 
     animals: {
