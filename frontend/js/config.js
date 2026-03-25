@@ -323,26 +323,26 @@ CryptoZoo.config = {
             name: "Better Expedition Gear",
             namePl: "Lepszy Ekwipunek Ekspedycji",
             nameEn: "Better Expedition Gear",
-            desc: "+15% reward wallet z każdej ekspedycji",
-            descPl: "+15% reward wallet z każdej ekspedycji",
-            descEn: "+15% reward wallet from every expedition",
+            desc: "+10% reward wallet z każdej ekspedycji",
+            descPl: "+10% reward wallet z każdej ekspedycji",
+            descEn: "+10% reward wallet from every expedition",
             price: 28000,
             priceScale: 1.30,
             type: "expedition",
-            expeditionBonus: 1
+            expeditionBonus: 0.10
         },
         {
             id: "expedition2",
             name: "Rare Route Maps",
             namePl: "Mapy Rzadkich Tras",
             nameEn: "Rare Route Maps",
-            desc: "+15% reward wallet z każdej ekspedycji i szybszy wzrost opłacalności długich tras",
-            descPl: "+15% reward wallet z każdej ekspedycji i szybszy wzrost opłacalności długich tras",
-            descEn: "+15% reward wallet from every expedition and better scaling for long routes",
+            desc: "+15% reward wallet z każdej ekspedycji",
+            descPl: "+15% reward wallet z każdej ekspedycji",
+            descEn: "+15% reward wallet from every expedition",
             price: 88000,
             priceScale: 1.32,
             type: "expedition",
-            expeditionBonus: 1
+            expeditionBonus: 0.15
         },
         {
             id: "expeditionTime1",
