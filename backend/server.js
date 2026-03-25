@@ -24,7 +24,7 @@ const LIMITS = {
     MAX_COINS_GAIN_PER_SAVE: 5e9,
     MAX_GEMS_GAIN_PER_SAVE: 500,
     MAX_LEVEL_GAIN_PER_SAVE: 5,
-    MIN_WITHDRAW: 10,
+    MIN_WITHDRAW: 3,
     MAX_WITHDRAW: 100000,
     WITHDRAW_COOLDOWN_MS: 5 * 60 * 1000
 };
@@ -171,7 +171,8 @@ function getDefaultPlayer(telegramId = "local-player", username = "Gracz") {
         expeditionStats: {
             rareChanceBonus: 0,
             epicChanceBonus: 0,
-            timeReductionSeconds: 0
+            timeReductionSeconds: 0,
+            timeBoostCharges: []
         },
 
         dailyMissions: {
@@ -236,6 +237,8 @@ function normalizeExpedition(rawExpedition) {
         startTime: normalizeNumber(rawExpedition.startTime, Date.now()),
         endTime: normalizeNumber(rawExpedition.endTime, 0),
         duration: Math.max(0, normalizeNumber(rawExpedition.duration, 0)),
+        baseDuration: Math.max(0, normalizeNumber(rawExpedition.baseDuration, 0)),
+        timeReductionUsed: Math.max(0, normalizeNumber(rawExpedition.timeReductionUsed, 0)),
         rewardRarity: String(rawExpedition.rewardRarity || "common"),
         rewardCoins: Math.max(0, normalizeNumber(rawExpedition.rewardCoins, 0)),
         rewardGems: Math.max(0, normalizeNumber(rawExpedition.rewardGems, 0))
@@ -243,10 +246,17 @@ function normalizeExpedition(rawExpedition) {
 }
 
 function normalizeExpeditionStats(rawExpeditionStats) {
+    const timeBoostCharges = Array.isArray(rawExpeditionStats?.timeBoostCharges)
+        ? rawExpeditionStats.timeBoostCharges
+            .map((value) => Math.max(0, normalizeNumber(value, 0)))
+            .filter((value) => value > 0)
+        : [];
+
     return {
         rareChanceBonus: Math.max(0, normalizeNumber(rawExpeditionStats?.rareChanceBonus, 0)),
         epicChanceBonus: Math.max(0, normalizeNumber(rawExpeditionStats?.epicChanceBonus, 0)),
-        timeReductionSeconds: Math.max(0, normalizeNumber(rawExpeditionStats?.timeReductionSeconds, 0))
+        timeReductionSeconds: Math.max(0, normalizeNumber(rawExpeditionStats?.timeReductionSeconds, 0)),
+        timeBoostCharges
     };
 }
 
@@ -351,6 +361,19 @@ function validateProgress(oldPlayer, newPlayer) {
         newPlayer.xp = oldPlayer.xp;
     }
 
+    return newPlayer;
+}
+
+function buildSafePlayerState(oldPlayer, incomingRaw) {
+    const incoming = normalizePlayer(incomingRaw || {});
+    const safe = normalizePlayer({
+        ...(oldPlayer || getDefaultPlayer(incoming.telegramId, incoming.username)),
+        ...incoming
+    });
+
+    return validateProgress(oldPlayer, safe);
+}
+
 function createWithdrawRequest({ telegramId, username, amount }) {
     return {
         id: `wd_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
@@ -416,6 +439,7 @@ app.get("/api/player/:telegramId", (req, res) => {
     const telegramId = String(req.params.telegramId || "local-player");
 
     const player = getPlayerOrCreate(db, telegramId);
+    db.players[telegramId] = normalizePlayer(player);
     writeDb(db);
 
     res.json({ player: normalizePlayer(player) });
@@ -625,15 +649,3 @@ ensureDb();
 app.listen(PORT, () => {
     console.log(`Crypto Zoo backend running on port ${PORT}`);
 });
-    return newPlayer;
-}
-
-function buildSafePlayerState(oldPlayer, incomingRaw) {
-    const incoming = normalizePlayer(incomingRaw || {});
-    const safe = normalizePlayer({
-        ...(oldPlayer || getDefaultPlayer(incoming.telegramId, incoming.username)),
-        ...incoming
-    });
-
-    return validateProgress(oldPlayer, safe);
-}
