@@ -11,6 +11,32 @@ CryptoZoo.ui = {
         return CryptoZoo.lang?.t?.(key) || fallback || key;
     },
 
+    getCurrentLanguage() {
+        return CryptoZoo.lang?.current === "pl" ? "pl" : "en";
+    },
+
+    getLocalizedName(entry) {
+        if (!entry) return "";
+        const lang = this.getCurrentLanguage();
+
+        if (lang === "pl") {
+            return entry.namePl || entry.name || "";
+        }
+
+        return entry.nameEn || entry.name || "";
+    },
+
+    getLocalizedDesc(entry) {
+        if (!entry) return "";
+        const lang = this.getCurrentLanguage();
+
+        if (lang === "pl") {
+            return entry.descPl || entry.desc || "";
+        }
+
+        return entry.descEn || entry.desc || "";
+    },
+
     showToast(message) {
         let toast = document.getElementById("toast");
 
@@ -417,9 +443,12 @@ CryptoZoo.ui = {
     getShopItemDescription(item) {
         if (!item) return "";
 
+        const localizedDesc = this.getLocalizedDesc(item);
+        if (localizedDesc) return localizedDesc;
+
         if (item.type === "click") {
             const bonus = Math.max(1, Number(item.clickValueBonus) || 1);
-            return `+${CryptoZoo.formatNumber(bonus)} ${this.t("coinPerClickDesc", "coin do każdego kliknięcia")}${bonus !== 1 ? "" : ""}`;
+            return `+${CryptoZoo.formatNumber(bonus)} ${this.t("coinPerClickDesc", "coin do każdego kliknięcia")}`;
         }
 
         if (item.type === "income") {
@@ -428,8 +457,6 @@ CryptoZoo.ui = {
         }
 
         if (item.type === "expedition") {
-            if (item.desc) return item.desc;
-
             const rareBonus = Number(item.rareChanceBonus) || 0;
             const epicBonus = Number(item.epicChanceBonus) || 0;
 
@@ -446,8 +473,6 @@ CryptoZoo.ui = {
         }
 
         if (item.type === "expeditionTime" || item.effect === "expeditionTime") {
-            if (item.desc) return item.desc;
-
             const reductionSeconds = Math.max(0, Number(item.timeReductionSeconds) || 0);
             return `${this.t("reduceOneActiveExpedition", "Skraca czas jednej aktywnej ekspedycji o")} ${this.formatDurationLabel(reductionSeconds)}`;
         }
@@ -459,11 +484,11 @@ CryptoZoo.ui = {
         }
 
         if (item.effect === "extraSpin") {
-            return item.desc || this.t("extraSpinDesc", "Daje 1 dodatkowy spin koła");
+            return this.t("extraSpinDesc", "Daje 1 dodatkowy spin koła");
         }
 
         if (item.effect === "skipWheelCooldown") {
-            return item.desc || this.t("resetWheelCooldown", "Resetuje cooldown koła");
+            return this.t("resetWheelCooldown", "Resetuje cooldown koła");
         }
 
         if (item.effect === "coinPack") {
@@ -476,7 +501,7 @@ CryptoZoo.ui = {
             return `X2 ${this.t("clickAndZooIncomeFor", "klik i zoo income przez")} ${this.formatDurationLabel(durationSeconds)}`;
         }
 
-        return item.desc || "";
+        return "";
     },
 
     getShopItemPriceMeta(item) {
@@ -807,6 +832,7 @@ CryptoZoo.ui = {
 
         zooList.innerHTML = Object.keys(animalsConfig).map((type) => {
             const config = animalsConfig[type];
+            const localizedAnimalName = this.getLocalizedName(config);
             const state = animalsState[type] || { count: 0, level: 1 };
             const count = Math.max(0, Number(state.count) || 0);
             const displayLevel = count > 0 ? Math.max(1, Number(state.level) || 1) : 0;
@@ -816,11 +842,11 @@ CryptoZoo.ui = {
                 <div class="animal-row">
                     <div class="animal-left">
                         <div class="animal-icon">
-                            <img src="assets/animals/${config.asset}.png" alt="${config.name}">
+                            <img src="assets/animals/${config.asset}.png" alt="${localizedAnimalName}">
                         </div>
 
                         <div class="animal-text">
-                            <div class="animal-name">${config.name}</div>
+                            <div class="animal-name">${localizedAnimalName}</div>
                             <div class="animal-desc">
                                 ${this.t("incomePerSec", "Dochód")} ${CryptoZoo.formatNumber(config.baseIncome)}/${this.t("secShort", "sek")} • ${this.t("cost", "Koszt")} ${CryptoZoo.formatNumber(config.buyCost)}
                             </div>
@@ -961,6 +987,11 @@ CryptoZoo.ui = {
                 epic: this.t("epic", "Epic")
             };
 
+            const expeditionConfig = CryptoZoo.expeditions?.getById?.(expedition.id);
+            const localizedExpeditionName = expeditionConfig
+                ? this.getLocalizedName(expeditionConfig)
+                : expedition.name;
+
             const timeBoostChargesCount =
                 CryptoZoo.expeditions?.getTimeBoostChargesCount?.() ||
                 CryptoZoo.state?.expeditionStats?.timeBoostCharges?.length ||
@@ -969,7 +1000,7 @@ CryptoZoo.ui = {
             container.innerHTML = `
                 ${dailyMissionsHtml}
                 <div class="expedition-card">
-                    <h3>${this.t("activeExpedition", "Aktywna ekspedycja")}: ${expedition.name}</h3>
+                    <h3>${this.t("activeExpedition", "Aktywna ekspedycja")}: ${localizedExpeditionName}</h3>
                     <div>${this.t("timeLeft", "Pozostało")}: ${this.formatTimeLeft(timeLeft)}</div>
                     <div>${this.t("rewardQuality", "Jakość nagrody")}: ${rarityMap[expedition.rewardRarity] || this.t("common", "Common")}</div>
                     <div>
@@ -985,7 +1016,7 @@ CryptoZoo.ui = {
                         canCollect
                             ? `
                                 <button id="collect-expedition-btn" type="button">
-                                    ${this.t("collectReward", "Odbierz nagrodę")}
+                                    ${this.t("collect", "Odbierz nagrodę")}
                                 </button>
                             `
                             : timeBoostChargesCount > 0
@@ -1061,9 +1092,11 @@ CryptoZoo.ui = {
                 CryptoZoo.expeditions?.getEffectiveEpicChance?.(exp) ||
                 Number(exp.epicChance || 0);
 
+            const localizedExpeditionName = this.getLocalizedName(exp);
+
             return `
                 <div class="expedition-card">
-                    <h3>${exp.name}</h3>
+                    <h3>${localizedExpeditionName}</h3>
                     <div>${this.t("time", "Czas")}: ${this.formatTimeLeft(effectiveDuration)}</div>
                     <div>
                         ${this.t("baseReward", "Nagroda bazowa")}:
@@ -1109,6 +1142,7 @@ CryptoZoo.ui = {
         const items = CryptoZoo.config?.shopItems || [];
 
         shopList.innerHTML = items.map((item) => {
+            const localizedItemName = this.getLocalizedName(item);
             const typeLabel = this.getShopTypeLabel(item.type, item.effect);
             const typeEmoji = this.getShopTypeEmoji(item.type, item.effect);
             const description = this.getShopItemDescription(item);
@@ -1122,7 +1156,7 @@ CryptoZoo.ui = {
                     <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:8px;">
                         <div>
                             <div style="font-size:16px; font-weight:900; margin-bottom:4px;">
-                                ${typeEmoji} ${item.name}
+                                ${typeEmoji} ${localizedItemName}
                             </div>
                             <div style="display:flex; flex-wrap:wrap; gap:6px;">
                                 <div style="display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; background:rgba(255,255,255,0.08); font-size:11px; font-weight:800; color:rgba(255,255,255,0.82);">
