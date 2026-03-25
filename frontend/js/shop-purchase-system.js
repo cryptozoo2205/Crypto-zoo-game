@@ -9,7 +9,6 @@ CryptoZoo.shopSystem = {
     ensurePurchaseState() {
         CryptoZoo.state = CryptoZoo.state || {};
         CryptoZoo.state.shopPurchases = CryptoZoo.state.shopPurchases || {};
-        CryptoZoo.state.minigames = CryptoZoo.state.minigames || {};
         CryptoZoo.state.expeditionStats = CryptoZoo.state.expeditionStats || {
             rareChanceBonus: 0,
             epicChanceBonus: 0,
@@ -61,8 +60,6 @@ CryptoZoo.shopSystem = {
         const type = String(item?.type || "").toLowerCase();
 
         if (effect === "expeditiontime" || type === "expeditiontime") return false;
-        if (effect === "extraspin") return false;
-        if (effect === "skipwheelcooldown") return false;
         if (effect === "coinpack" || effect === "coins") return false;
         if (type === "offline") return false;
         if (effect === "boost2x" || effect === "boost") return false;
@@ -161,8 +158,6 @@ CryptoZoo.shopSystem = {
             const animal = animals[type];
             const count = Math.max(0, Number(animal?.count) || 0);
 
-            // DAY 3 FIX:
-            // boost tylko dla POSIADANYCH zwierząt
             if (count <= 0) return;
 
             const currentLevel = Math.max(1, Number(animal?.level) || 1);
@@ -180,7 +175,7 @@ CryptoZoo.shopSystem = {
             return "Brak posiadanych zwierząt do ulepszenia";
         }
 
-        return `Zoo income +${CryptoZoo.formatNumber(incomeBonus)} lvl`;
+        return `+${CryptoZoo.formatNumber(incomeBonus)} lvl do posiadanych zwierząt`;
     },
 
     applyExpeditionRewardUpgrade(item) {
@@ -189,25 +184,24 @@ CryptoZoo.shopSystem = {
         const rareBonus = Math.max(0, Number(item?.rareChanceBonus) || 0);
         const epicBonus = Math.max(0, Number(item?.epicChanceBonus) || 0);
 
-        CryptoZoo.state.expeditionStats.rareChanceBonus =
-            Math.max(0, Number(CryptoZoo.state.expeditionStats.rareChanceBonus) || 0) + rareBonus;
+        if (rareBonus > 0 || epicBonus > 0) {
+            CryptoZoo.state.expeditionStats.rareChanceBonus =
+                Math.max(0, Number(CryptoZoo.state.expeditionStats.rareChanceBonus) || 0) + rareBonus;
 
-        CryptoZoo.state.expeditionStats.epicChanceBonus =
-            Math.max(0, Number(CryptoZoo.state.expeditionStats.epicChanceBonus) || 0) + epicBonus;
+            CryptoZoo.state.expeditionStats.epicChanceBonus =
+                Math.max(0, Number(CryptoZoo.state.expeditionStats.epicChanceBonus) || 0) + epicBonus;
 
-        if (epicBonus > 0) {
-            return "Większa szansa na Epic nagrody";
-        }
-
-        if (rareBonus > 0) {
-            return "Większa szansa na Rare nagrody";
+            const parts = [];
+            if (rareBonus > 0) parts.push(`+${Math.round(rareBonus * 100)}% Rare`);
+            if (epicBonus > 0) parts.push(`+${Math.round(epicBonus * 100)}% Epic`);
+            return `Expedition luck ${parts.join(" • ")}`;
         }
 
         const bonus = Math.max(1, Number(item?.expeditionBonus) || 1);
         CryptoZoo.state.expeditionBoost =
             Math.max(0, Number(CryptoZoo.state?.expeditionBoost) || 0) + bonus;
 
-        return `Expedition reward boost +${CryptoZoo.formatNumber(bonus)}`;
+        return `+15% coins i reward wallet z ekspedycji`;
     },
 
     applyExpeditionTimeReduction(item) {
@@ -252,37 +246,6 @@ CryptoZoo.shopSystem = {
         return `+${CryptoZoo.formatNumber(amount)} coins`;
     },
 
-    applyExtraSpin(item) {
-        this.ensurePurchaseState();
-
-        const count = Math.max(1, Number(item?.spinCount) || 1);
-
-        CryptoZoo.state.minigames.extraWheelSpins =
-            Math.max(0, Number(CryptoZoo.state.minigames.extraWheelSpins) || 0) + count;
-
-        if ((Number(CryptoZoo.state.minigames.wheelCooldownUntil) || 0) > 0) {
-            CryptoZoo.state.minigames.wheelCooldownUntil = 0;
-        }
-
-        CryptoZoo.minigames?.renderCooldowns?.();
-        CryptoZoo.minigames?.renderWheelState?.();
-
-        return count > 1
-            ? `+${CryptoZoo.formatNumber(count)} extra spins`
-            : "+1 extra spin";
-    },
-
-    applySkipWheelCooldown() {
-        this.ensurePurchaseState();
-
-        CryptoZoo.state.minigames.wheelCooldownUntil = 0;
-
-        CryptoZoo.minigames?.renderCooldowns?.();
-        CryptoZoo.minigames?.renderWheelState?.();
-
-        return "Wheel cooldown skipped";
-    },
-
     applyBoost2x(item) {
         const durationSeconds = Math.max(60, Number(item?.boostDurationSeconds) || 600);
 
@@ -318,14 +281,6 @@ CryptoZoo.shopSystem = {
 
         if (effect === "coinpack" || effect === "coins") {
             return this.applyCoinPack(item);
-        }
-
-        if (effect === "extraspin") {
-            return this.applyExtraSpin(item);
-        }
-
-        if (effect === "skipwheelcooldown") {
-            return this.applySkipWheelCooldown(item);
         }
 
         if (effect === "boost2x" || effect === "boost") {
