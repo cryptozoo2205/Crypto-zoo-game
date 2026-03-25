@@ -378,9 +378,57 @@
     margin-bottom: 10px;
 }
 
+.memory-mode-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 2px 0 10px 0;
+    flex-wrap: wrap;
+}
+
+.memory-mode-label {
+    font-size: 11px;
+    line-height: 1;
+    color: rgba(255,255,255,0.68);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.memory-mode-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.memory-mode-btn {
+    border: 1px solid rgba(255,255,255,0.10);
+    background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%);
+    color: rgba(255,255,255,0.86);
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform 0.12s ease, filter 0.12s ease, opacity 0.12s ease;
+}
+
+.memory-mode-btn.is-active {
+    background: linear-gradient(180deg, #ffe27a, #ffbf00);
+    color: #1d2331;
+    border-color: rgba(255,255,255,0.18);
+    box-shadow: 0 8px 16px rgba(255,191,0,0.18);
+}
+
+.memory-mode-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
 .memory-hud {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px;
     margin: 4px 0 12px 0;
 }
@@ -611,12 +659,23 @@
         border-bottom-width: 13px;
     }
 
-    .memory-grid-pro {
+    .memory-mode-bar {
+        flex-direction: column;
+        align-items: stretch;
         gap: 8px;
     }
 
+    .memory-mode-buttons {
+        justify-content: center;
+    }
+
     .memory-hud {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 7px;
+    }
+
+    .memory-grid-pro {
+        gap: 8px;
     }
 
     .memory-stat-chip {
@@ -690,6 +749,11 @@
 
     .memory-stat-value {
         font-size: 14px;
+    }
+
+    .memory-mode-btn {
+        padding: 7px 11px;
+        font-size: 11px;
     }
 }
 
