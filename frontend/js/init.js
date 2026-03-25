@@ -49,35 +49,34 @@ CryptoZoo.init = {
         this.setLoadingProgress(5);
 
         await this.runSafe(async () => {
+            CryptoZoo.lang?.init?.();
+        });
+
+        this.setLoadingProgress(12);
+
+        await this.runSafe(async () => {
             CryptoZoo.uiSettings?.initSettings?.();
         });
 
-        this.setLoadingProgress(15);
+        this.setLoadingProgress(20);
 
         await this.runSafe(async () => {
             CryptoZoo.audio?.init?.();
         });
 
-        this.setLoadingProgress(25);
+        this.setLoadingProgress(30);
 
         await this.runSafe(async () => {
             await CryptoZoo.api?.init?.();
         });
 
-        this.setLoadingProgress(40);
+        this.setLoadingProgress(42);
 
         await this.runSafe(async () => {
             CryptoZoo.telegram?.init?.();
         });
 
-        // 🔥 LANG INIT (po Telegram)
-        this.setLoadingProgress(48);
-
-        await this.runSafe(async () => {
-            CryptoZoo.lang?.init?.();
-        });
-
-        this.setLoadingProgress(55);
+        this.setLoadingProgress(52);
 
         await this.runSafe(async () => {
             CryptoZoo.uiFaq?.close?.();
@@ -99,6 +98,12 @@ CryptoZoo.init = {
 
         await this.runSafe(async () => {
             CryptoZoo.ui?.render?.();
+        });
+
+        await this.runSafe(async () => {
+            CryptoZoo.ui?.bindHomeButtons?.();
+            CryptoZoo.uiSettings?.bindSettingsModal?.();
+            CryptoZoo.uiProfile?.bindProfileModal?.();
         });
 
         this.setLoadingProgress(100);
