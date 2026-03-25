@@ -52,6 +52,10 @@ CryptoZoo.shopSystem = {
             this.getOwnedCount(itemId) + Math.max(1, Number(amount) || 1);
     },
 
+    getMaxAnimalLevel() {
+        return Math.max(1, Number(CryptoZoo.config?.limits?.maxLevelPerAnimal) || 100);
+    },
+
     shouldTrackOwnedCount(item) {
         const effect = String(item?.effect || "").toLowerCase();
         const type = String(item?.type || "").toLowerCase();
@@ -149,12 +153,33 @@ CryptoZoo.shopSystem = {
     applyIncomeUpgrade(item) {
         const incomeBonus = Math.max(1, Number(item?.incomeBonus) || 1);
         const animals = CryptoZoo.state?.animals || {};
+        const maxLevel = this.getMaxAnimalLevel();
+
+        let affected = 0;
 
         Object.keys(animals).forEach((type) => {
-            animals[type].level = Math.max(1, Number(animals[type]?.level) || 1) + incomeBonus;
+            const animal = animals[type];
+            const count = Math.max(0, Number(animal?.count) || 0);
+
+            // DAY 3 FIX:
+            // boost tylko dla POSIADANYCH zwierząt
+            if (count <= 0) return;
+
+            const currentLevel = Math.max(1, Number(animal?.level) || 1);
+            const nextLevel = Math.min(maxLevel, currentLevel + incomeBonus);
+
+            if (nextLevel > currentLevel) {
+                animal.level = nextLevel;
+                affected += 1;
+            }
         });
 
         CryptoZoo.gameplay?.recalculateProgress?.();
+
+        if (affected <= 0) {
+            return "Brak posiadanych zwierząt do ulepszenia";
+        }
+
         return `Zoo income +${CryptoZoo.formatNumber(incomeBonus)} lvl`;
     },
 
