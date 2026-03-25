@@ -504,13 +504,20 @@ CryptoZoo.ui = {
         const baseExpedition = {
             startTime: 0,
             endTime: Number(durationSeconds) * 1000,
-            baseDuration: Number(durationSeconds),
-            duration: Number(durationSeconds),
+            duration: durationSeconds,
+            baseDuration: durationSeconds,
             rewardRarity: "common"
         };
 
         const commonReward = Number(
             CryptoZoo.expeditions?.getRewardBalanceAmount?.(baseExpedition) || 0
+        );
+
+        const rareReward = Number(
+            CryptoZoo.expeditions?.getRewardBalanceAmount?.({
+                ...baseExpedition,
+                rewardRarity: "rare"
+            }) || 0
         );
 
         const epicReward = Number(
@@ -520,31 +527,14 @@ CryptoZoo.ui = {
             }) || 0
         );
 
-        if (commonReward === epicReward) {
-            return `${commonReward.toFixed(3)} ${this.t("rewardWord", "reward")}`;
+        const minReward = commonReward;
+        const maxReward = Math.max(rareReward, epicReward);
+
+        if (minReward === maxReward) {
+            return `${minReward.toFixed(3)} ${this.t("rewardWord", "reward")}`;
         }
 
-        return `${commonReward.toFixed(3)} - ${epicReward.toFixed(3)} ${this.t("rewardWord", "reward")}`;
-    },
-
-    getExpeditionGemChanceText(expeditionConfig) {
-        const commonChance = Math.max(
-            0,
-            Number(CryptoZoo.expeditions?.getEffectiveGemChance?.(expeditionConfig, "common")) || 0
-        );
-        const epicChance = Math.max(
-            0,
-            Number(CryptoZoo.expeditions?.getEffectiveGemChance?.(expeditionConfig, "epic")) || 0
-        );
-
-        const commonPercent = Math.round(commonChance * 100);
-        const epicPercent = Math.round(epicChance * 100);
-
-        if (commonPercent === epicPercent) {
-            return `${commonPercent}%`;
-        }
-
-        return `${commonPercent}% - ${epicPercent}%`;
+        return `${minReward.toFixed(3)} - ${maxReward.toFixed(3)} ${this.t("rewardWord", "reward")}`;
     },
 
     getShopItemDescription(item) {
@@ -557,43 +547,21 @@ CryptoZoo.ui = {
 
         if (item.type === "income") {
             const bonus = Math.max(1, Number(item.incomeBonus) || 1);
-            return `+${CryptoZoo.formatNumber(bonus)} ${this.t("levelAllOwnedAnimals", "poziom do wszystkich posiadanych zwierząt")}`;
+            return `+${CryptoZoo.formatNumber(bonus)} ${this.t("levelAllOwnedAnimals", "level do wszystkich posiadanych zwierząt")}`;
         }
 
         if (item.type === "expedition") {
-            const localizedDesc = this.getLocalizedShopItemDesc(item);
-            if (localizedDesc) return localizedDesc;
-
-            const rareBonus = Number(item.rareChanceBonus) || 0;
-            const epicBonus = Number(item.epicChanceBonus) || 0;
-            const bonus = Math.max(0, Number(item.expeditionBonus) || 0);
-
-            if (rareBonus > 0 || epicBonus > 0) {
-                const parts = [];
-                if (rareBonus > 0) parts.push(`+${Math.round(rareBonus * 100)}% Rare`);
-                if (epicBonus > 0) parts.push(`+${Math.round(epicBonus * 100)}% Epic`);
-                return parts.join(" • ");
-            }
-
-            if (bonus > 0) {
-                return `+${bonus * 15}% coins i reward wallet z ekspedycji`;
-            }
-
-            return "Ulepszenie ekspedycji";
+            const bonus = Math.max(1, Number(item.expeditionBonus) || 1);
+            const percent = Math.round(bonus * 15);
+            return `+${percent}% ${this.t("rewardWallet", "Reward Wallet").toLowerCase()} ${this.t("fromEveryExpedition", "z każdej ekspedycji")}`;
         }
 
         if (item.type === "expeditionTime" || item.effect === "expeditionTime") {
-            const localizedDesc = this.getLocalizedShopItemDesc(item);
-            if (localizedDesc) return localizedDesc;
-
             const reductionSeconds = Math.max(0, Number(item.timeReductionSeconds) || 0);
-            return `${this.t("reduceOneActiveExpedition", "Skraca jedną ekspedycję o")} ${this.formatDurationLabel(reductionSeconds)}`;
+            return `${this.t("reduceOneActiveExpedition", "Skraca jedną aktywną ekspedycję o")} ${this.formatDurationLabel(reductionSeconds)}`;
         }
 
         if (item.type === "offline") {
-            const localizedDesc = this.getLocalizedShopItemDesc(item);
-            if (localizedDesc) return localizedDesc;
-
             const multiplier = Math.max(1, Number(item.offlineMultiplier) || 2);
             const durationSeconds = Math.max(60, Number(item.offlineDurationSeconds) || 600);
             return `x${CryptoZoo.formatNumber(multiplier)} ${this.t("offlineIncomeFor", "offline income przez")} ${this.formatDurationLabel(durationSeconds)}`;
@@ -1114,7 +1082,8 @@ CryptoZoo.ui = {
                         ${Number(expedition.rewardGems) > 0 ? ` + ${CryptoZoo.formatNumber(expedition.rewardGems)} ${this.t("gems", "gems")}` : ""}
                     </div>
                     <div>
-                        Reward Wallet: ${rewardBalanceAmount.toFixed(3)} ${this.t("rewardWord", "reward")}
+                        ${this.t("rewardWallet", "Reward Wallet")}:
+                        ${rewardBalanceAmount.toFixed(3)} ${this.t("rewardWord", "reward")}
                     </div>
                     ${
                         canCollect
@@ -1180,7 +1149,6 @@ CryptoZoo.ui = {
 
         container.innerHTML = dailyMissionsHtml + expeditionInfoCard + expeditions.map((exp) => {
             const rewardRangeText = this.getExpeditionRewardRangeText(exp);
-            const gemChanceText = this.getExpeditionGemChanceText(exp);
             const isUnlocked = CryptoZoo.expeditions?.isUnlocked?.(exp) || false;
             const requiredLevel = CryptoZoo.expeditions?.getUnlockRequirement?.(exp) || 1;
             const buttonLabel = isUnlocked ? this.t("start", "Start") : `${this.t("lvl", "Lvl")} ${CryptoZoo.formatNumber(requiredLevel)}`;
@@ -1199,6 +1167,7 @@ CryptoZoo.ui = {
 
             const expeditionName = this.getLocalizedExpeditionName(exp);
 
+            container = container;
             return `
                 <div class="expedition-card">
                     <h3>${expeditionName}</h3>
@@ -1208,10 +1177,7 @@ CryptoZoo.ui = {
                         ${CryptoZoo.formatNumber(exp.baseCoins)} ${this.t("coins", "coins")}
                     </div>
                     <div>
-                        Reward Wallet (range): ${rewardRangeText}
-                    </div>
-                    <div>
-                        Szansa na gem: ${gemChanceText}
+                        ${this.t("rewardWallet", "Reward Wallet")}: ${rewardRangeText}
                     </div>
                     <div>
                         ${this.t("requiredLevel", "Wymagany poziom")}: ${CryptoZoo.formatNumber(requiredLevel)}
