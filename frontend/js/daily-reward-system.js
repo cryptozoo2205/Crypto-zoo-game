@@ -19,7 +19,7 @@ CryptoZoo.dailyReward = {
 
         CryptoZoo.state.dailyRewardStreak = Math.max(
             0,
-            Number(CryptoZoo.state.dailyRewardStreak) || 0
+            Math.floor(Number(CryptoZoo.state.dailyRewardStreak) || 0)
         );
 
         if (typeof CryptoZoo.state.dailyRewardClaimDayKey !== "string") {
@@ -104,11 +104,17 @@ CryptoZoo.dailyReward = {
     },
 
     getCooldownMs() {
-        return Number(CryptoZoo.gameplay?.dailyRewardCooldownMs) || 24 * 60 * 60 * 1000;
+        return Math.max(
+            0,
+            Number(CryptoZoo.gameplay?.dailyRewardCooldownMs) || 24 * 60 * 60 * 1000
+        );
     },
 
     getMaxStreak() {
-        return Number(CryptoZoo.gameplay?.dailyRewardMaxStreak) || 7;
+        return Math.max(
+            1,
+            Math.floor(Number(CryptoZoo.gameplay?.dailyRewardMaxStreak) || 7)
+        );
     },
 
     getUnlockAfterSeconds() {
@@ -139,6 +145,7 @@ CryptoZoo.dailyReward = {
 
     getDayKeyFromTimestamp(timestamp = Date.now()) {
         const date = new Date(Number(timestamp) || Date.now());
+
         return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
     },
 
@@ -149,15 +156,28 @@ CryptoZoo.dailyReward = {
     },
 
     getStreak() {
-        return Math.min(
-            this.getMaxStreak(),
-            Math.max(0, Number(CryptoZoo.state?.dailyRewardStreak) || 0)
+        return Math.max(
+            0,
+            Math.min(
+                this.getMaxStreak(),
+                Math.floor(Number(CryptoZoo.state?.dailyRewardStreak) || 0)
+            )
         );
     },
 
     getNextClaimDay() {
         const streak = this.getStreak();
-        return Math.max(1, Math.min(this.getMaxStreak(), streak > 0 ? streak : 1));
+
+        if (streak <= 0) {
+            return 1;
+        }
+
+        return Math.min(this.getMaxStreak(), streak + 1);
+    },
+
+    getCurrentClaimDay() {
+        const streak = this.getStreak();
+        return Math.max(1, Math.min(this.getMaxStreak(), streak || 1));
     },
 
     getTimeLeftMs() {
@@ -192,12 +212,18 @@ CryptoZoo.dailyReward = {
     },
 
     getCoinsAmount() {
-        const nextDay = this.getNextClaimDay();
+        const nextDay = this.canClaim()
+            ? this.getNextClaimDay()
+            : (this.getStreak() > 0 ? this.getCurrentClaimDay() : 1);
+
         return Math.max(0, Number(this.getRewardForDay(nextDay).coins) || 0);
     },
 
     getGemsAmount() {
-        const nextDay = this.getNextClaimDay();
+        const nextDay = this.canClaim()
+            ? this.getNextClaimDay()
+            : (this.getStreak() > 0 ? this.getCurrentClaimDay() : 1);
+
         return Math.max(0, Number(this.getRewardForDay(nextDay).gems) || 0);
     },
 
@@ -215,7 +241,9 @@ CryptoZoo.dailyReward = {
                 this.getMaxStreak(),
                 this.getStreak() + 1
             );
-        } else if (prev !== today) {
+        } else if (prev === today) {
+            CryptoZoo.state.dailyRewardStreak = this.getStreak() || 1;
+        } else {
             CryptoZoo.state.dailyRewardStreak = 1;
         }
 
