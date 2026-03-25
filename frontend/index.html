@@ -74,22 +74,22 @@
                 <div class="panel card game-main-card">
                     <div class="home-stats-panel">
                         <div class="home-stat-box">
-                            <div class="home-stat-title">Coins</div>
+                            <div class="home-stat-title" id="langHomeCoinsTitle">Coins</div>
                             <div class="home-stat-value" id="homeCoins">0</div>
                         </div>
 
                         <div class="home-stat-box">
-                            <div class="home-stat-title">Gems</div>
+                            <div class="home-stat-title" id="langHomeGemsTitle">Gems</div>
                             <div class="home-stat-value" id="homeGems">0</div>
                         </div>
 
                         <div class="home-stat-box">
-                            <div class="home-stat-title">Reward</div>
+                            <div class="home-stat-title" id="langHomeRewardTitle">Reward</div>
                             <div class="home-stat-value" id="homeRewardBalance">0</div>
                         </div>
 
                         <div class="home-stat-box">
-                            <div class="home-stat-title">Poziom</div>
+                            <div class="home-stat-title" id="langHomeLevelTitle">Poziom</div>
                             <div class="home-stat-value" id="homeLevel">1</div>
                             <div class="home-xp-bar-wrap">
                                 <div class="home-xp-bar">
@@ -100,12 +100,12 @@
                         </div>
 
                         <div class="home-stat-box">
-                            <div class="home-stat-title">Za klik</div>
+                            <div class="home-stat-title" id="langHomeClickTitle">Za klik</div>
                             <div class="home-stat-value" id="homeCoinsPerClick">1</div>
                         </div>
 
                         <div class="home-stat-box">
-                            <div class="home-stat-title">Zoo / sek</div>
+                            <div class="home-stat-title" id="langHomeZooPerSecTitle">Zoo / sek</div>
                             <div class="home-stat-value" id="homeZooIncomeStat">0</div>
                         </div>
                     </div>
@@ -116,18 +116,18 @@
                     </div>
 
                     <div class="home-tap-caption">
-                        <div class="home-tap-title">UZYSKAJ MONETY</div>
-                        <div class="home-tap-subtitle">Klikaj i rozwijaj swoje zoo</div>
+                        <div class="home-tap-title" id="langTapTitle">UZYSKAJ MONETY</div>
+                        <div class="home-tap-subtitle" id="langTapSubtitle">Klikaj i rozwijaj swoje zoo</div>
                     </div>
 
                     <div class="home-income-strip">
                         <div class="home-income-left">
-                            <div class="home-income-label">🐾 Dochód zoo / sek</div>
+                            <div class="home-income-label" id="langIncomeLabel">🐾 Dochód zoo / sek</div>
                             <div class="home-income-value" id="homeIncomeStripValue">0</div>
                         </div>
 
                         <div class="home-boost-right">
-                            <div class="home-boost-title">⚡ X2 Boost</div>
+                            <div class="home-boost-title" id="langBoostTitle">⚡ X2 Boost</div>
                             <button id="homeBoostBtn" class="home-boost-button" type="button">Aktywuj</button>
                             <div id="homeBoostStatus" class="home-boost-status">Nieaktywny</div>
                         </div>
@@ -135,7 +135,7 @@
 
                     <div class="home-zoo-preview">
                         <div class="home-zoo-preview-head">
-                            <div class="home-zoo-preview-title">🐾 Twoje Zoo</div>
+                            <div class="home-zoo-preview-title" id="langYourZooTitle">🐾 Twoje Zoo</div>
                             <button id="homeZooPreviewBtn" class="home-zoo-preview-button" type="button">Zobacz więcej</button>
                         </div>
 
@@ -144,8 +144,8 @@
                                 <img src="assets/animals/monkey.png" alt="Monkey">
                                 <div class="home-zoo-preview-name">Monkey</div>
                                 <div class="home-zoo-preview-meta">
-                                    Ilość: <span id="homeMonkeyCount">0</span><br>
-                                    Lvl: <span id="homeMonkeyLevel">1</span>
+                                    <span id="langMonkeyAmount">Ilość</span>: <span id="homeMonkeyCount">0</span><br>
+                                    <span id="langMonkeyLvl">Lvl</span>: <span id="homeMonkeyLevel">1</span>
                                 </div>
                                 <div class="home-zoo-preview-actions">
                                     <button id="homeBuyMonkeyBtn" type="button">Kup</button>
@@ -157,8 +157,8 @@
                                 <img src="assets/animals/panda.png" alt="Panda">
                                 <div class="home-zoo-preview-name">Panda</div>
                                 <div class="home-zoo-preview-meta">
-                                    Ilość: <span id="homePandaCount">0</span><br>
-                                    Lvl: <span id="homePandaLevel">1</span>
+                                    <span id="langPandaAmount">Ilość</span>: <span id="homePandaCount">0</span><br>
+                                    <span id="langPandaLvl">Lvl</span>: <span id="homePandaLevel">1</span>
                                 </div>
                                 <div class="home-zoo-preview-actions">
                                     <button id="homeBuyPandaBtn" type="button">Kup</button>
@@ -170,8 +170,8 @@
                                 <img src="assets/animals/lion.png" alt="Lion">
                                 <div class="home-zoo-preview-name">Lion</div>
                                 <div class="home-zoo-preview-meta">
-                                    Ilość: <span id="homeLionCount">0</span><br>
-                                    Lvl: <span id="homeLionLevel">1</span>
+                                    <span id="langLionAmount">Ilość</span>: <span id="homeLionCount">0</span><br>
+                                    <span id="langLionLvl">Lvl</span>: <span id="homeLionLevel">1</span>
                                 </div>
                                 <div class="home-zoo-preview-actions">
                                     <button id="homeBuyLionBtn" type="button">Kup</button>
@@ -196,16 +196,16 @@
                         <button id="homeEventsBtn" class="home-quick-card" type="button">
                             <div class="home-quick-icon">⭐</div>
                             <div class="home-quick-text">
-                                <div class="home-quick-title">Events</div>
-                                <div class="home-quick-subtitle">Nowe eventy wkrótce</div>
+                                <div class="home-quick-title" id="langEventsTitle">Events</div>
+                                <div class="home-quick-subtitle" id="langEventsSubtitle">Nowe eventy wkrótce</div>
                             </div>
                         </button>
 
                         <button id="homeBoostInfoBtn" class="home-quick-card" type="button">
                             <div class="home-quick-icon">⚡</div>
                             <div class="home-quick-text">
-                                <div class="home-quick-title">Boost Center</div>
-                                <div class="home-quick-subtitle">Kup lub aktywuj X2</div>
+                                <div class="home-quick-title" id="langBoostCenterTitle">Boost Center</div>
+                                <div class="home-quick-subtitle" id="langBoostCenterSubtitle">Kup lub aktywuj X2</div>
                             </div>
                         </button>
                     </div>
@@ -223,19 +223,19 @@
 
             <section id="screen-zoo" class="screen hidden">
                 <div class="panel card">
-                    <h2>🐾 Zoo</h2>
+                    <h2 id="langScreenZooTitle">🐾 Zoo</h2>
                     <div id="zooList"></div>
                 </div>
             </section>
 
             <section id="screen-shop" class="screen hidden">
                 <div class="panel card">
-                    <h2>🛒 Shop</h2>
+                    <h2 id="langScreenShopTitle">🛒 Shop</h2>
 
                     <div class="shop-item boost-shop-card" id="boostShopCard">
-                        <h3>⚡ X2 Boost</h3>
-                        <div>Podwaja klik i dochód zoo przez 10 minut.</div>
-                        <div style="margin-top:6px;">Koszt: <strong>1 gem</strong></div>
+                        <h3 id="langBoostShopCardTitle">⚡ X2 Boost</h3>
+                        <div id="langBoostShopCardDesc">Podwaja klik i dochód zoo przez 10 minut.</div>
+                        <div style="margin-top:6px;" id="langBoostShopCardCostWrap">Koszt: <strong>1 gem</strong></div>
                         <div id="boostShopStatus" style="margin-top:6px;">Nieaktywny</div>
                         <button id="buyBoostBtn" type="button" style="margin-top:10px;">Kup X2 Boost</button>
                     </div>
@@ -246,7 +246,7 @@
 
             <section id="screen-missions" class="screen hidden">
                 <div class="panel card">
-                    <h2>🌍 Expeditions</h2>
+                    <h2 id="langScreenExpeditionsTitle">🌍 Expeditions</h2>
                     <div id="missionsList"></div>
                 </div>
             </section>
@@ -254,8 +254,8 @@
             <section id="screen-minigames" class="screen hidden">
                 <div class="panel card minigames-card">
                     <div class="minigames-header">
-                        <div class="minigames-title">🎮 Mini Games</div>
-                        <div class="minigames-subtitle">
+                        <div class="minigames-title" id="langMiniGamesTitle">🎮 Mini Games</div>
+                        <div class="minigames-subtitle" id="langMiniGamesSubtitle">
                             Zakręć kołem albo zagraj w memory i odbierz nagrody
                         </div>
                     </div>
@@ -263,8 +263,8 @@
                     <div id="minigamesWrap">
                         <div id="wheelGame" class="minigame-box">
                             <div class="minigame-box-header">
-                                <div class="minigame-name">Wheel Of Fortune</div>
-                                <div class="minigame-desc">
+                                <div class="minigame-name" id="langWheelName">Wheel Of Fortune</div>
+                                <div class="minigame-desc" id="langWheelDesc">
                                     Losowa nagroda po każdym spinie
                                 </div>
                             </div>
@@ -283,8 +283,8 @@
 
                         <div id="memoryGame" class="minigame-box">
                             <div class="minigame-box-header">
-                                <div class="minigame-name">Memory Animals</div>
-                                <div class="minigame-desc">
+                                <div class="minigame-name" id="langMemoryName">Memory Animals</div>
+                                <div class="minigame-desc" id="langMemoryDesc">
                                     Znajdź wszystkie pary i odbierz nagrody
                                 </div>
                             </div>
@@ -303,7 +303,7 @@
 
             <section id="screen-ranking" class="screen hidden">
                 <div class="panel card">
-                    <h2>🏆 Ranking</h2>
+                    <h2 id="langScreenRankingTitle">🏆 Ranking</h2>
                     <ul id="rankingList"></ul>
                 </div>
             </section>
@@ -351,52 +351,52 @@
 
             <div class="profile-grid">
                 <div class="profile-box">
-                    <div class="profile-box-label">Animals</div>
+                    <div class="profile-box-label" id="langProfileAnimals">Animals</div>
                     <div class="profile-box-value" id="profileAnimalsTotal">0</div>
                 </div>
 
                 <div class="profile-box">
-                    <div class="profile-box-label">Species</div>
+                    <div class="profile-box-label" id="langProfileSpecies">Species</div>
                     <div class="profile-box-value" id="profileSpeciesUnlocked">0</div>
                 </div>
 
                 <div class="profile-box">
-                    <div class="profile-box-label">Boxes</div>
+                    <div class="profile-box-label" id="langProfileBoxes">Boxes</div>
                     <div class="profile-box-value" id="profileBoxesTotal">0</div>
                 </div>
 
                 <div class="profile-box">
-                    <div class="profile-box-label">Ranking</div>
+                    <div class="profile-box-label" id="langProfileRanking">Ranking</div>
                     <div class="profile-box-value" id="profileRankingPlace">#-</div>
                 </div>
 
                 <div class="profile-box">
-                    <div class="profile-box-label">Reward</div>
+                    <div class="profile-box-label" id="langProfileReward">Reward</div>
                     <div class="profile-box-value" id="profileRewardBalance">0</div>
                 </div>
 
                 <div class="profile-box">
-                    <div class="profile-box-label">Wallet</div>
+                    <div class="profile-box-label" id="langProfileWallet">Wallet</div>
                     <div class="profile-box-value" id="profileRewardWallet">0</div>
                 </div>
 
                 <div class="profile-box">
-                    <div class="profile-box-label">Pending</div>
+                    <div class="profile-box-label" id="langProfilePending">Pending</div>
                     <div class="profile-box-value" id="profileWithdrawPending">0</div>
                 </div>
             </div>
 
             <div class="profile-boost-row">
                 <div class="profile-boost-left">
-                    <div class="profile-boost-label">Boost status</div>
+                    <div class="profile-boost-label" id="langProfileBoostStatus">Boost status</div>
                     <div class="profile-boost-value" id="profileBoostStatus">Nieaktywny</div>
                 </div>
             </div>
 
             <div class="profile-boost-row">
                 <div class="profile-boost-left">
-                    <div class="profile-boost-label">Reward Wallet</div>
-                    <div class="profile-boost-value">Przenieś Reward do Wallet lub wyślij request wypłaty</div>
+                    <div class="profile-boost-label" id="langProfileRewardWalletTitle">Reward Wallet</div>
+                    <div class="profile-boost-value" id="langProfileRewardWalletDesc">Przenieś Reward do Wallet lub wyślij request wypłaty</div>
                 </div>
             </div>
 
@@ -405,7 +405,7 @@
 
             <div class="profile-boost-row" style="margin-top:12px;">
                 <div class="profile-boost-left" style="width:100%;">
-                    <div class="profile-boost-label">Withdraw History</div>
+                    <div class="profile-boost-label" id="langProfileWithdrawHistory">Withdraw History</div>
                     <div id="profileWithdrawHistoryList" style="margin-top:10px;"></div>
                 </div>
             </div>
@@ -422,26 +422,26 @@
                 <div class="profile-avatar"></div>
 
                 <div class="profile-user-meta">
-                    <div class="profile-name">Settings</div>
-                    <div class="profile-subtitle">Ustawienia gry i FAQ</div>
+                    <div class="profile-name" id="langSettingsTitle">Settings</div>
+                    <div class="profile-subtitle" id="langSettingsSubtitle">Ustawienia gry i FAQ</div>
                 </div>
             </div>
 
             <div class="profile-grid">
                 <div class="profile-box">
-                    <div class="profile-box-label">Language</div>
+                    <div class="profile-box-label" id="langSettingsLanguage">Language</div>
                     <div class="profile-box-value" id="settingsLanguageValue">Polski</div>
                 </div>
 
                 <div class="profile-box">
-                    <div class="profile-box-label">Sounds</div>
+                    <div class="profile-box-label" id="langSettingsSounds">Sounds</div>
                     <div class="profile-box-value" id="settingsSoundValue">ON</div>
                 </div>
             </div>
 
             <div class="profile-boost-row">
                 <div class="profile-boost-left">
-                    <div class="profile-boost-label">FAQ / Help</div>
+                    <div class="profile-boost-label" id="langSettingsFaqHelp">FAQ / Help</div>
                     <button
                         id="openFaqBtn"
                         class="profile-close-btn"
@@ -468,36 +468,36 @@
                 <div class="profile-avatar">🎁</div>
 
                 <div class="profile-user-meta">
-                    <div class="profile-name">Daily Reward</div>
+                    <div class="profile-name" id="langDailyRewardModalTitle">Daily Reward</div>
                     <div class="profile-subtitle" id="dailyRewardSubtitle">Odbierz codzienną nagrodę i wracaj po więcej</div>
                 </div>
             </div>
 
             <div class="profile-grid">
                 <div class="profile-box">
-                    <div class="profile-box-label">Status</div>
+                    <div class="profile-box-label" id="langDailyRewardStatusLabel">Status</div>
                     <div class="profile-box-value" id="dailyRewardStatusText">Sprawdzanie...</div>
                 </div>
 
                 <div class="profile-box">
-                    <div class="profile-box-label">Do odebrania</div>
+                    <div class="profile-box-label" id="langDailyRewardCollectLabel">Do odebrania</div>
                     <div class="profile-box-value" id="dailyRewardAmountText">0</div>
                 </div>
 
                 <div class="profile-box">
-                    <div class="profile-box-label">Countdown</div>
+                    <div class="profile-box-label" id="langDailyRewardCountdownLabel">Countdown</div>
                     <div class="profile-box-value" id="dailyRewardTimerText">--:--:--</div>
                 </div>
 
                 <div class="profile-box">
-                    <div class="profile-box-label">Streak</div>
+                    <div class="profile-box-label" id="langDailyRewardStreakLabel">Streak</div>
                     <div class="profile-box-value" id="dailyRewardStreakText">Day 1</div>
                 </div>
             </div>
 
             <div class="profile-boost-row">
                 <div class="profile-boost-left">
-                    <div class="profile-boost-label">Info</div>
+                    <div class="profile-boost-label" id="langDailyRewardInfoLabel">Info</div>
                     <div class="profile-boost-value" id="dailyRewardInfoText">
                         Tutaj pokażemy gotowość nagrody, cooldown i później streak bez ruszania innych systemów.
                     </div>
@@ -519,9 +519,8 @@
     <script src="./js/ui-updates.js"></script>
 
     <script src="./js/navigation-system.js"></script>
-
-  <script src="./js/daily-missions-system.js"></script>  
-<script src="./js/boost-system.js"></script>
+    <script src="./js/daily-missions-system.js"></script>
+    <script src="./js/boost-system.js"></script>
     <script src="./js/daily-reward-system.js"></script>
     <script src="./js/animal-system.js"></script>
     <script src="./js/expedition-system.js"></script>
