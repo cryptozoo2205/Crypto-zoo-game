@@ -13,11 +13,77 @@ CryptoZoo.minigames = {
     memoryFlipped: [],
     memoryMatched: 0,
     memoryLocked: false,
+    memoryMoves: 0,
+    memoryPairsTotal: 0,
+    memoryStartedAt: 0,
+    memoryTimerInterval: null,
+    memoryPreviewTimeout: null,
+    memoryResolveTimeout: null,
+    memorySessionActive: false,
 
     wheelImagePath: "assets/minigames/wheel/wheel_base.png",
 
-    t(key, fallback) {
-        return CryptoZoo.lang?.t?.(key) || fallback || key;
+    getLanguage() {
+        return CryptoZoo.lang?.current || "en";
+    },
+
+    lt(key, fallback = "") {
+        const lang = this.getLanguage();
+
+        const dict = {
+            en: {
+                spinWheel: "Spin Wheel",
+                spinning: "Spinning...",
+                nextSpinIn: "Next spin in",
+                nextFreeSpinIn: "Next free spin in",
+                extraSpinAvailable: "Extra spin available",
+                freeSpinReady: "Free spin ready",
+                extraShort: "extra",
+
+                startMemory: "Start Memory",
+                restartMemory: "Play Again",
+                resetMemory: "Reset",
+                previewMemory: "Preview cards...",
+                findAllPairs: "Find all pairs",
+                memoryReadyIn: "Memory ready in",
+                memoryCooldown: "Memory CD",
+                moves: "Moves",
+                time: "Time",
+                pairs: "Pairs",
+                memoryCompletedTitle: "Completed!",
+                memoryCompletedReward: "Reward: 3000 Coins + 1 Gem",
+                memoryRewardToast: "Memory reward: 3000 Coins + 1 Gem",
+                perfectRun: "Perfect run",
+                greatJob: "Great job"
+            },
+            pl: {
+                spinWheel: "Spin Wheel",
+                spinning: "Kręcenie...",
+                nextSpinIn: "Następny spin za",
+                nextFreeSpinIn: "Następny darmowy spin za",
+                extraSpinAvailable: "Dostępny extra spin",
+                freeSpinReady: "Darmowy spin gotowy",
+                extraShort: "extra",
+
+                startMemory: "Start Memory",
+                restartMemory: "Zagraj ponownie",
+                resetMemory: "Reset",
+                previewMemory: "Podgląd kart...",
+                findAllPairs: "Znajdź wszystkie pary",
+                memoryReadyIn: "Memory gotowe za",
+                memoryCooldown: "Memory CD",
+                moves: "Ruchy",
+                time: "Czas",
+                pairs: "Pary",
+                memoryCompletedTitle: "Ukończono!",
+                memoryCompletedReward: "Nagroda: 3000 Coins + 1 Gem",
+                memoryRewardToast: "Nagroda Memory: 3000 Coins + 1 Gem",
+                perfectRun: "Perfekcyjna runda",
+                greatJob: "Dobra robota"
+            }
+        };
+
+        return dict[lang]?.[key] || fallback || key;
     },
 
     init() {
@@ -26,6 +92,7 @@ CryptoZoo.minigames = {
         this.bindButtons();
         this.buildWheelVisual();
         this.resetWheelTransform();
+        this.ensureMemoryBoardClass();
         this.startCooldownTimer();
         this.renderCooldowns();
     },
@@ -56,6 +123,13 @@ CryptoZoo.minigames = {
             flash.id = "wheelWinFlash";
             flash.className = "wheel-win-flash";
             document.body.appendChild(flash);
+        }
+    },
+
+    ensureMemoryBoardClass() {
+        const board = document.getElementById("memoryBoard");
+        if (board) {
+            board.classList.add("memory-grid-pro");
         }
     },
 
@@ -260,22 +334,22 @@ CryptoZoo.minigames = {
         if (spinBtn) {
             if (this.wheelSpinning) {
                 spinBtn.disabled = true;
-                spinBtn.textContent = this.t("spinning", "Spinning...");
+                spinBtn.textContent = this.lt("spinning", "Spinning...");
                 spinBtn.style.opacity = "0.84";
                 spinBtn.style.cursor = "not-allowed";
             } else if (extraSpins > 0) {
                 spinBtn.disabled = false;
-                spinBtn.textContent = `${this.t("spinWheel", "Spin Wheel")} (${extraSpins} ${this.t("extraSpinsShort", "extra")})`;
+                spinBtn.textContent = `${this.lt("spinWheel", "Spin Wheel")} (${extraSpins} ${this.lt("extraShort", "extra")})`;
                 spinBtn.style.opacity = "1";
                 spinBtn.style.cursor = "pointer";
             } else if (wheelLeft > 0) {
                 spinBtn.disabled = true;
-                spinBtn.textContent = `${this.t("nextSpinIn", "Next spin in")} ${this.formatCooldown(wheelLeft)}`;
+                spinBtn.textContent = `${this.lt("nextSpinIn", "Next spin in")} ${this.formatCooldown(wheelLeft)}`;
                 spinBtn.style.opacity = "0.84";
                 spinBtn.style.cursor = "not-allowed";
             } else {
                 spinBtn.disabled = false;
-                spinBtn.textContent = this.t("spinWheel", "Spin Wheel");
+                spinBtn.textContent = this.lt("spinWheel", "Spin Wheel");
                 spinBtn.style.opacity = "1";
                 spinBtn.style.cursor = "pointer";
             }
@@ -283,27 +357,32 @@ CryptoZoo.minigames = {
 
         if (wheelStatus && !this.wheelSpinning) {
             if (wheelStatus.dataset.rewardLocked === "1") {
-                wheelStatus.textContent = `🎲 ${this.t("spinning", "Spinning...")}`;
+                wheelStatus.textContent = `🎲 ${this.lt("spinning", "Spinning...")}`;
             } else if (wheelStatus.dataset.rewardText) {
                 wheelStatus.textContent = wheelStatus.dataset.rewardText;
             } else if (extraSpins > 0) {
-                wheelStatus.textContent = `🎁 ${this.t("extraSpinAvailable", "Extra spin available")} (${extraSpins})`;
+                wheelStatus.textContent = `🎁 ${this.lt("extraSpinAvailable", "Extra spin available")} (${extraSpins})`;
             } else if (wheelLeft <= 0) {
-                wheelStatus.textContent = `🎁 ${this.t("freeSpinReady", "Free spin ready")}`;
+                wheelStatus.textContent = `🎁 ${this.lt("freeSpinReady", "Free spin ready")}`;
             } else {
                 wheelStatus.textContent = "";
             }
         }
 
         if (memoryBtn) {
-            if (memoryLeft > 0) {
+            if (this.memorySessionActive) {
+                memoryBtn.disabled = false;
+                memoryBtn.textContent = this.lt("restartMemory", "Play Again");
+                memoryBtn.style.opacity = "1";
+                memoryBtn.style.cursor = "pointer";
+            } else if (memoryLeft > 0) {
                 memoryBtn.disabled = true;
-                memoryBtn.textContent = `${this.t("memoryCooldown", "Memory CD")} ${this.formatCooldown(memoryLeft)}`;
+                memoryBtn.textContent = `${this.lt("memoryCooldown", "Memory CD")} ${this.formatCooldown(memoryLeft)}`;
                 memoryBtn.style.opacity = "0.72";
                 memoryBtn.style.cursor = "not-allowed";
             } else {
                 memoryBtn.disabled = false;
-                memoryBtn.textContent = this.t("startMemory", "Start Memory");
+                memoryBtn.textContent = this.lt("startMemory", "Start Memory");
                 memoryBtn.style.opacity = "1";
                 memoryBtn.style.cursor = "pointer";
             }
@@ -311,9 +390,9 @@ CryptoZoo.minigames = {
 
         if (memoryStatus && this.memoryCards.length === 0) {
             if (memoryLeft > 0) {
-                memoryStatus.textContent = `${this.t("memoryReadyIn", "Memory ready in")} ${this.formatCooldown(memoryLeft)}`;
+                memoryStatus.textContent = `${this.lt("memoryReadyIn", "Memory ready in")} ${this.formatCooldown(memoryLeft)}`;
             } else {
-                memoryStatus.textContent = this.t("findAllPairs", "Find all pairs");
+                memoryStatus.textContent = this.lt("findAllPairs", "Find all pairs");
             }
         }
     },
@@ -338,7 +417,7 @@ CryptoZoo.minigames = {
         const wheelLeft = this.getWheelCooldownLeft();
 
         if (!hasExtraSpin && wheelLeft > 0) {
-            CryptoZoo.ui?.showToast?.(`${this.t("nextFreeSpinIn", "Next free spin in")} ${this.formatCooldown(wheelLeft)}`);
+            CryptoZoo.ui?.showToast?.(`${this.lt("nextFreeSpinIn", "Next free spin in")} ${this.formatCooldown(wheelLeft)}`);
             this.renderCooldowns();
             return;
         }
@@ -363,7 +442,7 @@ CryptoZoo.minigames = {
         CryptoZoo.audio?.play?.("spin");
 
         if (wheelStatus) {
-            wheelStatus.textContent = `🎲 ${this.t("spinning", "Spinning...")}`;
+            wheelStatus.textContent = `🎲 ${this.lt("spinning", "Spinning...")}`;
             wheelStatus.dataset.rewardLocked = "1";
             wheelStatus.dataset.rewardText = "";
         }
@@ -428,7 +507,7 @@ CryptoZoo.minigames = {
     },
 
     createMemoryDeck() {
-        const animals = ["🐵", "🐼", "🦁", "🐯"];
+        const animals = ["🐵", "🐼", "🦁", "🐯", "🐘", "🦒"];
         const deck = [...animals, ...animals];
 
         for (let i = deck.length - 1; i > 0; i -= 1) {
@@ -444,41 +523,140 @@ CryptoZoo.minigames = {
         }));
     },
 
+    clearMemoryTimers() {
+        clearInterval(this.memoryTimerInterval);
+        clearTimeout(this.memoryPreviewTimeout);
+        clearTimeout(this.memoryResolveTimeout);
+        this.memoryTimerInterval = null;
+        this.memoryPreviewTimeout = null;
+        this.memoryResolveTimeout = null;
+    },
+
+    getMemoryElapsedSeconds() {
+        if (!this.memoryStartedAt) return 0;
+        return Math.max(0, Math.floor((Date.now() - this.memoryStartedAt) / 1000));
+    },
+
+    formatMemoryTime(totalSeconds) {
+        const safe = Math.max(0, Number(totalSeconds) || 0);
+        const minutes = Math.floor(safe / 60);
+        const seconds = safe % 60;
+
+        return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    },
+
+    renderMemoryHud() {
+        const board = document.getElementById("memoryBoard");
+        if (!board) return;
+
+        const elapsed = this.formatMemoryTime(this.getMemoryElapsedSeconds());
+        const pairsDone = Math.floor(this.memoryMatched / 2);
+        const pairsTotal = this.memoryPairsTotal;
+
+        let hud = board.previousElementSibling;
+        if (!hud || !hud.classList.contains("memory-hud")) {
+            hud = document.createElement("div");
+            hud.className = "memory-hud";
+            board.parentNode.insertBefore(hud, board);
+        }
+
+        hud.innerHTML = `
+            <div class="memory-stat-chip">
+                <span class="memory-stat-label">${this.lt("moves", "Moves")}</span>
+                <span class="memory-stat-value">${CryptoZoo.formatNumber(this.memoryMoves)}</span>
+            </div>
+            <div class="memory-stat-chip">
+                <span class="memory-stat-label">${this.lt("time", "Time")}</span>
+                <span class="memory-stat-value">${elapsed}</span>
+            </div>
+            <div class="memory-stat-chip">
+                <span class="memory-stat-label">${this.lt("pairs", "Pairs")}</span>
+                <span class="memory-stat-value">${pairsDone}/${pairsTotal}</span>
+            </div>
+        `;
+    },
+
     renderMemory() {
         if (!this.isMiniGamesVisible()) return;
 
         const board = document.getElementById("memoryBoard");
         if (!board) return;
 
+        this.ensureMemoryBoardClass();
+        this.renderMemoryHud();
+
         board.innerHTML = "";
 
         this.memoryCards.forEach((card) => {
             const btn = document.createElement("button");
             btn.type = "button";
-            btn.textContent = card.flipped || card.matched ? card.animal : "?";
+            btn.className = "memory-card-pro";
+            btn.setAttribute("aria-label", "memory-card");
+            btn.disabled = !!card.matched;
 
-            btn.style.background = card.flipped || card.matched
-                ? "linear-gradient(180deg,#ffffff,#e6ecff)"
-                : "linear-gradient(180deg,#4a5a7a,#2f3d5a)";
+            if (card.flipped || card.matched) {
+                btn.classList.add("is-flipped");
+            }
 
-            btn.style.boxShadow = "0 6px 12px rgba(0,0,0,0.25)";
-            btn.style.color = card.flipped || card.matched ? "#000000" : "#ffffff";
+            if (card.matched) {
+                btn.classList.add("is-matched");
+            }
+
+            btn.innerHTML = `
+                <span class="memory-card-inner">
+                    <span class="memory-card-face memory-card-front">?</span>
+                    <span class="memory-card-face memory-card-back">${card.animal}</span>
+                </span>
+            `;
 
             btn.onclick = () => this.flipMemoryCard(card.id);
             board.appendChild(btn);
         });
     },
 
-    resetMemoryBoard() {
+    setMemoryStatus(text) {
+        const status = document.getElementById("memoryStatus");
+        if (status) {
+            status.textContent = text;
+        }
+    },
+
+    resetMemoryBoard(silent = false) {
+        this.clearMemoryTimers();
         this.memoryCards = [];
         this.memoryFlipped = [];
         this.memoryMatched = 0;
         this.memoryLocked = false;
+        this.memoryMoves = 0;
+        this.memoryPairsTotal = 0;
+        this.memoryStartedAt = 0;
+        this.memorySessionActive = false;
 
         const board = document.getElementById("memoryBoard");
         if (board) {
             board.innerHTML = "";
         }
+
+        const hud = board?.previousElementSibling;
+        if (hud && hud.classList.contains("memory-hud")) {
+            hud.remove();
+        }
+
+        if (!silent) {
+            this.setMemoryStatus(this.isMemoryReady()
+                ? this.lt("findAllPairs", "Find all pairs")
+                : `${this.lt("memoryReadyIn", "Memory ready in")} ${this.formatCooldown(this.getMemoryCooldownLeft())}`);
+        }
+
+        this.renderCooldowns();
+    },
+
+    startMemoryTimer() {
+        clearInterval(this.memoryTimerInterval);
+        this.memoryTimerInterval = setInterval(() => {
+            if (!this.memorySessionActive) return;
+            this.renderMemoryHud();
+        }, 1000);
     },
 
     startMemory() {
@@ -486,23 +664,41 @@ CryptoZoo.minigames = {
 
         const memoryLeft = this.getMemoryCooldownLeft();
         if (memoryLeft > 0) {
-            CryptoZoo.ui?.showToast?.(`${this.t("memoryReadyIn", "Memory ready in")} ${this.formatCooldown(memoryLeft)}`);
+            CryptoZoo.ui?.showToast?.(`${this.lt("memoryReadyIn", "Memory ready in")} ${this.formatCooldown(memoryLeft)}`);
             this.renderCooldowns();
             return;
         }
 
+        this.clearMemoryTimers();
         this.memoryCards = this.createMemoryDeck();
         this.memoryFlipped = [];
         this.memoryMatched = 0;
-        this.memoryLocked = false;
+        this.memoryLocked = true;
+        this.memoryMoves = 0;
+        this.memoryPairsTotal = this.memoryCards.length / 2;
+        this.memoryStartedAt = Date.now();
+        this.memorySessionActive = true;
 
-        const status = document.getElementById("memoryStatus");
-        if (status) {
-            status.textContent = this.t("findAllPairs", "Find all pairs");
-        }
+        this.memoryCards.forEach((card) => {
+            card.flipped = true;
+            card.matched = false;
+        });
 
         this.renderMemory();
         this.renderCooldowns();
+        this.setMemoryStatus(this.lt("previewMemory", "Preview cards..."));
+
+        this.memoryPreviewTimeout = setTimeout(() => {
+            this.memoryCards.forEach((card) => {
+                card.flipped = false;
+            });
+
+            this.memoryLocked = false;
+            this.renderMemory();
+            this.renderMemoryHud();
+            this.startMemoryTimer();
+            this.setMemoryStatus(this.lt("findAllPairs", "Find all pairs"));
+        }, 2200);
     },
 
     finishMemoryGame() {
@@ -510,22 +706,29 @@ CryptoZoo.minigames = {
         CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + 3000;
         CryptoZoo.state.gems = (Number(CryptoZoo.state.gems) || 0) + 1;
 
+        this.memoryLocked = true;
+        this.memorySessionActive = false;
         this.startMemoryCooldown();
+        this.clearMemoryTimers();
+        this.renderMemoryHud();
 
-        const status = document.getElementById("memoryStatus");
-        if (status) {
-            status.textContent = this.t("memoryCompletedReward", "Completed! Reward: 3000 Coins + 1 Gem");
-        }
+        const elapsed = this.getMemoryElapsedSeconds();
+        const summaryPrefix = this.memoryMoves <= this.memoryPairsTotal * 2
+            ? this.lt("perfectRun", "Perfect run")
+            : this.lt("greatJob", "Great job");
+
+        this.setMemoryStatus(
+            `${this.lt("memoryCompletedTitle", "Completed!")} • ${summaryPrefix} • ${this.formatMemoryTime(elapsed)}`
+        );
 
         CryptoZoo.audio?.play?.("win");
-        CryptoZoo.ui?.showToast?.(this.t("memoryRewardToast", "Memory reward: 3000 Coins + 1 Gem"));
+        CryptoZoo.ui?.showToast?.(this.lt("memoryRewardToast", "Memory reward: 3000 Coins + 1 Gem"));
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
 
-        setTimeout(() => {
-            this.resetMemoryBoard();
-            this.renderCooldowns();
-        }, 1200);
+        this.memoryPreviewTimeout = setTimeout(() => {
+            this.resetMemoryBoard(true);
+        }, 1800);
     },
 
     flipMemoryCard(cardId) {
@@ -544,29 +747,35 @@ CryptoZoo.minigames = {
         if (this.memoryFlipped.length < 2) return;
 
         this.memoryLocked = true;
+        this.memoryMoves += 1;
+        this.renderMemoryHud();
 
         const [first, second] = this.memoryFlipped;
 
         if (first.animal === second.animal) {
-            first.matched = true;
-            second.matched = true;
-            this.memoryMatched += 2;
-            this.memoryFlipped = [];
-            this.memoryLocked = false;
-            CryptoZoo.audio?.play?.("match");
-            this.renderMemory();
+            this.memoryResolveTimeout = setTimeout(() => {
+                first.matched = true;
+                second.matched = true;
+                this.memoryMatched += 2;
+                this.memoryFlipped = [];
+                this.memoryLocked = false;
+                CryptoZoo.audio?.play?.("match");
+                this.renderMemory();
+                this.renderMemoryHud();
 
-            if (this.memoryMatched === this.memoryCards.length) {
-                this.finishMemoryGame();
-            }
+                if (this.memoryMatched === this.memoryCards.length) {
+                    this.finishMemoryGame();
+                }
+            }, 320);
         } else {
-            setTimeout(() => {
+            this.memoryResolveTimeout = setTimeout(() => {
                 first.flipped = false;
                 second.flipped = false;
                 this.memoryFlipped = [];
                 this.memoryLocked = false;
                 this.renderMemory();
-            }, 800);
+                this.renderMemoryHud();
+            }, 780);
         }
     },
 
@@ -586,6 +795,11 @@ CryptoZoo.minigames = {
             memoryBtn.dataset.bound = "1";
             memoryBtn.onclick = () => {
                 CryptoZoo.audio?.play?.("click");
+
+                if (this.memorySessionActive || this.memoryCards.length > 0) {
+                    this.resetMemoryBoard(true);
+                }
+
                 this.startMemory();
             };
         }
@@ -597,6 +811,9 @@ CryptoZoo.minigames = {
 
         setInterval(() => {
             this.renderCooldowns();
+            if (this.memorySessionActive) {
+                this.renderMemoryHud();
+            }
         }, 1000);
     }
 };
