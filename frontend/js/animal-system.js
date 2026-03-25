@@ -36,13 +36,22 @@ CryptoZoo.animalsSystem = {
             CryptoZoo.state.animals[type] = { count: 0, level: 1 };
         }
 
+        const animal = CryptoZoo.state.animals[type];
+        const currentCount = Math.max(0, Number(animal.count) || 0);
+
+        if (currentCount <= 0) {
+            animal.count = 0;
+            animal.level = 1;
+        } else {
+            animal.level = Math.max(1, Number(animal.level) || 1);
+        }
+
         CryptoZoo.state.coins = Math.max(
             0,
             (Number(CryptoZoo.state.coins) || 0) - buyCost
         );
 
-        CryptoZoo.state.animals[type].count =
-            Math.max(0, Number(CryptoZoo.state.animals[type].count) || 0) + 1;
+        animal.count = Math.max(0, Number(animal.count) || 0) + 1;
 
         CryptoZoo.gameplay?.persistAndRender?.();
         CryptoZoo.ui?.showToast?.(`Kupiono ${config.name}`);
@@ -60,7 +69,6 @@ CryptoZoo.animalsSystem = {
         const level = Math.max(1, Number(animal.level) || 1);
         const count = Math.max(0, Number(animal.count) || 0);
 
-        // Lżejszy, grywalny scaling zamiast brutalnego 1.62^lvl
         let growth = 1.18;
 
         if (buyCost >= 1000) growth = 1.185;
@@ -68,12 +76,10 @@ CryptoZoo.animalsSystem = {
         if (buyCost >= 100000) growth = 1.195;
         if (buyCost >= 1000000) growth = 1.20;
 
-        // Delikatne podbicie dopiero na wyższych poziomach
         if (level >= 10) growth += 0.005;
         if (level >= 25) growth += 0.005;
         if (level >= 50) growth += 0.005;
 
-        // Im więcej sztuk masz, tym upgrade trochę przyjaźniejszy
         let ownershipDiscount = 1;
         if (count >= 5) ownershipDiscount = 0.98;
         if (count >= 10) ownershipDiscount = 0.95;
@@ -97,6 +103,8 @@ CryptoZoo.animalsSystem = {
             return false;
         }
 
+        animal.level = Math.max(1, Number(animal.level) || 1);
+
         const cost = this.getUpgradeCost(type);
 
         if ((Number(CryptoZoo.state?.coins) || 0) < cost) {
@@ -109,7 +117,7 @@ CryptoZoo.animalsSystem = {
             (Number(CryptoZoo.state.coins) || 0) - cost
         );
 
-        animal.level = Math.max(1, Number(animal.level) || 1) + 1;
+        animal.level += 1;
 
         CryptoZoo.gameplay?.persistAndRender?.();
         CryptoZoo.ui?.showToast?.(`Ulepszono ${config.name}`);
