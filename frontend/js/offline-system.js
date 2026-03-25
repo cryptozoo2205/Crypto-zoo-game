@@ -1,15 +1,20 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.offline = {
+    normalizeTimestamp(value) {
+        let safeValue = Number(value) || 0;
+
+        if (safeValue <= 0) return 0;
+        if (safeValue < 1000000000000) safeValue *= 1000;
+
+        return safeValue;
+    },
+
     normalizeState() {
         CryptoZoo.state = CryptoZoo.state || {};
 
         const now = Date.now();
-        let activeUntil = Number(CryptoZoo.state?.offlineBoostActiveUntil) || 0;
-
-        if (activeUntil > 0 && activeUntil < 1000000000000) {
-            activeUntil *= 1000;
-        }
+        const activeUntil = this.normalizeTimestamp(CryptoZoo.state?.offlineBoostActiveUntil);
 
         CryptoZoo.state.offlineBoostActiveUntil = activeUntil;
 
@@ -37,6 +42,10 @@ CryptoZoo.offline = {
         return this.isActive()
             ? Math.max(1, Number(CryptoZoo.state?.offlineBoostMultiplier) || 1)
             : 1;
+    },
+
+    getStoredMultiplier() {
+        return Math.max(1, Number(CryptoZoo.state?.offlineBoostMultiplier) || 1);
     },
 
     getTimeLeft() {
@@ -69,7 +78,17 @@ CryptoZoo.offline = {
         const baseIncome = Math.max(0, Number(CryptoZoo.state?.zooIncome) || 0);
         const offlineBoostMultiplier = this.getMultiplier();
 
-        return baseIncome * offlineBoostMultiplier;
+        const income = baseIncome * offlineBoostMultiplier;
+        if (!Number.isFinite(income) || income < 0) return 0;
+
+        return income;
+    },
+
+    getBaseIncomePerSecond() {
+        const baseIncome = Math.max(0, Number(CryptoZoo.state?.zooIncome) || 0);
+        if (!Number.isFinite(baseIncome) || baseIncome < 0) return 0;
+
+        return baseIncome;
     },
 
     getMaxSeconds() {
@@ -101,6 +120,19 @@ CryptoZoo.offline = {
         return `${safeSeconds}s`;
     },
 
+    getBoostedOfflineSeconds(fromTime, toTime, activeUntil) {
+        const safeFrom = Math.max(0, Number(fromTime) || 0);
+        const safeTo = Math.max(safeFrom, Number(toTime) || safeFrom);
+        const safeActiveUntil = this.normalizeTimestamp(activeUntil);
+
+        if (safeActiveUntil <= safeFrom) {
+            return 0;
+        }
+
+        const boostedUntil = Math.min(safeTo, safeActiveUntil);
+        return Math.max(0, Math.floor((boostedUntil - safeFrom) / 1000));
+    },
+
     applyEarnings() {
         CryptoZoo.state = CryptoZoo.state || {};
 
@@ -117,12 +149,28 @@ CryptoZoo.offline = {
         }
 
         CryptoZoo.gameplay?.recalculateZooIncome?.();
-        this.normalizeState();
 
-        const offlineIncomePerSecond = this.getIncomePerSecond();
-        const offlineCoins = Math.floor(offlineIncomePerSecond * cappedSeconds);
+        const baseIncomePerSecond = this.getBaseIncomePerSecond();
+        const storedMultiplier = this.getStoredMultiplier();
+        const rawActiveUntil = this.normalizeTimestamp(CryptoZoo.state?.offlineBoostActiveUntil);
+
+        const cappedStartTime = now - cappedSeconds * 1000;
+        const boostedSeconds = storedMultiplier > 1
+            ? Math.min(
+                cappedSeconds,
+                this.getBoostedOfflineSeconds(cappedStartTime, now, rawActiveUntil)
+            )
+            : 0;
+
+        const normalSeconds = Math.max(0, cappedSeconds - boostedSeconds);
+
+        const boostedCoins = Math.floor(baseIncomePerSecond * storedMultiplier * boostedSeconds);
+        const normalCoins = Math.floor(baseIncomePerSecond * normalSeconds);
+        const offlineCoins = Math.max(0, boostedCoins + normalCoins);
 
         CryptoZoo.state.lastLogin = now;
+
+        this.normalizeState();
 
         if (offlineCoins <= 0) {
             return;
@@ -132,9 +180,8 @@ CryptoZoo.offline = {
 
         const timeLabel = this.formatDuration(cappedSeconds);
         const capLabel = wasCapped ? ` • limit ${this.formatDuration(maxOfflineSeconds)}` : "";
-        const offlineMultiplier = this.getMultiplier();
-        const boostLabel = offlineMultiplier > 1
-            ? ` • x${CryptoZoo.formatNumber(offlineMultiplier)} offline`
+        const boostLabel = boostedSeconds > 0
+            ? ` • x${CryptoZoo.formatNumber(storedMultiplier)} offline przez ${this.formatDuration(boostedSeconds)}`
             : "";
 
         CryptoZoo.ui?.showToast?.(
