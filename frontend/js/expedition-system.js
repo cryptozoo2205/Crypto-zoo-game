@@ -217,7 +217,7 @@ CryptoZoo.expeditions = {
 
     getExpeditionBoostMultiplier() {
         const boostLevel = Math.max(0, Number(CryptoZoo.state?.expeditionBoost) || 0);
-        return 1 + boostLevel * 0.15;
+        return 1 + boostLevel;
     },
 
     getEffectiveDurationSeconds(expeditionConfig) {
@@ -245,10 +245,10 @@ CryptoZoo.expeditions = {
         const baseGemChance = Math.max(0, Number(expedition?.gemChance) || 0);
 
         let chance = baseGemChance;
-        if (rewardRarity === "rare") chance += 0.03;
-        if (rewardRarity === "epic") chance += 0.08;
+        if (rewardRarity === "rare") chance += 0.02;
+        if (rewardRarity === "epic") chance += 0.05;
 
-        return Math.min(0.22, chance);
+        return Math.min(0.16, chance);
     },
 
     rollRewardRarity(expedition) {
@@ -273,13 +273,17 @@ CryptoZoo.expeditions = {
 
         const hours = durationSeconds / 3600;
 
-        let base = 0.004 + hours * 0.0105;
+        // FINAL ECONOMY:
+        // reward liczony z bazowego czasu ekspedycji,
+        // nie z czasu po skróceniu, żeby time boost oszczędzał czas,
+        // ale nie ucinał wypłaty
+        let base = 0.0015 + hours * 0.0205;
 
         const rarity = this.normalizeRewardRarity(expedition.rewardRarity);
         let rarityMultiplier = 1;
 
-        if (rarity === "rare") rarityMultiplier = 1.45;
-        if (rarity === "epic") rarityMultiplier = 2.10;
+        if (rarity === "rare") rarityMultiplier = 1.35;
+        if (rarity === "epic") rarityMultiplier = 1.90;
 
         const boostMultiplier = this.getExpeditionBoostMultiplier();
 
@@ -308,7 +312,7 @@ CryptoZoo.expeditions = {
         }
 
         if (rewardRarity === "epic") {
-            return Math.random() < 0.30 ? 2 : 1;
+            return Math.random() < 0.20 ? 2 : 1;
         }
 
         return 1;
