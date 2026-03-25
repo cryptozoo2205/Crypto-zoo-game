@@ -2,7 +2,7 @@ window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.uiProfile = {
     modalOpen: false,
-    minWithdrawReward: 10,
+    minWithdrawReward: 3,
     withdrawHistory: [],
     withdrawHistoryLoading: false,
     fallbackAvatarPath: "assets/ui/avatar.png",
