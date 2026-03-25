@@ -25,25 +25,25 @@ CryptoZoo.animalsSystem = {
         CryptoZoo.state = CryptoZoo.state || {};
         CryptoZoo.state.animals = CryptoZoo.state.animals || {};
 
-        const buyCost = Math.max(0, Number(config.buyCost) || 0);
-
-        if ((Number(CryptoZoo.state?.coins) || 0) < buyCost) {
-            CryptoZoo.ui?.showToast?.("Za mało coins");
-            return false;
-        }
-
         if (!CryptoZoo.state.animals[type]) {
             CryptoZoo.state.animals[type] = { count: 0, level: 1 };
         }
 
         const animal = CryptoZoo.state.animals[type];
-        const currentCount = Math.max(0, Number(animal.count) || 0);
 
-        if (currentCount <= 0) {
-            animal.count = 0;
-            animal.level = 1;
-        } else {
-            animal.level = Math.max(1, Number(animal.level) || 1);
+        const maxOwned = CryptoZoo.config?.limits?.maxOwnedPerAnimal || 999999;
+
+        // 🔒 MAX OWNED
+        if (animal.count >= maxOwned) {
+            CryptoZoo.ui?.showToast?.("Osiągnięto limit zwierząt");
+            return false;
+        }
+
+        const buyCost = Math.max(0, Number(config.buyCost) || 0);
+
+        if ((Number(CryptoZoo.state?.coins) || 0) < buyCost) {
+            CryptoZoo.ui?.showToast?.("Za mało coins");
+            return false;
         }
 
         CryptoZoo.state.coins = Math.max(
@@ -69,25 +69,15 @@ CryptoZoo.animalsSystem = {
         const level = Math.max(1, Number(animal.level) || 1);
         const count = Math.max(0, Number(animal.count) || 0);
 
-        let growth = 1.18;
+        // 🔥 poprawiony balans (bardziej smooth)
+        const levelMultiplier = Math.pow(1.45, level - 1);
 
-        if (buyCost >= 1000) growth = 1.185;
-        if (buyCost >= 10000) growth = 1.19;
-        if (buyCost >= 100000) growth = 1.195;
-        if (buyCost >= 1000000) growth = 1.20;
+        const ownershipDiscount =
+            count >= 50 ? 0.90 :
+            count >= 25 ? 0.94 :
+            count >= 10 ? 0.97 : 1;
 
-        if (level >= 10) growth += 0.005;
-        if (level >= 25) growth += 0.005;
-        if (level >= 50) growth += 0.005;
-
-        let ownershipDiscount = 1;
-        if (count >= 5) ownershipDiscount = 0.98;
-        if (count >= 10) ownershipDiscount = 0.95;
-        if (count >= 25) ownershipDiscount = 0.92;
-        if (count >= 50) ownershipDiscount = 0.90;
-
-        const baseUpgradeCost = buyCost * 0.35;
-        const rawCost = baseUpgradeCost * Math.pow(growth, level - 1) * ownershipDiscount;
+        const rawCost = buyCost * 0.8 * levelMultiplier * ownershipDiscount;
 
         return Math.max(1, Math.floor(rawCost));
     },
@@ -103,7 +93,13 @@ CryptoZoo.animalsSystem = {
             return false;
         }
 
-        animal.level = Math.max(1, Number(animal.level) || 1);
+        const maxLevel = CryptoZoo.config?.limits?.maxLevelPerAnimal || 999999;
+
+        // 🔒 LEVEL CAP
+        if (animal.level >= maxLevel) {
+            CryptoZoo.ui?.showToast?.("Max level osiągnięty");
+            return false;
+        }
 
         const cost = this.getUpgradeCost(type);
 
@@ -117,7 +113,7 @@ CryptoZoo.animalsSystem = {
             (Number(CryptoZoo.state.coins) || 0) - cost
         );
 
-        animal.level += 1;
+        animal.level = Math.max(1, Number(animal.level) || 1) + 1;
 
         CryptoZoo.gameplay?.persistAndRender?.();
         CryptoZoo.ui?.showToast?.(`Ulepszono ${config.name}`);
