@@ -171,13 +171,13 @@ CryptoZoo.expeditions = {
     getEffectiveRareChance(expedition) {
         const baseRareChance = Math.max(0, Number(expedition?.rareChance) || 0);
         const bonus = this.getRareChanceBonus();
-        return Math.min(0.95, baseRareChance + bonus);
+        return Math.min(0.80, baseRareChance + bonus);
     },
 
     getEffectiveEpicChance(expedition) {
         const baseEpicChance = Math.max(0, Number(expedition?.epicChance) || 0);
         const bonus = this.getEpicChanceBonus();
-        return Math.min(0.90, baseEpicChance + bonus);
+        return Math.min(0.35, baseEpicChance + bonus);
     },
 
     getEffectiveGemChance(expedition, rewardRarity = "common") {
@@ -185,10 +185,10 @@ CryptoZoo.expeditions = {
 
         let chance = baseGemChance;
 
-        if (rewardRarity === "rare") chance += 0.05;
-        if (rewardRarity === "epic") chance += 0.12;
+        if (rewardRarity === "rare") chance += 0.03;
+        if (rewardRarity === "epic") chance += 0.08;
 
-        return Math.min(0.35, chance);
+        return Math.min(0.22, chance);
     },
 
     rollRewardRarity(expedition) {
@@ -213,18 +213,22 @@ CryptoZoo.expeditions = {
 
         const hours = durationSeconds / 3600;
 
-        let base = 0.012 + hours * 0.018;
+        // FINAL DONE BALANCE:
+        // Free player ma dojść do 3 reward mniej więcej w 20–30 dni
+        // przy daily + memory + expeditions razem.
+        let base = 0.004 + hours * 0.0105;
 
         const rarity = String(expedition.rewardRarity || "common");
         let rarityMultiplier = 1;
 
-        if (rarity === "rare") rarityMultiplier = 1.5;
-        if (rarity === "epic") rarityMultiplier = 2.2;
+        if (rarity === "rare") rarityMultiplier = 1.45;
+        if (rarity === "epic") rarityMultiplier = 2.1;
 
         const boostMultiplier = this.getExpeditionBoostMultiplier();
 
         let reward = base * rarityMultiplier * boostMultiplier;
-        reward = Math.min(reward, 1.35);
+
+        reward = Math.min(reward, 0.95);
 
         return Number(reward.toFixed(3));
     },
@@ -234,8 +238,8 @@ CryptoZoo.expeditions = {
         const boostMultiplier = this.getExpeditionBoostMultiplier();
 
         let rarityMultiplier = 1;
-        if (rewardRarity === "rare") rarityMultiplier = 1.4;
-        if (rewardRarity === "epic") rarityMultiplier = 2.0;
+        if (rewardRarity === "rare") rarityMultiplier = 1.35;
+        if (rewardRarity === "epic") rarityMultiplier = 1.95;
 
         return Math.floor(baseCoins * rarityMultiplier * boostMultiplier);
     },
@@ -247,8 +251,10 @@ CryptoZoo.expeditions = {
             return 0;
         }
 
-        if (rewardRarity === "epic") return 2;
-        if (rewardRarity === "rare") return 1;
+        if (rewardRarity === "epic") {
+            return Math.random() < 0.30 ? 2 : 1;
+        }
+
         return 1;
     },
 
@@ -350,7 +356,9 @@ CryptoZoo.expeditions = {
         CryptoZoo.audio?.play?.("click");
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
-        CryptoZoo.ui?.showToast?.(`⏩ Skrócono o ${CryptoZoo.ui?.formatDurationLabel?.(reductionSeconds) || `${reductionSeconds}s`}`);
+        CryptoZoo.ui?.showToast?.(
+            `⏩ Skrócono o ${CryptoZoo.ui?.formatDurationLabel?.(reductionSeconds) || `${reductionSeconds}s`}`
+        );
 
         return true;
     },
