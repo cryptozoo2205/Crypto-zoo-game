@@ -52,6 +52,15 @@ CryptoZoo.uiSettings = {
         CryptoZoo.settings = CryptoZoo.settings || {};
         CryptoZoo.settings.language = safeSettings.language;
         CryptoZoo.settings.sound = safeSettings.sound;
+
+        if (CryptoZoo.lang) {
+            CryptoZoo.lang.current = safeSettings.language;
+            try {
+                localStorage.setItem("cz_lang", safeSettings.language);
+            } catch (error) {
+                console.error("Language storage sync error:", error);
+            }
+        }
     },
 
     syncAudioWithSettings(settings) {
@@ -70,7 +79,21 @@ CryptoZoo.uiSettings = {
     },
 
     initSettings() {
+        if (CryptoZoo.lang?.init) {
+            CryptoZoo.lang.init();
+        }
+
         const settings = this.getSettings();
+
+        if (CryptoZoo.lang) {
+            CryptoZoo.lang.current = settings.language;
+            try {
+                localStorage.setItem("cz_lang", settings.language);
+            } catch (error) {
+                console.error("Language init sync error:", error);
+            }
+        }
+
         this.applySettings(settings);
         this.syncAudioWithSettings(settings);
         this.refreshSettingsModalData();
@@ -107,6 +130,13 @@ CryptoZoo.uiSettings = {
         };
 
         const saved = this.saveSettings(next);
+
+        if (CryptoZoo.lang?.set) {
+            CryptoZoo.lang.set(saved.language);
+        } else {
+            this.applySettings(saved);
+        }
+
         this.applySettings(saved);
         this.refreshSettingsModalData();
         this.renderExtraPanels();
@@ -114,6 +144,10 @@ CryptoZoo.uiSettings = {
         CryptoZoo.ui?.showToast?.(
             saved.language === "en" ? "Language: English" : "Język: Polski"
         );
+
+        CryptoZoo.ui?.render?.();
+        CryptoZoo.uiProfile?.refreshProfileModalData?.();
+        CryptoZoo.uiSettings?.refreshSettingsModalData?.();
     },
 
     toggleSound() {
