@@ -21,31 +21,41 @@ CryptoZoo.dailyMissions = {
         CryptoZoo.state.dailyMissions.dayKey = String(CryptoZoo.state.dailyMissions.dayKey || "");
         CryptoZoo.state.dailyMissions.claimedCount = Math.max(
             0,
-            Number(CryptoZoo.state.dailyMissions.claimedCount) || 0
+            Math.floor(Number(CryptoZoo.state.dailyMissions.claimedCount) || 0)
         );
 
         if (!Array.isArray(CryptoZoo.state.dailyMissions.missions)) {
             CryptoZoo.state.dailyMissions.missions = [];
         }
 
-        CryptoZoo.state.dailyMissions.missions = CryptoZoo.state.dailyMissions.missions.map((mission) => {
-            const normalized = {
-                id: String(mission?.id || ""),
-                type: String(mission?.type || ""),
-                target: Math.max(1, Number(mission?.target) || 1),
-                progress: Math.max(0, Number(mission?.progress) || 0),
-                title: String(mission?.title || "Misja"),
-                rewardCoins: Math.max(0, Number(mission?.rewardCoins) || 0),
-                rewardGems: Math.max(0, Number(mission?.rewardGems) || 0),
-                claimed: !!mission?.claimed
-            };
+        CryptoZoo.state.dailyMissions.missions = CryptoZoo.state.dailyMissions.missions
+            .map((mission) => {
+                const normalized = {
+                    id: String(mission?.id || ""),
+                    type: String(mission?.type || ""),
+                    target: Math.max(1, Math.floor(Number(mission?.target) || 1)),
+                    progress: Math.max(0, Number(mission?.progress) || 0),
+                    title: String(mission?.title || "Misja"),
+                    rewardCoins: Math.max(0, Number(mission?.rewardCoins) || 0),
+                    rewardGems: Math.max(0, Number(mission?.rewardGems) || 0),
+                    claimed: !!mission?.claimed
+                };
 
-            if (normalized.progress > normalized.target) {
-                normalized.progress = normalized.target;
-            }
+                if (
+                    normalized.type !== "tap" &&
+                    normalized.type !== "spendCoins" &&
+                    normalized.type !== "startExpedition"
+                ) {
+                    return null;
+                }
 
-            return normalized;
-        });
+                if (normalized.progress > normalized.target) {
+                    normalized.progress = normalized.target;
+                }
+
+                return normalized;
+            })
+            .filter(Boolean);
     },
 
     getTodayKey() {
@@ -153,14 +163,6 @@ CryptoZoo.dailyMissions = {
                 title: "Uruchom 2 ekspedycje",
                 rewardCoins: 900,
                 rewardGems: 1
-            },
-            {
-                id: "spin_1",
-                type: "spinWheel",
-                target: 1,
-                title: "Zakręć kołem 1 raz",
-                rewardCoins: 220,
-                rewardGems: 0
             }
         ];
     },
@@ -169,7 +171,7 @@ CryptoZoo.dailyMissions = {
         return {
             id: String(template.id || ""),
             type: String(template.type || ""),
-            target: Math.max(1, Number(template.target) || 1),
+            target: Math.max(1, Math.floor(Number(template.target) || 1)),
             progress: 0,
             title: String(template.title || "Misja"),
             rewardCoins: Math.max(0, Number(template.rewardCoins) || 0),
@@ -332,10 +334,6 @@ CryptoZoo.dailyMissions = {
 
     recordStartExpedition(count = 1) {
         return this.addProgress("startExpedition", count);
-    },
-
-    recordSpinWheel(count = 1) {
-        return this.addProgress("spinWheel", count);
     },
 
     claimMission(missionId) {
