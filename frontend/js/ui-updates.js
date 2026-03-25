@@ -1,16 +1,20 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.uiUpdates = {
+    t(key, fallback) {
+        return CryptoZoo.lang?.t?.(key) || fallback || key;
+    },
+
     getUpdates() {
         return [
-            "🐾 Daily Missions (zadania dzienne)",
-            "🏆 System osiągnięć",
-            "🎉 Eventy tygodniowe",
-            "💎 Nowe boosty i ulepszenia",
-            "📈 Lepszy balans economy",
-            "🤝 System poleceń (referral)",
-            "🏦 Withdraw system upgrade",
-            "🎁 Monthly reward system"
+            this.t("updateDailyMissions", "🐾 Daily Missions (zadania dzienne)"),
+            this.t("updateAchievements", "🏆 System osiągnięć"),
+            this.t("updateWeeklyEvents", "🎉 Eventy tygodniowe"),
+            this.t("updateNewBoosts", "💎 Nowe boosty i ulepszenia"),
+            this.t("updateBetterEconomy", "📈 Lepszy balans economy"),
+            this.t("updateReferral", "🤝 System poleceń (referral)"),
+            this.t("updateWithdrawUpgrade", "🏦 Withdraw system upgrade"),
+            this.t("updateMonthlyReward", "🎁 Monthly reward system")
         ];
     },
 
@@ -23,7 +27,7 @@ CryptoZoo.uiUpdates = {
         container.innerHTML = `
             <div class="profile-boost-row" style="margin-top:14px;">
                 <div class="profile-boost-left" style="width:100%;">
-                    <div class="profile-boost-label">🚀 Wkrótce</div>
+                    <div class="profile-boost-label">${this.t("comingSoon", "🚀 Wkrótce")}</div>
 
                     <div style="
                         margin-top:10px;
@@ -34,7 +38,7 @@ CryptoZoo.uiUpdates = {
                         color:rgba(255,255,255,0.8);
                         font-weight:700;
                     ">
-                        ${updates.map(u => `<div>• ${u}</div>`).join("")}
+                        ${updates.map((u) => `<div>• ${u}</div>`).join("")}
                     </div>
                 </div>
             </div>
