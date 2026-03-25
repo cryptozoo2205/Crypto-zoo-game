@@ -180,6 +180,17 @@ CryptoZoo.expeditions = {
         return Math.min(0.90, baseEpicChance + bonus);
     },
 
+    getEffectiveGemChance(expedition, rewardRarity = "common") {
+        const baseGemChance = Math.max(0, Number(expedition?.gemChance) || 0);
+
+        let chance = baseGemChance;
+
+        if (rewardRarity === "rare") chance += 0.05;
+        if (rewardRarity === "epic") chance += 0.12;
+
+        return Math.min(0.35, chance);
+    },
+
     rollRewardRarity(expedition) {
         const epicChance = this.getEffectiveEpicChance(expedition);
         const rareChance = this.getEffectiveRareChance(expedition);
@@ -193,10 +204,6 @@ CryptoZoo.expeditions = {
     getRewardBalanceAmount(expedition) {
         if (!expedition) return 0;
 
-        // 🔥 WAŻNE:
-        // Reward Wallet liczymy z bazowego czasu ekspedycji,
-        // a nie z czasu po skróceniu. Time boost ma oszczędzać czas,
-        // a nie ucinać reward.
         const durationSeconds = Math.max(
             60,
             Number(expedition.baseDuration) ||
@@ -206,9 +213,6 @@ CryptoZoo.expeditions = {
 
         const hours = durationSeconds / 3600;
 
-        // Smooth balance:
-        // 5m ≈ mały reward
-        // 24h ≈ wyraźnie większy, ale bez martwego capa
         let base = 0.012 + hours * 0.018;
 
         const rarity = String(expedition.rewardRarity || "common");
@@ -220,7 +224,6 @@ CryptoZoo.expeditions = {
         const boostMultiplier = this.getExpeditionBoostMultiplier();
 
         let reward = base * rarityMultiplier * boostMultiplier;
-
         reward = Math.min(reward, 1.35);
 
         return Number(reward.toFixed(3));
@@ -238,9 +241,15 @@ CryptoZoo.expeditions = {
     },
 
     getGemsReward(expeditionConfig, rewardRarity) {
-        const baseGems = Math.max(0, Number(expeditionConfig?.baseGems) || 0);
+        const chance = this.getEffectiveGemChance(expeditionConfig, rewardRarity);
 
-        return baseGems;
+        if (Math.random() >= chance) {
+            return 0;
+        }
+
+        if (rewardRarity === "epic") return 2;
+        if (rewardRarity === "rare") return 1;
+        return 1;
     },
 
     buildActiveExpedition(expeditionConfig) {
@@ -291,7 +300,7 @@ CryptoZoo.expeditions = {
         CryptoZoo.audio?.play?.("click");
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
-        CryptoZoo.ui?.showToast?.(`🌍 Start: ${expeditionConfig.name}`);
+        CryptoZoo.ui?.showToast?.(`🌍 Start: ${expeditionConfig.namePl || expeditionConfig.name}`);
 
         return true;
     },
