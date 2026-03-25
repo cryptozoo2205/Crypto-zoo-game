@@ -193,35 +193,35 @@ CryptoZoo.expeditions = {
     getRewardBalanceAmount(expedition) {
         if (!expedition) return 0;
 
-        const durationMs = Math.max(
-            0,
-            Number(expedition.endTime || 0) - Number(expedition.startTime || 0)
-        );
-
+        // 🔥 WAŻNE:
+        // Reward Wallet liczymy z bazowego czasu ekspedycji,
+        // a nie z czasu po skróceniu. Time boost ma oszczędzać czas,
+        // a nie ucinać reward.
         const durationSeconds = Math.max(
             60,
-            Math.floor(
-                durationMs > 0
-                    ? durationMs / 1000
-                    : Number(expedition.duration) || 0
-            )
+            Number(expedition.baseDuration) ||
+            Number(expedition.duration) ||
+            60
         );
 
         const hours = durationSeconds / 3600;
 
-        let base = 0.015 + hours * 0.045;
+        // Smooth balance:
+        // 5m ≈ mały reward
+        // 24h ≈ wyraźnie większy, ale bez martwego capa
+        let base = 0.012 + hours * 0.018;
 
         const rarity = String(expedition.rewardRarity || "common");
         let rarityMultiplier = 1;
 
-        if (rarity === "rare") rarityMultiplier = 1.6;
-        if (rarity === "epic") rarityMultiplier = 2.6;
+        if (rarity === "rare") rarityMultiplier = 1.5;
+        if (rarity === "epic") rarityMultiplier = 2.2;
 
         const boostMultiplier = this.getExpeditionBoostMultiplier();
 
         let reward = base * rarityMultiplier * boostMultiplier;
 
-        reward = Math.min(reward, 1.25);
+        reward = Math.min(reward, 1.35);
 
         return Number(reward.toFixed(3));
     },
