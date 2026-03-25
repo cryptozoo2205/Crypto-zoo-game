@@ -126,6 +126,7 @@ CryptoZoo.config = {
             duration: 300,
             baseCoins: 300,
             baseGems: 0,
+            gemChance: 0.03,
             rareChance: 0.16,
             epicChance: 0.03,
             unlockLevel: 1
@@ -138,6 +139,7 @@ CryptoZoo.config = {
             duration: 900,
             baseCoins: 850,
             baseGems: 0,
+            gemChance: 0.04,
             rareChance: 0.18,
             epicChance: 0.04,
             unlockLevel: 3
@@ -149,7 +151,8 @@ CryptoZoo.config = {
             nameEn: "Golden Volcano",
             duration: 1800,
             baseCoins: 1800,
-            baseGems: 1,
+            baseGems: 0,
+            gemChance: 0.05,
             rareChance: 0.20,
             epicChance: 0.05,
             unlockLevel: 5
@@ -161,7 +164,8 @@ CryptoZoo.config = {
             nameEn: "Sunstone Canyon",
             duration: 3600,
             baseCoins: 4200,
-            baseGems: 1,
+            baseGems: 0,
+            gemChance: 0.06,
             rareChance: 0.21,
             epicChance: 0.05,
             unlockLevel: 7
@@ -173,7 +177,8 @@ CryptoZoo.config = {
             nameEn: "Frozen Glacier",
             duration: 7200,
             baseCoins: 9500,
-            baseGems: 1,
+            baseGems: 0,
+            gemChance: 0.08,
             rareChance: 0.23,
             epicChance: 0.06,
             unlockLevel: 10
@@ -185,7 +190,8 @@ CryptoZoo.config = {
             nameEn: "Emerald Jungle",
             duration: 14400,
             baseCoins: 21000,
-            baseGems: 2,
+            baseGems: 0,
+            gemChance: 0.10,
             rareChance: 0.24,
             epicChance: 0.07,
             unlockLevel: 14
@@ -197,7 +203,8 @@ CryptoZoo.config = {
             nameEn: "Ancient Temple",
             duration: 28800,
             baseCoins: 46000,
-            baseGems: 2,
+            baseGems: 0,
+            gemChance: 0.12,
             rareChance: 0.26,
             epicChance: 0.08,
             unlockLevel: 18
@@ -209,7 +216,8 @@ CryptoZoo.config = {
             nameEn: "Royal Oasis",
             duration: 43200,
             baseCoins: 76000,
-            baseGems: 3,
+            baseGems: 0,
+            gemChance: 0.14,
             rareChance: 0.27,
             epicChance: 0.08,
             unlockLevel: 22
@@ -221,7 +229,8 @@ CryptoZoo.config = {
             nameEn: "Lost Beast Kingdom",
             duration: 86400,
             baseCoins: 175000,
-            baseGems: 4,
+            baseGems: 0,
+            gemChance: 0.16,
             rareChance: 0.29,
             epicChance: 0.09,
             unlockLevel: 28
@@ -317,9 +326,9 @@ CryptoZoo.config = {
             name: "Better Expedition Gear",
             namePl: "Lepszy Ekwipunek Ekspedycji",
             nameEn: "Better Expedition Gear",
-            desc: "Zwiększa reward z każdej ekspedycji",
-            descPl: "Zwiększa reward z każdej ekspedycji",
-            descEn: "Increases reward from every expedition",
+            desc: "+15% coins i reward wallet z każdej ekspedycji",
+            descPl: "+15% coins i reward wallet z każdej ekspedycji",
+            descEn: "+15% coins and reward wallet from every expedition",
             price: 28000,
             priceScale: 1.30,
             type: "expedition",
@@ -330,13 +339,14 @@ CryptoZoo.config = {
             name: "Rare Route Maps",
             namePl: "Mapy Rzadkich Tras",
             nameEn: "Rare Route Maps",
-            desc: "Mocniej zwiększa reward z każdej ekspedycji",
-            descPl: "Mocniej zwiększa reward z każdej ekspedycji",
-            descEn: "Strongly increases reward from every expedition",
+            desc: "+3% szansy na Rare i +2% szansy na Epic w ekspedycjach",
+            descPl: "+3% szansy na Rare i +2% szansy na Epic w ekspedycjach",
+            descEn: "+3% Rare chance and +2% Epic chance in expeditions",
             price: 88000,
             priceScale: 1.32,
             type: "expedition",
-            expeditionBonus: 1
+            rareChanceBonus: 0.03,
+            epicChanceBonus: 0.02
         },
         {
             id: "expeditionTime1",
@@ -389,20 +399,6 @@ CryptoZoo.config = {
             type: "offline",
             offlineMultiplier: 2,
             offlineDurationSeconds: 3600
-        },
-
-        // SPECIAL
-        {
-            id: "spin",
-            name: "Extra Spin",
-            namePl: "Dodatkowy Spin",
-            nameEn: "Extra Spin",
-            desc: "Daje 1 dodatkowy spin koła",
-            descPl: "Daje 1 dodatkowy spin koła",
-            descEn: "Gives 1 extra wheel spin",
-            effect: "extraSpin",
-            gemPrice: 1,
-            spinCount: 1
         }
     ]
 };
