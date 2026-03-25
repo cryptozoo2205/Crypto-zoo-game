@@ -1167,7 +1167,6 @@ CryptoZoo.ui = {
 
             const expeditionName = this.getLocalizedExpeditionName(exp);
 
-            container = container;
             return `
                 <div class="expedition-card">
                     <h3>${expeditionName}</h3>
