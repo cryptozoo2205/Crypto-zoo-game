@@ -8,7 +8,13 @@ CryptoZoo.uiProfile = {
     fallbackAvatarPath: "assets/ui/avatar.png",
 
     t(key, fallback) {
-        return CryptoZoo.lang?.t?.(key) || fallback || key;
+        const translated = CryptoZoo.lang?.t?.(key);
+
+        if (translated && translated !== key) {
+            return translated;
+        }
+
+        return fallback || key;
     },
 
     getTelegramPhotoUrl() {
