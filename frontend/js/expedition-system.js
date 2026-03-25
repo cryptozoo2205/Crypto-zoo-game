@@ -164,8 +164,7 @@ CryptoZoo.expeditions = {
     },
 
     getEffectiveDurationSeconds(expeditionConfig) {
-        const baseDuration = Math.max(60, Number(expeditionConfig?.duration) || 60);
-        return baseDuration;
+        return Math.max(60, Number(expeditionConfig?.duration) || 60);
     },
 
     getEffectiveRareChance(expedition) {
@@ -184,7 +183,6 @@ CryptoZoo.expeditions = {
         const baseGemChance = Math.max(0, Number(expedition?.gemChance) || 0);
 
         let chance = baseGemChance;
-
         if (rewardRarity === "rare") chance += 0.03;
         if (rewardRarity === "epic") chance += 0.08;
 
@@ -213,16 +211,16 @@ CryptoZoo.expeditions = {
 
         const hours = durationSeconds / 3600;
 
-        // FINAL DONE BALANCE:
-        // Free player ma dojść do 3 reward mniej więcej w 20–30 dni
-        // przy daily + memory + expeditions razem.
+        // FINAL ECONOMY:
+        // reward wallet liczony z bazowego czasu, nie z czasu po skróceniu
+        // żeby time boost oszczędzał czas, a nie ucinał wypłatę
         let base = 0.004 + hours * 0.0105;
 
         const rarity = String(expedition.rewardRarity || "common");
         let rarityMultiplier = 1;
 
         if (rarity === "rare") rarityMultiplier = 1.45;
-        if (rarity === "epic") rarityMultiplier = 2.1;
+        if (rarity === "epic") rarityMultiplier = 2.10;
 
         const boostMultiplier = this.getExpeditionBoostMultiplier();
 
