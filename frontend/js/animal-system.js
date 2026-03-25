@@ -60,10 +60,29 @@ CryptoZoo.animalsSystem = {
         const level = Math.max(1, Number(animal.level) || 1);
         const count = Math.max(0, Number(animal.count) || 0);
 
-        const levelMultiplier = Math.pow(1.62, level - 1);
-        const ownershipDiscount = count >= 25 ? 0.94 : count >= 10 ? 0.97 : 1;
+        // Lżejszy, grywalny scaling zamiast brutalnego 1.62^lvl
+        let growth = 1.18;
 
-        const rawCost = buyCost * 0.9 * levelMultiplier * ownershipDiscount;
+        if (buyCost >= 1000) growth = 1.185;
+        if (buyCost >= 10000) growth = 1.19;
+        if (buyCost >= 100000) growth = 1.195;
+        if (buyCost >= 1000000) growth = 1.20;
+
+        // Delikatne podbicie dopiero na wyższych poziomach
+        if (level >= 10) growth += 0.005;
+        if (level >= 25) growth += 0.005;
+        if (level >= 50) growth += 0.005;
+
+        // Im więcej sztuk masz, tym upgrade trochę przyjaźniejszy
+        let ownershipDiscount = 1;
+        if (count >= 5) ownershipDiscount = 0.98;
+        if (count >= 10) ownershipDiscount = 0.95;
+        if (count >= 25) ownershipDiscount = 0.92;
+        if (count >= 50) ownershipDiscount = 0.90;
+
+        const baseUpgradeCost = buyCost * 0.35;
+        const rawCost = baseUpgradeCost * Math.pow(growth, level - 1) * ownershipDiscount;
+
         return Math.max(1, Math.floor(rawCost));
     },
 
