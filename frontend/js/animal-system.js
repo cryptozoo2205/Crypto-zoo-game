@@ -9,67 +9,110 @@ CryptoZoo.animalsSystem = {
             const upgradeBtn = document.getElementById(`upgrade-${type}-btn`);
 
             if (buyBtn) {
-                buyBtn.onclick = () => this.buy(type);
+                buyBtn.onclick = () => {
+                    CryptoZoo.audio?.play?.("click");
+                    this.buy(type);
+                };
             }
 
             if (upgradeBtn) {
-                upgradeBtn.onclick = () => this.upgrade(type);
+                upgradeBtn.onclick = () => {
+                    CryptoZoo.audio?.play?.("click");
+                    this.upgrade(type);
+                };
             }
         });
+    },
+
+    ensureAnimalState(type) {
+        CryptoZoo.state = CryptoZoo.state || {};
+        CryptoZoo.state.animals = CryptoZoo.state.animals || {};
+
+        if (!CryptoZoo.state.animals[type] || typeof CryptoZoo.state.animals[type] !== "object") {
+            CryptoZoo.state.animals[type] = { count: 0, level: 1 };
+        }
+
+        CryptoZoo.state.animals[type].count = Math.max(
+            0,
+            Math.floor(Number(CryptoZoo.state.animals[type].count) || 0)
+        );
+
+        CryptoZoo.state.animals[type].level = Math.max(
+            1,
+            Math.floor(Number(CryptoZoo.state.animals[type].level) || 1)
+        );
+
+        return CryptoZoo.state.animals[type];
+    },
+
+    getMaxOwned() {
+        return Math.max(
+            1,
+            Math.floor(Number(CryptoZoo.config?.limits?.maxOwnedPerAnimal) || 50)
+        );
+    },
+
+    getMaxLevel() {
+        return Math.max(
+            1,
+            Math.floor(Number(CryptoZoo.config?.limits?.maxLevelPerAnimal) || 100)
+        );
+    },
+
+    getLocalizedAnimalName(type, config) {
+        return (
+            CryptoZoo.ui?.getLocalizedAnimalName?.(type, config) ||
+            config?.namePl ||
+            config?.nameEn ||
+            config?.name ||
+            String(type || "")
+        );
     },
 
     buy(type) {
         const config = CryptoZoo.config?.animals?.[type];
         if (!config) return false;
 
-        CryptoZoo.state = CryptoZoo.state || {};
-        CryptoZoo.state.animals = CryptoZoo.state.animals || {};
+        const animal = this.ensureAnimalState(type);
+        const maxOwned = this.getMaxOwned();
 
-        if (!CryptoZoo.state.animals[type]) {
-            CryptoZoo.state.animals[type] = { count: 0, level: 1 };
-        }
-
-        const animal = CryptoZoo.state.animals[type];
-
-        const maxOwned = CryptoZoo.config?.limits?.maxOwnedPerAnimal || 999999;
-
-        // 🔒 MAX OWNED
         if (animal.count >= maxOwned) {
             CryptoZoo.ui?.showToast?.("Osiągnięto limit zwierząt");
             return false;
         }
 
-        const buyCost = Math.max(0, Number(config.buyCost) || 0);
+        const buyCost = Math.max(0, Math.floor(Number(config.buyCost) || 0));
+        const currentCoins = Math.max(0, Number(CryptoZoo.state?.coins) || 0);
 
-        if ((Number(CryptoZoo.state?.coins) || 0) < buyCost) {
+        if (currentCoins < buyCost) {
             CryptoZoo.ui?.showToast?.("Za mało coins");
             return false;
         }
 
-        CryptoZoo.state.coins = Math.max(
-            0,
-            (Number(CryptoZoo.state.coins) || 0) - buyCost
-        );
+        CryptoZoo.state.coins = Math.max(0, currentCoins - buyCost);
+        animal.count = Math.min(maxOwned, animal.count + 1);
+        CryptoZoo.state.lastLogin = Date.now();
 
-        animal.count = Math.max(0, Number(animal.count) || 0) + 1;
+        CryptoZoo.dailyMissions?.recordSpendCoins?.(buyCost);
 
         CryptoZoo.gameplay?.persistAndRender?.();
-        CryptoZoo.ui?.showToast?.(`Kupiono ${config.name}`);
+
+        const animalName = this.getLocalizedAnimalName(type, config);
+        CryptoZoo.ui?.showToast?.(`Kupiono ${animalName}`);
 
         return true;
     },
 
     getUpgradeCost(type) {
         const config = CryptoZoo.config?.animals?.[type];
-        const animal = CryptoZoo.state?.animals?.[type];
+        const animal = this.ensureAnimalState(type);
 
         if (!config || !animal) return 0;
 
         const buyCost = Math.max(1, Number(config.buyCost) || 1);
-        const level = Math.max(1, Number(animal.level) || 1);
-        const count = Math.max(0, Number(animal.count) || 0);
+        const level = Math.max(1, Math.floor(Number(animal.level) || 1));
+        const count = Math.max(0, Math.floor(Number(animal.count) || 0));
 
-        // 🔥 poprawiony balans (bardziej smooth)
         const levelMultiplier = Math.pow(1.45, level - 1);
 
         const ownershipDiscount =
@@ -78,45 +121,51 @@ CryptoZoo.animalsSystem = {
             count >= 10 ? 0.97 : 1;
 
         const rawCost = buyCost * 0.8 * levelMultiplier * ownershipDiscount;
+        const safeCost = Math.floor(rawCost);
 
-        return Math.max(1, Math.floor(rawCost));
+        if (!Number.isFinite(safeCost) || safeCost < 1) {
+            return 1;
+        }
+
+        return safeCost;
     },
 
     upgrade(type) {
         const config = CryptoZoo.config?.animals?.[type];
-        const animal = CryptoZoo.state?.animals?.[type];
+        if (!config) return false;
 
-        if (!config || !animal) return false;
+        const animal = this.ensureAnimalState(type);
 
-        if ((Number(animal.count) || 0) <= 0) {
+        if (animal.count <= 0) {
             CryptoZoo.ui?.showToast?.("Najpierw kup to zwierzę");
             return false;
         }
 
-        const maxLevel = CryptoZoo.config?.limits?.maxLevelPerAnimal || 999999;
+        const maxLevel = this.getMaxLevel();
 
-        // 🔒 LEVEL CAP
         if (animal.level >= maxLevel) {
             CryptoZoo.ui?.showToast?.("Max level osiągnięty");
             return false;
         }
 
         const cost = this.getUpgradeCost(type);
+        const currentCoins = Math.max(0, Number(CryptoZoo.state?.coins) || 0);
 
-        if ((Number(CryptoZoo.state?.coins) || 0) < cost) {
+        if (currentCoins < cost) {
             CryptoZoo.ui?.showToast?.("Za mało coins");
             return false;
         }
 
-        CryptoZoo.state.coins = Math.max(
-            0,
-            (Number(CryptoZoo.state.coins) || 0) - cost
-        );
+        CryptoZoo.state.coins = Math.max(0, currentCoins - cost);
+        animal.level = Math.min(maxLevel, animal.level + 1);
+        CryptoZoo.state.lastLogin = Date.now();
 
-        animal.level = Math.max(1, Number(animal.level) || 1) + 1;
+        CryptoZoo.dailyMissions?.recordSpendCoins?.(cost);
 
         CryptoZoo.gameplay?.persistAndRender?.();
-        CryptoZoo.ui?.showToast?.(`Ulepszono ${config.name}`);
+
+        const animalName = this.getLocalizedAnimalName(type, config);
+        CryptoZoo.ui?.showToast?.(`Ulepszono ${animalName}`);
 
         return true;
     }
