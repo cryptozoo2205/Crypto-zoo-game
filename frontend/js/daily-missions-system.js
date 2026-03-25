@@ -95,7 +95,7 @@ CryptoZoo.dailyMissions = {
                 type: "tap",
                 target: 100,
                 title: "Kliknij 100 razy",
-                rewardCoins: 800,
+                rewardCoins: 180,
                 rewardGems: 0
             },
             {
@@ -103,15 +103,15 @@ CryptoZoo.dailyMissions = {
                 type: "tap",
                 target: 250,
                 title: "Kliknij 250 razy",
-                rewardCoins: 1800,
-                rewardGems: 1
+                rewardCoins: 320,
+                rewardGems: 0
             },
             {
                 id: "tap_500",
                 type: "tap",
                 target: 500,
                 title: "Kliknij 500 razy",
-                rewardCoins: 4200,
+                rewardCoins: 650,
                 rewardGems: 1
             },
             {
@@ -119,7 +119,7 @@ CryptoZoo.dailyMissions = {
                 type: "spendCoins",
                 target: 5000,
                 title: "Wydaj 5K coins",
-                rewardCoins: 1200,
+                rewardCoins: 250,
                 rewardGems: 0
             },
             {
@@ -127,23 +127,23 @@ CryptoZoo.dailyMissions = {
                 type: "spendCoins",
                 target: 25000,
                 title: "Wydaj 25K coins",
-                rewardCoins: 3500,
-                rewardGems: 1
+                rewardCoins: 700,
+                rewardGems: 0
             },
             {
                 id: "spend_100000",
                 type: "spendCoins",
                 target: 100000,
                 title: "Wydaj 100K coins",
-                rewardCoins: 12000,
-                rewardGems: 2
+                rewardCoins: 1800,
+                rewardGems: 1
             },
             {
                 id: "expedition_1",
                 type: "startExpedition",
                 target: 1,
                 title: "Uruchom 1 ekspedycję",
-                rewardCoins: 1500,
+                rewardCoins: 300,
                 rewardGems: 0
             },
             {
@@ -151,7 +151,7 @@ CryptoZoo.dailyMissions = {
                 type: "startExpedition",
                 target: 2,
                 title: "Uruchom 2 ekspedycje",
-                rewardCoins: 4500,
+                rewardCoins: 900,
                 rewardGems: 1
             },
             {
@@ -159,7 +159,7 @@ CryptoZoo.dailyMissions = {
                 type: "spinWheel",
                 target: 1,
                 title: "Zakręć kołem 1 raz",
-                rewardCoins: 1000,
+                rewardCoins: 220,
                 rewardGems: 0
             }
         ];
