@@ -7,6 +7,7 @@ CryptoZoo.lang = {
         en: {
             // GENERAL
             collect: "Collect reward",
+            collectReward: "Collect reward",
             expeditionInProgress: "Expedition in progress",
             start: "Start",
             claimed: "Claimed",
@@ -29,6 +30,10 @@ CryptoZoo.lang = {
             streak: "Streak",
             collectNow: "To collect",
             online: "● Online",
+            baseReward: "Base reward",
+            activeExpedition: "Active expedition",
+            useTimeReduction: "Use time reduction",
+            comingSoon: "🚀 Coming soon",
 
             // DAILY
             dailyReward: "Daily Reward",
@@ -154,6 +159,20 @@ CryptoZoo.lang = {
             transferReward: "Transfer Reward",
             withdrawRequest: "Withdraw Request",
 
+            // PROFILE / WITHDRAW
+            approved: "Approved",
+            rejected: "Rejected",
+            pendingStatus: "Pending",
+            loadingHistory: "Loading history...",
+            noWithdrawRequests: "No withdraw requests",
+            note: "Note",
+            withdrawHistoryLoadError: "Failed to load withdraw history",
+            noRewardToTransfer: "No Reward to transfer",
+            minWithdraw: "Min withdraw",
+            transferSuccess: "💎 Transfer",
+            creatingWithdrawRequest: "Creating withdraw request...",
+            withdrawCreateError: "Failed to create withdraw request",
+
             // SETTINGS
             settingsSubtitle: "Game settings and FAQ",
             faqHelp: "FAQ / Help",
@@ -176,12 +195,64 @@ CryptoZoo.lang = {
             offlineIncomeFor: "offline income for",
             extraSpinDesc: "Gives 1 extra wheel spin",
             resetWheelCooldown: "Resets wheel cooldown",
-            clickAndZooIncomeFor: "click and zoo income for"
+            clickAndZooIncomeFor: "click and zoo income for",
+
+            // ANIMAL NAMES
+            animalMonkey: "Monkey",
+            animalPanda: "Panda",
+            animalLion: "Lion",
+            animalTiger: "Tiger",
+            animalElephant: "Elephant",
+            animalGiraffe: "Giraffe",
+            animalZebra: "Zebra",
+            animalHippo: "Hippo",
+            animalPenguin: "Penguin",
+            animalBear: "Bear",
+            animalCrocodile: "Crocodile",
+            animalKangaroo: "Kangaroo",
+            animalWolf: "Wolf",
+
+            // SHOP ITEM NAMES
+            shopClick1: "Click Upgrade I",
+            shopClick2: "Strong Finger",
+            shopClick3: "Turbo Tap",
+            shopIncome1: "Zoo Manager",
+            shopIncome2: "Automation Crew",
+            shopIncome3: "Elite Zoo Director",
+            shopExpedition1: "Better Expedition Gear",
+            shopExpedition2: "Rare Route Maps",
+            shopExpeditionTime1: "Quick Expedition",
+            shopExpeditionTime2: "Instant Expedition",
+            shopOffline1: "Offline Boost 10m",
+            shopOffline2: "Offline Boost 1h",
+            shopSpin: "Extra Spin",
+
+            // EXPEDITION NAMES
+            expeditionForest: "Magic Forest",
+            expeditionRiver: "Crystal River",
+            expeditionVolcano: "Golden Volcano",
+            expeditionCanyon: "Sunstone Canyon",
+            expeditionGlacier: "Frozen Glacier",
+            expeditionJungle: "Emerald Jungle",
+            expeditionTemple: "Ancient Temple",
+            expeditionOasis: "Royal Oasis",
+            expeditionKingdom: "Lost Beast Kingdom",
+
+            // UPDATES
+            updateDailyMissions: "🐾 Daily Missions",
+            updateAchievements: "🏆 Achievement system",
+            updateWeeklyEvents: "🎉 Weekly events",
+            updateNewBoosts: "💎 New boosts and upgrades",
+            updateBetterEconomy: "📈 Better economy balance",
+            updateReferral: "🤝 Referral system",
+            updateWithdrawUpgrade: "🏦 Withdraw system upgrade",
+            updateMonthlyReward: "🎁 Monthly reward system"
         },
 
         pl: {
             // GENERAL
             collect: "Odbierz nagrodę",
+            collectReward: "Odbierz nagrodę",
             expeditionInProgress: "Trwa ekspedycja",
             start: "Start",
             claimed: "Odebrane",
@@ -204,6 +275,10 @@ CryptoZoo.lang = {
             streak: "Streak",
             collectNow: "Do odebrania",
             online: "● Online",
+            baseReward: "Nagroda bazowa",
+            activeExpedition: "Aktywna ekspedycja",
+            useTimeReduction: "Użyj skracania czasu",
+            comingSoon: "🚀 Wkrótce",
 
             // DAILY
             dailyReward: "Daily Reward",
@@ -329,6 +404,20 @@ CryptoZoo.lang = {
             transferReward: "Transfer Reward",
             withdrawRequest: "Withdraw Request",
 
+            // PROFILE / WITHDRAW
+            approved: "Approved",
+            rejected: "Rejected",
+            pendingStatus: "Pending",
+            loadingHistory: "Ładowanie historii...",
+            noWithdrawRequests: "Brak withdraw requestów",
+            note: "Note",
+            withdrawHistoryLoadError: "Nie udało się pobrać historii withdraw",
+            noRewardToTransfer: "Brak Reward do transferu",
+            minWithdraw: "Min withdraw",
+            transferSuccess: "💎 Transfer",
+            creatingWithdrawRequest: "Tworzenie withdraw request...",
+            withdrawCreateError: "Nie udało się utworzyć withdraw request",
+
             // SETTINGS
             settingsSubtitle: "Ustawienia gry i FAQ",
             faqHelp: "FAQ / Help",
@@ -351,7 +440,58 @@ CryptoZoo.lang = {
             offlineIncomeFor: "offline income przez",
             extraSpinDesc: "Daje 1 dodatkowy spin",
             resetWheelCooldown: "Resetuje cooldown koła",
-            clickAndZooIncomeFor: "klik i zoo income przez"
+            clickAndZooIncomeFor: "klik i zoo income przez",
+
+            // ANIMAL NAMES
+            animalMonkey: "Małpa",
+            animalPanda: "Panda",
+            animalLion: "Lew",
+            animalTiger: "Tygrys",
+            animalElephant: "Słoń",
+            animalGiraffe: "Żyrafa",
+            animalZebra: "Zebra",
+            animalHippo: "Hipopotam",
+            animalPenguin: "Pingwin",
+            animalBear: "Niedźwiedź",
+            animalCrocodile: "Krokodyl",
+            animalKangaroo: "Kangur",
+            animalWolf: "Wilk",
+
+            // SHOP ITEM NAMES
+            shopClick1: "Klik Upgrade I",
+            shopClick2: "Silny Palec",
+            shopClick3: "Turbo Tap",
+            shopIncome1: "Manager Zoo",
+            shopIncome2: "Ekipa Automatyzacji",
+            shopIncome3: "Elitarny Dyrektor Zoo",
+            shopExpedition1: "Lepszy Sprzęt Ekspedycji",
+            shopExpedition2: "Mapy Rzadkich Tras",
+            shopExpeditionTime1: "Szybka Ekspedycja",
+            shopExpeditionTime2: "Natychmiastowa Ekspedycja",
+            shopOffline1: "Boost Offline 10m",
+            shopOffline2: "Boost Offline 1h",
+            shopSpin: "Dodatkowy Spin",
+
+            // EXPEDITION NAMES
+            expeditionForest: "Magiczny Las",
+            expeditionRiver: "Kryształowa Rzeka",
+            expeditionVolcano: "Złoty Wulkan",
+            expeditionCanyon: "Kanion Słonecznego Kamienia",
+            expeditionGlacier: "Mroźny Lodowiec",
+            expeditionJungle: "Szmaragdowa Dżungla",
+            expeditionTemple: "Starożytna Świątynia",
+            expeditionOasis: "Królewska Oaza",
+            expeditionKingdom: "Zaginione Królestwo Bestii",
+
+            // UPDATES
+            updateDailyMissions: "🐾 Daily Missions (zadania dzienne)",
+            updateAchievements: "🏆 System osiągnięć",
+            updateWeeklyEvents: "🎉 Eventy tygodniowe",
+            updateNewBoosts: "💎 Nowe boosty i ulepszenia",
+            updateBetterEconomy: "📈 Lepszy balans economy",
+            updateReferral: "🤝 System poleceń (referral)",
+            updateWithdrawUpgrade: "🏦 Withdraw system upgrade",
+            updateMonthlyReward: "🎁 Monthly reward system"
         }
     },
 
@@ -474,7 +614,7 @@ CryptoZoo.lang = {
         this.setText("closeDailyRewardBtn", "close");
 
         const topStatus = document.getElementById("topPlayerStatus");
-        if (topStatus && topStatus.textContent.trim() === "● Online") {
+        if (topStatus) {
             topStatus.textContent = this.t("online");
         }
     },
@@ -501,5 +641,6 @@ CryptoZoo.lang = {
         CryptoZoo.ui?.render?.();
         CryptoZoo.uiProfile?.refreshProfileModalData?.();
         CryptoZoo.uiSettings?.refreshSettingsModalData?.();
+        CryptoZoo.uiUpdates?.render?.();
     }
 };
