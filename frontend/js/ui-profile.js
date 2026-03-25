@@ -7,6 +7,10 @@ CryptoZoo.uiProfile = {
     withdrawHistoryLoading: false,
     fallbackAvatarPath: "assets/ui/avatar.png",
 
+    t(key, fallback) {
+        return CryptoZoo.lang?.t?.(key) || fallback || key;
+    },
+
     getTelegramPhotoUrl() {
         const tgUser =
             window.Telegram &&
@@ -89,11 +93,11 @@ CryptoZoo.uiProfile = {
 
     getBoostStatusText() {
         const isActive = CryptoZoo.boostSystem?.isActive?.() || false;
-        if (!isActive) return "Nieaktywny";
+        if (!isActive) return this.t("inactive", "Nieaktywny");
 
         const left = CryptoZoo.boostSystem?.getTimeLeft?.() || 0;
         const formatted = CryptoZoo.ui?.formatTimeLeft?.(left) || "00:00:00";
-        return `Aktywny • ${formatted}`;
+        return `${this.t("active", "Aktywny")} • ${formatted}`;
     },
 
     getRewardBalanceValue() {
@@ -133,9 +137,9 @@ CryptoZoo.uiProfile = {
     getStatusLabel(status) {
         const safe = String(status || "").toLowerCase();
 
-        if (safe === "approved") return "Approved";
-        if (safe === "rejected") return "Rejected";
-        return "Pending";
+        if (safe === "approved") return this.t("approved", "Approved");
+        if (safe === "rejected") return this.t("rejected", "Rejected");
+        return this.t("pendingStatus", "Pending");
     },
 
     getStatusStyle(status) {
@@ -179,7 +183,7 @@ CryptoZoo.uiProfile = {
                     font-size:13px;
                     text-align:center;
                 ">
-                    Ładowanie historii...
+                    ${this.t("loadingHistory", "Ładowanie historii...")}
                 </div>
             `;
             return;
@@ -196,7 +200,7 @@ CryptoZoo.uiProfile = {
                     font-size:13px;
                     text-align:center;
                 ">
-                    Brak withdraw requestów
+                    ${this.t("noWithdrawRequests", "Brak withdraw requestów")}
                 </div>
             `;
             return;
@@ -228,7 +232,7 @@ CryptoZoo.uiProfile = {
                             font-weight:900;
                             color:#ffffff;
                         ">
-                            ${amount} reward
+                            ${amount} ${this.t("rewardWord", "reward")}
                         </div>
 
                         <div style="
@@ -259,7 +263,7 @@ CryptoZoo.uiProfile = {
                             line-height:1.45;
                             font-weight:700;
                         ">
-                            Note: ${note}
+                            ${this.t("note", "Note")}: ${note}
                         </div>
                     ` : ""}
                 </div>
@@ -280,7 +284,7 @@ CryptoZoo.uiProfile = {
         } catch (error) {
             console.error("Withdraw history load error:", error);
             this.withdrawHistory = [];
-            CryptoZoo.ui?.showToast?.("Nie udało się pobrać historii withdraw");
+            CryptoZoo.ui?.showToast?.(this.t("withdrawHistoryLoadError", "Nie udało się pobrać historii withdraw"));
         }
 
         this.withdrawHistoryLoading = false;
@@ -297,7 +301,7 @@ CryptoZoo.uiProfile = {
         }
 
         if (statusEl) {
-            statusEl.textContent = "● Online";
+            statusEl.textContent = this.t("online", "● Online");
         }
 
         if (avatarEl) {
@@ -384,8 +388,8 @@ CryptoZoo.uiProfile = {
             transferBtn.style.opacity = availableReward > 0 ? "1" : "0.6";
             transferBtn.textContent =
                 availableReward > 0
-                    ? `Transfer Reward (${availableReward.toFixed(3)})`
-                    : "Brak Reward do transferu";
+                    ? `${this.t("transferReward", "Transfer Reward")} (${availableReward.toFixed(3)})`
+                    : this.t("noRewardToTransfer", "Brak Reward do transferu");
         }
 
         if (withdrawBtn) {
@@ -394,8 +398,8 @@ CryptoZoo.uiProfile = {
             withdrawBtn.disabled = !canWithdraw;
             withdrawBtn.style.opacity = canWithdraw ? "1" : "0.6";
             withdrawBtn.textContent = canWithdraw
-                ? `Withdraw Request (${walletReward.toFixed(3)})`
-                : `Min withdraw ${this.minWithdrawReward.toFixed(3)}`;
+                ? `${this.t("withdrawRequest", "Withdraw Request")} (${walletReward.toFixed(3)})`
+                : `${this.t("minWithdraw", "Min withdraw")} ${this.minWithdrawReward.toFixed(3)}`;
         }
 
         if (profileAvatar) {
@@ -444,7 +448,7 @@ CryptoZoo.uiProfile = {
         const rewardBalance = this.getRewardBalanceValue();
 
         if (rewardBalance <= 0) {
-            CryptoZoo.ui?.showToast?.("Brak Reward do transferu");
+            CryptoZoo.ui?.showToast?.(this.t("noRewardToTransfer", "Brak Reward do transferu"));
             this.refreshProfileModalData();
             return false;
         }
@@ -460,7 +464,7 @@ CryptoZoo.uiProfile = {
         CryptoZoo.ui?.render?.();
         await CryptoZoo.api?.savePlayer?.();
 
-        CryptoZoo.ui?.showToast?.(`💎 Transfer +${rewardBalance.toFixed(3)} reward`);
+        CryptoZoo.ui?.showToast?.(`💎 ${this.t("transferSuccess", "Transfer")} +${rewardBalance.toFixed(3)} ${this.t("rewardWord", "reward")}`);
         return true;
     },
 
@@ -469,14 +473,14 @@ CryptoZoo.uiProfile = {
 
         if (walletReward < this.minWithdrawReward) {
             CryptoZoo.ui?.showToast?.(
-                `Min withdraw ${this.minWithdrawReward.toFixed(3)} reward`
+                `${this.t("minWithdraw", "Min withdraw")} ${this.minWithdrawReward.toFixed(3)} ${this.t("rewardWord", "reward")}`
             );
             this.refreshProfileModalData();
             return false;
         }
 
         try {
-            CryptoZoo.ui?.showToast?.("Tworzenie withdraw request...");
+            CryptoZoo.ui?.showToast?.(this.t("creatingWithdrawRequest", "Tworzenie withdraw request..."));
 
             await CryptoZoo.api?.createWithdrawRequest?.(walletReward);
 
@@ -486,14 +490,14 @@ CryptoZoo.uiProfile = {
             await this.loadWithdrawHistory();
 
             CryptoZoo.ui?.showToast?.(
-                `📤 Withdraw request +${walletReward.toFixed(3)} reward`
+                `📤 ${this.t("withdrawRequest", "Withdraw Request")} +${walletReward.toFixed(3)} ${this.t("rewardWord", "reward")}`
             );
 
             return true;
         } catch (error) {
             console.error("Withdraw request error:", error);
             CryptoZoo.ui?.showToast?.(
-                error?.message || "Nie udało się utworzyć withdraw request"
+                error?.message || this.t("withdrawCreateError", "Nie udało się utworzyć withdraw request")
             );
             this.refreshProfileModalData();
             return false;
