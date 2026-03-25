@@ -1,12 +1,13 @@
-window.CryptoZoo = window.CryptoZoo || {}
-
+window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.config = {
     apiBase: "/api",
-limits: {
-    maxOwnedPerAnimal: 50,
-    maxLevelPerAnimal: 100
-},
+
+    limits: {
+        maxOwnedPerAnimal: 50,
+        maxLevelPerAnimal: 100
+    },
+
     clickValue: 1,
 
     animals: {
@@ -123,7 +124,7 @@ limits: {
             namePl: "Magiczny Las",
             nameEn: "Magic Forest",
             duration: 300,
-            baseCoins: 450,
+            baseCoins: 300,
             baseGems: 0,
             rareChance: 0.16,
             epicChance: 0.03,
@@ -135,7 +136,7 @@ limits: {
             namePl: "Kryształowa Rzeka",
             nameEn: "Crystal River",
             duration: 900,
-            baseCoins: 1200,
+            baseCoins: 850,
             baseGems: 0,
             rareChance: 0.18,
             epicChance: 0.04,
@@ -147,7 +148,7 @@ limits: {
             namePl: "Złoty Wulkan",
             nameEn: "Golden Volcano",
             duration: 1800,
-            baseCoins: 2800,
+            baseCoins: 1800,
             baseGems: 1,
             rareChance: 0.20,
             epicChance: 0.05,
@@ -159,7 +160,7 @@ limits: {
             namePl: "Kanion Słonecznego Kamienia",
             nameEn: "Sunstone Canyon",
             duration: 3600,
-            baseCoins: 6500,
+            baseCoins: 4200,
             baseGems: 1,
             rareChance: 0.21,
             epicChance: 0.05,
@@ -171,7 +172,7 @@ limits: {
             namePl: "Zamarznięty Lodowiec",
             nameEn: "Frozen Glacier",
             duration: 7200,
-            baseCoins: 15000,
+            baseCoins: 9500,
             baseGems: 1,
             rareChance: 0.23,
             epicChance: 0.06,
@@ -183,7 +184,7 @@ limits: {
             namePl: "Szmaragdowa Dżungla",
             nameEn: "Emerald Jungle",
             duration: 14400,
-            baseCoins: 32000,
+            baseCoins: 21000,
             baseGems: 2,
             rareChance: 0.24,
             epicChance: 0.07,
@@ -195,7 +196,7 @@ limits: {
             namePl: "Starożytna Świątynia",
             nameEn: "Ancient Temple",
             duration: 28800,
-            baseCoins: 70000,
+            baseCoins: 46000,
             baseGems: 2,
             rareChance: 0.26,
             epicChance: 0.08,
@@ -207,7 +208,7 @@ limits: {
             namePl: "Królewska Oaza",
             nameEn: "Royal Oasis",
             duration: 43200,
-            baseCoins: 115000,
+            baseCoins: 76000,
             baseGems: 3,
             rareChance: 0.27,
             epicChance: 0.08,
@@ -219,7 +220,7 @@ limits: {
             namePl: "Zaginione Królestwo Bestii",
             nameEn: "Lost Beast Kingdom",
             duration: 86400,
-            baseCoins: 260000,
+            baseCoins: 175000,
             baseGems: 4,
             rareChance: 0.29,
             epicChance: 0.09,
@@ -234,39 +235,39 @@ limits: {
             name: "Click Upgrade I",
             namePl: "Ulepszenie Kliku I",
             nameEn: "Click Upgrade I",
-            desc: "+1 coin do każdego kliknięcia",
-            descPl: "+1 coin do każdego kliknięcia",
-            descEn: "+1 coin to every click",
-            price: 2500,
-            priceScale: 1.25,
+            desc: "+2 coin do każdego kliknięcia",
+            descPl: "+2 coin do każdego kliknięcia",
+            descEn: "+2 coins to every click",
+            price: 1800,
+            priceScale: 1.24,
             type: "click",
-            clickValueBonus: 1
+            clickValueBonus: 2
         },
         {
             id: "click2",
             name: "Strong Finger",
             namePl: "Silny Palec",
             nameEn: "Strong Finger",
-            desc: "+3 coins do każdego kliknięcia",
-            descPl: "+3 coins do każdego kliknięcia",
-            descEn: "+3 coins to every click",
-            price: 16000,
-            priceScale: 1.27,
+            desc: "+5 coins do każdego kliknięcia",
+            descPl: "+5 coins do każdego kliknięcia",
+            descEn: "+5 coins to every click",
+            price: 9500,
+            priceScale: 1.26,
             type: "click",
-            clickValueBonus: 3
+            clickValueBonus: 5
         },
         {
             id: "click3",
             name: "Turbo Tap",
             namePl: "Turbo Tap",
             nameEn: "Turbo Tap",
-            desc: "+5 coins do każdego kliknięcia",
-            descPl: "+5 coins do każdego kliknięcia",
-            descEn: "+5 coins to every click",
-            price: 70000,
-            priceScale: 1.29,
+            desc: "+12 coins do każdego kliknięcia",
+            descPl: "+12 coins do każdego kliknięcia",
+            descEn: "+12 coins to every click",
+            price: 42000,
+            priceScale: 1.28,
             type: "click",
-            clickValueBonus: 5
+            clickValueBonus: 12
         },
 
         // INCOME
@@ -278,8 +279,8 @@ limits: {
             desc: "+1 level do wszystkich posiadanych zwierząt",
             descPl: "+1 level do wszystkich posiadanych zwierząt",
             descEn: "+1 level to all owned animals",
-            price: 18000,
-            priceScale: 1.28,
+            price: 12000,
+            priceScale: 1.27,
             type: "income",
             incomeBonus: 1
         },
@@ -288,26 +289,26 @@ limits: {
             name: "Automation Crew",
             namePl: "Ekipa Automatyzacji",
             nameEn: "Automation Crew",
-            desc: "+3 level do wszystkich posiadanych zwierząt",
-            descPl: "+3 level do wszystkich posiadanych zwierząt",
-            descEn: "+3 levels to all owned animals",
-            price: 120000,
-            priceScale: 1.31,
+            desc: "+2 level do wszystkich posiadanych zwierząt",
+            descPl: "+2 level do wszystkich posiadanych zwierząt",
+            descEn: "+2 levels to all owned animals",
+            price: 65000,
+            priceScale: 1.30,
             type: "income",
-            incomeBonus: 3
+            incomeBonus: 2
         },
         {
             id: "income3",
             name: "Elite Zoo Director",
             namePl: "Elitarny Dyrektor Zoo",
             nameEn: "Elite Zoo Director",
-            desc: "+5 level do wszystkich posiadanych zwierząt",
-            descPl: "+5 level do wszystkich posiadanych zwierząt",
-            descEn: "+5 levels to all owned animals",
-            price: 480000,
-            priceScale: 1.34,
+            desc: "+4 level do wszystkich posiadanych zwierząt",
+            descPl: "+4 level do wszystkich posiadanych zwierząt",
+            descEn: "+4 levels to all owned animals",
+            price: 260000,
+            priceScale: 1.33,
             type: "income",
-            incomeBonus: 5
+            incomeBonus: 4
         },
 
         // EXPEDITIONS
@@ -319,7 +320,7 @@ limits: {
             desc: "Zwiększa reward z każdej ekspedycji",
             descPl: "Zwiększa reward z każdej ekspedycji",
             descEn: "Increases reward from every expedition",
-            price: 32000,
+            price: 28000,
             priceScale: 1.30,
             type: "expedition",
             expeditionBonus: 1
@@ -332,8 +333,8 @@ limits: {
             desc: "Mocniej zwiększa reward z każdej ekspedycji",
             descPl: "Mocniej zwiększa reward z każdej ekspedycji",
             descEn: "Strongly increases reward from every expedition",
-            price: 92000,
-            priceScale: 1.31,
+            price: 88000,
+            priceScale: 1.32,
             type: "expedition",
             expeditionBonus: 1
         },
