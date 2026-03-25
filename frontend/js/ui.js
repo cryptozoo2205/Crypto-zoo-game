@@ -855,6 +855,7 @@ CryptoZoo.ui = {
     renderHome() {
         const state = CryptoZoo.state || {};
         const animals = state.animals || {};
+        const animalsConfig = CryptoZoo.config?.animals || {};
         const boostMultiplier = CryptoZoo.boostSystem?.getMultiplier?.() || 1;
 
         const effectiveCoinsPerClick =
@@ -879,6 +880,10 @@ CryptoZoo.ui = {
         this.updateText("homeCoinsPerClick", CryptoZoo.formatNumber(effectiveCoinsPerClick));
         this.updateText("homeZooIncomeStat", CryptoZoo.formatNumber(effectiveZooIncome));
         this.updateText("homeIncomeStripValue", CryptoZoo.formatNumber(effectiveZooIncome));
+
+        this.updateText("homeMonkeyName", this.getLocalizedAnimalName("monkey", animalsConfig.monkey));
+        this.updateText("homePandaName", this.getLocalizedAnimalName("panda", animalsConfig.panda));
+        this.updateText("homeLionName", this.getLocalizedAnimalName("lion", animalsConfig.lion));
 
         this.updateText("homeMonkeyCount", CryptoZoo.formatNumber(monkeyCount));
         this.updateText("homeMonkeyLevel", CryptoZoo.formatNumber(monkeyLevel));
