@@ -158,6 +158,8 @@ CryptoZoo.shopSystem = {
             const animal = animals[type];
             const count = Math.max(0, Number(animal?.count) || 0);
 
+            // FINAL:
+            // tylko posiadane zwierzęta dostają bonus
             if (count <= 0) return;
 
             const currentLevel = Math.max(1, Number(animal?.level) || 1);
@@ -184,24 +186,26 @@ CryptoZoo.shopSystem = {
         const rareBonus = Math.max(0, Number(item?.rareChanceBonus) || 0);
         const epicBonus = Math.max(0, Number(item?.epicChanceBonus) || 0);
 
-        if (rareBonus > 0 || epicBonus > 0) {
-            CryptoZoo.state.expeditionStats.rareChanceBonus =
-                Math.max(0, Number(CryptoZoo.state.expeditionStats.rareChanceBonus) || 0) + rareBonus;
+        CryptoZoo.state.expeditionStats.rareChanceBonus =
+            Math.max(0, Number(CryptoZoo.state.expeditionStats.rareChanceBonus) || 0) + rareBonus;
 
-            CryptoZoo.state.expeditionStats.epicChanceBonus =
-                Math.max(0, Number(CryptoZoo.state.expeditionStats.epicChanceBonus) || 0) + epicBonus;
+        CryptoZoo.state.expeditionStats.epicChanceBonus =
+            Math.max(0, Number(CryptoZoo.state.expeditionStats.epicChanceBonus) || 0) + epicBonus;
 
-            const parts = [];
-            if (rareBonus > 0) parts.push(`+${Math.round(rareBonus * 100)}% Rare`);
-            if (epicBonus > 0) parts.push(`+${Math.round(epicBonus * 100)}% Epic`);
-            return `Expedition luck ${parts.join(" • ")}`;
+        if (epicBonus > 0) {
+            return "Większa szansa na Epic nagrody";
+        }
+
+        if (rareBonus > 0) {
+            return "Większa szansa na Rare nagrody";
         }
 
         const bonus = Math.max(1, Number(item?.expeditionBonus) || 1);
         CryptoZoo.state.expeditionBoost =
             Math.max(0, Number(CryptoZoo.state?.expeditionBoost) || 0) + bonus;
 
-        return `+15% coins i reward wallet z ekspedycji`;
+        const percent = Math.round(bonus * 15);
+        return `+${percent}% reward wallet z ekspedycji`;
     },
 
     applyExpeditionTimeReduction(item) {
