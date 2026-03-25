@@ -46,23 +46,30 @@ CryptoZoo.gameplay = {
         };
         CryptoZoo.state.shopPurchases = CryptoZoo.state.shopPurchases || {};
         CryptoZoo.state.minigames = CryptoZoo.state.minigames || {
-            wheelCooldownUntil: 0,
-            memoryCooldownUntil: 0,
-            extraWheelSpins: 0
+            memoryCooldownUntil: 0
         };
 
         const animals = CryptoZoo.config?.animals || {};
         Object.keys(animals).forEach((type) => {
-            if (!CryptoZoo.state.animals[type]) {
+            if (!CryptoZoo.state.animals[type] || typeof CryptoZoo.state.animals[type] !== "object") {
                 CryptoZoo.state.animals[type] = { count: 0, level: 1 };
             }
+
+            CryptoZoo.state.animals[type].count = Math.max(
+                0,
+                Math.floor(Number(CryptoZoo.state.animals[type].count) || 0)
+            );
+
+            CryptoZoo.state.animals[type].level = Math.max(
+                1,
+                Math.floor(Number(CryptoZoo.state.animals[type].level) || 1)
+            );
         });
 
         const defaults = {
             coins: 0,
             gems: 0,
             rewardBalance: 0,
-            rewardWallet: 0,
             withdrawPending: 0,
             level: 1,
             coinsPerClick: 1,
@@ -93,24 +100,70 @@ CryptoZoo.gameplay = {
             );
         }
 
-        CryptoZoo.state.level = Math.max(1, Number(CryptoZoo.state.level) || 1);
+        CryptoZoo.state.coins = Math.max(0, Number(CryptoZoo.state.coins) || 0);
+        CryptoZoo.state.gems = Math.max(0, Number(CryptoZoo.state.gems) || 0);
+        CryptoZoo.state.rewardBalance = Math.max(0, Number(CryptoZoo.state.rewardBalance) || 0);
+        CryptoZoo.state.withdrawPending = Math.max(0, Number(CryptoZoo.state.withdrawPending) || 0);
+
+        if (typeof CryptoZoo.state.rewardWallet === "number" && CryptoZoo.state.rewardWallet > 0) {
+            CryptoZoo.state.rewardBalance = Number(
+                (CryptoZoo.state.rewardBalance + CryptoZoo.state.rewardWallet).toFixed(3)
+            );
+        }
+        delete CryptoZoo.state.rewardWallet;
+
+        CryptoZoo.state.level = Math.max(1, Math.floor(Number(CryptoZoo.state.level) || 1));
+        CryptoZoo.state.xp = Math.max(0, Math.floor(Number(CryptoZoo.state.xp) || 0));
+        CryptoZoo.state.coinsPerClick = Math.max(
+            1,
+            Math.floor(
+                Number(CryptoZoo.state.coinsPerClick) ||
+                Number(CryptoZoo.config?.clickValue) ||
+                1
+            )
+        );
+        CryptoZoo.state.zooIncome = Math.max(0, Number(CryptoZoo.state.zooIncome) || 0);
+        CryptoZoo.state.expeditionBoost = Math.max(0, Number(CryptoZoo.state.expeditionBoost) || 0);
+        CryptoZoo.state.offlineMaxSeconds = Math.max(
+            0,
+            Number(CryptoZoo.state.offlineMaxSeconds) || this.maxOfflineSeconds
+        );
+        CryptoZoo.state.offlineBoostMultiplier = Math.max(
+            1,
+            Number(CryptoZoo.state.offlineBoostMultiplier) || 1
+        );
+        CryptoZoo.state.offlineBoost = Math.max(1, Number(CryptoZoo.state.offlineBoost) || 1);
+        CryptoZoo.state.lastLogin = Math.max(0, Number(CryptoZoo.state.lastLogin) || Date.now());
+        CryptoZoo.state.lastDailyRewardAt = Math.max(
+            0,
+            Number(CryptoZoo.state.lastDailyRewardAt) || 0
+        );
+        CryptoZoo.state.dailyRewardStreak = Math.max(
+            0,
+            Math.min(
+                this.dailyRewardMaxStreak,
+                Math.floor(Number(CryptoZoo.state.dailyRewardStreak) || 0)
+            )
+        );
+        CryptoZoo.state.playTimeSeconds = Math.max(
+            0,
+            Math.floor(Number(CryptoZoo.state.playTimeSeconds) || 0)
+        );
         CryptoZoo.state.lastAwardedLevel = Math.max(
             1,
-            Number(CryptoZoo.state.lastAwardedLevel) || CryptoZoo.state.level || 1
+            Math.floor(Number(CryptoZoo.state.lastAwardedLevel) || CryptoZoo.state.level || 1)
         );
 
-        CryptoZoo.state.minigames.wheelCooldownUntil = Math.max(
-            0,
-            Number(CryptoZoo.state.minigames.wheelCooldownUntil) || 0
-        );
         CryptoZoo.state.minigames.memoryCooldownUntil = Math.max(
             0,
             Number(CryptoZoo.state.minigames.memoryCooldownUntil) || 0
         );
-        CryptoZoo.state.minigames.extraWheelSpins = Math.max(
-            0,
-            Number(CryptoZoo.state.minigames.extraWheelSpins) || 0
-        );
+
+        delete CryptoZoo.state.minigames.wheelCooldownUntil;
+        delete CryptoZoo.state.minigames.extraWheelSpins;
+
+        CryptoZoo.expeditions?.ensureExpeditionStats?.();
+        CryptoZoo.expeditions?.ensureActiveExpeditionShape?.();
 
         this.normalizeBoostState();
         this.normalizeOfflineBoostState();
@@ -192,8 +245,8 @@ CryptoZoo.gameplay = {
     handleTap() {
         const value = this.getEffectiveCoinsPerClick();
 
-        CryptoZoo.state.coins += value;
-        CryptoZoo.state.xp += 1;
+        CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + value;
+        CryptoZoo.state.xp = (Number(CryptoZoo.state.xp) || 0) + 1;
         CryptoZoo.state.lastLogin = Date.now();
 
         this.recalculateLevel();
@@ -283,15 +336,37 @@ CryptoZoo.gameplay = {
 
     recalculateZooIncome() {
         const animals = CryptoZoo.config?.animals || {};
+        const maxOwnedPerAnimal = Math.max(
+            1,
+            Number(CryptoZoo.config?.limits?.maxOwnedPerAnimal) || 50
+        );
+        const maxLevelPerAnimal = Math.max(
+            1,
+            Number(CryptoZoo.config?.limits?.maxLevelPerAnimal) || 100
+        );
+
         let total = 0;
 
         Object.keys(animals).forEach((type) => {
-            const a = CryptoZoo.state.animals[type] || { count: 0, level: 1 };
-            total += a.count * a.level * (animals[type].baseIncome || 0);
+            const animalState = CryptoZoo.state.animals[type] || { count: 0, level: 1 };
+            const count = Math.max(
+                0,
+                Math.min(maxOwnedPerAnimal, Math.floor(Number(animalState.count) || 0))
+            );
+            const level = Math.max(
+                1,
+                Math.min(maxLevelPerAnimal, Math.floor(Number(animalState.level) || 1))
+            );
+            const baseIncome = Math.max(0, Number(animals[type]?.baseIncome) || 0);
+
+            CryptoZoo.state.animals[type].count = count;
+            CryptoZoo.state.animals[type].level = level;
+
+            total += count * level * baseIncome;
         });
 
-        CryptoZoo.state.zooIncome = total;
-        return total;
+        CryptoZoo.state.zooIncome = Math.max(0, Math.floor(total));
+        return CryptoZoo.state.zooIncome;
     },
 
     getLevelRequirement(level) {
@@ -368,8 +443,8 @@ CryptoZoo.gameplay = {
 
         for (let level = lastAwardedLevel + 1; level <= currentLevel; level += 1) {
             const reward = this.getLevelReward(level);
-            totalCoins += reward.coins;
-            totalGems += reward.gems;
+            totalCoins += Math.max(0, Number(reward.coins) || 0);
+            totalGems += Math.max(0, Number(reward.gems) || 0);
         }
 
         CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + totalCoins;
@@ -406,6 +481,8 @@ CryptoZoo.gameplay = {
         this.recalculateLevel();
         this.normalizeBoostState();
         this.normalizeOfflineBoostState();
+        CryptoZoo.expeditions?.ensureExpeditionStats?.();
+        CryptoZoo.expeditions?.ensureActiveExpeditionShape?.();
     },
 
     persistAndRender() {
