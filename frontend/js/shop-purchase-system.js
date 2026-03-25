@@ -16,6 +16,11 @@ CryptoZoo.shopSystem = {
             timeBoostCharges: []
         };
 
+        CryptoZoo.state.expeditionBoost = Math.max(
+            0,
+            Number(CryptoZoo.state.expeditionBoost) || 0
+        );
+
         CryptoZoo.state.expeditionStats.rareChanceBonus = Math.max(
             0,
             Number(CryptoZoo.state.expeditionStats.rareChanceBonus) || 0
@@ -158,8 +163,6 @@ CryptoZoo.shopSystem = {
             const animal = animals[type];
             const count = Math.max(0, Number(animal?.count) || 0);
 
-            // FINAL:
-            // tylko posiadane zwierzęta dostają bonus
             if (count <= 0) return;
 
             const currentLevel = Math.max(1, Number(animal?.level) || 1);
@@ -200,11 +203,18 @@ CryptoZoo.shopSystem = {
             return "Większa szansa na Rare nagrody";
         }
 
-        const bonus = Math.max(1, Number(item?.expeditionBonus) || 1);
-        CryptoZoo.state.expeditionBoost =
-            Math.max(0, Number(CryptoZoo.state?.expeditionBoost) || 0) + bonus;
+        const bonus = Math.max(0, Number(item?.expeditionBonus) || 0);
+        if (bonus <= 0) {
+            return "Brak bonusu ekspedycji";
+        }
 
-        const percent = Math.round(bonus * 15);
+        CryptoZoo.state.expeditionBoost = Number(
+            (
+                Math.max(0, Number(CryptoZoo.state?.expeditionBoost) || 0) + bonus
+            ).toFixed(4)
+        );
+
+        const percent = Math.round(bonus * 100);
         return `+${percent}% reward wallet z ekspedycji`;
     },
 
