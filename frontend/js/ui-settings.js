@@ -1,248 +1,113 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
-CryptoZoo.uiSettings = {
-    storageKey: "cryptozoo_settings",
+CryptoZoo.init = {
+    started: false,
 
-    getDefaultSettings() {
-        return {
-            language: "pl",
-            sound: true
-        };
+    setLoadingProgress(percent) {
+        const safePercent = Math.max(0, Math.min(100, Number(percent) || 0));
+
+        const fill = document.getElementById("loadingBarFill");
+        const text = document.getElementById("loadingPercent");
+
+        if (fill) {
+            fill.style.width = safePercent + "%";
+        }
+
+        if (text) {
+            text.textContent = safePercent + "%";
+        }
     },
 
-    getSettings() {
-        const defaults = this.getDefaultSettings();
+    hideLoadingScreen() {
+        const screen = document.getElementById("loading-screen");
+        if (!screen) return;
 
+        screen.style.opacity = "0";
+        screen.style.pointerEvents = "none";
+
+        setTimeout(() => {
+            screen.style.display = "none";
+        }, 350);
+    },
+
+    async runSafe(fn) {
         try {
-            const raw = localStorage.getItem(this.storageKey);
-            if (!raw) {
-                return { ...defaults };
+            if (typeof fn === "function") {
+                return await fn();
             }
-
-            const parsed = JSON.parse(raw);
-
-            return {
-                language: parsed?.language === "en" ? "en" : defaults.language,
-                sound: typeof parsed?.sound === "boolean" ? parsed.sound : defaults.sound
-            };
         } catch (error) {
-            console.error("Settings parse error:", error);
-            return { ...defaults };
-        }
-    },
-
-    saveSettings(nextSettings) {
-        const defaults = this.getDefaultSettings();
-        const safeSettings = {
-            language: nextSettings?.language === "en" ? "en" : defaults.language,
-            sound: typeof nextSettings?.sound === "boolean" ? nextSettings.sound : defaults.sound
-        };
-
-        localStorage.setItem(this.storageKey, JSON.stringify(safeSettings));
-        return safeSettings;
-    },
-
-    applySettings(settings) {
-        const safeSettings = settings || this.getSettings();
-
-        document.documentElement.setAttribute("lang", safeSettings.language);
-        document.documentElement.dataset.gameLanguage = safeSettings.language;
-        document.documentElement.dataset.gameSound = safeSettings.sound ? "on" : "off";
-
-        CryptoZoo.settings = CryptoZoo.settings || {};
-        CryptoZoo.settings.language = safeSettings.language;
-        CryptoZoo.settings.sound = safeSettings.sound;
-
-        if (CryptoZoo.lang) {
-            CryptoZoo.lang.current = safeSettings.language;
-            try {
-                localStorage.setItem("cz_lang", safeSettings.language);
-            } catch (error) {
-                console.error("Language storage sync error:", error);
-            }
-        }
-    },
-
-    syncAudioWithSettings(settings) {
-        const safeSettings = settings || this.getSettings();
-
-        if (!CryptoZoo.audio) return;
-
-        CryptoZoo.audio.enabled = !!safeSettings.sound;
-        if (typeof CryptoZoo.audio.saveSettings === "function") {
-            CryptoZoo.audio.saveSettings();
-        }
-    },
-
-    renderExtraPanels() {
-        CryptoZoo.uiUpdates?.render?.();
-    },
-
-    initSettings() {
-        if (CryptoZoo.lang?.init) {
-            CryptoZoo.lang.init();
+            console.error(error);
         }
 
-        const settings = this.getSettings();
-
-        if (CryptoZoo.lang) {
-            CryptoZoo.lang.current = settings.language;
-            try {
-                localStorage.setItem("cz_lang", settings.language);
-            } catch (error) {
-                console.error("Language init sync error:", error);
-            }
-        }
-
-        this.applySettings(settings);
-        this.syncAudioWithSettings(settings);
-        this.refreshSettingsModalData();
-        this.renderExtraPanels();
+        return null;
     },
 
-    getLanguageLabel(language) {
-        return language === "en" ? "English" : "Polski";
-    },
+    async start() {
+        if (this.started) return;
+        this.started = true;
 
-    getSoundLabel(sound) {
-        return sound ? "ON" : "OFF";
-    },
+        this.setLoadingProgress(5);
 
-    refreshSettingsModalData() {
-        const settings = this.getSettings();
+        await this.runSafe(async () => {
+            CryptoZoo.lang?.init?.();
+        });
 
-        CryptoZoo.ui?.updateText?.(
-            "settingsLanguageValue",
-            this.getLanguageLabel(settings.language)
-        );
+        this.setLoadingProgress(12);
 
-        CryptoZoo.ui?.updateText?.(
-            "settingsSoundValue",
-            this.getSoundLabel(settings.sound)
-        );
-    },
+        await this.runSafe(async () => {
+            CryptoZoo.uiSettings?.initSettings?.();
+        });
 
-    toggleLanguage() {
-        const current = this.getSettings();
-        const next = {
-            ...current,
-            language: current.language === "pl" ? "en" : "pl"
-        };
+        this.setLoadingProgress(20);
 
-        const saved = this.saveSettings(next);
+        await this.runSafe(async () => {
+            CryptoZoo.audio?.init?.();
+        });
 
-        if (CryptoZoo.lang?.set) {
-            CryptoZoo.lang.set(saved.language);
-        } else {
-            this.applySettings(saved);
-        }
+        this.setLoadingProgress(30);
 
-        this.applySettings(saved);
-        this.refreshSettingsModalData();
-        this.renderExtraPanels();
+        await this.runSafe(async () => {
+            await CryptoZoo.api?.init?.();
+        });
 
-        CryptoZoo.ui?.showToast?.(
-            saved.language === "en" ? "Language: English" : "Język: Polski"
-        );
+        this.setLoadingProgress(42);
 
-        CryptoZoo.ui?.render?.();
-        CryptoZoo.uiProfile?.refreshProfileModalData?.();
-        CryptoZoo.uiSettings?.refreshSettingsModalData?.();
-    },
+        await this.runSafe(async () => {
+            CryptoZoo.telegram?.init?.();
+        });
 
-    toggleSound() {
-        const current = this.getSettings();
-        const next = {
-            ...current,
-            sound: !current.sound
-        };
+        this.setLoadingProgress(52);
 
-        const saved = this.saveSettings(next);
-        this.applySettings(saved);
-        this.syncAudioWithSettings(saved);
-        this.refreshSettingsModalData();
-        this.renderExtraPanels();
+        await this.runSafe(async () => {
+            CryptoZoo.uiFaq?.close?.();
+        });
 
-        CryptoZoo.ui?.showToast?.(
-            saved.sound ? "Dźwięki: ON" : "Dźwięki: OFF"
-        );
-    },
+        this.setLoadingProgress(64);
 
-    openSettingsModal() {
-        const modal = document.getElementById("settingsModal");
-        if (!modal) return;
+        await this.runSafe(async () => {
+            CryptoZoo.gameplay?.init?.();
+        });
 
-        this.refreshSettingsModalData();
-        this.renderExtraPanels();
-        modal.classList.remove("hidden");
-    },
+        this.setLoadingProgress(82);
 
-    closeSettingsModal() {
-        document.getElementById("settingsModal")?.classList.add("hidden");
-        CryptoZoo.uiFaq?.close?.();
-    },
+        await this.runSafe(async () => {
+            CryptoZoo.minigames?.init?.();
+        });
 
-    openFaq() {
-        CryptoZoo.uiFaq?.open?.();
-    },
+        this.setLoadingProgress(92);
 
-    closeFaq() {
-        CryptoZoo.uiFaq?.close?.();
-    },
+        await this.runSafe(async () => {
+            CryptoZoo.ui?.render?.();
+        });
 
-    bindFaqButtons() {
-        const openFaqBtn = document.getElementById("openFaqBtn");
-        if (openFaqBtn && !openFaqBtn.dataset.bound) {
-            openFaqBtn.dataset.bound = "1";
-            openFaqBtn.addEventListener("click", () => {
-                CryptoZoo.audio?.play?.("click");
-                this.openFaq();
-            });
-        }
-    },
+        this.setLoadingProgress(100);
 
-    bindSettingsModal() {
-        const closeBtn = document.getElementById("closeSettingsBtn");
-        if (closeBtn && !closeBtn.dataset.bound) {
-            closeBtn.dataset.bound = "1";
-            closeBtn.addEventListener("click", () => {
-                CryptoZoo.audio?.play?.("click");
-                this.closeSettingsModal();
-            });
-        }
-
-        const backdrop = document.getElementById("settingsBackdrop");
-        if (backdrop && !backdrop.dataset.bound) {
-            backdrop.dataset.bound = "1";
-            backdrop.addEventListener("click", () => {
-                this.closeSettingsModal();
-            });
-        }
-
-        const languageValue = document.getElementById("settingsLanguageValue");
-        const languageBox = languageValue?.closest(".profile-box");
-
-        if (languageBox && !languageBox.dataset.bound) {
-            languageBox.dataset.bound = "1";
-            languageBox.style.cursor = "pointer";
-            languageBox.addEventListener("click", () => {
-                CryptoZoo.audio?.play?.("click");
-                this.toggleLanguage();
-            });
-        }
-
-        const soundValue = document.getElementById("settingsSoundValue");
-        const soundBox = soundValue?.closest(".profile-box");
-
-        if (soundBox && !soundBox.dataset.bound) {
-            soundBox.dataset.bound = "1";
-            soundBox.style.cursor = "pointer";
-            soundBox.addEventListener("click", () => {
-                CryptoZoo.audio?.play?.("click");
-                this.toggleSound();
-            });
-        }
-
-        this.bindFaqButtons();
+        setTimeout(() => {
+            this.hideLoadingScreen();
+        }, 250);
     }
 };
+
+document.addEventListener("DOMContentLoaded", async () => {
+    await CryptoZoo.init.start();
+});
