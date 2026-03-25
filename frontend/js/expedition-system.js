@@ -8,7 +8,7 @@ CryptoZoo.expeditions = {
     },
 
     getById(id) {
-        return this.getAll().find((exp) => exp.id === id) || null;
+        return this.getAll().find((exp) => String(exp.id) === String(id)) || null;
     },
 
     ensureExpeditionStats() {
@@ -41,7 +41,60 @@ CryptoZoo.expeditions = {
 
         CryptoZoo.state.expeditionStats.timeBoostCharges = CryptoZoo.state.expeditionStats.timeBoostCharges
             .map((value) => Math.max(0, Number(value) || 0))
-            .filter((value) => value > 0);
+            .filter((value) => value > 0)
+            .sort((a, b) => a - b);
+    },
+
+    ensureActiveExpeditionShape() {
+        CryptoZoo.state = CryptoZoo.state || {};
+
+        if (!CryptoZoo.state.expedition || typeof CryptoZoo.state.expedition !== "object") {
+            return null;
+        }
+
+        const expedition = CryptoZoo.state.expedition;
+
+        expedition.id = String(expedition.id || "");
+        expedition.name = String(expedition.name || "Expedition");
+
+        expedition.startTime = Math.max(0, Number(expedition.startTime) || 0);
+        expedition.endTime = Math.max(0, Number(expedition.endTime) || 0);
+
+        expedition.baseDuration = Math.max(
+            60,
+            Number(expedition.baseDuration) ||
+            Number(expedition.duration) ||
+            60
+        );
+
+        expedition.duration = Math.max(
+            60,
+            Number(expedition.duration) ||
+            expedition.baseDuration ||
+            60
+        );
+
+        expedition.timeReductionUsed = Math.max(
+            0,
+            Number(expedition.timeReductionUsed) || 0
+        );
+
+        expedition.rewardRarity = this.normalizeRewardRarity(expedition.rewardRarity);
+        expedition.rewardCoins = Math.max(0, Math.floor(Number(expedition.rewardCoins) || 0));
+        expedition.rewardGems = Math.max(0, Math.floor(Number(expedition.rewardGems) || 0));
+
+        if (expedition.endTime > 0 && expedition.startTime > 0 && expedition.endTime < expedition.startTime) {
+            expedition.endTime = expedition.startTime + expedition.duration * 1000;
+        }
+
+        return expedition;
+    },
+
+    normalizeRewardRarity(rarity) {
+        const safeRarity = String(rarity || "common").toLowerCase();
+        if (safeRarity === "rare") return "rare";
+        if (safeRarity === "epic") return "epic";
+        return "common";
     },
 
     getRareChanceBonus() {
@@ -155,7 +208,11 @@ CryptoZoo.expeditions = {
     },
 
     hasActiveExpedition() {
-        return !!CryptoZoo.state?.expedition;
+        return !!this.ensureActiveExpeditionShape();
+    },
+
+    getActiveExpedition() {
+        return this.ensureActiveExpeditionShape();
     },
 
     getExpeditionBoostMultiplier() {
@@ -164,7 +221,12 @@ CryptoZoo.expeditions = {
     },
 
     getEffectiveDurationSeconds(expeditionConfig) {
-        return Math.max(60, Number(expeditionConfig?.duration) || 60);
+        return Math.max(
+            60,
+            Number(expeditionConfig?.baseDuration) ||
+            Number(expeditionConfig?.duration) ||
+            60
+        );
     },
 
     getEffectiveRareChance(expedition) {
@@ -211,12 +273,9 @@ CryptoZoo.expeditions = {
 
         const hours = durationSeconds / 3600;
 
-        // FINAL ECONOMY:
-        // reward wallet liczony z bazowego czasu, nie z czasu po skróceniu
-        // żeby time boost oszczędzał czas, a nie ucinał wypłatę
         let base = 0.004 + hours * 0.0105;
 
-        const rarity = String(expedition.rewardRarity || "common");
+        const rarity = this.normalizeRewardRarity(expedition.rewardRarity);
         let rarityMultiplier = 1;
 
         if (rarity === "rare") rarityMultiplier = 1.45;
@@ -225,7 +284,6 @@ CryptoZoo.expeditions = {
         const boostMultiplier = this.getExpeditionBoostMultiplier();
 
         let reward = base * rarityMultiplier * boostMultiplier;
-
         reward = Math.min(reward, 0.95);
 
         return Number(reward.toFixed(3));
@@ -239,7 +297,7 @@ CryptoZoo.expeditions = {
         if (rewardRarity === "rare") rarityMultiplier = 1.35;
         if (rewardRarity === "epic") rarityMultiplier = 1.95;
 
-        return Math.floor(baseCoins * rarityMultiplier * boostMultiplier);
+        return Math.max(0, Math.floor(baseCoins * rarityMultiplier * boostMultiplier));
     },
 
     getGemsReward(expeditionConfig, rewardRarity) {
@@ -258,14 +316,18 @@ CryptoZoo.expeditions = {
 
     buildActiveExpedition(expeditionConfig) {
         const now = Date.now();
-        const baseDuration = Math.max(60, Number(expeditionConfig?.duration) || 60);
+        const baseDuration = this.getEffectiveDurationSeconds(expeditionConfig);
         const rewardRarity = this.rollRewardRarity(expeditionConfig);
         const rewardCoins = this.getCoinsReward(expeditionConfig, rewardRarity);
         const rewardGems = this.getGemsReward(expeditionConfig, rewardRarity);
 
         return {
-            id: String(expeditionConfig.id || ""),
-            name: String(expeditionConfig.name || "Expedition"),
+            id: String(expeditionConfig?.id || ""),
+            name: String(
+                expeditionConfig?.namePl ||
+                expeditionConfig?.name ||
+                "Expedition"
+            ),
             startTime: now,
             endTime: now + baseDuration * 1000,
             duration: baseDuration,
@@ -299,8 +361,8 @@ CryptoZoo.expeditions = {
         }
 
         CryptoZoo.state.expedition = this.buildActiveExpedition(expeditionConfig);
-        CryptoZoo.dailyMissions?.recordStartExpedition?.(1);
 
+        CryptoZoo.dailyMissions?.recordStartExpedition?.(1);
         CryptoZoo.audio?.play?.("click");
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
@@ -313,7 +375,7 @@ CryptoZoo.expeditions = {
         CryptoZoo.state = CryptoZoo.state || {};
         this.ensureExpeditionStats();
 
-        const expedition = CryptoZoo.state.expedition;
+        const expedition = this.getActiveExpedition();
         if (!expedition) {
             CryptoZoo.ui?.showToast?.("Brak aktywnej ekspedycji");
             return false;
@@ -362,7 +424,7 @@ CryptoZoo.expeditions = {
     },
 
     canCollect() {
-        const expedition = CryptoZoo.state?.expedition;
+        const expedition = this.getActiveExpedition();
         if (!expedition) return false;
 
         return Date.now() >= Math.max(0, Number(expedition.endTime) || 0);
@@ -371,7 +433,7 @@ CryptoZoo.expeditions = {
     collect() {
         CryptoZoo.state = CryptoZoo.state || {};
 
-        const expedition = CryptoZoo.state.expedition;
+        const expedition = this.getActiveExpedition();
         if (!expedition) {
             CryptoZoo.ui?.showToast?.("Brak aktywnej ekspedycji");
             return false;
@@ -384,7 +446,7 @@ CryptoZoo.expeditions = {
 
         const coins = Math.max(0, Number(expedition.rewardCoins) || 0);
         const gems = Math.max(0, Number(expedition.rewardGems) || 0);
-        const rewardBalance = this.getRewardBalanceAmount(expedition);
+        const rewardBalance = Math.max(0, this.getRewardBalanceAmount(expedition));
 
         CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + coins;
         CryptoZoo.state.gems = (Number(CryptoZoo.state.gems) || 0) + gems;
