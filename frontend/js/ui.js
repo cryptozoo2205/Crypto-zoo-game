@@ -369,6 +369,18 @@ CryptoZoo.ui = {
         `;
     },
 
+    getDailyRewardDisplayDay() {
+        const dailyReward = CryptoZoo.dailyReward;
+        if (!dailyReward) return 1;
+
+        const hasClaimedAtLeastOnce = !!dailyReward.hasClaimedAtLeastOnce?.();
+        if (!hasClaimedAtLeastOnce) {
+            return 1;
+        }
+
+        return Math.max(1, Number(dailyReward.getNextClaimDay?.()) || 1);
+    },
+
     renderDailyRewardStatus() {
         const btn = document.getElementById("homeDailyBtn");
         if (!btn) return;
@@ -386,8 +398,8 @@ CryptoZoo.ui = {
 
         const rewardCoins = Math.max(0, Number(CryptoZoo.dailyReward?.getCoinsAmount?.()) || 0);
         const rewardGems = Math.max(0, Number(CryptoZoo.dailyReward?.getGemsAmount?.()) || 0);
-        const streak = Math.max(0, Number(CryptoZoo.dailyReward?.getStreak?.()) || 0);
-        const streakLabel = `${this.t("day", "Day")} ${Math.max(1, streak || 1)}`;
+        const displayDay = this.getDailyRewardDisplayDay();
+        const streakLabel = `${this.t("day", "Day")} ${displayDay}`;
 
         titleEl.textContent = this.t("dailyReward", "Daily Reward");
         subtitleEl.style.whiteSpace = "normal";
@@ -396,7 +408,12 @@ CryptoZoo.ui = {
         subtitleEl.style.lineHeight = "1.35";
 
         if (!isUnlocked) {
-            subtitleEl.textContent = `${this.t("unlockIn", "Unlock in")} ${this.formatTimeLeft(timeLeftSeconds)}`;
+            const unlockSeconds = Math.max(
+                0,
+                Number(CryptoZoo.dailyReward?.getRemainingUnlockSeconds?.()) || 0
+            );
+
+            subtitleEl.textContent = `${this.t("unlockIn", "Unlock in")} ${this.formatTimeLeft(unlockSeconds)}`;
             iconEl.textContent = "🔒";
             return;
         }
@@ -540,39 +557,42 @@ CryptoZoo.ui = {
     getShopItemDescription(item) {
         if (!item) return "";
 
-        if (item.type === "click") {
+        const normalizedType = String(item.type || "").toLowerCase();
+        const normalizedEffect = String(item.effect || "").toLowerCase();
+
+        if (normalizedType === "click") {
             const bonus = Math.max(1, Number(item.clickValueBonus) || 1);
             return `+${CryptoZoo.formatNumber(bonus)} ${this.t("coinPerClickDesc", "coin za kliknięcie")}`;
         }
 
-        if (item.type === "income") {
+        if (normalizedType === "income") {
             const bonus = Math.max(1, Number(item.incomeBonus) || 1);
             return `+${CryptoZoo.formatNumber(bonus)} ${this.t("levelAllOwnedAnimals", "level do wszystkich posiadanych zwierząt")}`;
         }
 
-        if (item.type === "expedition") {
-            const bonus = Math.max(1, Number(item.expeditionBonus) || 1);
-            const percent = Math.round(bonus * 15);
+        if (normalizedType === "expedition") {
+            const bonus = Math.max(0, Number(item.expeditionBonus) || 0);
+            const percent = Math.round(bonus * 100);
             return `+${percent}% ${this.t("rewardWallet", "Reward Wallet").toLowerCase()} ${this.t("fromEveryExpedition", "z każdej ekspedycji")}`;
         }
 
-        if (item.type === "expeditionTime" || item.effect === "expeditionTime") {
+        if (normalizedType === "expeditiontime" || normalizedEffect === "expeditiontime") {
             const reductionSeconds = Math.max(0, Number(item.timeReductionSeconds) || 0);
             return `${this.t("reduceOneActiveExpedition", "Skraca jedną aktywną ekspedycję o")} ${this.formatDurationLabel(reductionSeconds)}`;
         }
 
-        if (item.type === "offline") {
+        if (normalizedType === "offline") {
             const multiplier = Math.max(1, Number(item.offlineMultiplier) || 2);
             const durationSeconds = Math.max(60, Number(item.offlineDurationSeconds) || 600);
             return `x${CryptoZoo.formatNumber(multiplier)} ${this.t("offlineIncomeFor", "offline income przez")} ${this.formatDurationLabel(durationSeconds)}`;
         }
 
-        if (item.effect === "coinPack") {
+        if (normalizedEffect === "coinpack") {
             const amount = Math.max(0, Number(item.coinPackAmount) || 0);
             return `+${CryptoZoo.formatNumber(amount)} ${this.t("coins", "coins")}`;
         }
 
-        if (item.effect === "boost2x") {
+        if (normalizedEffect === "boost2x" || normalizedEffect === "boost") {
             const durationSeconds = Math.max(60, Number(item.boostDurationSeconds) || 600);
             return `X2 ${this.t("clickAndZooIncomeFor", "klik i zoo income przez")} ${this.formatDurationLabel(durationSeconds)}`;
         }
