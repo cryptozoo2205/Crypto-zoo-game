@@ -4,6 +4,7 @@ CryptoZoo.minigames = {
     wheelSpinning: false,
     wheelCooldownSeconds: 2 * 60 * 60,
     memoryCooldownSeconds: 15 * 60,
+    memoryFailCooldownSeconds: 5 * 60,
     wheelRotation: 0,
     wheelBuilt: false,
     cooldownTimerStarted: false,
@@ -20,8 +21,14 @@ CryptoZoo.minigames = {
     memoryPreviewTimeout: null,
     memoryResolveTimeout: null,
     memorySessionActive: false,
+    memoryCurrentCombo: 0,
+    memoryMaxCombo: 0,
+    memoryDifficulty: "medium",
+    memoryMoveLimit: 0,
+    memoryCurrentConfig: null,
 
     wheelImagePath: "assets/minigames/wheel/wheel_base.png",
+    memoryDifficultyStorageKey: "cryptozoo_memory_difficulty",
 
     getLanguage() {
         return CryptoZoo.lang?.current || "en";
@@ -42,19 +49,31 @@ CryptoZoo.minigames = {
 
                 startMemory: "Start Memory",
                 restartMemory: "Play Again",
-                resetMemory: "Reset",
                 previewMemory: "Preview cards...",
                 findAllPairs: "Find all pairs",
                 memoryReadyIn: "Memory ready in",
                 memoryCooldown: "Memory CD",
+
                 moves: "Moves",
                 time: "Time",
                 pairs: "Pairs",
+                combo: "Combo",
+                bestCombo: "Best combo",
+                mode: "Mode",
+
+                easy: "Easy",
+                medium: "Medium",
+                hard: "Hard",
+
                 memoryCompletedTitle: "Completed!",
-                memoryCompletedReward: "Reward: 3000 Coins + 1 Gem",
-                memoryRewardToast: "Memory reward: 3000 Coins + 1 Gem",
+                memoryRewardToast: "Memory reward",
                 perfectRun: "Perfect run",
-                greatJob: "Great job"
+                greatJob: "Great job",
+                timeBonus: "Time bonus",
+                comboBonus: "Combo bonus",
+                noMovesLeft: "No moves left",
+                memoryFailed: "Memory failed",
+                gemWon: "Gem won"
             },
             pl: {
                 spinWheel: "Spin Wheel",
@@ -67,19 +86,31 @@ CryptoZoo.minigames = {
 
                 startMemory: "Start Memory",
                 restartMemory: "Zagraj ponownie",
-                resetMemory: "Reset",
                 previewMemory: "Podgląd kart...",
                 findAllPairs: "Znajdź wszystkie pary",
                 memoryReadyIn: "Memory gotowe za",
                 memoryCooldown: "Memory CD",
+
                 moves: "Ruchy",
                 time: "Czas",
                 pairs: "Pary",
+                combo: "Combo",
+                bestCombo: "Najlepsze combo",
+                mode: "Tryb",
+
+                easy: "Łatwy",
+                medium: "Średni",
+                hard: "Trudny",
+
                 memoryCompletedTitle: "Ukończono!",
-                memoryCompletedReward: "Nagroda: 3000 Coins + 1 Gem",
-                memoryRewardToast: "Nagroda Memory: 3000 Coins + 1 Gem",
+                memoryRewardToast: "Nagroda Memory",
                 perfectRun: "Perfekcyjna runda",
-                greatJob: "Dobra robota"
+                greatJob: "Dobra robota",
+                timeBonus: "Bonus czasu",
+                comboBonus: "Bonus combo",
+                noMovesLeft: "Brak ruchów",
+                memoryFailed: "Memory przegrane",
+                gemWon: "Wygrany gem"
             }
         };
 
@@ -88,11 +119,13 @@ CryptoZoo.minigames = {
 
     init() {
         this.ensureState();
+        this.loadMemoryDifficulty();
         this.ensureEffects();
         this.bindButtons();
         this.buildWheelVisual();
         this.resetWheelTransform();
         this.ensureMemoryBoardClass();
+        this.renderMemoryDifficultyBar();
         this.startCooldownTimer();
         this.renderCooldowns();
     },
@@ -131,6 +164,128 @@ CryptoZoo.minigames = {
         if (board) {
             board.classList.add("memory-grid-pro");
         }
+    },
+
+    loadMemoryDifficulty() {
+        const saved = localStorage.getItem(this.memoryDifficultyStorageKey);
+        const available = this.getMemoryDifficultyConfigs();
+
+        if (saved && available[saved]) {
+            this.memoryDifficulty = saved;
+        } else {
+            this.memoryDifficulty = "medium";
+        }
+    },
+
+    saveMemoryDifficulty() {
+        localStorage.setItem(this.memoryDifficultyStorageKey, this.memoryDifficulty);
+    },
+
+    getMemoryDifficultyConfigs() {
+        return {
+            easy: {
+                id: "easy",
+                pairs: 4,
+                moveLimit: 18,
+                previewMs: 2400,
+                coinsReward: 2200,
+                gemChance: 0.08,
+                targetTimeSeconds: 28,
+                timeBonusCoins: 300,
+                comboBonusPerStep: 90
+            },
+            medium: {
+                id: "medium",
+                pairs: 5,
+                moveLimit: 16,
+                previewMs: 2100,
+                coinsReward: 3000,
+                gemChance: 0.18,
+                targetTimeSeconds: 40,
+                timeBonusCoins: 500,
+                comboBonusPerStep: 130
+            },
+            hard: {
+                id: "hard",
+                pairs: 6,
+                moveLimit: 14,
+                previewMs: 1800,
+                coinsReward: 4200,
+                gemChance: 0.30,
+                targetTimeSeconds: 55,
+                timeBonusCoins: 800,
+                comboBonusPerStep: 180
+            }
+        };
+    },
+
+    getCurrentMemoryConfig() {
+        const configs = this.getMemoryDifficultyConfigs();
+        return configs[this.memoryDifficulty] || configs.medium;
+    },
+
+    setMemoryDifficulty(difficultyId) {
+        const configs = this.getMemoryDifficultyConfigs();
+        if (!configs[difficultyId]) return;
+        if (this.memorySessionActive) return;
+
+        this.memoryDifficulty = difficultyId;
+        this.saveMemoryDifficulty();
+        this.renderMemoryDifficultyBar();
+        this.renderCooldowns();
+        this.setMemoryStatus(
+            this.isMemoryReady()
+                ? this.lt("findAllPairs", "Find all pairs")
+                : `${this.lt("memoryReadyIn", "Memory ready in")} ${this.formatCooldown(this.getMemoryCooldownLeft())}`
+        );
+    },
+
+    getMemoryModeMount() {
+        const board = document.getElementById("memoryBoard");
+        if (!board || !board.parentNode) return null;
+
+        let mount = document.getElementById("memoryModeMount");
+        if (!mount) {
+            mount = document.createElement("div");
+            mount.id = "memoryModeMount";
+            board.parentNode.insertBefore(mount, board);
+        }
+
+        return mount;
+    },
+
+    renderMemoryDifficultyBar() {
+        const mount = this.getMemoryModeMount();
+        if (!mount) return;
+
+        const configs = this.getMemoryDifficultyConfigs();
+        const current = this.memoryDifficulty;
+
+        mount.className = "memory-mode-bar";
+        mount.innerHTML = `
+            <div class="memory-mode-label">${this.lt("mode", "Mode")}</div>
+            <div class="memory-mode-buttons">
+                ${Object.keys(configs).map((key) => `
+                    <button
+                        type="button"
+                        class="memory-mode-btn ${current === key ? "is-active" : ""}"
+                        data-memory-mode="${key}"
+                        ${this.memorySessionActive ? "disabled" : ""}
+                    >
+                        ${this.lt(key, key)}
+                    </button>
+                `).join("")}
+            </div>
+        `;
+
+        const buttons = mount.querySelectorAll("[data-memory-mode]");
+        buttons.forEach((btn) => {
+            btn.onclick = () => {
+                const mode = btn.dataset.memoryMode;
+                this.setMemoryDifficulty(mode);
+                CryptoZoo.audio?.play?.("click");
+            };
+        });
     },
 
     triggerWinFlash() {
@@ -272,10 +427,16 @@ CryptoZoo.minigames = {
             Date.now() + this.wheelCooldownSeconds * 1000;
     },
 
-    startMemoryCooldown() {
+    startMemoryCooldown(customSeconds = null) {
         this.ensureState();
+
+        const duration = Math.max(
+            1,
+            Number(customSeconds) || this.memoryCooldownSeconds
+        );
+
         CryptoZoo.state.minigames.memoryCooldownUntil =
-            Date.now() + this.memoryCooldownSeconds * 1000;
+            Date.now() + duration * 1000;
     },
 
     consumeExtraWheelSpin() {
@@ -506,9 +667,10 @@ CryptoZoo.minigames = {
         }, 6760);
     },
 
-    createMemoryDeck() {
-        const animals = ["🐵", "🐼", "🦁", "🐯", "🐘", "🦒"];
-        const deck = [...animals, ...animals];
+    createMemoryDeck(pairCount) {
+        const allAnimals = ["🐵", "🐼", "🦁", "🐯", "🐘", "🦒", "🦓", "🐺"];
+        const selected = allAnimals.slice(0, Math.max(2, pairCount));
+        const deck = [...selected, ...selected];
 
         for (let i = deck.length - 1; i > 0; i -= 1) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -545,25 +707,34 @@ CryptoZoo.minigames = {
         return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     },
 
-    renderMemoryHud() {
+    getMemoryHudMount() {
         const board = document.getElementById("memoryBoard");
-        if (!board) return;
+        if (!board || !board.parentNode) return null;
+
+        let hud = document.getElementById("memoryHud");
+        if (!hud) {
+            hud = document.createElement("div");
+            hud.id = "memoryHud";
+            board.parentNode.insertBefore(hud, board);
+        }
+
+        return hud;
+    },
+
+    renderMemoryHud() {
+        const hud = this.getMemoryHudMount();
+        if (!hud) return;
 
         const elapsed = this.formatMemoryTime(this.getMemoryElapsedSeconds());
         const pairsDone = Math.floor(this.memoryMatched / 2);
         const pairsTotal = this.memoryPairsTotal;
+        const comboText = `${this.memoryCurrentCombo}x / ${this.memoryMaxCombo}x`;
 
-        let hud = board.previousElementSibling;
-        if (!hud || !hud.classList.contains("memory-hud")) {
-            hud = document.createElement("div");
-            hud.className = "memory-hud";
-            board.parentNode.insertBefore(hud, board);
-        }
-
+        hud.className = "memory-hud";
         hud.innerHTML = `
             <div class="memory-stat-chip">
                 <span class="memory-stat-label">${this.lt("moves", "Moves")}</span>
-                <span class="memory-stat-value">${CryptoZoo.formatNumber(this.memoryMoves)}</span>
+                <span class="memory-stat-value">${CryptoZoo.formatNumber(this.memoryMoves)}/${CryptoZoo.formatNumber(this.memoryMoveLimit)}</span>
             </div>
             <div class="memory-stat-chip">
                 <span class="memory-stat-label">${this.lt("time", "Time")}</span>
@@ -572,6 +743,10 @@ CryptoZoo.minigames = {
             <div class="memory-stat-chip">
                 <span class="memory-stat-label">${this.lt("pairs", "Pairs")}</span>
                 <span class="memory-stat-value">${pairsDone}/${pairsTotal}</span>
+            </div>
+            <div class="memory-stat-chip">
+                <span class="memory-stat-label">${this.lt("combo", "Combo")}</span>
+                <span class="memory-stat-value">${comboText}</span>
             </div>
         `;
     },
@@ -583,6 +758,7 @@ CryptoZoo.minigames = {
         if (!board) return;
 
         this.ensureMemoryBoardClass();
+        this.renderMemoryDifficultyBar();
         this.renderMemoryHud();
 
         board.innerHTML = "";
@@ -631,21 +807,29 @@ CryptoZoo.minigames = {
         this.memoryPairsTotal = 0;
         this.memoryStartedAt = 0;
         this.memorySessionActive = false;
+        this.memoryCurrentCombo = 0;
+        this.memoryMaxCombo = 0;
+        this.memoryMoveLimit = 0;
+        this.memoryCurrentConfig = null;
 
         const board = document.getElementById("memoryBoard");
         if (board) {
             board.innerHTML = "";
         }
 
-        const hud = board?.previousElementSibling;
-        if (hud && hud.classList.contains("memory-hud")) {
-            hud.remove();
+        const hud = document.getElementById("memoryHud");
+        if (hud) {
+            hud.innerHTML = "";
         }
 
+        this.renderMemoryDifficultyBar();
+
         if (!silent) {
-            this.setMemoryStatus(this.isMemoryReady()
-                ? this.lt("findAllPairs", "Find all pairs")
-                : `${this.lt("memoryReadyIn", "Memory ready in")} ${this.formatCooldown(this.getMemoryCooldownLeft())}`);
+            this.setMemoryStatus(
+                this.isMemoryReady()
+                    ? this.lt("findAllPairs", "Find all pairs")
+                    : `${this.lt("memoryReadyIn", "Memory ready in")} ${this.formatCooldown(this.getMemoryCooldownLeft())}`
+            );
         }
 
         this.renderCooldowns();
@@ -669,15 +853,21 @@ CryptoZoo.minigames = {
             return;
         }
 
+        const config = this.getCurrentMemoryConfig();
+
         this.clearMemoryTimers();
-        this.memoryCards = this.createMemoryDeck();
+        this.memoryCards = this.createMemoryDeck(config.pairs);
         this.memoryFlipped = [];
         this.memoryMatched = 0;
         this.memoryLocked = true;
         this.memoryMoves = 0;
-        this.memoryPairsTotal = this.memoryCards.length / 2;
+        this.memoryPairsTotal = config.pairs;
         this.memoryStartedAt = Date.now();
         this.memorySessionActive = true;
+        this.memoryCurrentCombo = 0;
+        this.memoryMaxCombo = 0;
+        this.memoryMoveLimit = config.moveLimit;
+        this.memoryCurrentConfig = config;
 
         this.memoryCards.forEach((card) => {
             card.flipped = true;
@@ -686,7 +876,7 @@ CryptoZoo.minigames = {
 
         this.renderMemory();
         this.renderCooldowns();
-        this.setMemoryStatus(this.lt("previewMemory", "Preview cards..."));
+        this.setMemoryStatus(`${this.lt("previewMemory", "Preview cards...")} • ${this.lt(config.id, config.id)}`);
 
         this.memoryPreviewTimeout = setTimeout(() => {
             this.memoryCards.forEach((card) => {
@@ -698,31 +888,88 @@ CryptoZoo.minigames = {
             this.renderMemoryHud();
             this.startMemoryTimer();
             this.setMemoryStatus(this.lt("findAllPairs", "Find all pairs"));
-        }, 2200);
+        }, config.previewMs);
+    },
+
+    failMemoryGame() {
+        this.memoryLocked = true;
+        this.memorySessionActive = false;
+        this.startMemoryCooldown(this.memoryFailCooldownSeconds);
+        this.clearMemoryTimers();
+        this.renderMemoryHud();
+        this.setMemoryStatus(`${this.lt("memoryFailed", "Memory failed")} • ${this.lt("noMovesLeft", "No moves left")}`);
+
+        CryptoZoo.audio?.play?.("click");
+        CryptoZoo.ui?.showToast?.(`❌ ${this.lt("noMovesLeft", "No moves left")}`);
+
+        this.memoryPreviewTimeout = setTimeout(() => {
+            this.resetMemoryBoard(true);
+        }, 1500);
     },
 
     finishMemoryGame() {
         CryptoZoo.state = CryptoZoo.state || {};
-        CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + 3000;
-        CryptoZoo.state.gems = (Number(CryptoZoo.state.gems) || 0) + 1;
+
+        const config = this.memoryCurrentConfig || this.getCurrentMemoryConfig();
+        const elapsed = this.getMemoryElapsedSeconds();
+
+        let totalCoins = Math.max(0, Number(config.coinsReward) || 0);
+
+        let timeBonus = 0;
+        if (elapsed <= Math.max(1, Number(config.targetTimeSeconds) || 9999)) {
+            timeBonus = Math.max(0, Number(config.timeBonusCoins) || 0);
+            totalCoins += timeBonus;
+        }
+
+        let comboBonus = 0;
+        if (this.memoryMaxCombo > 1) {
+            comboBonus = (this.memoryMaxCombo - 1) * Math.max(0, Number(config.comboBonusPerStep) || 0);
+            totalCoins += comboBonus;
+        }
+
+        CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + totalCoins;
+
+        let gemWon = false;
+        const gemChance = Math.max(0, Number(config.gemChance) || 0);
+        if (Math.random() < gemChance) {
+            CryptoZoo.state.gems = (Number(CryptoZoo.state.gems) || 0) + 1;
+            gemWon = true;
+        }
 
         this.memoryLocked = true;
         this.memorySessionActive = false;
-        this.startMemoryCooldown();
+        this.startMemoryCooldown(this.memoryCooldownSeconds);
         this.clearMemoryTimers();
         this.renderMemoryHud();
 
-        const elapsed = this.getMemoryElapsedSeconds();
         const summaryPrefix = this.memoryMoves <= this.memoryPairsTotal * 2
             ? this.lt("perfectRun", "Perfect run")
             : this.lt("greatJob", "Great job");
 
+        const bonusParts = [];
+        if (timeBonus > 0) {
+            bonusParts.push(`${this.lt("timeBonus", "Time bonus")} +${CryptoZoo.formatNumber(timeBonus)}`);
+        }
+        if (comboBonus > 0) {
+            bonusParts.push(`${this.lt("comboBonus", "Combo bonus")} +${CryptoZoo.formatNumber(comboBonus)}`);
+        }
+        if (gemWon) {
+            bonusParts.push(this.lt("gemWon", "Gem won"));
+        }
+
         this.setMemoryStatus(
-            `${this.lt("memoryCompletedTitle", "Completed!")} • ${summaryPrefix} • ${this.formatMemoryTime(elapsed)}`
+            bonusParts.length > 0
+                ? `${this.lt("memoryCompletedTitle", "Completed!")} • ${summaryPrefix} • ${bonusParts.join(" • ")}`
+                : `${this.lt("memoryCompletedTitle", "Completed!")} • ${summaryPrefix}`
         );
 
+        const toastParts = [`+${CryptoZoo.formatNumber(totalCoins)} Coins`];
+        if (gemWon) {
+            toastParts.push("+1 Gem");
+        }
+
         CryptoZoo.audio?.play?.("win");
-        CryptoZoo.ui?.showToast?.(this.lt("memoryRewardToast", "Memory reward: 3000 Coins + 1 Gem"));
+        CryptoZoo.ui?.showToast?.(`🎉 ${this.lt("memoryRewardToast", "Memory reward")}: ${toastParts.join(" • ")}`);
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
 
@@ -759,13 +1006,24 @@ CryptoZoo.minigames = {
                 this.memoryMatched += 2;
                 this.memoryFlipped = [];
                 this.memoryLocked = false;
+                this.memoryCurrentCombo += 1;
+                this.memoryMaxCombo = Math.max(this.memoryMaxCombo, this.memoryCurrentCombo);
+
                 CryptoZoo.audio?.play?.("match");
                 this.renderMemory();
                 this.renderMemoryHud();
 
                 if (this.memoryMatched === this.memoryCards.length) {
                     this.finishMemoryGame();
+                    return;
                 }
+
+                if (this.memoryMoves >= this.memoryMoveLimit) {
+                    this.failMemoryGame();
+                    return;
+                }
+
+                this.setMemoryStatus(`${this.lt("combo", "Combo")} x${this.memoryCurrentCombo}`);
             }, 320);
         } else {
             this.memoryResolveTimeout = setTimeout(() => {
@@ -773,8 +1031,16 @@ CryptoZoo.minigames = {
                 second.flipped = false;
                 this.memoryFlipped = [];
                 this.memoryLocked = false;
+                this.memoryCurrentCombo = 0;
                 this.renderMemory();
                 this.renderMemoryHud();
+
+                if (this.memoryMoves >= this.memoryMoveLimit) {
+                    this.failMemoryGame();
+                    return;
+                }
+
+                this.setMemoryStatus(this.lt("findAllPairs", "Find all pairs"));
             }, 780);
         }
     },
