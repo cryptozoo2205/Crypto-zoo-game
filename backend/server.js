@@ -873,7 +873,7 @@ app.post("/api/withdraw/update", (req, res) => {
     db.players[player.telegramId] = normalizePlayer(player);
     writeDb(db);
 
-    return res.json({
+    res.json({
         ok: true,
         request,
         player: normalizePlayer(player)
@@ -884,8 +884,12 @@ app.post("/api/withdraw/update", (req, res) => {
    FRONTEND FALLBACK
 ========================= */
 
-app.get("*", (req, res, next) => {
+app.use((req, res, next) => {
     if (req.path.startsWith("/api/")) {
+        return next();
+    }
+
+    if (req.path === "/healthz") {
         return next();
     }
 
