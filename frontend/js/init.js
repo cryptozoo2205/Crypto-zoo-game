@@ -2,6 +2,8 @@ window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.init = {
     started: false,
+    minLoadingVisibleMs: 1400,
+    startTimestamp: 0,
 
     setLoadingProgress(percent) {
         const safePercent = Math.max(0, Math.min(100, Number(percent) || 0));
@@ -30,6 +32,15 @@ CryptoZoo.init = {
         }, 350);
     },
 
+    async ensureMinimumLoadingTime() {
+        const elapsed = Date.now() - this.startTimestamp;
+        const waitMs = Math.max(0, this.minLoadingVisibleMs - elapsed);
+
+        if (waitMs > 0) {
+            await new Promise((resolve) => setTimeout(resolve, waitMs));
+        }
+    },
+
     async runSafe(fn) {
         try {
             if (typeof fn === "function") {
@@ -45,20 +56,21 @@ CryptoZoo.init = {
     async start() {
         if (this.started) return;
         this.started = true;
+        this.startTimestamp = Date.now();
 
-        this.setLoadingProgress(5);
+        this.setLoadingProgress(4);
 
         await this.runSafe(async () => {
             CryptoZoo.lang?.init?.();
         });
 
-        this.setLoadingProgress(12);
+        this.setLoadingProgress(10);
 
         await this.runSafe(async () => {
             CryptoZoo.uiSettings?.initSettings?.();
         });
 
-        this.setLoadingProgress(20);
+        this.setLoadingProgress(18);
 
         await this.runSafe(async () => {
             CryptoZoo.audio?.init?.();
@@ -70,19 +82,19 @@ CryptoZoo.init = {
             CryptoZoo.telegram?.init?.();
         });
 
-        this.setLoadingProgress(42);
+        this.setLoadingProgress(44);
 
         await this.runSafe(async () => {
             await CryptoZoo.api?.init?.();
         });
 
-        this.setLoadingProgress(52);
+        this.setLoadingProgress(56);
 
         await this.runSafe(async () => {
             CryptoZoo.uiFaq?.close?.();
         });
 
-        this.setLoadingProgress(65);
+        this.setLoadingProgress(68);
 
         await this.runSafe(async () => {
             CryptoZoo.gameplay?.init?.();
@@ -109,9 +121,11 @@ CryptoZoo.init = {
 
         this.setLoadingProgress(100);
 
+        await this.ensureMinimumLoadingTime();
+
         setTimeout(() => {
             this.hideLoadingScreen();
-        }, 250);
+        }, 220);
     }
 };
 
