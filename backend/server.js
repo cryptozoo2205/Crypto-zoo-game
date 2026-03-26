@@ -21,9 +21,19 @@ const LIMITS = {
     MAX_GEMS: 1e6,
     MAX_LEVEL: 1000,
     MAX_XP: 1e9,
+
+    MAX_REWARD_BALANCE: 100000,
+    MAX_REWARD_WALLET: 100000,
+    MAX_WITHDRAW_PENDING: 100000,
+
     MAX_COINS_GAIN_PER_SAVE: 5e9,
     MAX_GEMS_GAIN_PER_SAVE: 500,
     MAX_LEVEL_GAIN_PER_SAVE: 5,
+
+    MAX_REWARD_BALANCE_GAIN_PER_SAVE: 10,
+    MAX_REWARD_WALLET_GAIN_PER_SAVE: 10,
+    MAX_REWARD_TOTAL_GAIN_PER_SAVE: 10,
+
     MIN_WITHDRAW: 3,
     MAX_WITHDRAW: 100000,
     WITHDRAW_COOLDOWN_MS: 5 * 60 * 1000
@@ -339,9 +349,22 @@ function normalizePlayer(input) {
 
         coins: clamp(Math.max(0, normalizeNumber(input?.coins, base.coins)), 0, LIMITS.MAX_COINS),
         gems: clamp(Math.max(0, normalizeNumber(input?.gems, base.gems)), 0, LIMITS.MAX_GEMS),
-        rewardBalance: normalizeRewardNumber(input?.rewardBalance, base.rewardBalance),
-        rewardWallet: normalizeRewardNumber(input?.rewardWallet, base.rewardWallet),
-        withdrawPending: normalizeRewardNumber(input?.withdrawPending, base.withdrawPending),
+
+        rewardBalance: clamp(
+            normalizeRewardNumber(input?.rewardBalance, base.rewardBalance),
+            0,
+            LIMITS.MAX_REWARD_BALANCE
+        ),
+        rewardWallet: clamp(
+            normalizeRewardNumber(input?.rewardWallet, base.rewardWallet),
+            0,
+            LIMITS.MAX_REWARD_WALLET
+        ),
+        withdrawPending: clamp(
+            normalizeRewardNumber(input?.withdrawPending, base.withdrawPending),
+            0,
+            LIMITS.MAX_WITHDRAW_PENDING
+        ),
 
         level: clamp(Math.max(1, normalizeNumber(input?.level, base.level)), 1, LIMITS.MAX_LEVEL),
         xp: clamp(Math.max(0, normalizeNumber(input?.xp, base.xp)), 0, LIMITS.MAX_XP),
@@ -388,6 +411,67 @@ function getPlayerOrCreate(db, telegramId, username = "Gracz", telegramUser = nu
     });
 
     return db.players[id];
+}
+
+function sanitizeRewardState(oldPlayer, newPlayer) {
+    const safePlayer = normalizePlayer(newPlayer);
+
+    if (!oldPlayer) {
+        return safePlayer;
+    }
+
+    const oldSafe = normalizePlayer(oldPlayer);
+
+    safePlayer.withdrawPending = oldSafe.withdrawPending;
+
+    const rewardBalanceDiff = safePlayer.rewardBalance - oldSafe.rewardBalance;
+    const rewardWalletDiff = safePlayer.rewardWallet - oldSafe.rewardWallet;
+
+    const oldTotalReward =
+        oldSafe.rewardBalance +
+        oldSafe.rewardWallet +
+        oldSafe.withdrawPending;
+
+    const newTotalReward =
+        safePlayer.rewardBalance +
+        safePlayer.rewardWallet +
+        safePlayer.withdrawPending;
+
+    const totalRewardDiff = newTotalReward - oldTotalReward;
+
+    if (rewardBalanceDiff > LIMITS.MAX_REWARD_BALANCE_GAIN_PER_SAVE) {
+        safePlayer.rewardBalance = oldSafe.rewardBalance;
+    }
+
+    if (rewardWalletDiff > LIMITS.MAX_REWARD_WALLET_GAIN_PER_SAVE) {
+        safePlayer.rewardWallet = oldSafe.rewardWallet;
+    }
+
+    if (totalRewardDiff > LIMITS.MAX_REWARD_TOTAL_GAIN_PER_SAVE) {
+        safePlayer.rewardBalance = oldSafe.rewardBalance;
+        safePlayer.rewardWallet = oldSafe.rewardWallet;
+        safePlayer.withdrawPending = oldSafe.withdrawPending;
+    }
+
+    safePlayer.rewardBalance = clamp(
+        normalizeRewardNumber(safePlayer.rewardBalance, oldSafe.rewardBalance),
+        0,
+        LIMITS.MAX_REWARD_BALANCE
+    );
+
+    safePlayer.rewardWallet = clamp(
+        normalizeRewardNumber(safePlayer.rewardWallet, oldSafe.rewardWallet),
+        0,
+        LIMITS.MAX_REWARD_WALLET
+    );
+
+    safePlayer.withdrawPending = clamp(
+        normalizeRewardNumber(oldSafe.withdrawPending, oldSafe.withdrawPending),
+        0,
+        LIMITS.MAX_WITHDRAW_PENDING
+    );
+
+    return safePlayer;
 }
 
 function validateProgress(oldPlayer, newPlayer) {
@@ -437,7 +521,7 @@ function buildSafePlayerState(oldPlayer, incomingRaw) {
         )
     });
 
-    const safe = normalizePlayer({
+    let safe = normalizePlayer({
         ...(oldPlayer || getDefaultPlayer(incoming.telegramId, incoming.username)),
         ...incoming,
         telegramId: incoming.telegramId,
@@ -445,7 +529,10 @@ function buildSafePlayerState(oldPlayer, incomingRaw) {
         telegramUser: incoming.telegramUser
     });
 
-    return validateProgress(oldPlayer, safe);
+    safe = sanitizeRewardState(oldPlayer, safe);
+    safe = validateProgress(oldPlayer, safe);
+
+    return normalizePlayer(safe);
 }
 
 function createWithdrawRequest({ telegramId, username, amount }) {
@@ -604,7 +691,11 @@ app.post("/api/withdraw/request", (req, res) => {
 
     const telegramId = safeString(req.body?.telegramId, "");
     const username = safeString(req.body?.username, "Gracz");
-    const amount = normalizeRewardNumber(req.body?.amount, 0);
+    const amount = clamp(
+        normalizeRewardNumber(req.body?.amount, 0),
+        0,
+        LIMITS.MAX_WITHDRAW
+    );
 
     if (!telegramId) {
         return res.status(400).json({ error: "Missing telegramId" });
@@ -647,8 +738,17 @@ app.post("/api/withdraw/request", (req, res) => {
         });
     }
 
-    player.rewardWallet = normalizeRewardNumber(player.rewardWallet - amount, 0);
-    player.withdrawPending = normalizeRewardNumber(player.withdrawPending + amount, 0);
+    player.rewardWallet = clamp(
+        normalizeRewardNumber(player.rewardWallet - amount, 0),
+        0,
+        LIMITS.MAX_REWARD_WALLET
+    );
+
+    player.withdrawPending = clamp(
+        normalizeRewardNumber(player.withdrawPending + amount, 0),
+        0,
+        LIMITS.MAX_WITHDRAW_PENDING
+    );
 
     const request = createWithdrawRequest({
         telegramId,
@@ -721,12 +821,24 @@ app.post("/api/withdraw/update", (req, res) => {
     request.updatedAt = Date.now();
 
     if (nextStatus === "approved") {
-        player.withdrawPending = normalizeRewardNumber(player.withdrawPending - amount, 0);
+        player.withdrawPending = clamp(
+            normalizeRewardNumber(player.withdrawPending - amount, 0),
+            0,
+            LIMITS.MAX_WITHDRAW_PENDING
+        );
     }
 
     if (nextStatus === "rejected") {
-        player.withdrawPending = normalizeRewardNumber(player.withdrawPending - amount, 0);
-        player.rewardWallet = normalizeRewardNumber(player.rewardWallet + amount, 0);
+        player.withdrawPending = clamp(
+            normalizeRewardNumber(player.withdrawPending - amount, 0),
+            0,
+            LIMITS.MAX_WITHDRAW_PENDING
+        );
+        player.rewardWallet = clamp(
+            normalizeRewardNumber(player.rewardWallet + amount, 0),
+            0,
+            LIMITS.MAX_REWARD_WALLET
+        );
     }
 
     db.players[player.telegramId] = normalizePlayer(player);
