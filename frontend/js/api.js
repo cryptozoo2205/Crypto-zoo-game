@@ -692,7 +692,7 @@ window.CryptoZoo.api = {
         }
     },
 
-    async createWithdrawRequest(amount) {
+    async requestWithdraw(amount) {
         const safeAmount = Number((Math.max(0, Number(amount) || 0)).toFixed(3));
 
         const result = await this.request("/withdraw/request", {
@@ -723,7 +723,20 @@ window.CryptoZoo.api = {
             localStorage.setItem("cryptozoo_save", JSON.stringify(CryptoZoo.state));
         }
 
-        return result;
+        return {
+            ...result,
+            player: playerPayload
+                ? this.normalizeState({
+                    ...(CryptoZoo.state || {}),
+                    ...playerPayload,
+                    telegramUser: this.getTelegramUser()
+                })
+                : null
+        };
+    },
+
+    async createWithdrawRequest(amount) {
+        return this.requestWithdraw(amount);
     },
 
     async loadWithdrawRequests() {
