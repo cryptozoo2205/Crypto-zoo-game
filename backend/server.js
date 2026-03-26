@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 
 const DATA_DIR = path.join(__dirname, "data");
 const DB_PATH = path.join(DATA_DIR, "db.json");
-const FRONTEND_DIR = path.join(__dirname, "frontend");
+const FRONTEND_DIR = path.join(__dirname, "../frontend");
 const INDEX_PATH = path.join(FRONTEND_DIR, "index.html");
 
 app.use(cors());
