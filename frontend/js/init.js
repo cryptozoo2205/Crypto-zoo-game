@@ -64,16 +64,16 @@ CryptoZoo.init = {
             CryptoZoo.audio?.init?.();
         });
 
-        this.setLoadingProgress(30);
+        this.setLoadingProgress(28);
 
         await this.runSafe(async () => {
-            await CryptoZoo.api?.init?.();
+            CryptoZoo.telegram?.init?.();
         });
 
         this.setLoadingProgress(42);
 
         await this.runSafe(async () => {
-            CryptoZoo.telegram?.init?.();
+            await CryptoZoo.api?.init?.();
         });
 
         this.setLoadingProgress(52);
@@ -101,6 +101,7 @@ CryptoZoo.init = {
         });
 
         await this.runSafe(async () => {
+            CryptoZoo.telegram?.applyIdentityToUi?.();
             CryptoZoo.ui?.bindHomeButtons?.();
             CryptoZoo.uiSettings?.bindSettingsModal?.();
             CryptoZoo.uiProfile?.bindProfileModal?.();
