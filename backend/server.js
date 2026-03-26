@@ -104,10 +104,47 @@ function safeString(value, fallback = "") {
     return String(value || fallback).trim();
 }
 
+function normalizeTelegramUser(rawTelegramUser, fallbackTelegramId = "local-player", fallbackUsername = "Gracz") {
+    const safe = rawTelegramUser && typeof rawTelegramUser === "object"
+        ? rawTelegramUser
+        : {};
+
+    const id = safeString(
+        safe.id,
+        safeString(fallbackTelegramId, "local-player")
+    );
+
+    const username = safeString(
+        safe.username,
+        safeString(fallbackUsername, "")
+    );
+
+    const firstName = safeString(
+        safe.first_name,
+        username || "Gracz"
+    );
+
+    return {
+        id,
+        username,
+        first_name: firstName,
+        isMock: !!safe.isMock,
+        isTelegramWebApp: !!safe.isTelegramWebApp
+    };
+}
+
 function getDefaultPlayer(telegramId = "local-player", username = "Gracz") {
     return {
         telegramId: String(telegramId),
         username: String(username || "Gracz"),
+
+        telegramUser: {
+            id: String(telegramId),
+            username: String(username || ""),
+            first_name: String(username || "Gracz"),
+            isMock: String(telegramId) === "local-player",
+            isTelegramWebApp: false
+        },
 
         coins: 0,
         gems: 0,
@@ -285,12 +322,20 @@ function normalizeDailyMissions(rawDailyMissions) {
 
 function normalizePlayer(input) {
     const base = getDefaultPlayer(input?.telegramId, input?.username);
+    const safeTelegramId = safeString(input?.telegramId, base.telegramId);
+    const safeUsername = safeString(input?.username, base.username);
+    const telegramUser = normalizeTelegramUser(
+        input?.telegramUser,
+        safeTelegramId,
+        safeUsername
+    );
 
     return {
         ...base,
 
-        telegramId: String(input?.telegramId || base.telegramId),
-        username: String(input?.username || base.username),
+        telegramId: safeTelegramId,
+        username: safeUsername || telegramUser.first_name || "Gracz",
+        telegramUser,
 
         coins: clamp(Math.max(0, normalizeNumber(input?.coins, base.coins)), 0, LIMITS.MAX_COINS),
         gems: clamp(Math.max(0, normalizeNumber(input?.gems, base.gems)), 0, LIMITS.MAX_GEMS),
@@ -328,12 +373,19 @@ function normalizePlayer(input) {
     };
 }
 
-function getPlayerOrCreate(db, telegramId, username = "Gracz") {
+function getPlayerOrCreate(db, telegramId, username = "Gracz", telegramUser = null) {
     const id = String(telegramId || "local-player");
 
     if (!db.players[id]) {
         db.players[id] = getDefaultPlayer(id, username);
     }
+
+    db.players[id] = normalizePlayer({
+        ...db.players[id],
+        telegramId: id,
+        username: safeString(username, db.players[id].username || "Gracz"),
+        telegramUser: telegramUser || db.players[id].telegramUser
+    });
 
     return db.players[id];
 }
@@ -365,10 +417,32 @@ function validateProgress(oldPlayer, newPlayer) {
 }
 
 function buildSafePlayerState(oldPlayer, incomingRaw) {
-    const incoming = normalizePlayer(incomingRaw || {});
+    const incomingTelegramId = safeString(
+        incomingRaw?.telegramId,
+        oldPlayer?.telegramId || "local-player"
+    );
+    const incomingUsername = safeString(
+        incomingRaw?.username,
+        oldPlayer?.username || "Gracz"
+    );
+
+    const incoming = normalizePlayer({
+        ...incomingRaw,
+        telegramId: incomingTelegramId,
+        username: incomingUsername,
+        telegramUser: normalizeTelegramUser(
+            incomingRaw?.telegramUser,
+            incomingTelegramId,
+            incomingUsername
+        )
+    });
+
     const safe = normalizePlayer({
         ...(oldPlayer || getDefaultPlayer(incoming.telegramId, incoming.username)),
-        ...incoming
+        ...incoming,
+        telegramId: incoming.telegramId,
+        username: incoming.username,
+        telegramUser: incoming.telegramUser
     });
 
     return validateProgress(oldPlayer, safe);
@@ -436,13 +510,14 @@ app.get("/api/health", (req, res) => {
 
 app.get("/api/player/:telegramId", (req, res) => {
     const db = readDb();
-    const telegramId = String(req.params.telegramId || "local-player");
+    const telegramId = safeString(req.params.telegramId, "local-player");
+    const username = safeString(req.query.username, "Gracz");
 
-    const player = getPlayerOrCreate(db, telegramId);
+    const player = getPlayerOrCreate(db, telegramId, username);
     db.players[telegramId] = normalizePlayer(player);
     writeDb(db);
 
-    res.json({ player: normalizePlayer(player) });
+    res.json({ player: normalizePlayer(db.players[telegramId]) });
 });
 
 /* =========================
@@ -451,8 +526,22 @@ app.get("/api/player/:telegramId", (req, res) => {
 
 app.post("/api/player/save", (req, res) => {
     const db = readDb();
-    const telegramId = safeString(req.body?.telegramId, "local-player");
-    const username = safeString(req.body?.username, "Gracz");
+
+    const bodyTelegramUser = normalizeTelegramUser(
+        req.body?.telegramUser,
+        req.body?.telegramId,
+        req.body?.username
+    );
+
+    const telegramId = safeString(
+        req.body?.telegramId,
+        bodyTelegramUser.id || "local-player"
+    );
+
+    const username = safeString(
+        req.body?.username,
+        bodyTelegramUser.username || bodyTelegramUser.first_name || "Gracz"
+    );
 
     const oldPlayer = db.players[telegramId]
         ? normalizePlayer(db.players[telegramId])
@@ -461,7 +550,13 @@ app.post("/api/player/save", (req, res) => {
     const safePlayer = buildSafePlayerState(oldPlayer, {
         ...req.body,
         telegramId,
-        username
+        username,
+        telegramUser: {
+            ...bodyTelegramUser,
+            id: telegramId,
+            username: bodyTelegramUser.username || username,
+            first_name: bodyTelegramUser.first_name || username || "Gracz"
+        }
     });
 
     db.players[telegramId] = safePlayer;
