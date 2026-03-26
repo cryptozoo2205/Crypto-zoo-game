@@ -3,6 +3,14 @@ const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
 
+process.on("uncaughtException", (error) => {
+    console.error("UNCAUGHT EXCEPTION:", error);
+});
+
+process.on("unhandledRejection", (error) => {
+    console.error("UNHANDLED REJECTION:", error);
+});
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -589,12 +597,18 @@ function requireAdmin(req, res) {
    HEALTH
 ========================= */
 
+app.get("/healthz", (req, res) => {
+    res.status(200).send("OK");
+});
+
 app.get("/api/health", (req, res) => {
     res.json({
         ok: true,
         service: "cryptozoo-backend",
         port: PORT,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        frontendExists: fs.existsSync(FRONTEND_DIR),
+        indexExists: fs.existsSync(INDEX_PATH)
     });
 });
 
@@ -879,11 +893,17 @@ app.get("*", (req, res, next) => {
         return res.sendFile(INDEX_PATH);
     }
 
-    return res.status(404).send("Frontend not found");
+    return res.status(200).send("Backend działa, ale frontend nie został znaleziony.");
 });
 
 ensureDb();
 
 app.listen(PORT, () => {
+    console.log("Crypto Zoo backend starting...");
+    console.log("PORT:", PORT);
+    console.log("DATA_DIR:", DATA_DIR);
+    console.log("DB_PATH:", DB_PATH);
+    console.log("FRONTEND_DIR:", FRONTEND_DIR, fs.existsSync(FRONTEND_DIR) ? "[OK]" : "[MISSING]");
+    console.log("INDEX_PATH:", INDEX_PATH, fs.existsSync(INDEX_PATH) ? "[OK]" : "[MISSING]");
     console.log(`Crypto Zoo backend running on port ${PORT}`);
 });
