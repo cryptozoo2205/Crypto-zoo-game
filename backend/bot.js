@@ -3,7 +3,7 @@ require("dotenv").config();
 const TelegramBot = require("node-telegram-bot-api");
 
 const token = process.env.BOT_TOKEN;
-const WEBAPP_URL = process.env.WEBAPP_URL;
+const WEBAPP_URL = String(process.env.WEBAPP_URL || "").replace(/\/+$/, "");
 
 if (!token) {
     console.error("BOT_TOKEN missing");
@@ -15,35 +15,33 @@ if (!WEBAPP_URL) {
     process.exit(1);
 }
 
-const bot = new TelegramBot(token, { polling: false });
+const bot = new TelegramBot(token, { polling: true });
 
-async function startBot() {
-    try {
-        await bot.deleteWebHook();
-        await bot.startPolling();
+console.log("🤖 Bot uruchomiony");
+console.log("🌐 WEBAPP_URL:", WEBAPP_URL);
 
-        console.log("🤖 Bot started");
-        console.log("🌐 WEBAPP_URL:", WEBAPP_URL);
-    } catch (error) {
-        console.error("BOT START ERROR:", error);
-    }
-}
-
-bot.onText(/\/start/, async (msg) => {
+bot.onText(/\/start(?:\s+.*)?/, async (msg) => {
     try {
         const chatId = msg.chat.id;
 
         const telegramUser = {
-            id: msg.from.id,
-            username: msg.from.username || "",
-            first_name: msg.from.first_name || "Gracz"
+            id: String(msg.from?.id || ""),
+            username: String(msg.from?.username || ""),
+            first_name: String(msg.from?.first_name || "Gracz")
         };
 
-        const url = `${WEBAPP_URL}?tgId=${telegramUser.id}&username=${encodeURIComponent(telegramUser.username)}`;
+        const url =
+            `${WEBAPP_URL}?tgId=${encodeURIComponent(telegramUser.id)}` +
+            `&username=${encodeURIComponent(telegramUser.username)}` +
+            `&first_name=${encodeURIComponent(telegramUser.first_name)}`;
 
-        await bot.sendMessage(chatId, `TEST LINK:\n${url}`);
+        const welcomeText =
+            `🐾 *Witaj w Crypto Zoo!*\n\n` +
+            `Buduj swoje zoo, zbieraj monety, rozwijaj zwierzęta i zdobywaj reward.\n\n` +
+            `Kliknij przycisk poniżej i otwórz grę w Telegram WebApp.`;
 
-        await bot.sendMessage(chatId, "🐾 Witaj w Crypto Zoo!", {
+        await bot.sendMessage(chatId, welcomeText, {
+            parse_mode: "Markdown",
             reply_markup: {
                 inline_keyboard: [
                     [
@@ -61,7 +59,12 @@ bot.onText(/\/start/, async (msg) => {
 });
 
 bot.on("polling_error", (error) => {
-    console.error("POLLING ERROR:", error?.response?.body || error.message || error);
+    const body = error?.response?.body || {};
+    console.error("POLLING ERROR:", {
+        ok: body.ok,
+        error_code: body.error_code,
+        description: body.description || error.message || error
+    });
 });
 
 process.on("SIGINT", async () => {
@@ -81,7 +84,5 @@ process.on("SIGTERM", async () => {
     }
     process.exit(0);
 });
-
-startBot();
 
 module.exports = bot;
