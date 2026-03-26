@@ -18,6 +18,7 @@ window.CryptoZoo.api = {
             CryptoZoo.state = this.normalizeState(
                 CryptoZoo.state || this.getDefaultState()
             );
+            CryptoZoo.state.telegramUser = this.getTelegramUser();
             localStorage.setItem("cryptozoo_save", JSON.stringify(CryptoZoo.state));
         }
 
@@ -55,7 +56,7 @@ window.CryptoZoo.api = {
         localStorage.setItem("cryptozoo_api_base", safeValue);
     },
 
-    getPlayerId() {
+    getTelegramUser() {
         const tgUser =
             window.Telegram &&
             window.Telegram.WebApp &&
@@ -63,61 +64,73 @@ window.CryptoZoo.api = {
             window.Telegram.WebApp.initDataUnsafe.user;
 
         if (tgUser && tgUser.id) {
-            localStorage.setItem("telegramId", String(tgUser.id));
+            const safeUser = {
+                id: String(tgUser.id),
+                username: String(tgUser.username || ""),
+                first_name: String(tgUser.first_name || "Gracz"),
+                isMock: false,
+                isTelegramWebApp: true
+            };
 
-            if (tgUser.username) {
-                localStorage.setItem("telegramUsername", tgUser.username);
-            }
+            localStorage.setItem("telegramId", safeUser.id);
+            localStorage.setItem("telegramUsername", safeUser.username);
+            localStorage.setItem("telegramFirstName", safeUser.first_name);
 
-            if (tgUser.first_name) {
-                localStorage.setItem("telegramFirstName", tgUser.first_name);
-            }
-
-            return String(tgUser.id);
+            return safeUser;
         }
 
         let localId = localStorage.getItem("telegramId");
-
         if (!localId) {
-            localId = "local-player";
+            localId = "mock-user-1";
             localStorage.setItem("telegramId", localId);
         }
 
-        return localId;
+        let localUsername = localStorage.getItem("telegramUsername");
+        if (!localUsername) {
+            localUsername = "mock_user";
+            localStorage.setItem("telegramUsername", localUsername);
+        }
+
+        let localFirstName = localStorage.getItem("telegramFirstName");
+        if (!localFirstName) {
+            localFirstName = "Mock";
+            localStorage.setItem("telegramFirstName", localFirstName);
+        }
+
+        return {
+            id: String(localId),
+            username: String(localUsername),
+            first_name: String(localFirstName),
+            isMock: true,
+            isTelegramWebApp: false
+        };
+    },
+
+    getPlayerId() {
+        const telegramUser = this.getTelegramUser();
+        return String(telegramUser.id);
     },
 
     getUsername() {
-        const tgUser =
-            window.Telegram &&
-            window.Telegram.WebApp &&
-            window.Telegram.WebApp.initDataUnsafe &&
-            window.Telegram.WebApp.initDataUnsafe.user;
+        const telegramUser = this.getTelegramUser();
 
-        if (tgUser) {
-            if (tgUser.username) {
-                localStorage.setItem("telegramUsername", tgUser.username);
-                return tgUser.username;
-            }
-
-            const fallbackName =
-                [tgUser.first_name, tgUser.last_name]
-                    .filter(Boolean)
-                    .join(" ")
-                    .trim() || "Gracz";
-
-            localStorage.setItem("telegramFirstName", fallbackName);
-            return fallbackName;
+        if (telegramUser.username) {
+            return telegramUser.username;
         }
 
-        return (
-            localStorage.getItem("telegramUsername") ||
-            localStorage.getItem("telegramFirstName") ||
-            "Gracz"
-        );
+        return telegramUser.first_name || "Gracz";
     },
 
     getDefaultState() {
         return {
+            telegramUser: {
+                id: "mock-user-1",
+                username: "mock_user",
+                first_name: "Mock",
+                isMock: true,
+                isTelegramWebApp: false
+            },
+
             coins: 0,
             gems: 0,
             rewardBalance: 0,
@@ -186,6 +199,21 @@ window.CryptoZoo.api = {
                 missions: [],
                 claimedCount: 0
             }
+        };
+    },
+
+    normalizeTelegramUser(rawTelegramUser) {
+        const fallback = this.getTelegramUser();
+        const safe = rawTelegramUser && typeof rawTelegramUser === "object"
+            ? rawTelegramUser
+            : fallback;
+
+        return {
+            id: String(safe.id || fallback.id || "mock-user-1"),
+            username: String(safe.username || ""),
+            first_name: String(safe.first_name || "Gracz"),
+            isMock: !!safe.isMock,
+            isTelegramWebApp: !!safe.isTelegramWebApp
         };
     },
 
@@ -323,10 +351,15 @@ window.CryptoZoo.api = {
             data.offlineBoostActiveUntil ?? base.offlineBoostActiveUntil
         );
         const derivedZooIncome = this.recalculateZooIncomeFromAnimals(animals);
+        const telegramUser = this.normalizeTelegramUser(
+            data.telegramUser || this.getTelegramUser()
+        );
 
         return {
             ...base,
             ...data,
+
+            telegramUser,
 
             coins: Math.max(0, Number(data.coins ?? base.coins) || 0),
             gems: Math.max(0, Number(data.gems ?? base.gems) || 0),
@@ -398,10 +431,12 @@ window.CryptoZoo.api = {
 
     getSavePayload() {
         const state = this.normalizeState(CryptoZoo.state || {});
+        const telegramUser = this.getTelegramUser();
 
         return {
             telegramId: this.getPlayerId(),
             username: this.getUsername(),
+            telegramUser,
 
             coins: state.coins,
             gems: state.gems,
@@ -487,7 +522,10 @@ window.CryptoZoo.api = {
             result ||
             {};
 
-        return this.normalizeState(payload);
+        return this.normalizeState({
+            ...payload,
+            telegramUser: payload.telegramUser || this.getTelegramUser()
+        });
     },
 
     async savePlayerToBackend(payload) {
@@ -501,7 +539,10 @@ window.CryptoZoo.api = {
             result?.data ||
             payload;
 
-        return this.normalizeState(payloadFromApi);
+        return this.normalizeState({
+            ...payloadFromApi,
+            telegramUser: payloadFromApi.telegramUser || payload.telegramUser || this.getTelegramUser()
+        });
     },
 
     async loadPlayer() {
@@ -509,6 +550,7 @@ window.CryptoZoo.api = {
 
         if (this.testResetMode) {
             loaded = this.normalizeState(this.getDefaultState());
+            loaded.telegramUser = this.getTelegramUser();
             CryptoZoo.state = loaded;
 
             if (CryptoZoo.gameplay?.recalculateProgress) {
@@ -538,6 +580,7 @@ window.CryptoZoo.api = {
             }
         }
 
+        loaded.telegramUser = this.getTelegramUser();
         CryptoZoo.state = loaded;
 
         if (CryptoZoo.gameplay?.recalculateProgress) {
@@ -553,6 +596,7 @@ window.CryptoZoo.api = {
 
         if (this.testResetMode) {
             CryptoZoo.state = this.normalizeState(payload);
+            CryptoZoo.state.telegramUser = this.getTelegramUser();
 
             if (CryptoZoo.gameplay?.recalculateProgress) {
                 CryptoZoo.gameplay.recalculateProgress();
@@ -564,9 +608,11 @@ window.CryptoZoo.api = {
 
         try {
             CryptoZoo.state = await this.savePlayerToBackend(payload);
+            CryptoZoo.state.telegramUser = this.getTelegramUser();
         } catch (error) {
             console.warn("Backend save failed, fallback to local save:", error);
             CryptoZoo.state = this.normalizeState(payload);
+            CryptoZoo.state.telegramUser = this.getTelegramUser();
         }
 
         if (CryptoZoo.gameplay?.recalculateProgress) {
@@ -668,6 +714,7 @@ window.CryptoZoo.api = {
                 ...(CryptoZoo.state || {}),
                 ...playerPayload
             });
+            CryptoZoo.state.telegramUser = this.getTelegramUser();
 
             if (CryptoZoo.gameplay?.recalculateProgress) {
                 CryptoZoo.gameplay.recalculateProgress();
