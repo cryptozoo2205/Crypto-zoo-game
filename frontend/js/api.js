@@ -56,6 +56,30 @@ window.CryptoZoo.api = {
         localStorage.setItem("cryptozoo_api_base", safeValue);
     },
 
+    getUrlTelegramUser() {
+        try {
+            const params = new URLSearchParams(window.location.search || "");
+            const tgId = String(params.get("tgId") || "").trim();
+            const username = String(params.get("username") || "").trim();
+            const firstName = String(params.get("first_name") || "").trim();
+
+            if (!tgId) {
+                return null;
+            }
+
+            return {
+                id: tgId,
+                username,
+                first_name: firstName || username || "Gracz",
+                isMock: false,
+                isTelegramWebApp: false
+            };
+        } catch (error) {
+            console.warn("URL telegram user parse failed:", error);
+            return null;
+        }
+    },
+
     getTelegramUser() {
         const tgUser =
             window.Telegram &&
@@ -77,6 +101,21 @@ window.CryptoZoo.api = {
             localStorage.setItem("telegramFirstName", safeUser.first_name);
 
             return safeUser;
+        }
+
+        const urlUser = this.getUrlTelegramUser();
+        if (urlUser && urlUser.id) {
+            localStorage.setItem("telegramId", String(urlUser.id));
+            localStorage.setItem("telegramUsername", String(urlUser.username || ""));
+            localStorage.setItem("telegramFirstName", String(urlUser.first_name || "Gracz"));
+
+            return {
+                id: String(urlUser.id),
+                username: String(urlUser.username || ""),
+                first_name: String(urlUser.first_name || "Gracz"),
+                isMock: false,
+                isTelegramWebApp: false
+            };
         }
 
         let localId = localStorage.getItem("telegramId");
@@ -511,10 +550,14 @@ window.CryptoZoo.api = {
 
     async loadPlayerFromBackend() {
         const telegramId = this.getPlayerId();
+        const username = this.getUsername();
 
-        const result = await this.request(`/player/${encodeURIComponent(telegramId)}`, {
-            method: "GET"
-        });
+        const result = await this.request(
+            `/player/${encodeURIComponent(telegramId)}?username=${encodeURIComponent(username)}`,
+            {
+                method: "GET"
+            }
+        );
 
         const payload =
             result?.player ||
