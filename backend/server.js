@@ -8,8 +8,8 @@ const PORT = process.env.PORT || 3000;
 
 const DATA_DIR = path.join(__dirname, "data");
 const DB_PATH = path.join(DATA_DIR, "db.json");
-const PUBLIC_DIR = path.join(__dirname, "public");
-const INDEX_PATH = path.join(PUBLIC_DIR, "index.html");
+const FRONTEND_DIR = path.join(__dirname, "frontend");
+const INDEX_PATH = path.join(FRONTEND_DIR, "index.html");
 
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
@@ -602,8 +602,8 @@ app.get("/api/health", (req, res) => {
    STATIC FRONTEND
 ========================= */
 
-if (fs.existsSync(PUBLIC_DIR)) {
-    app.use(express.static(PUBLIC_DIR));
+if (fs.existsSync(FRONTEND_DIR)) {
+    app.use(express.static(FRONTEND_DIR));
 }
 
 /* =========================
