@@ -2,143 +2,99 @@ window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.telegram = {
     init() {
-        const hasTelegramWebApp = !!(
-            window.Telegram &&
-            window.Telegram.WebApp
-        );
+        if (!window.Telegram || !window.Telegram.WebApp) {
+            this.applyIdentityToUi();
+            return;
+        }
+
+        const tg = window.Telegram.WebApp;
 
         try {
-            if (hasTelegramWebApp) {
-                const tg = window.Telegram.WebApp;
+            tg.ready();
 
-                tg.ready();
-
-                if (typeof tg.expand === "function") {
-                    tg.expand();
-                }
-
-                if (typeof tg.setBackgroundColor === "function") {
-                    tg.setBackgroundColor("#0f172a");
-                }
-
-                if (typeof tg.setHeaderColor === "function") {
-                    tg.setHeaderColor("#0f172a");
-                }
-
-                this.setupPlayerIdentityFromTelegram();
-            } else {
-                this.setupPlayerIdentityFromUrl();
+            if (typeof tg.expand === "function") {
+                tg.expand();
             }
 
+            if (typeof tg.enableClosingConfirmation === "function") {
+                tg.enableClosingConfirmation();
+            }
+
+            if (typeof tg.setHeaderColor === "function") {
+                tg.setHeaderColor("#0b1220");
+            }
+
+            if (typeof tg.setBackgroundColor === "function") {
+                tg.setBackgroundColor("#0b1220");
+            }
+
+            if (typeof tg.requestFullscreen === "function") {
+                try {
+                    tg.requestFullscreen();
+                } catch (error) {
+                    console.warn("Telegram requestFullscreen failed:", error);
+                }
+            }
+
+            this.setupPlayerIdentity();
             this.applyIdentityToUi();
 
-            document.body.style.overflowX = "hidden";
-            document.body.style.overflowY = "auto";
+            document.documentElement.style.background = "#0b1220";
+            document.body.style.background = "#0b1220";
             document.documentElement.style.overflowX = "hidden";
-            document.documentElement.style.overflowY = "auto";
+            document.body.style.overflowX = "hidden";
+            document.body.classList.add("telegram-webapp");
         } catch (error) {
             console.error("TELEGRAM INIT ERROR:", error);
             this.applyIdentityToUi();
         }
     },
 
-    getUrlTelegramUser() {
-        try {
-            const params = new URLSearchParams(window.location.search || "");
-            const tgId = String(params.get("tgId") || "").trim();
-            const username = String(params.get("username") || "").trim();
-            const firstName = String(params.get("first_name") || "").trim();
-
-            if (!tgId) {
-                return null;
-            }
-
-            return {
-                id: tgId,
-                username,
-                first_name: firstName || username || "Gracz"
-            };
-        } catch (error) {
-            console.warn("URL telegram parse failed:", error);
-            return null;
+    setupPlayerIdentity() {
+        if (!window.Telegram || !window.Telegram.WebApp) {
+            return;
         }
-    },
 
-    setupPlayerIdentityFromTelegram() {
         try {
-            const user = window.Telegram.WebApp.initDataUnsafe.user;
+            const user = window.Telegram.WebApp.initDataUnsafe?.user;
 
             if (!user || !user.id) {
                 return;
             }
 
-            localStorage.setItem("telegramId", String(user.id));
-            localStorage.setItem("telegramUsername", String(user.username || ""));
-            localStorage.setItem("telegramFirstName", String(user.first_name || "Gracz"));
-            localStorage.setItem("telegramDisplayName", String(
-                user.username ||
-                [user.first_name, user.last_name].filter(Boolean).join(" ").trim() ||
-                "Gracz"
-            ));
-            localStorage.setItem("cryptozoo_launch_mode", "telegram");
+            const safeId = String(user.id);
+            const safeUsername = String(user.username || "");
+            const safeFirstName = String(user.first_name || "Gracz");
+            const displayName = safeUsername || safeFirstName || "Gracz";
+
+            localStorage.setItem("telegramId", safeId);
+            localStorage.setItem("telegramUsername", safeUsername);
+            localStorage.setItem("telegramFirstName", safeFirstName);
+            localStorage.setItem("telegramDisplayName", displayName);
         } catch (error) {
             console.error("TELEGRAM USER ERROR:", error);
         }
     },
 
-    setupPlayerIdentityFromUrl() {
-        const user = this.getUrlTelegramUser();
-
-        if (!user || !user.id) {
-            return;
-        }
-
-        localStorage.setItem("telegramId", String(user.id));
-        localStorage.setItem("telegramUsername", String(user.username || ""));
-        localStorage.setItem("telegramFirstName", String(user.first_name || "Gracz"));
-        localStorage.setItem("telegramDisplayName", String(
-            user.username || user.first_name || "Gracz"
-        ));
-        localStorage.setItem("cryptozoo_launch_mode", "telegram-link");
-    },
-
-    isTelegramMode() {
-        const launchMode = localStorage.getItem("cryptozoo_launch_mode");
-        if (launchMode === "telegram" || launchMode === "telegram-link") {
-            return true;
-        }
-
-        const urlUser = this.getUrlTelegramUser();
-        if (urlUser && urlUser.id) {
-            return true;
-        }
-
-        return !!(
-            window.Telegram &&
-            window.Telegram.WebApp
-        );
-    },
-
     applyIdentityToUi() {
+        const isTelegram = !!(window.Telegram && window.Telegram.WebApp);
+        const username = localStorage.getItem("telegramUsername") || "";
+        const firstName = localStorage.getItem("telegramFirstName") || "";
         const displayName =
-            localStorage.getItem("telegramUsername") ||
+            username ||
             localStorage.getItem("telegramDisplayName") ||
-            localStorage.getItem("telegramFirstName") ||
+            firstName ||
             "Crypto Zoo";
 
-        const topUserName = document.querySelector(".top-user-name");
-        const topUserStatus = document.querySelector(".top-user-status");
+        const topUserName = document.getElementById("topPlayerName");
+        const topUserStatus = document.getElementById("topPlayerStatus");
 
         if (topUserName) {
             topUserName.textContent = displayName;
         }
 
         if (topUserStatus) {
-            if (this.isTelegramMode()) {
-                topUserStatus.textContent = "● Telegram Online";
-            } else {
-                topUserStatus.textContent = "● Local Mode";
-            }
+            topUserStatus.textContent = isTelegram ? "● Telegram Online" : "● Local Mode";
         }
     }
 };
