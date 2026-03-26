@@ -80,6 +80,21 @@ window.CryptoZoo.api = {
         }
     },
 
+    isTelegramLaunch() {
+        const tgWebAppUser =
+            window.Telegram &&
+            window.Telegram.WebApp &&
+            window.Telegram.WebApp.initDataUnsafe &&
+            window.Telegram.WebApp.initDataUnsafe.user;
+
+        if (tgWebAppUser && tgWebAppUser.id) {
+            return true;
+        }
+
+        const urlUser = this.getUrlTelegramUser();
+        return !!(urlUser && urlUser.id);
+    },
+
     getTelegramUser() {
         const tgUser =
             window.Telegram &&
@@ -99,23 +114,27 @@ window.CryptoZoo.api = {
             localStorage.setItem("telegramId", safeUser.id);
             localStorage.setItem("telegramUsername", safeUser.username);
             localStorage.setItem("telegramFirstName", safeUser.first_name);
+            localStorage.setItem("cryptozoo_launch_mode", "telegram");
 
             return safeUser;
         }
 
         const urlUser = this.getUrlTelegramUser();
         if (urlUser && urlUser.id) {
-            localStorage.setItem("telegramId", String(urlUser.id));
-            localStorage.setItem("telegramUsername", String(urlUser.username || ""));
-            localStorage.setItem("telegramFirstName", String(urlUser.first_name || "Gracz"));
-
-            return {
+            const safeUser = {
                 id: String(urlUser.id),
                 username: String(urlUser.username || ""),
                 first_name: String(urlUser.first_name || "Gracz"),
                 isMock: false,
                 isTelegramWebApp: false
             };
+
+            localStorage.setItem("telegramId", safeUser.id);
+            localStorage.setItem("telegramUsername", safeUser.username);
+            localStorage.setItem("telegramFirstName", safeUser.first_name);
+            localStorage.setItem("cryptozoo_launch_mode", "telegram-link");
+
+            return safeUser;
         }
 
         let localId = localStorage.getItem("telegramId");
@@ -135,6 +154,8 @@ window.CryptoZoo.api = {
             localFirstName = "Mock";
             localStorage.setItem("telegramFirstName", localFirstName);
         }
+
+        localStorage.setItem("cryptozoo_launch_mode", "local");
 
         return {
             id: String(localId),
