@@ -337,12 +337,13 @@ CryptoZoo.expeditions = {
         return 1;
     },
 
-    buildActiveExpedition(expeditionConfig) {
+    buildActiveExpedition(expeditionConfig, selectedAnimals = []) {
         const now = Date.now();
         const baseDuration = this.getEffectiveDurationSeconds(expeditionConfig);
         const rewardRarity = this.rollRewardRarity(expeditionConfig);
         const rewardCoins = this.getCoinsReward(expeditionConfig, rewardRarity);
         const rewardGems = this.getGemsReward(expeditionConfig, rewardRarity);
+        const safeSelectedAnimals = this.normalizeSelectedAnimals(selectedAnimals);
 
         return {
             id: String(expeditionConfig?.id || ""),
@@ -359,11 +360,11 @@ CryptoZoo.expeditions = {
             rewardRarity,
             rewardCoins,
             rewardGems,
-            selectedAnimals: []
+            selectedAnimals: safeSelectedAnimals
         };
     },
 
-    start(expeditionId) {
+    start(expeditionId, selectedAnimals = []) {
         CryptoZoo.state = CryptoZoo.state || {};
         this.ensureExpeditionStats();
 
@@ -384,7 +385,10 @@ CryptoZoo.expeditions = {
             return false;
         }
 
-        CryptoZoo.state.expedition = this.buildActiveExpedition(expeditionConfig);
+        CryptoZoo.state.expedition = this.buildActiveExpedition(
+            expeditionConfig,
+            selectedAnimals
+        );
 
         CryptoZoo.dailyMissions?.recordStartExpedition?.(1);
         CryptoZoo.audio?.play?.("click");
