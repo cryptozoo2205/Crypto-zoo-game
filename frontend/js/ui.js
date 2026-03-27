@@ -125,6 +125,27 @@ CryptoZoo.ui = {
         return expeditionConfig.name || "";
     },
 
+    getSelectedAnimalsLabel(selectedAnimals) {
+        const safeList = Array.isArray(selectedAnimals) ? selectedAnimals : [];
+        if (!safeList.length) return "";
+
+        const animalsConfig = CryptoZoo.config?.animals || {};
+
+        return safeList
+            .map((entry) => {
+                const type = String(entry?.type || "");
+                if (!type) return "";
+
+                const count = Math.max(1, Number(entry?.count) || 1);
+                const config = animalsConfig[type] || {};
+                const name = this.getLocalizedAnimalName(type, config);
+
+                return `${name} x${CryptoZoo.formatNumber(count)}`;
+            })
+            .filter(Boolean)
+            .join(", ");
+    },
+
     showToast(message) {
         let toast = document.getElementById("toast");
 
@@ -1090,11 +1111,18 @@ CryptoZoo.ui = {
                 CryptoZoo.state?.expeditionStats?.timeBoostCharges?.length ||
                 0;
 
+            const selectedAnimalsLabel = this.getSelectedAnimalsLabel(expedition.selectedAnimals);
+
             container.innerHTML = `
                 ${dailyMissionsHtml}
                 <div class="expedition-card">
                     <h3>${this.t("activeExpedition", "Aktywna ekspedycja")}: ${expeditionName}</h3>
                     <div>${this.t("timeLeft", "Pozostało")}: ${this.formatTimeLeft(timeLeft)}</div>
+                    ${
+                        selectedAnimalsLabel
+                            ? `<div>${this.t("selectedAnimals", "Wybrane zwierzęta")}: ${selectedAnimalsLabel}</div>`
+                            : ``
+                    }
                     <div>${this.t("rewardQuality", "Jakość nagrody")}: ${rarityMap[expedition.rewardRarity] || this.t("common", "Common")}</div>
                     <div>
                         ${this.t("expectedReward", "Przewidywana nagroda")}:
@@ -1221,7 +1249,7 @@ CryptoZoo.ui = {
         expeditions.forEach((exp) => {
             if (CryptoZoo.expeditions?.isUnlocked?.(exp)) {
                 this.bindClick(`start-expedition-${exp.id}`, () => {
-                    CryptoZoo.expeditions?.start?.(exp.id);
+                    CryptoZoo.expeditions?.start?.(exp.id, []);
                 });
             }
         });
