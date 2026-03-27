@@ -1198,8 +1198,20 @@ CryptoZoo.ui = {
         container.innerHTML = dailyMissionsHtml + expeditionInfoCard + expeditions.map((exp) => {
             const rewardRangeText = this.getExpeditionRewardRangeText(exp);
             const isUnlocked = CryptoZoo.expeditions?.isUnlocked?.(exp) || false;
+            const canAfford = CryptoZoo.expeditions?.canAffordStart?.(exp) || false;
             const requiredLevel = CryptoZoo.expeditions?.getUnlockRequirement?.(exp) || 1;
-            const buttonLabel = isUnlocked ? this.t("start", "Start") : `${this.t("lvl", "Lvl")} ${CryptoZoo.formatNumber(requiredLevel)}`;
+            const startCostCoins = CryptoZoo.expeditions?.getStartCostCoins?.(exp) || 0;
+
+            let buttonLabel = this.t("start", "Start");
+            let buttonDisabled = false;
+
+            if (!isUnlocked) {
+                buttonLabel = `${this.t("lvl", "Lvl")} ${CryptoZoo.formatNumber(requiredLevel)}`;
+                buttonDisabled = true;
+            } else if (!canAfford) {
+                buttonLabel = `${this.t("cost", "Koszt")}: ${CryptoZoo.formatNumber(startCostCoins)}`;
+                buttonDisabled = true;
+            }
 
             const effectiveDuration =
                 CryptoZoo.expeditions?.getEffectiveDurationSeconds?.(exp) ||
@@ -1220,6 +1232,10 @@ CryptoZoo.ui = {
                     <h3>${expeditionName}</h3>
                     <div>${this.t("time", "Czas")}: ${this.formatTimeLeft(effectiveDuration)}</div>
                     <div>
+                        ${this.t("cost", "Koszt")} startu:
+                        ${CryptoZoo.formatNumber(startCostCoins)} ${this.t("coins", "coins")}
+                    </div>
+                    <div>
                         ${this.t("baseReward", "Nagroda bazowa")}:
                         ${CryptoZoo.formatNumber(exp.baseCoins)} ${this.t("coins", "coins")}
                     </div>
@@ -1237,8 +1253,8 @@ CryptoZoo.ui = {
                     <button
                         id="start-expedition-${exp.id}"
                         type="button"
-                        ${isUnlocked ? "" : "disabled"}
-                        style="${isUnlocked ? "" : "opacity:0.65; cursor:not-allowed;"}"
+                        ${buttonDisabled ? "disabled" : ""}
+                        style="${buttonDisabled ? "opacity:0.65; cursor:not-allowed;" : ""}"
                     >${buttonLabel}</button>
                 </div>
             `;
@@ -1247,7 +1263,10 @@ CryptoZoo.ui = {
         this.bindDailyMissionButtons();
 
         expeditions.forEach((exp) => {
-            if (CryptoZoo.expeditions?.isUnlocked?.(exp)) {
+            if (
+                CryptoZoo.expeditions?.isUnlocked?.(exp) &&
+                CryptoZoo.expeditions?.canAffordStart?.(exp)
+            ) {
                 this.bindClick(`start-expedition-${exp.id}`, () => {
                     CryptoZoo.expeditions?.start?.(exp.id, []);
                 });
