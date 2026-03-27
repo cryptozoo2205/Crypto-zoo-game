@@ -303,6 +303,28 @@ window.CryptoZoo.api = {
         return safeValue;
     },
 
+    normalizeSelectedAnimals(rawSelectedAnimals) {
+        if (!Array.isArray(rawSelectedAnimals)) {
+            return [];
+        }
+
+        return rawSelectedAnimals
+            .map((entry) => {
+                if (typeof entry === "string") {
+                    return {
+                        type: String(entry),
+                        count: 1
+                    };
+                }
+
+                return {
+                    type: String(entry?.type || ""),
+                    count: Math.max(1, Number(entry?.count) || 1)
+                };
+            })
+            .filter((entry) => entry.type);
+    },
+
     normalizeExpedition(rawExpedition) {
         if (!rawExpedition || typeof rawExpedition !== "object") {
             return null;
@@ -318,7 +340,8 @@ window.CryptoZoo.api = {
             timeReductionUsed: Math.max(0, Number(rawExpedition.timeReductionUsed) || 0),
             rewardRarity: String(rawExpedition.rewardRarity || "common"),
             rewardCoins: Math.max(0, Number(rawExpedition.rewardCoins) || 0),
-            rewardGems: Math.max(0, Number(rawExpedition.rewardGems) || 0)
+            rewardGems: Math.max(0, Number(rawExpedition.rewardGems) || 0),
+            selectedAnimals: this.normalizeSelectedAnimals(rawExpedition.selectedAnimals)
         };
     },
 
