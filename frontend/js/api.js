@@ -80,6 +80,25 @@ window.CryptoZoo.api = {
         }
     },
 
+    getStoredTelegramUser() {
+        const storedId = String(localStorage.getItem("telegramId") || "").trim();
+        if (!storedId || storedId === "mock-user-1") {
+            return null;
+        }
+
+        const storedUsername = String(localStorage.getItem("telegramUsername") || "").trim();
+        const storedFirstName = String(localStorage.getItem("telegramFirstName") || "").trim();
+        const launchMode = String(localStorage.getItem("cryptozoo_launch_mode") || "").trim();
+
+        return {
+            id: storedId,
+            username: storedUsername,
+            first_name: storedFirstName || storedUsername || "Gracz",
+            isMock: false,
+            isTelegramWebApp: launchMode === "telegram"
+        };
+    },
+
     isTelegramLaunch() {
         const tgWebAppUser =
             window.Telegram &&
@@ -135,6 +154,11 @@ window.CryptoZoo.api = {
             localStorage.setItem("cryptozoo_launch_mode", "telegram-link");
 
             return safeUser;
+        }
+
+        const storedTelegramUser = this.getStoredTelegramUser();
+        if (storedTelegramUser && storedTelegramUser.id) {
+            return storedTelegramUser;
         }
 
         let localId = localStorage.getItem("telegramId");
