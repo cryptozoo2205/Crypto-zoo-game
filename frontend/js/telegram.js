@@ -30,6 +30,11 @@ window.CryptoZoo.telegram = {
             this.forceFullscreen();
             this.applyViewportFix();
             this.applyIdentityToUi();
+
+            setTimeout(() => this.applyViewportFix(), 120);
+            setTimeout(() => this.applyViewportFix(), 300);
+            setTimeout(() => this.applyViewportFix(), 700);
+            setTimeout(() => this.applyViewportFix(), 1200);
         } catch (error) {
             console.error("TELEGRAM INIT ERROR:", error);
             this.applyIdentityToUi();
@@ -108,6 +113,14 @@ window.CryptoZoo.telegram = {
         } catch (error) {
             console.warn("disableVerticalSwipes failed:", error);
         }
+
+        try {
+            if (typeof tg.enableClosingConfirmation === "function") {
+                tg.enableClosingConfirmation();
+            }
+        } catch (error) {
+            console.warn("enableClosingConfirmation failed:", error);
+        }
     },
 
     forceFullscreen() {
@@ -139,9 +152,11 @@ window.CryptoZoo.telegram = {
         runFullscreen();
 
         setTimeout(runFullscreen, 60);
-        setTimeout(runFullscreen, 220);
-        setTimeout(runFullscreen, 500);
+        setTimeout(runFullscreen, 180);
+        setTimeout(runFullscreen, 320);
+        setTimeout(runFullscreen, 550);
         setTimeout(runFullscreen, 900);
+        setTimeout(runFullscreen, 1400);
     },
 
     bindTelegramEvents() {
@@ -216,6 +231,24 @@ window.CryptoZoo.telegram = {
         };
     },
 
+    getViewportHeight() {
+        const tg = this.getWebApp();
+
+        const candidates = [
+            Number(tg?.viewportStableHeight) || 0,
+            Number(tg?.viewportHeight) || 0,
+            window.innerHeight || 0,
+            document.documentElement?.clientHeight || 0,
+            screen?.height || 0
+        ].filter((value) => value > 0);
+
+        if (!candidates.length) {
+            return 0;
+        }
+
+        return Math.max(...candidates);
+    },
+
     applyViewportFix() {
         const root = document.documentElement;
         const body = document.body;
@@ -224,7 +257,7 @@ window.CryptoZoo.telegram = {
         const menu = document.querySelector(".menu");
         const topBar = document.querySelector(".top-bar");
         const safe = this.getSafeAreaValues();
-        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        const viewportHeight = this.getViewportHeight();
         const topBarHeight = topBar ? topBar.offsetHeight : 0;
         const menuHeight = menu ? menu.offsetHeight : 0;
         const contentHeight = Math.max(0, viewportHeight - topBarHeight - menuHeight);
@@ -234,6 +267,7 @@ window.CryptoZoo.telegram = {
             root.style.padding = "0";
             root.style.width = "100%";
             root.style.height = "100%";
+            root.style.minHeight = "100%";
             root.style.overflow = "hidden";
             root.style.background = "#0b1220";
             root.style.setProperty("--tg-safe-top", `${safe.top}px`);
@@ -249,14 +283,18 @@ window.CryptoZoo.telegram = {
             body.style.padding = "0";
             body.style.width = "100%";
             body.style.height = `${viewportHeight}px`;
+            body.style.minHeight = `${viewportHeight}px`;
             body.style.overflow = "hidden";
             body.style.background = "#0b1220";
+            body.style.position = "fixed";
+            body.style.inset = "0";
         }
 
         if (app) {
             app.style.width = "100%";
             app.style.height = `${viewportHeight}px`;
             app.style.minHeight = `${viewportHeight}px`;
+            app.style.maxHeight = `${viewportHeight}px`;
             app.style.overflow = "hidden";
             app.style.background = "#0b1220";
         }
@@ -277,6 +315,8 @@ window.CryptoZoo.telegram = {
 
         if (game) {
             game.style.height = `${contentHeight}px`;
+            game.style.minHeight = `${contentHeight}px`;
+            game.style.maxHeight = `${contentHeight}px`;
             game.style.overflowY = "auto";
             game.style.overflowX = "hidden";
             game.style.WebkitOverflowScrolling = "touch";
