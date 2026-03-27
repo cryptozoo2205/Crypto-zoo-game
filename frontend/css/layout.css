@@ -180,7 +180,8 @@ main#game {
     width: 100%;
     min-width: 0;
     flex: 1 1 auto;
-    padding-bottom: 0;
+    padding-bottom: calc(var(--menu-height, 88px) + var(--tg-safe-bottom, 0px) + 20px);
+    box-sizing: border-box;
 }
 
 #screen-game,
@@ -1156,24 +1157,34 @@ main#game {
 }
 
 /* =========================
-   FIX: CONTENT UNDER BOTTOM MENU
+   FIX: CONTENT UNDER BOTTOM MENU / TELEGRAM FULLSCREEN
 ========================= */
 
-html, body {
-    padding-bottom: 120px;
+html,
+body {
+    padding-bottom: 0;
 }
 
-/* jeśli masz wrappery */
 #app,
 .app,
 .main-content,
 .screen {
-    padding-bottom: 120px;
+    padding-bottom: 0;
 }
 
-/* zabezpieczenie dla sekcji */
 section,
 .container,
 .content {
-    padding-bottom: 120px;
+    padding-bottom: 0;
+}
+
+#screen-game,
+#screen-zoo,
+#screen-shop,
+#screen-missions,
+#screen-minigames,
+#screen-ranking,
+.game-main-card {
+    padding-bottom: calc(var(--menu-height, 88px) + var(--tg-safe-bottom, 0px) + 20px);
+    box-sizing: border-box;
 }
