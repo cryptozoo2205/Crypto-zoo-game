@@ -70,6 +70,7 @@ CryptoZoo.gameplay = {
             coins: 0,
             gems: 0,
             rewardBalance: 0,
+            rewardWallet: 0,
             withdrawPending: 0,
             level: 1,
             coinsPerClick: 1,
@@ -102,15 +103,15 @@ CryptoZoo.gameplay = {
 
         CryptoZoo.state.coins = Math.max(0, Number(CryptoZoo.state.coins) || 0);
         CryptoZoo.state.gems = Math.max(0, Number(CryptoZoo.state.gems) || 0);
-        CryptoZoo.state.rewardBalance = Math.max(0, Number(CryptoZoo.state.rewardBalance) || 0);
-        CryptoZoo.state.withdrawPending = Math.max(0, Number(CryptoZoo.state.withdrawPending) || 0);
-
-        if (typeof CryptoZoo.state.rewardWallet === "number" && CryptoZoo.state.rewardWallet > 0) {
-            CryptoZoo.state.rewardBalance = Number(
-                (CryptoZoo.state.rewardBalance + CryptoZoo.state.rewardWallet).toFixed(3)
-            );
-        }
-        delete CryptoZoo.state.rewardWallet;
+        CryptoZoo.state.rewardBalance = Number(
+            (Math.max(0, Number(CryptoZoo.state.rewardBalance) || 0)).toFixed(3)
+        );
+        CryptoZoo.state.rewardWallet = Number(
+            (Math.max(0, Number(CryptoZoo.state.rewardWallet) || 0)).toFixed(3)
+        );
+        CryptoZoo.state.withdrawPending = Number(
+            (Math.max(0, Number(CryptoZoo.state.withdrawPending) || 0)).toFixed(3)
+        );
 
         CryptoZoo.state.level = Math.max(1, Math.floor(Number(CryptoZoo.state.level) || 1));
         CryptoZoo.state.xp = Math.max(0, Math.floor(Number(CryptoZoo.state.xp) || 0));
