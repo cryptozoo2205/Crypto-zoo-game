@@ -60,6 +60,18 @@ CryptoZoo.init = {
             CryptoZoo.telegram?.applyViewportFix?.();
             CryptoZoo.telegram?.applyIdentityToUi?.();
             CryptoZoo.ui?.render?.();
+
+            setTimeout(() => {
+                CryptoZoo.telegram?.applyViewportFix?.();
+            }, 120);
+
+            setTimeout(() => {
+                CryptoZoo.telegram?.applyViewportFix?.();
+            }, 350);
+
+            setTimeout(() => {
+                CryptoZoo.telegram?.applyViewportFix?.();
+            }, 800);
         });
     },
 
@@ -79,6 +91,8 @@ CryptoZoo.init = {
 
         window.addEventListener("focus", resume, { passive: true });
         window.addEventListener("pageshow", resume, { passive: true });
+        window.addEventListener("resize", resume, { passive: true });
+        window.addEventListener("orientationchange", resume, { passive: true });
     },
 
     async start() {
@@ -141,6 +155,7 @@ CryptoZoo.init = {
         });
 
         await this.runSafe(async () => {
+            CryptoZoo.telegram?.forceFullscreen?.();
             CryptoZoo.telegram?.applyIdentityToUi?.();
             CryptoZoo.telegram?.applyViewportFix?.();
             CryptoZoo.ui?.bindHomeButtons?.();
@@ -157,6 +172,14 @@ CryptoZoo.init = {
             this.hideLoadingScreen();
             this.handleAppResume();
         }, 220);
+
+        setTimeout(() => {
+            this.handleAppResume();
+        }, 600);
+
+        setTimeout(() => {
+            this.handleAppResume();
+        }, 1200);
     }
 };
 
