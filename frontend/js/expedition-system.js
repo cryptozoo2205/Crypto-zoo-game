@@ -45,6 +45,28 @@ CryptoZoo.expeditions = {
             .sort((a, b) => a - b);
     },
 
+    normalizeSelectedAnimals(selectedAnimals) {
+        if (!Array.isArray(selectedAnimals)) {
+            return [];
+        }
+
+        return selectedAnimals
+            .map((entry) => {
+                if (typeof entry === "string") {
+                    return {
+                        type: String(entry),
+                        count: 1
+                    };
+                }
+
+                return {
+                    type: String(entry?.type || ""),
+                    count: Math.max(1, Math.floor(Number(entry?.count) || 1))
+                };
+            })
+            .filter((entry) => entry.type);
+    },
+
     ensureActiveExpeditionShape() {
         CryptoZoo.state = CryptoZoo.state || {};
 
@@ -82,6 +104,7 @@ CryptoZoo.expeditions = {
         expedition.rewardRarity = this.normalizeRewardRarity(expedition.rewardRarity);
         expedition.rewardCoins = Math.max(0, Math.floor(Number(expedition.rewardCoins) || 0));
         expedition.rewardGems = Math.max(0, Math.floor(Number(expedition.rewardGems) || 0));
+        expedition.selectedAnimals = this.normalizeSelectedAnimals(expedition.selectedAnimals);
 
         if (expedition.endTime > 0 && expedition.startTime > 0 && expedition.endTime < expedition.startTime) {
             expedition.endTime = expedition.startTime + expedition.duration * 1000;
@@ -273,10 +296,6 @@ CryptoZoo.expeditions = {
 
         const hours = durationSeconds / 3600;
 
-        // FINAL ECONOMY:
-        // reward liczony z bazowego czasu ekspedycji,
-        // nie z czasu po skróceniu, żeby time boost oszczędzał czas,
-        // ale nie ucinał wypłaty
         let base = 0.0015 + hours * 0.0205;
 
         const rarity = this.normalizeRewardRarity(expedition.rewardRarity);
@@ -339,7 +358,8 @@ CryptoZoo.expeditions = {
             timeReductionUsed: 0,
             rewardRarity,
             rewardCoins,
-            rewardGems
+            rewardGems,
+            selectedAnimals: []
         };
     },
 
