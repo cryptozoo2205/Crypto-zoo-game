@@ -4,6 +4,7 @@ CryptoZoo.init = {
     started: false,
     minLoadingVisibleMs: 1400,
     startTimestamp: 0,
+    lifecycleBound: false,
 
     setLoadingProgress(percent) {
         const safePercent = Math.max(0, Math.min(100, Number(percent) || 0));
@@ -51,6 +52,33 @@ CryptoZoo.init = {
         }
 
         return null;
+    },
+
+    handleAppResume() {
+        this.runSafe(async () => {
+            CryptoZoo.telegram?.forceFullscreen?.();
+            CryptoZoo.telegram?.applyViewportFix?.();
+            CryptoZoo.telegram?.applyIdentityToUi?.();
+            CryptoZoo.ui?.render?.();
+        });
+    },
+
+    bindLifecycleEvents() {
+        if (this.lifecycleBound) return;
+        this.lifecycleBound = true;
+
+        const resume = () => {
+            this.handleAppResume();
+        };
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") {
+                resume();
+            }
+        });
+
+        window.addEventListener("focus", resume, { passive: true });
+        window.addEventListener("pageshow", resume, { passive: true });
     },
 
     async start() {
@@ -114,9 +142,11 @@ CryptoZoo.init = {
 
         await this.runSafe(async () => {
             CryptoZoo.telegram?.applyIdentityToUi?.();
+            CryptoZoo.telegram?.applyViewportFix?.();
             CryptoZoo.ui?.bindHomeButtons?.();
             CryptoZoo.uiSettings?.bindSettingsModal?.();
             CryptoZoo.uiProfile?.bindProfileModal?.();
+            this.bindLifecycleEvents();
         });
 
         this.setLoadingProgress(100);
@@ -125,6 +155,7 @@ CryptoZoo.init = {
 
         setTimeout(() => {
             this.hideLoadingScreen();
+            this.handleAppResume();
         }, 220);
     }
 };
