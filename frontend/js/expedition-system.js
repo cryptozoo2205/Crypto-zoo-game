@@ -224,6 +224,16 @@ CryptoZoo.expeditions = {
         return Math.max(1, Number(expedition.unlockLevel) || 1);
     },
 
+    getStartCostCoins(expedition) {
+        return Math.max(0, Math.floor(Number(expedition?.startCostCoins) || 0));
+    },
+
+    canAffordStart(expedition) {
+        const cost = this.getStartCostCoins(expedition);
+        const coins = Math.max(0, Number(CryptoZoo.state?.coins) || 0);
+        return coins >= cost;
+    },
+
     isUnlocked(expedition) {
         const requiredLevel = this.getUnlockRequirement(expedition);
         const playerLevel = Math.max(1, Number(CryptoZoo.state?.level) || 1);
@@ -385,6 +395,16 @@ CryptoZoo.expeditions = {
             return false;
         }
 
+        const startCostCoins = this.getStartCostCoins(expeditionConfig);
+
+        if (!this.canAffordStart(expeditionConfig)) {
+            CryptoZoo.ui?.showToast?.(
+                `Potrzebujesz ${CryptoZoo.formatNumber(startCostCoins)} coins`
+            );
+            return false;
+        }
+
+        CryptoZoo.state.coins = Math.max(0, Number(CryptoZoo.state.coins) || 0) - startCostCoins;
         CryptoZoo.state.expedition = this.buildActiveExpedition(
             expeditionConfig,
             selectedAnimals
@@ -392,9 +412,12 @@ CryptoZoo.expeditions = {
 
         CryptoZoo.dailyMissions?.recordStartExpedition?.(1);
         CryptoZoo.audio?.play?.("click");
+        CryptoZoo.gameplay?.recalculateProgress?.();
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
-        CryptoZoo.ui?.showToast?.(`🌍 Start: ${expeditionConfig.namePl || expeditionConfig.name}`);
+        CryptoZoo.ui?.showToast?.(
+            `🌍 Start: ${expeditionConfig.namePl || expeditionConfig.name} • -${CryptoZoo.formatNumber(startCostCoins)} coins`
+        );
 
         return true;
     },
