@@ -24,7 +24,7 @@ CryptoZoo.rewardWallet = {
             transferAmount = available;
         }
 
-        transferAmount = Math.floor(transferAmount);
+        transferAmount = Math.floor(transferAmount * 1000) / 1000;
 
         if (transferAmount <= 0 || available <= 0) {
             CryptoZoo.ui?.showToast?.("Brak reward do transferu");
@@ -35,16 +35,24 @@ CryptoZoo.rewardWallet = {
             transferAmount = available;
         }
 
-        CryptoZoo.state.rewardBalance =
-            Math.max(0, Number(CryptoZoo.state.rewardBalance) || 0) - transferAmount;
+        transferAmount = Math.floor(transferAmount * 1000) / 1000;
 
-        CryptoZoo.state.rewardWallet =
-            (Number(CryptoZoo.state.rewardWallet) || 0) + transferAmount;
+        CryptoZoo.state.rewardBalance = Number(
+            (
+                Math.max(0, Number(CryptoZoo.state.rewardBalance) || 0) - transferAmount
+            ).toFixed(3)
+        );
+
+        CryptoZoo.state.rewardWallet = Number(
+            (
+                (Number(CryptoZoo.state.rewardWallet) || 0) + transferAmount
+            ).toFixed(3)
+        );
 
         CryptoZoo.gameplay?.persistAndRender?.();
 
         CryptoZoo.ui?.showToast?.(
-            `Przeniesiono ${CryptoZoo.formatNumber(transferAmount)} reward do wallet`
+            `Przeniesiono ${transferAmount.toFixed(3)} reward do wallet`
         );
 
         return true;
