@@ -211,12 +211,18 @@ CryptoZoo.dailyMissions = {
     },
 
     init() {
+        if (!CryptoZoo.state || typeof CryptoZoo.state !== "object") {
+            return false;
+        }
+
         this.ensureState();
         const changed = this.refreshDayIfNeeded();
 
-        if (changed) {
+        if (changed && CryptoZoo.api?.initialized) {
             CryptoZoo.api?.savePlayer?.();
         }
+
+        return changed;
     },
 
     getAll() {
@@ -378,4 +384,6 @@ CryptoZoo.dailyMissions = {
     }
 };
 
-CryptoZoo.dailyMissions.init();
+if (CryptoZoo.state && typeof CryptoZoo.state === "object") {
+    CryptoZoo.dailyMissions.init();
+}
