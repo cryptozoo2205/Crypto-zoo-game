@@ -11,6 +11,37 @@ CryptoZoo.expeditions = {
         return this.getAll().find((exp) => String(exp.id) === String(id)) || null;
     },
 
+    t(key, fallback) {
+        const translated = CryptoZoo.lang?.t?.(key);
+        if (translated && translated !== key) {
+            return translated;
+        }
+        return fallback || key;
+    },
+
+    getExpeditionDisplayName(expeditionConfig) {
+        if (!expeditionConfig) {
+            return "Expedition";
+        }
+
+        const currentLang = CryptoZoo.lang?.current || "en";
+
+        if (currentLang === "pl" && expeditionConfig.namePl) {
+            return String(expeditionConfig.namePl);
+        }
+
+        if (currentLang === "en" && expeditionConfig.nameEn) {
+            return String(expeditionConfig.nameEn);
+        }
+
+        return String(
+            expeditionConfig.nameEn ||
+            expeditionConfig.namePl ||
+            expeditionConfig.name ||
+            "Expedition"
+        );
+    },
+
     ensureExpeditionStats() {
         CryptoZoo.state = CryptoZoo.state || {};
         CryptoZoo.state.expeditionStats = CryptoZoo.state.expeditionStats || {
@@ -105,6 +136,7 @@ CryptoZoo.expeditions = {
         expedition.rewardCoins = Math.max(0, Math.floor(Number(expedition.rewardCoins) || 0));
         expedition.rewardGems = Math.max(0, Math.floor(Number(expedition.rewardGems) || 0));
         expedition.selectedAnimals = this.normalizeSelectedAnimals(expedition.selectedAnimals);
+        expedition.startCostCoins = Math.max(0, Math.floor(Number(expedition.startCostCoins) || 0));
 
         if (expedition.endTime > 0 && expedition.startTime > 0 && expedition.endTime < expedition.startTime) {
             expedition.endTime = expedition.startTime + expedition.duration * 1000;
@@ -228,9 +260,13 @@ CryptoZoo.expeditions = {
         return Math.max(0, Math.floor(Number(expedition?.startCostCoins) || 0));
     },
 
+    getCurrentCoins() {
+        return Math.max(0, Math.floor(Number(CryptoZoo.state?.coins) || 0));
+    },
+
     canAffordStart(expedition) {
         const cost = this.getStartCostCoins(expedition);
-        const coins = Math.max(0, Number(CryptoZoo.state?.coins) || 0);
+        const coins = this.getCurrentCoins();
         return coins >= cost;
     },
 
@@ -354,14 +390,11 @@ CryptoZoo.expeditions = {
         const rewardCoins = this.getCoinsReward(expeditionConfig, rewardRarity);
         const rewardGems = this.getGemsReward(expeditionConfig, rewardRarity);
         const safeSelectedAnimals = this.normalizeSelectedAnimals(selectedAnimals);
+        const startCostCoins = this.getStartCostCoins(expeditionConfig);
 
         return {
             id: String(expeditionConfig?.id || ""),
-            name: String(
-                expeditionConfig?.namePl ||
-                expeditionConfig?.name ||
-                "Expedition"
-            ),
+            name: this.getExpeditionDisplayName(expeditionConfig),
             startTime: now,
             endTime: now + baseDuration * 1000,
             duration: baseDuration,
@@ -370,8 +403,21 @@ CryptoZoo.expeditions = {
             rewardRarity,
             rewardCoins,
             rewardGems,
+            startCostCoins,
             selectedAnimals: safeSelectedAnimals
         };
+    },
+
+    spendStartCost(expeditionConfig) {
+        const startCostCoins = this.getStartCostCoins(expeditionConfig);
+        const currentCoins = this.getCurrentCoins();
+
+        if (currentCoins < startCostCoins) {
+            return false;
+        }
+
+        CryptoZoo.state.coins = Math.max(0, currentCoins - startCostCoins);
+        return true;
     },
 
     start(expeditionId, selectedAnimals = []) {
@@ -404,7 +450,14 @@ CryptoZoo.expeditions = {
             return false;
         }
 
-        CryptoZoo.state.coins = Math.max(0, Number(CryptoZoo.state.coins) || 0) - startCostCoins;
+        const spent = this.spendStartCost(expeditionConfig);
+        if (!spent) {
+            CryptoZoo.ui?.showToast?.(
+                `Potrzebujesz ${CryptoZoo.formatNumber(startCostCoins)} coins`
+            );
+            return false;
+        }
+
         CryptoZoo.state.expedition = this.buildActiveExpedition(
             expeditionConfig,
             selectedAnimals
@@ -415,8 +468,9 @@ CryptoZoo.expeditions = {
         CryptoZoo.gameplay?.recalculateProgress?.();
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
+
         CryptoZoo.ui?.showToast?.(
-            `🌍 Start: ${expeditionConfig.namePl || expeditionConfig.name} • -${CryptoZoo.formatNumber(startCostCoins)} coins`
+            `🌍 Start: ${this.getExpeditionDisplayName(expeditionConfig)} • -${CryptoZoo.formatNumber(startCostCoins)} coins`
         );
 
         return true;
