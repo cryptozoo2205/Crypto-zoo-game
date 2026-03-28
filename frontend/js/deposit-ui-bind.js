@@ -5,14 +5,15 @@ CryptoZoo.depositBind = {
 
     init() {
         this.bindAmountButtons();
-        this.bindCreateDeposit();
     },
 
     bindAmountButtons() {
         const buttons = document.querySelectorAll(".deposit-amount-btn");
 
+        if (!buttons.length) return;
+
         buttons.forEach((btn) => {
-            if (btn.dataset.bound) return;
+            if (btn.dataset.bound === "1") return;
             btn.dataset.bound = "1";
 
             btn.addEventListener("click", () => {
@@ -21,32 +22,25 @@ CryptoZoo.depositBind = {
 
                 this.selectedAmount = amount;
 
-                buttons.forEach((b) => b.classList.remove("active"));
+                buttons.forEach((b) => {
+                    b.classList.remove("active");
+                    b.style.border = "1px solid rgba(255,255,255,0.14)";
+                    b.style.background = "rgba(255,255,255,0.04)";
+                    b.style.boxShadow = "none";
+                });
+
                 btn.classList.add("active");
+                btn.style.border = "2px solid rgba(255,210,60,0.95)";
+                btn.style.background = "linear-gradient(180deg, rgba(255,210,60,0.24) 0%, rgba(255,185,0,0.14) 100%)";
+                btn.style.boxShadow = "0 10px 24px rgba(255,190,0,0.18)";
+
+                const createBtn = document.getElementById("settingsCreateDepositBtn");
+                if (createBtn) {
+                    createBtn.textContent = `Create Deposit (${amount.toFixed(3)})`;
+                }
 
                 CryptoZoo.ui?.showToast?.(`Selected ${amount} TON`);
             });
-        });
-    },
-
-    bindCreateDeposit() {
-        const btn = document.getElementById("settingsCreateDepositBtn");
-        if (!btn || btn.dataset.bound) return;
-
-        btn.dataset.bound = "1";
-
-        btn.addEventListener("click", async () => {
-            CryptoZoo.audio?.play?.("click");
-
-            if (!CryptoZoo.depositUI) {
-                CryptoZoo.ui?.showToast?.("Deposit system not ready");
-                return;
-            }
-
-            await CryptoZoo.depositUI.createDeposit(this.selectedAmount);
-
-            // refresh history po utworzeniu
-            CryptoZoo.uiSettings?.loadDepositsHistory?.();
         });
     }
 };
