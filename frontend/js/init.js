@@ -142,6 +142,12 @@ CryptoZoo.init = {
             CryptoZoo.gameplay?.init?.();
         });
 
+        this.setLoadingProgress(76);
+
+        await this.runSafe(async () => {
+            CryptoZoo.depositBind?.init?.();
+        });
+
         this.setLoadingProgress(82);
 
         await this.runSafe(async () => {
@@ -161,6 +167,7 @@ CryptoZoo.init = {
             CryptoZoo.ui?.bindHomeButtons?.();
             CryptoZoo.uiSettings?.bindSettingsModal?.();
             CryptoZoo.uiProfile?.bindProfileModal?.();
+            CryptoZoo.depositBind?.init?.();
             this.bindLifecycleEvents();
         });
 
