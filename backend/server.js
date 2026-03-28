@@ -62,11 +62,6 @@ const REFERRAL_REWARDS = {
 };
 
 const ADMIN_SECRET = String(process.env.ADMIN_SECRET || "");
-const TELEGRAM_BOT_USERNAME = String(
-    process.env.TELEGRAM_BOT_USERNAME ||
-    process.env.BOT_USERNAME ||
-    ""
-).replace(/^@/, "").trim();
 
 /* =========================
    DB
@@ -168,21 +163,6 @@ function normalizeTelegramUser(rawTelegramUser, fallbackTelegramId = "local-play
         isMock: !!safe.isMock,
         isTelegramWebApp: !!safe.isTelegramWebApp
     };
-}
-
-function buildReferralLink(referralCode) {
-    const safeCode = safeString(referralCode, "");
-    if (!safeCode) return "";
-
-    const referralLinkCode = safeCode.startsWith("ref_")
-        ? safeCode
-        : `ref_${safeCode}`;
-
-    if (!TELEGRAM_BOT_USERNAME) {
-        return referralLinkCode;
-    }
-
-    return `https://t.me/${TELEGRAM_BOT_USERNAME}?start=${referralLinkCode}`;
 }
 
 function getDefaultPlayer(telegramId = "local-player", username = "Gracz") {
@@ -820,8 +800,7 @@ app.get("/api/health", (req, res) => {
         port: PORT,
         timestamp: Date.now(),
         frontendExists: fs.existsSync(FRONTEND_DIR),
-        indexExists: fs.existsSync(INDEX_PATH),
-        telegramBotUsername: TELEGRAM_BOT_USERNAME || ""
+        indexExists: fs.existsSync(INDEX_PATH)
     });
 });
 
@@ -951,19 +930,16 @@ app.get("/api/referrals/:telegramId", (req, res) => {
     const player = getPlayerOrCreate(db, telegramId, "Gracz");
     const safeReferralCode = safeString(player.referralCode, telegramId);
     const referralLinkCode = `ref_${safeReferralCode}`;
-    const referralLink = buildReferralLink(referralLinkCode);
 
     db.players[telegramId] = normalizePlayer(player);
     writeDb(db);
 
     return res.json({
         ok: true,
-        telegramBotUsername: TELEGRAM_BOT_USERNAME || "",
         referralsCount: Math.max(0, normalizeNumber(player.referralsCount, 0)),
         referredBy: safeString(player.referredBy, ""),
         referralCode: safeReferralCode,
         referralLinkCode,
-        referralLink,
         referralRewards: {
             newPlayerCoins: REFERRAL_REWARDS.NEW_PLAYER_COINS,
             newPlayerGems: REFERRAL_REWARDS.NEW_PLAYER_GEMS,
@@ -1172,6 +1148,5 @@ app.listen(PORT, () => {
     console.log("DB_PATH:", DB_PATH);
     console.log("FRONTEND_DIR:", FRONTEND_DIR, fs.existsSync(FRONTEND_DIR) ? "[OK]" : "[MISSING]");
     console.log("INDEX_PATH:", INDEX_PATH, fs.existsSync(INDEX_PATH) ? "[OK]" : "[MISSING]");
-    console.log("TELEGRAM_BOT_USERNAME:", TELEGRAM_BOT_USERNAME || "[MISSING]");
     console.log(`Crypto Zoo backend running on port ${PORT}`);
 });
