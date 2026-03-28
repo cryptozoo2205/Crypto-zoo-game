@@ -39,8 +39,8 @@ CryptoZoo.depositUI = {
         const tg = this.getTelegramWebApp();
 
         try {
-            if (tg?.openTelegramLink) {
-                tg.openTelegramLink(safeLink);
+            if (tg?.openLink) {
+                tg.openLink(safeLink);
                 return true;
             }
 
