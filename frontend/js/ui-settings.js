@@ -1,692 +1,595 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
-    >
-    <meta name="theme-color" content="#0b1220">
-    <title>Crypto Zoo</title>
+window.CryptoZoo = window.CryptoZoo || {};
 
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+CryptoZoo.uiSettings = {
+    storageKey: "cryptozoo_settings",
+    minWithdrawReward: 3,
 
-    <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/layout.css">
-    <link rel="stylesheet" href="css/game.css">
-    <link rel="stylesheet" href="css/zoo.css">
-    <link rel="stylesheet" href="css/shop.css">
-    <link rel="stylesheet" href="css/expeditions.css">
-    <link rel="stylesheet" href="css/ranking.css">
-    <link rel="stylesheet" href="css/menu.css">
-    <link rel="stylesheet" href="css/minigames-ui.css">
-    <link rel="stylesheet" href="css/responsive.css">
+    withdrawHistory: [],
+    withdrawHistoryLoading: false,
+    depositsHistory: [],
+    depositsHistoryLoading: false,
 
-    <style>
-        :root {
-            --menu-height: 110px;
+    financeSectionOpen: false,
+    selectedDepositAmount: 3,
+
+    getDefaultSettings() {
+        return {
+            language: "pl",
+            sound: true
+        };
+    },
+
+    t(key, fallback = "") {
+        const translated = CryptoZoo.lang?.t?.(key);
+        if (translated && translated !== key) {
+            return translated;
+        }
+        return fallback || key;
+    },
+
+    getRewardBalance() {
+        return Number((Number(CryptoZoo.state?.rewardBalance) || 0).toFixed(3));
+    },
+
+    getRewardWallet() {
+        return Number((Number(CryptoZoo.state?.rewardWallet) || 0).toFixed(3));
+    },
+
+    getWithdrawPending() {
+        return Number((Number(CryptoZoo.state?.withdrawPending) || 0).toFixed(3));
+    },
+
+    format(v) {
+        return Number((Number(v) || 0).toFixed(3));
+    },
+
+    canWithdraw() {
+        return this.getRewardWallet() >= this.minWithdrawReward;
+    },
+
+    getSettings() {
+        const defaults = this.getDefaultSettings();
+
+        try {
+            const raw = localStorage.getItem(this.storageKey);
+            if (!raw) {
+                return { ...defaults };
+            }
+
+            const parsed = JSON.parse(raw);
+
+            return {
+                language: parsed?.language === "en" ? "en" : defaults.language,
+                sound: typeof parsed?.sound === "boolean" ? parsed.sound : defaults.sound
+            };
+        } catch (error) {
+            console.error("Settings parse error:", error);
+            return { ...defaults };
+        }
+    },
+
+    saveSettings(nextSettings) {
+        const defaults = this.getDefaultSettings();
+        const safeSettings = {
+            language: nextSettings?.language === "en" ? "en" : defaults.language,
+            sound: typeof nextSettings?.sound === "boolean" ? nextSettings.sound : defaults.sound
+        };
+
+        localStorage.setItem(this.storageKey, JSON.stringify(safeSettings));
+        return safeSettings;
+    },
+
+    applySettings(settings) {
+        const safeSettings = settings || this.getSettings();
+
+        document.documentElement.setAttribute("lang", safeSettings.language);
+        document.documentElement.dataset.gameLanguage = safeSettings.language;
+        document.documentElement.dataset.gameSound = safeSettings.sound ? "on" : "off";
+
+        CryptoZoo.settings = CryptoZoo.settings || {};
+        CryptoZoo.settings.language = safeSettings.language;
+        CryptoZoo.settings.sound = safeSettings.sound;
+
+        if (CryptoZoo.lang) {
+            CryptoZoo.lang.current = safeSettings.language;
+            try {
+                localStorage.setItem("cz_lang", safeSettings.language);
+            } catch (error) {
+                console.error("Language storage sync error:", error);
+            }
+        }
+    },
+
+    syncAudioWithSettings(settings) {
+        const safeSettings = settings || this.getSettings();
+
+        if (!CryptoZoo.audio) return;
+
+        CryptoZoo.audio.enabled = !!safeSettings.sound;
+        if (typeof CryptoZoo.audio.saveSettings === "function") {
+            CryptoZoo.audio.saveSettings();
+        }
+    },
+
+    renderExtraPanels() {
+        CryptoZoo.uiUpdates?.render?.();
+    },
+
+    initSettings() {
+        const settings = this.getSettings();
+        this.applySettings(settings);
+        this.syncAudioWithSettings(settings);
+        this.refreshSettingsModalData();
+        this.renderExtraPanels();
+    },
+
+    getLanguageLabel(language) {
+        return language === "en" ? "English" : "Polski";
+    },
+
+    getSoundLabel(sound) {
+        return sound ? "ON" : "OFF";
+    },
+
+    getDepositOptions() {
+        return [3, 5, 10, 25, 50];
+    },
+
+    getDepositButtonAmount() {
+        const safeAmount = Number(this.selectedDepositAmount) || 3;
+        return safeAmount > 0 ? safeAmount : 3;
+    },
+
+    setDepositAmount(amount) {
+        const safeAmount = Number(amount) || 0;
+        const options = this.getDepositOptions();
+
+        if (!options.includes(safeAmount)) {
+            return;
         }
 
-        html,
-        body {
-            width: 100%;
-            height: 100%;
-            min-height: 100%;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            background: #0b1220;
-        }
+        this.selectedDepositAmount = safeAmount;
+        this.renderDepositAmountOptions();
+        this.refreshSettingsModalData();
+    },
 
-        body.telegram-webapp {
-            overscroll-behavior: none;
-            touch-action: manipulation;
-        }
+    renderDepositAmountOptions() {
+        const wrap = document.getElementById("settingsDepositAmountOptions");
+        if (!wrap) return;
 
-        #app {
-            width: 100%;
-            height: 100%;
-            min-height: 100%;
-            overflow: hidden;
-            background: #0b1220;
-        }
+        const options = this.getDepositOptions();
+        const currentAmount = this.getDepositButtonAmount();
 
-        #game {
-            width: 100%;
-            overflow-y: auto;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
-            box-sizing: border-box;
-        }
+        wrap.innerHTML = options.map((amount) => {
+            const isActive = amount === currentAmount;
 
-        .top-bar {
-            padding-top: env(safe-area-inset-top, 0px);
-            box-sizing: border-box;
-        }
-
-        .menu {
-            padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
-            box-sizing: border-box;
-        }
-
-        #loading-screen {
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-        }
-    </style>
-</head>
-<body>
-    <div id="loading-screen">
-        <div class="loading-visual">
-            <div class="loading-image-wrap">
-                <img
-                    src="assets/loading/loading_main.png"
-                    alt=""
-                    class="loading-image"
-                    onerror="this.style.display='none';"
+            return `
+                <button
+                    type="button"
+                    class="profile-close-btn settings-deposit-option${isActive ? " active" : ""}"
+                    data-deposit-amount="${amount}"
+                    style="
+                        margin-top:0;
+                        flex:1 1 calc(50% - 6px);
+                        min-width:calc(50% - 6px);
+                        ${isActive ? "box-shadow:0 0 0 2px rgba(255,255,255,0.28) inset;" : "opacity:0.92;"}
+                    "
                 >
+                    ${amount.toFixed(3)}
+                </button>
+            `;
+        }).join("");
 
-                <div class="loading-progress-overlay">
-                    <div class="loading-progress-bar">
-                        <div class="loading-progress-fill" id="loadingBarFill"></div>
+        wrap.querySelectorAll("[data-deposit-amount]").forEach((btn) => {
+            btn.onclick = () => {
+                CryptoZoo.audio?.play?.("click");
+                this.setDepositAmount(Number(btn.dataset.depositAmount || 0));
+            };
+        });
+    },
+
+    refreshSettingsModalData() {
+        const settings = this.getSettings();
+
+        CryptoZoo.ui?.updateText?.(
+            "settingsLanguageValue",
+            this.getLanguageLabel(settings.language)
+        );
+
+        CryptoZoo.ui?.updateText?.(
+            "settingsSoundValue",
+            this.getSoundLabel(settings.sound)
+        );
+
+        const rewardBalanceEl = document.getElementById("settingsRewardBalance");
+        const rewardWalletEl = document.getElementById("settingsRewardWallet");
+        const withdrawPendingEl = document.getElementById("settingsWithdrawPending");
+
+        if (rewardBalanceEl) {
+            rewardBalanceEl.textContent = this.format(this.getRewardBalance()).toFixed(3);
+        }
+
+        if (rewardWalletEl) {
+            rewardWalletEl.textContent = this.format(this.getRewardWallet()).toFixed(3);
+        }
+
+        if (withdrawPendingEl) {
+            withdrawPendingEl.textContent = this.format(this.getWithdrawPending()).toFixed(3);
+        }
+
+        const transferBtn = document.getElementById("settingsTransferRewardBtn");
+        if (transferBtn) {
+            const balance = this.getRewardBalance();
+            transferBtn.disabled = balance <= 0;
+            transferBtn.style.opacity = balance > 0 ? "1" : "0.5";
+            transferBtn.textContent =
+                balance > 0
+                    ? `${this.t("transferReward", "Transfer Reward")} (${balance.toFixed(3)})`
+                    : this.t("noRewardToTransfer", "Brak Reward do transferu");
+        }
+
+        const withdrawBtn = document.getElementById("settingsRequestWithdrawBtn");
+        if (withdrawBtn) {
+            const wallet = this.getRewardWallet();
+            const can = this.canWithdraw();
+
+            withdrawBtn.disabled = !can;
+            withdrawBtn.style.opacity = can ? "1" : "0.5";
+            withdrawBtn.textContent = can
+                ? `${this.t("withdrawRequest", "Withdraw Request")} (${wallet.toFixed(3)})`
+                : `${this.t("minWithdraw", "Min withdraw")} ${this.minWithdrawReward}`;
+        }
+
+        const depositBtn = document.getElementById("settingsCreateDepositBtn");
+        if (depositBtn) {
+            depositBtn.disabled = false;
+            depositBtn.style.opacity = "1";
+            depositBtn.textContent = `${this.t("createDeposit", "Create Deposit")} (${this.getDepositButtonAmount().toFixed(3)})`;
+        }
+
+        this.renderDepositAmountOptions();
+        this.renderFinanceSectionToggle();
+        this.renderWithdrawHistory();
+        this.renderDepositsHistory();
+    },
+
+    toggleLanguage() {
+        const current = this.getSettings();
+        const next = {
+            ...current,
+            language: current.language === "pl" ? "en" : "pl"
+        };
+
+        const saved = this.saveSettings(next);
+
+        if (CryptoZoo.lang?.set) {
+            CryptoZoo.lang.set(saved.language);
+        }
+
+        this.applySettings(saved);
+        this.refreshSettingsModalData();
+        this.renderExtraPanels();
+
+        CryptoZoo.ui?.showToast?.(
+            saved.language === "en" ? "Language: English" : "Język: Polski"
+        );
+
+        CryptoZoo.ui?.render?.();
+        CryptoZoo.uiProfile?.refreshProfileModalData?.();
+        this.refreshSettingsModalData();
+    },
+
+    toggleSound() {
+        const current = this.getSettings();
+        const next = {
+            ...current,
+            sound: !current.sound
+        };
+
+        const saved = this.saveSettings(next);
+        this.applySettings(saved);
+        this.syncAudioWithSettings(saved);
+        this.refreshSettingsModalData();
+        this.renderExtraPanels();
+
+        CryptoZoo.ui?.showToast?.(
+            saved.sound ? "Dźwięki: ON" : "Dźwięki: OFF"
+        );
+    },
+
+    async transferRewardToWallet() {
+        const amount = this.getRewardBalance();
+
+        if (amount <= 0) {
+            CryptoZoo.ui?.showToast?.(this.t("noRewardToTransfer", "Brak Reward do transferu"));
+            return false;
+        }
+
+        CryptoZoo.state.rewardWallet = this.getRewardWallet() + amount;
+        CryptoZoo.state.rewardBalance = 0;
+
+        await CryptoZoo.api.savePlayer();
+
+        CryptoZoo.ui?.showToast?.(`+${amount.toFixed(3)} reward → wallet`);
+
+        this.refreshSettingsModalData();
+        CryptoZoo.ui?.render?.();
+
+        return true;
+    },
+
+    async requestWithdraw() {
+        const wallet = this.getRewardWallet();
+
+        if (wallet < this.minWithdrawReward) {
+            CryptoZoo.ui?.showToast?.(`${this.t("minWithdraw", "Min withdraw")} ${this.minWithdrawReward}`);
+            return false;
+        }
+
+        try {
+            await CryptoZoo.api.createWithdrawRequest(wallet);
+
+            CryptoZoo.ui?.showToast?.(`Withdraw ${wallet.toFixed(3)}`);
+
+            await this.loadWithdrawHistory();
+            this.refreshSettingsModalData();
+
+            return true;
+        } catch (e) {
+            CryptoZoo.ui?.showToast?.(e.message || this.t("withdrawCreateError", "Błąd withdraw"));
+            return false;
+        }
+    },
+
+    async createDeposit() {
+        const amount = this.getDepositButtonAmount();
+
+        try {
+            await CryptoZoo.api.createDeposit(amount);
+
+            CryptoZoo.ui?.showToast?.(`Deposit ${amount.toFixed(3)}`);
+
+            await this.loadDepositsHistory();
+            this.refreshSettingsModalData();
+
+            return true;
+        } catch (e) {
+            CryptoZoo.ui?.showToast?.(e.message || this.t("depositCreateError", "Błąd depozytu"));
+            return false;
+        }
+    },
+
+    async loadWithdrawHistory() {
+        this.withdrawHistoryLoading = true;
+        this.renderWithdrawHistory();
+
+        try {
+            const list = await CryptoZoo.api.loadWithdrawHistory();
+            this.withdrawHistory = Array.isArray(list) ? list : [];
+        } catch (e) {
+            this.withdrawHistory = [];
+        }
+
+        this.withdrawHistoryLoading = false;
+        this.renderWithdrawHistory();
+    },
+
+    renderWithdrawHistory() {
+        const el = document.getElementById("settingsWithdrawHistoryList");
+        if (!el) return;
+
+        if (this.withdrawHistoryLoading) {
+            el.innerHTML = `<div>${this.t("loadingHistory", "Loading...")}</div>`;
+            return;
+        }
+
+        if (!this.withdrawHistory.length) {
+            el.innerHTML = `<div>${this.t("noWithdrawRequests", "Brak withdraw requestów")}</div>`;
+            return;
+        }
+
+        el.innerHTML = this.withdrawHistory
+            .map((w) => {
+                return `
+                    <div style="padding:10px;border:1px solid rgba(255,255,255,0.1);border-radius:10px;margin-bottom:8px;">
+                        <div>${this.format(w.amount).toFixed(3)} reward</div>
+                        <div style="margin-top:4px;">${w.status}</div>
                     </div>
-                    <div class="loading-progress-text" id="loadingPercent">0%</div>
-                </div>
-            </div>
-        </div>
-    </div>
+                `;
+            })
+            .join("");
+    },
 
-    <div id="app">
-        <header class="top-bar">
-            <div class="top-bar-shell">
-                <div class="top-bar-main">
-                    <div class="top-bar-left">
-                        <button class="top-profile-trigger" type="button" id="topProfileBtn" aria-label="Profil gracza">
-                            <div class="top-avatar"></div>
-                            <span class="top-profile-ring"></span>
-                        </button>
+    async loadDepositsHistory() {
+        this.depositsHistoryLoading = true;
+        this.renderDepositsHistory();
 
-                        <div class="top-user-meta">
-                            <div class="top-user-name" id="topPlayerName">Crypto Zoo</div>
-                            <div class="top-user-status" id="topPlayerStatus">● Online</div>
-                        </div>
+        try {
+            const list = await CryptoZoo.api.loadDepositsHistory?.();
+            this.depositsHistory = Array.isArray(list) ? list : [];
+        } catch (e) {
+            this.depositsHistory = [];
+        }
+
+        this.depositsHistoryLoading = false;
+        this.renderDepositsHistory();
+    },
+
+    renderDepositsHistory() {
+        const el = document.getElementById("settingsDepositsHistoryList");
+        if (!el) return;
+
+        if (this.depositsHistoryLoading) {
+            el.innerHTML = `<div>${this.t("loadingHistory", "Loading...")}</div>`;
+            return;
+        }
+
+        if (!this.depositsHistory.length) {
+            el.innerHTML = `<div>${this.t("noDepositsHistory", "Brak historii wpłat")}</div>`;
+            return;
+        }
+
+        el.innerHTML = this.depositsHistory
+            .map((d) => {
+                return `
+                    <div style="padding:10px;border:1px solid rgba(255,255,255,0.1);border-radius:10px;margin-bottom:8px;">
+                        <div>${this.format(d.amount).toFixed(3)} reward</div>
+                        <div style="margin-top:4px;">${d.status}</div>
                     </div>
-
-                    <div class="top-bar-overlay-actions">
-                        <button class="top-icon-chip top-icon-chip-star" type="button" id="topEventsBtn" aria-label="Events">
-                            ✦
-                        </button>
-                        <button class="top-icon-chip top-icon-chip-settings" type="button" id="topSettingsBtn" aria-label="Settings">
-                            ⚙
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <main id="game">
-            <section id="screen-game" class="screen">
-                <div class="panel card game-main-card">
-                    <div class="home-stats-panel">
-                        <div class="home-stat-box">
-                            <div class="home-stat-title" id="langHomeCoinsTitle">Coins</div>
-                            <div class="home-stat-value" id="homeCoins">0</div>
-                        </div>
-
-                        <div class="home-stat-box">
-                            <div class="home-stat-title" id="langHomeGemsTitle">Gems</div>
-                            <div class="home-stat-value" id="homeGems">0</div>
-                        </div>
-
-                        <div class="home-stat-box">
-                            <div class="home-stat-title" id="langHomeRewardTitle">Reward</div>
-                            <div class="home-stat-value" id="homeRewardBalance">0</div>
-                        </div>
-
-                        <div class="home-stat-box">
-                            <div class="home-stat-title" id="langHomeLevelTitle">Poziom</div>
-                            <div class="home-stat-value" id="homeLevel">1</div>
-                            <div class="home-xp-bar-wrap">
-                                <div class="home-xp-bar">
-                                    <div id="homeXpFill" class="home-xp-fill"></div>
-                                </div>
-                                <div id="homeXpText" class="home-xp-text">0 / 100 XP</div>
-                            </div>
-                        </div>
-
-                        <div class="home-stat-box">
-                            <div class="home-stat-title" id="langHomeClickTitle">Za klik</div>
-                            <div class="home-stat-value" id="homeCoinsPerClick">1</div>
-                        </div>
-
-                        <div class="home-stat-box">
-                            <div class="home-stat-title" id="langHomeZooPerSecTitle">Zoo / sek</div>
-                            <div class="home-stat-value" id="homeZooIncomeStat">0</div>
-                        </div>
-                    </div>
-
-                    <div class="tap-area">
-                        <div class="tap-glow"></div>
-                        <button id="tapButton" class="tap-button" type="button" aria-label="Tap"></button>
-                    </div>
-
-                    <div class="home-tap-caption">
-                        <div class="home-tap-title" id="langTapTitle">UZYSKAJ MONETY</div>
-                        <div class="home-tap-subtitle" id="langTapSubtitle">Klikaj i rozwijaj swoje zoo</div>
-                    </div>
-
-                    <div class="home-income-strip">
-                        <div class="home-income-left">
-                            <div class="home-income-label" id="langIncomeLabel">🐾 Dochód zoo / sek</div>
-                            <div class="home-income-value" id="homeIncomeStripValue">0</div>
-                        </div>
-
-                        <div class="home-boost-right">
-                            <div class="home-boost-title" id="langBoostTitle">⚡ X2 Boost</div>
-                            <button id="homeBoostBtn" class="home-boost-button" type="button">Aktywuj</button>
-                            <div id="homeBoostStatus" class="home-boost-status">Nieaktywny</div>
-                        </div>
-                    </div>
-
-                    <div class="home-zoo-preview">
-                        <div class="home-zoo-preview-head">
-                            <div class="home-zoo-preview-title" id="langYourZooTitle">🐾 Twoje Zoo</div>
-                            <button id="homeZooPreviewBtn" class="home-zoo-preview-button" type="button">Zobacz więcej</button>
-                        </div>
-
-                        <div class="home-zoo-preview-list">
-                            <div class="home-zoo-preview-card">
-                                <img src="assets/animals/monkey.png" alt="Monkey">
-                                <div class="home-zoo-preview-name" id="homeMonkeyName">Monkey</div>
-                                <div class="home-zoo-preview-meta">
-                                    <span id="langMonkeyAmount">Ilość</span>: <span id="homeMonkeyCount">0</span><br>
-                                    <span id="langMonkeyLvl">Lvl</span>: <span id="homeMonkeyLevel">1</span>
-                                </div>
-                                <div class="home-zoo-preview-actions">
-                                    <button id="homeBuyMonkeyBtn" type="button">Kup</button>
-                                    <button id="homeUpgradeMonkeyBtn" type="button">Ulepsz</button>
-                                </div>
-                            </div>
-
-                            <div class="home-zoo-preview-card">
-                                <img src="assets/animals/panda.png" alt="Panda">
-                                <div class="home-zoo-preview-name" id="homePandaName">Panda</div>
-                                <div class="home-zoo-preview-meta">
-                                    <span id="langPandaAmount">Ilość</span>: <span id="homePandaCount">0</span><br>
-                                    <span id="langPandaLvl">Lvl</span>: <span id="homePandaLevel">1</span>
-                                </div>
-                                <div class="home-zoo-preview-actions">
-                                    <button id="homeBuyPandaBtn" type="button">Kup</button>
-                                    <button id="homeUpgradePandaBtn" type="button">Ulepsz</button>
-                                </div>
-                            </div>
-
-                            <div class="home-zoo-preview-card">
-                                <img src="assets/animals/lion.png" alt="Lion">
-                                <div class="home-zoo-preview-name" id="homeLionName">Lion</div>
-                                <div class="home-zoo-preview-meta">
-                                    <span id="langLionAmount">Ilość</span>: <span id="homeLionCount">0</span><br>
-                                    <span id="langLionLvl">Lvl</span>: <span id="homeLionLevel">1</span>
-                                </div>
-                                <div class="home-zoo-preview-actions">
-                                    <button id="homeBuyLionBtn" type="button">Kup</button>
-                                    <button id="homeUpgradeLionBtn" type="button">Ulepsz</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="home-quick-panel">
-                        <button id="homeDailyBtn" class="home-quick-card" type="button" aria-label="Otwórz Daily Reward">
-                            <div class="home-quick-icon">🎁</div>
-                            <div class="home-quick-text">
-                                <div class="home-quick-title">Daily Reward</div>
-                                <div class="home-quick-subtitle">
-                                    <span id="homeDailyStatusText">Gotowe do dopracowania</span><br>
-                                    <span id="homeDailyTimerText">Countdown pojawi się tutaj</span>
-                                </div>
-                            </div>
-                        </button>
-
-                        <button id="homeEventsBtn" class="home-quick-card" type="button">
-                            <div class="home-quick-icon">⭐</div>
-                            <div class="home-quick-text">
-                                <div class="home-quick-title" id="langEventsTitle">Events</div>
-                                <div class="home-quick-subtitle" id="langEventsSubtitle">Nowe eventy wkrótce</div>
-                            </div>
-                        </button>
-
-                        <button id="homeBoostInfoBtn" class="home-quick-card" type="button">
-                            <div class="home-quick-icon">⚡</div>
-                            <div class="home-quick-text">
-                                <div class="home-quick-title" id="langBoostCenterTitle">Boost Center</div>
-                                <div class="home-quick-subtitle" id="langBoostCenterSubtitle">Kup lub aktywuj X2</div>
-                            </div>
-                        </button>
-                    </div>
-
-                    <div style="display:none;">
-                        <span id="coins">0</span>
-                        <span id="gems">0</span>
-                        <span id="rewardBalance">0</span>
-                        <span id="level">1</span>
-                        <span id="coinsPerClick">1</span>
-                        <span id="zooIncome">0</span>
-                    </div>
-                </div>
-            </section>
-
-            <section id="screen-zoo" class="screen hidden">
-                <div class="panel card">
-                    <h2 id="langScreenZooTitle">🐾 Zoo</h2>
-                    <div id="zooList"></div>
-                </div>
-            </section>
-
-            <section id="screen-shop" class="screen hidden">
-                <div class="panel card">
-                    <h2 id="langScreenShopTitle">🛒 Shop</h2>
-
-                    <div class="shop-item boost-shop-card" id="boostShopCard">
-                        <h3 id="langBoostShopCardTitle">⚡ X2 Boost</h3>
-                        <div id="langBoostShopCardDesc">Podwaja klik i dochód zoo przez 10 minut.</div>
-                        <div style="margin-top:6px;" id="langBoostShopCardCostWrap">Koszt: <strong>1 gem</strong></div>
-                        <div id="boostShopStatus" style="margin-top:6px;">Nieaktywny</div>
-                        <button id="buyBoostBtn" type="button" style="margin-top:10px;">Kup X2 Boost</button>
-                    </div>
-
-                    <div id="shopList"></div>
-                </div>
-            </section>
-
-            <section id="screen-missions" class="screen hidden">
-                <div class="panel card">
-                    <h2 id="langScreenExpeditionsTitle">🌍 Expeditions</h2>
-                    <div id="missionsList"></div>
-                </div>
-            </section>
-
-            <section id="screen-minigames" class="screen hidden">
-                <div class="panel card minigames-card">
-                    <div class="minigames-header">
-                        <div class="minigames-title" id="langMiniGamesTitle">🎮 Mini Games</div>
-                        <div class="minigames-subtitle" id="langMiniGamesSubtitle">
-                            Zagraj w memory i odbierz nagrody
-                        </div>
-                    </div>
-
-                    <div id="minigamesWrap">
-                        <div id="memoryGame" class="minigame-box">
-                            <div class="minigame-box-header">
-                                <div class="minigame-name" id="langMemoryName">Memory Animals</div>
-                                <div class="minigame-desc" id="langMemoryDesc">
-                                    Znajdź wszystkie pary i odbierz nagrody
-                                </div>
-                            </div>
-
-                            <div id="memoryBoard" class="memory-grid"></div>
-
-                            <button id="startMemoryBtn" type="button">Start Memory</button>
-
-                            <div id="memoryStatus" class="minigame-status">
-                                Find all pairs
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="screen-ranking" class="screen hidden">
-                <div class="panel card">
-                    <h2 id="langScreenRankingTitle">🏆 Ranking</h2>
-                    <ul id="rankingList"></ul>
-                </div>
-            </section>
-        </main>
-
-        <footer class="menu">
-            <button class="menu-btn active-nav" data-nav="game" type="button">
-                <img src="assets/menu/game.png" alt="Game" class="menu-icon">
-            </button>
-
-            <button class="menu-btn" data-nav="zoo" type="button">
-                <img src="assets/menu/zoo.png" alt="Zoo" class="menu-icon">
-            </button>
-
-            <button class="menu-btn" data-nav="shop" type="button">
-                <img src="assets/menu/shop.png" alt="Shop" class="menu-icon">
-            </button>
-
-            <button class="menu-btn" data-nav="missions" type="button">
-                <img src="assets/menu/missions.png" alt="Missions" class="menu-icon">
-            </button>
-
-            <button class="menu-btn" data-nav="minigames" type="button">
-                <img src="assets/menu/minigames.png" alt="Mini Games" class="menu-icon">
-            </button>
-
-            <button class="menu-btn" data-nav="ranking" type="button">
-                <img src="assets/menu/ranking.png" alt="Ranking" class="menu-icon">
-            </button>
-        </footer>
-    </div>
-
-    <div id="profileModal" class="profile-modal hidden">
-        <div class="profile-backdrop" id="profileBackdrop"></div>
-
-        <div class="profile-card">
-            <div class="profile-header">
-                <div class="profile-avatar"></div>
-
-                <div class="profile-user-meta">
-                    <div class="profile-name" id="profileName">Gracz</div>
-                    <div class="profile-subtitle" id="profileSubtitle">@username</div>
-                </div>
-            </div>
-
-            <div class="profile-grid">
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langProfileAnimals">Animals</div>
-                    <div class="profile-box-value" id="profileAnimalsTotal">0</div>
-                </div>
-
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langProfileSpecies">Species</div>
-                    <div class="profile-box-value" id="profileSpeciesUnlocked">0</div>
-                </div>
-
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langProfileBoxes">Boxes</div>
-                    <div class="profile-box-value" id="profileBoxesTotal">0</div>
-                </div>
-
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langProfileRanking">Ranking</div>
-                    <div class="profile-box-value" id="profileRankingPlace">#-</div>
-                </div>
-
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langProfileReward">Reward</div>
-                    <div class="profile-box-value" id="profileRewardBalance">0</div>
-                </div>
-
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langProfileWallet">Wallet</div>
-                    <div class="profile-box-value" id="profileRewardWallet">0</div>
-                </div>
-
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langProfilePending">Pending</div>
-                    <div class="profile-box-value" id="profileWithdrawPending">0</div>
-                </div>
-            </div>
-
-            <div class="profile-boost-row">
-                <div class="profile-boost-left">
-                    <div class="profile-boost-label" id="langProfileBoostStatus">Boost status</div>
-                    <div class="profile-boost-value" id="profileBoostStatus">Nieaktywny</div>
-                </div>
-            </div>
-
-            <button
-                id="toggleReferralBtn"
-                class="profile-close-btn"
-                type="button"
-                aria-expanded="false"
-                style="margin-top:12px; display:flex; align-items:center; justify-content:space-between; gap:10px;"
-            >
-                <span id="toggleReferralBtnLabel">Referral / Zaproś znajomych</span>
-                <span id="toggleReferralBtnArrow">▼</span>
-            </button>
-
-            <div
-                id="profileReferralContent"
-                class="profile-boost-row"
-                style="margin-top:12px; display:none;"
-            >
-                <div class="profile-boost-left" style="width:100%;">
-                    <div class="profile-boost-label">Referral</div>
-
-                    <div style="margin-top:10px; display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px;">
-                        <div class="profile-box" style="margin:0;">
-                            <div class="profile-box-label">Zaproszeni</div>
-                            <div class="profile-box-value" id="profileReferralsCount">0</div>
-                        </div>
-
-                        <div class="profile-box" style="margin:0;">
-                            <div class="profile-box-label">Kod</div>
-                            <div class="profile-box-value" id="profileReferralCode">-</div>
-                        </div>
-                    </div>
-
-                    <div style="margin-top:10px;">
-                        <div class="profile-box-label" style="margin-bottom:6px;">Link referral</div>
-                        <div
-                            id="profileReferralLink"
-                            style="padding:10px; border:1px solid rgba(255,255,255,0.1); border-radius:10px; word-break:break-all; font-size:12px; color:rgba(255,255,255,0.88); background:rgba(255,255,255,0.03); min-height:18px;"
-                        >-</div>
-                    </div>
-
-                    <button id="copyReferralBtn" class="profile-close-btn" type="button" style="margin-top:10px;">Kopiuj link</button>
-
-                    <div style="margin-top:12px;">
-                        <div class="profile-box-label" style="margin-bottom:6px;">Nagrody referral</div>
-                        <div
-                            id="profileReferralRewards"
-                            style="padding:10px; border:1px solid rgba(255,255,255,0.1); border-radius:10px; font-size:12px; color:rgba(255,255,255,0.82); background:rgba(255,255,255,0.03); line-height:1.5;"
-                        >
-                            Ładowanie...
-                        </div>
-                    </div>
-
-                    <div style="margin-top:12px;">
-                        <div class="profile-box-label" style="margin-bottom:6px;">Ostatni zaproszeni</div>
-                        <div id="profileReferralsList" style="margin-top:8px;"></div>
-                    </div>
-                </div>
-            </div>
-
-            <button id="closeProfileBtn" class="profile-close-btn" type="button">Zamknij</button>
-        </div>
-    </div>
-
-    <div id="settingsModal" class="profile-modal hidden">
-        <div class="profile-backdrop" id="settingsBackdrop"></div>
-
-        <div class="profile-card">
-            <div class="profile-header">
-                <div class="profile-avatar"></div>
-
-                <div class="profile-user-meta">
-                    <div class="profile-name" id="langSettingsTitle">Settings</div>
-                    <div class="profile-subtitle" id="langSettingsSubtitle">Ustawienia gry i FAQ</div>
-                </div>
-            </div>
-
-            <div class="profile-grid">
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langSettingsLanguage">Language</div>
-                    <div class="profile-box-value" id="settingsLanguageValue">Polski</div>
-                </div>
-
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langSettingsSounds">Sounds</div>
-                    <div class="profile-box-value" id="settingsSoundValue">ON</div>
-                </div>
-            </div>
-
-            <div class="profile-boost-row">
-                <div class="profile-boost-left">
-                    <div class="profile-boost-label" id="langSettingsFaqHelp">FAQ / Help</div>
-                    <button
-                        id="openFaqBtn"
-                        class="profile-close-btn"
-                        type="button"
-                        style="margin-top:8px;"
-                    >
-                        Otwórz FAQ
-                    </button>
-                </div>
-            </div>
-
-            <button
-                id="toggleFinanceBtn"
-                class="profile-close-btn"
-                type="button"
-                aria-expanded="false"
-                style="margin-top:12px; display:flex; align-items:center; justify-content:space-between; gap:10px;"
-            >
-                <span id="toggleFinanceBtnLabel">Reward / Withdraw</span>
-                <span id="toggleFinanceBtnArrow">▼</span>
-            </button>
-
-            <div
-                id="settingsFinanceContent"
-                class="profile-boost-row"
-                style="margin-top:12px; display:none;"
-            >
-                <div class="profile-boost-left" style="width:100%;">
-                    <div class="profile-grid">
-                        <div class="profile-box">
-                            <div class="profile-box-label">Reward</div>
-                            <div class="profile-box-value" id="settingsRewardBalance">0.000</div>
-                        </div>
-
-                        <div class="profile-box">
-                            <div class="profile-box-label">Wallet</div>
-                            <div class="profile-box-value" id="settingsRewardWallet">0.000</div>
-                        </div>
-
-                        <div class="profile-box">
-                            <div class="profile-box-label">Pending</div>
-                            <div class="profile-box-value" id="settingsWithdrawPending">0.000</div>
-                        </div>
-                    </div>
-
-                    <div class="profile-boost-row" style="margin-top:12px;">
-                        <div class="profile-boost-left">
-                            <div class="profile-boost-label" id="langProfileRewardWalletTitle">Reward Wallet</div>
-                            <div class="profile-boost-value" id="langProfileRewardWalletDesc">Przenieś Reward do Wallet lub wyślij request wypłaty</div>
-                        </div>
-                    </div>
-
-                    <button id="settingsTransferRewardBtn" class="profile-close-btn" type="button" style="margin-top:12px;">Transfer Reward</button>
-                    <button id="settingsRequestWithdrawBtn" class="profile-close-btn" type="button">Withdraw Request</button>
-
-                    <div class="profile-boost-row" style="margin-top:12px;">
-                        <div class="profile-boost-left" style="width:100%;">
-                            <div class="profile-boost-label">Wybierz depozyt</div>
-
-                            <div
-                                id="settingsDepositAmountOptions"
-                                style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;"
-                            ></div>
-                        </div>
-                    </div>
-
-                    <button id="settingsCreateDepositBtn" class="profile-close-btn" type="button" style="margin-top:12px;">Create Deposit</button>
-
-                    <div class="profile-boost-row" style="margin-top:12px;">
-                        <div class="profile-boost-left" style="width:100%;">
-                            <div class="profile-boost-label">Historia wypłat</div>
-                            <div id="settingsWithdrawHistoryList" style="margin-top:10px;"></div>
-                        </div>
-                    </div>
-
-                    <div class="profile-boost-row" style="margin-top:12px;">
-                        <div class="profile-boost-left" style="width:100%;">
-                            <div class="profile-boost-label">Historia wpłat</div>
-                            <div id="settingsDepositsHistoryList" style="margin-top:10px;"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="settingsFaqMount"></div>
-            <div id="settingsUpdatesMount"></div>
-
-            <button id="closeSettingsBtn" class="profile-close-btn" type="button">Zamknij</button>
-        </div>
-    </div>
-
-    <div id="dailyRewardModal" class="profile-modal hidden">
-        <div class="profile-backdrop" id="dailyRewardBackdrop"></div>
-
-        <div class="profile-card">
-            <div class="profile-header">
-                <div class="profile-avatar">🎁</div>
-
-                <div class="profile-user-meta">
-                    <div class="profile-name" id="langDailyRewardModalTitle">Daily Reward</div>
-                    <div class="profile-subtitle" id="dailyRewardSubtitle">Odbierz codzienną nagrodę i wracaj po więcej</div>
-                </div>
-            </div>
-
-            <div class="profile-grid">
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langDailyRewardStatusLabel">Status</div>
-                    <div class="profile-box-value" id="dailyRewardStatusText">Sprawdzanie...</div>
-                </div>
-
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langDailyRewardCollectLabel">Do odebrania</div>
-                    <div class="profile-box-value" id="dailyRewardAmountText">0</div>
-                </div>
-
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langDailyRewardCountdownLabel">Countdown</div>
-                    <div class="profile-box-value" id="dailyRewardTimerText">--:--:--</div>
-                </div>
-
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langDailyRewardStreakLabel">Streak</div>
-                    <div class="profile-box-value" id="dailyRewardStreakText">Day 1</div>
-                </div>
-            </div>
-
-            <div class="profile-boost-row">
-                <div class="profile-boost-left">
-                    <div class="profile-boost-label" id="langDailyRewardInfoLabel">Info</div>
-                    <div class="profile-boost-value" id="dailyRewardInfoText">
-                        Tutaj pokażemy gotowość nagrody, cooldown i później streak bez ruszania innych systemów.
-                    </div>
-                </div>
-            </div>
-
-            <button id="claimDailyRewardBtn" class="profile-close-btn" type="button">Odbierz nagrodę</button>
-            <button id="closeDailyRewardBtn" class="profile-close-btn" type="button">Zamknij</button>
-        </div>
-    </div>
-
-    <script src="./js/config.js"></script>
-    <script src="./js/state.js"></script>
-    <script src="./js/dom.js"></script>
-    <script src="./js/ui-profile.js"></script>
-    <script src="./js/ui-settings.js"></script>
-    <script src="./js/ui-ranking.js"></script>
-    <script src="./js/ui-faq.js"></script>
-    <script src="./js/ui-updates.js"></script>
-
-    <script src="./js/navigation-system.js"></script>
-    <script src="./js/daily-missions-system.js"></script>
-    <script src="./js/boost-system.js"></script>
-    <script src="./js/daily-reward-system.js"></script>
-    <script src="./js/animal-system.js"></script>
-    <script src="./js/expedition-system.js"></script>
-    <script src="./js/income-system.js"></script>
-    <script src="./js/offline-system.js"></script>
-    <script src="./js/boxes-system.js"></script>
-    <script src="./js/shop-purchase-system.js"></script>
-
-    <script src="./js/ui.js"></script>
-    <script src="./js/api.js"></script>
-    <script src="./js/telegram.js"></script>
-    <script src="./js/audio.js"></script>
-    <script src="./js/shop.js"></script>
-    <script src="./js/minigames.js"></script>
-    <script src="./js/gameplay.js"></script>
-    <script src="./js/lang.js"></script>
-    <script src="./js/init.js"></script>
-</body>
-</html>
+                `;
+            })
+            .join("");
+    },
+
+    toggleFinanceSection(forceValue = null) {
+        this.financeSectionOpen = typeof forceValue === "boolean"
+            ? forceValue
+            : !this.financeSectionOpen;
+
+        this.renderFinanceSectionToggle();
+    },
+
+    renderFinanceSectionToggle() {
+        const content = document.getElementById("settingsFinanceContent");
+        const btn = document.getElementById("toggleFinanceBtn");
+        const arrow = document.getElementById("toggleFinanceBtnArrow");
+        const label = document.getElementById("toggleFinanceBtnLabel");
+
+        if (content) {
+            content.style.display = this.financeSectionOpen ? "block" : "none";
+        }
+
+        if (btn) {
+            btn.setAttribute("aria-expanded", this.financeSectionOpen ? "true" : "false");
+        }
+
+        if (arrow) {
+            arrow.textContent = this.financeSectionOpen ? "▲" : "▼";
+        }
+
+        if (label) {
+            label.textContent = this.financeSectionOpen
+                ? this.t("hideWithdraw", "Ukryj reward / wypłaty")
+                : this.t("toggleWithdraw", "Reward / Withdraw");
+        }
+    },
+
+    openSettingsModal() {
+        const modal = document.getElementById("settingsModal");
+        if (!modal) return;
+
+        this.refreshSettingsModalData();
+        this.renderExtraPanels();
+        modal.classList.remove("hidden");
+
+        Promise.all([
+            this.loadWithdrawHistory(),
+            this.loadDepositsHistory()
+        ]).catch(() => {});
+    },
+
+    closeSettingsModal() {
+        document.getElementById("settingsModal")?.classList.add("hidden");
+        CryptoZoo.uiFaq?.close?.();
+    },
+
+    openFaq() {
+        CryptoZoo.uiFaq?.open?.();
+    },
+
+    closeFaq() {
+        CryptoZoo.uiFaq?.close?.();
+    },
+
+    bindFaqButtons() {
+        const openFaqBtn = document.getElementById("openFaqBtn");
+        if (openFaqBtn && !openFaqBtn.dataset.bound) {
+            openFaqBtn.dataset.bound = "1";
+            openFaqBtn.addEventListener("click", () => {
+                CryptoZoo.audio?.play?.("click");
+                this.openFaq();
+            });
+        }
+    },
+
+    bindSettingsModal() {
+        const closeBtn = document.getElementById("closeSettingsBtn");
+        if (closeBtn && !closeBtn.dataset.bound) {
+            closeBtn.dataset.bound = "1";
+            closeBtn.addEventListener("click", () => {
+                CryptoZoo.audio?.play?.("click");
+                this.closeSettingsModal();
+            });
+        }
+
+        const backdrop = document.getElementById("settingsBackdrop");
+        if (backdrop && !backdrop.dataset.bound) {
+            backdrop.dataset.bound = "1";
+            backdrop.addEventListener("click", () => {
+                this.closeSettingsModal();
+            });
+        }
+
+        const languageValue = document.getElementById("settingsLanguageValue");
+        const languageBox = languageValue?.closest(".profile-box");
+
+        if (languageBox && !languageBox.dataset.bound) {
+            languageBox.dataset.bound = "1";
+            languageBox.style.cursor = "pointer";
+            languageBox.addEventListener("click", () => {
+                CryptoZoo.audio?.play?.("click");
+                this.toggleLanguage();
+            });
+        }
+
+        const soundValue = document.getElementById("settingsSoundValue");
+        const soundBox = soundValue?.closest(".profile-box");
+
+        if (soundBox && !soundBox.dataset.bound) {
+            soundBox.dataset.bound = "1";
+            soundBox.style.cursor = "pointer";
+            soundBox.addEventListener("click", () => {
+                CryptoZoo.audio?.play?.("click");
+                this.toggleSound();
+            });
+        }
+
+        const toggleFinanceBtn = document.getElementById("toggleFinanceBtn");
+        if (toggleFinanceBtn && !toggleFinanceBtn.dataset.bound) {
+            toggleFinanceBtn.dataset.bound = "1";
+            toggleFinanceBtn.addEventListener("click", () => {
+                CryptoZoo.audio?.play?.("click");
+                this.toggleFinanceSection();
+            });
+        }
+
+        const transferBtn = document.getElementById("settingsTransferRewardBtn");
+        if (transferBtn && !transferBtn.dataset.bound) {
+            transferBtn.dataset.bound = "1";
+            transferBtn.addEventListener("click", () => {
+                CryptoZoo.audio?.play?.("click");
+                this.transferRewardToWallet();
+            });
+        }
+
+        const withdrawBtn = document.getElementById("settingsRequestWithdrawBtn");
+        if (withdrawBtn && !withdrawBtn.dataset.bound) {
+            withdrawBtn.dataset.bound = "1";
+            withdrawBtn.addEventListener("click", () => {
+                CryptoZoo.audio?.play?.("click");
+                this.requestWithdraw();
+            });
+        }
+
+        const depositBtn = document.getElementById("settingsCreateDepositBtn");
+        if (depositBtn && !depositBtn.dataset.bound) {
+            depositBtn.dataset.bound = "1";
+            depositBtn.addEventListener("click", () => {
+                CryptoZoo.audio?.play?.("click");
+                this.createDeposit();
+            });
+        }
+
+        this.bindFaqButtons();
+    }
+};
