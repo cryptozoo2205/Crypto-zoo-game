@@ -1,16 +1,54 @@
 const { normalizeRewardNumber, safeString } = require("../utils/helpers");
 
-function createDeposit({ telegramId, username, amount, source = "manual" }) {
+function createDeposit({
+    telegramId,
+    username,
+    amount,
+    source = "ton",
+    asset = "TON",
+    walletAddress = ""
+}) {
+    const now = Date.now();
+    const randomPart = Math.random().toString(36).slice(2, 8);
+    const id = `dp_${now}_${randomPart}`;
+    const paymentComment = `CRYPTOZOO_${id}`;
+
     return {
-        id: `dp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        id,
         telegramId: String(telegramId),
         username: String(username || "Gracz"),
         amount: normalizeRewardNumber(amount, 0),
-        status: "pending",
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-        source: safeString(source, "manual") || "manual",
+
+        source: safeString(source, "ton") || "ton",
+        asset: safeString(asset, "TON") || "TON",
+        walletAddress: safeString(walletAddress, ""),
+
+        status: "created",
+        paymentComment,
+        txHash: "",
+
+        createdAt: now,
+        updatedAt: now,
+        expiresAt: now + 30 * 60 * 1000,
+
         note: ""
+    };
+}
+
+function buildDepositPaymentData(deposit) {
+    const receiverAddress =
+        process.env.TON_DEPOSIT_WALLET ||
+        process.env.TON_RECEIVER_WALLET ||
+        "";
+
+    return {
+        depositId: String(deposit?.id || ""),
+        amount: normalizeRewardNumber(deposit?.amount, 0),
+        asset: String(deposit?.asset || "TON"),
+        source: String(deposit?.source || "ton"),
+        receiverAddress: String(receiverAddress || ""),
+        paymentComment: String(deposit?.paymentComment || ""),
+        expiresAt: Number(deposit?.expiresAt || 0)
     };
 }
 
@@ -22,5 +60,6 @@ function getPlayerDeposits(db, telegramId) {
 
 module.exports = {
     createDeposit,
+    buildDepositPaymentData,
     getPlayerDeposits
 };
