@@ -1,153 +1,166 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.depositUI = {
+    currentDepositData: null,
+
     getTelegramWebApp() {
         return window.Telegram?.WebApp || null;
     },
 
-    toNano(amount) {
-        const safeAmount = Math.max(0, Number(amount) || 0);
-        return Math.floor(safeAmount * 1000000000);
+    async copy(text, label = "Copied") {
+        try {
+            await navigator.clipboard.writeText(String(text));
+            CryptoZoo.ui?.showToast?.(label);
+        } catch (e) {
+            CryptoZoo.ui?.showToast?.("Copy failed");
+        }
     },
 
-    buildTonTransferLink({ address, amount, comment }) {
-        const safeAddress = String(address || "").trim();
-        const safeAmount = Math.max(0, Number(amount) || 0);
-        const safeComment = String(comment || "").trim();
+    buildTonkeeperLink(address, amount, comment) {
+        const nano = Math.floor(Number(amount) * 1e9);
 
-        if (!safeAddress) {
-            return "";
+        let url = `https://app.tonkeeper.com/transfer/${address}?amount=${nano}`;
+
+        if (comment) {
+            url += `&text=${encodeURIComponent(comment)}`;
         }
 
-        const nanoAmount = this.toNano(safeAmount);
-
-        let link = `ton://transfer/${safeAddress}?amount=${nanoAmount}`;
-
-        if (safeComment) {
-            link += `&text=${encodeURIComponent(safeComment)}`;
-        }
-
-        return link;
+        return url;
     },
 
-    buildTonkeeperUniversalLink({ address, amount, comment }) {
-        const safeAddress = String(address || "").trim();
-        const safeAmount = Math.max(0, Number(amount) || 0);
-        const safeComment = String(comment || "").trim();
-
-        if (!safeAddress) {
-            return "";
-        }
-
-        const nanoAmount = this.toNano(safeAmount);
-
-        let link = `https://app.tonkeeper.com/transfer/${encodeURIComponent(safeAddress)}?amount=${nanoAmount}`;
-
-        if (safeComment) {
-            link += `&text=${encodeURIComponent(safeComment)}`;
-        }
-
-        return link;
-    },
-
-    openTonPayment({ tonLink, universalLink }) {
-        const safeTonLink = String(tonLink || "").trim();
-        const safeUniversalLink = String(universalLink || "").trim();
+    openWallet(link) {
         const tg = this.getTelegramWebApp();
 
         try {
-            if (tg?.openLink && safeUniversalLink) {
-                tg.openLink(safeUniversalLink);
+            if (tg?.openLink) {
+                tg.openLink(link);
                 return true;
             }
-        } catch (error) {
-            console.error("Telegram openLink error:", error);
-        }
+        } catch (e) {}
 
         try {
-            if (safeUniversalLink) {
-                window.open(safeUniversalLink, "_blank");
-                return true;
-            }
-        } catch (error) {
-            console.error("Window universal link open error:", error);
-        }
-
-        try {
-            if (safeTonLink) {
-                window.location.href = safeTonLink;
-                return true;
-            }
-        } catch (error) {
-            console.error("TON deep link open error:", error);
-        }
+            window.open(link, "_blank");
+            return true;
+        } catch (e) {}
 
         return false;
     },
 
-    async createDeposit(amount) {
-        const safeAmount = Number((Math.max(0, Number(amount) || 0)).toFixed(3));
+    renderDepositModal({ address, amount, comment }) {
+        let modal = document.getElementById("depositModal");
 
-        if (safeAmount <= 0) {
-            CryptoZoo.ui?.showToast?.("Invalid deposit amount");
-            return false;
+        if (!modal) {
+            modal = document.createElement("div");
+            modal.id = "depositModal";
+            modal.style.position = "fixed";
+            modal.style.inset = "0";
+            modal.style.zIndex = "9999";
+            modal.style.background = "rgba(0,0,0,0.7)";
+            modal.style.display = "flex";
+            modal.style.alignItems = "center";
+            modal.style.justifyContent = "center";
+
+            modal.innerHTML = `
+                <div style="
+                    width:90%;
+                    max-width:420px;
+                    background:#0f172a;
+                    border-radius:16px;
+                    padding:16px;
+                    color:#fff;
+                ">
+                    <h3 style="margin:0 0 10px;">💰 Deposit TON</h3>
+
+                    <div style="margin-top:10px;">
+                        <div style="opacity:.7;">Amount</div>
+                        <div id="depAmount" style="font-size:18px;margin-top:4px;"></div>
+                        <button id="copyAmountBtn" style="margin-top:6px;">Copy Amount</button>
+                    </div>
+
+                    <div style="margin-top:12px;">
+                        <div style="opacity:.7;">Address</div>
+                        <div id="depAddress" style="word-break:break-all;font-size:12px;margin-top:4px;"></div>
+                        <button id="copyAddressBtn" style="margin-top:6px;">Copy Address</button>
+                    </div>
+
+                    <div style="margin-top:12px;">
+                        <div style="opacity:.7;">Comment</div>
+                        <div id="depComment" style="font-size:12px;margin-top:4px;"></div>
+                        <button id="copyCommentBtn" style="margin-top:6px;">Copy Comment</button>
+                    </div>
+
+                    <button id="copyAllBtn" style="margin-top:12px;width:100%;">
+                        🔥 Copy ALL
+                    </button>
+
+                    <button id="openWalletBtn" style="margin-top:8px;width:100%;">
+                        Open Wallet
+                    </button>
+
+                    <button id="closeDepositBtn" style="margin-top:8px;width:100%;">
+                        Close
+                    </button>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
         }
 
-        try {
-            if (!CryptoZoo.api?.createDepositWithPayment) {
-                throw new Error("createDepositWithPayment not available");
-            }
+        document.getElementById("depAmount").textContent = `${amount.toFixed(3)} TON`;
+        document.getElementById("depAddress").textContent = address;
+        document.getElementById("depComment").textContent = comment;
 
-            const result = await CryptoZoo.api.createDepositWithPayment(safeAmount);
-            const deposit = result?.deposit || null;
-            const paymentRaw = result?.payment || null;
+        const link = this.buildTonkeeperLink(address, amount, comment);
+
+        document.getElementById("copyAmountBtn").onclick = () =>
+            this.copy(amount.toFixed(3), "Amount copied");
+
+        document.getElementById("copyAddressBtn").onclick = () =>
+            this.copy(address, "Address copied");
+
+        document.getElementById("copyCommentBtn").onclick = () =>
+            this.copy(comment, "Comment copied");
+
+        document.getElementById("copyAllBtn").onclick = () =>
+            this.copy(`${address}\n${amount}\n${comment}`, "All copied");
+
+        document.getElementById("openWalletBtn").onclick = () =>
+            this.openWallet(link);
+
+        document.getElementById("closeDepositBtn").onclick = () =>
+            modal.remove();
+    },
+
+    async createDeposit(amount) {
+        try {
+            const result = await CryptoZoo.api.createDepositWithPayment(amount);
+
+            const paymentRaw = result?.payment;
             const payment = paymentRaw?.payment || paymentRaw;
 
-            if (!deposit || !payment) {
-                throw new Error("Deposit payment data missing");
-            }
+            const address = payment.receiverAddress;
+            const comment = payment.paymentComment;
+            const paymentAmount = Number(payment.amount || amount);
 
-            const receiverAddress = String(payment.receiverAddress || "").trim();
-            const paymentComment = String(payment.paymentComment || "").trim();
-            const paymentAmount = Number(payment.amount || safeAmount) || safeAmount;
+            if (!address) throw new Error("No address");
 
-            if (!receiverAddress) {
-                throw new Error("Missing TON receiver address");
-            }
-
-            const tonLink = this.buildTonTransferLink({
-                address: receiverAddress,
+            this.currentDepositData = {
+                address,
                 amount: paymentAmount,
-                comment: paymentComment
-            });
-
-            const universalLink = this.buildTonkeeperUniversalLink({
-                address: receiverAddress,
-                amount: paymentAmount,
-                comment: paymentComment
-            });
-
-            const opened = this.openTonPayment({
-                tonLink,
-                universalLink
-            });
-
-            if (!opened) {
-                throw new Error("Failed to open TON payment");
-            }
-
-            CryptoZoo.ui?.showToast?.(`Send ${paymentAmount.toFixed(3)} TON`);
-
-            return {
-                ok: true,
-                deposit,
-                payment,
-                tonLink,
-                universalLink
+                comment
             };
-        } catch (error) {
-            console.error("Create deposit error:", error);
-            CryptoZoo.ui?.showToast?.(error.message || "Deposit error");
+
+            // 🔥 POKAZUJEMY UI zamiast tylko linka
+            this.renderDepositModal({
+                address,
+                amount: paymentAmount,
+                comment
+            });
+
+            return true;
+        } catch (e) {
+            console.error(e);
+            CryptoZoo.ui?.showToast?.("Deposit error");
             return false;
         }
     }
