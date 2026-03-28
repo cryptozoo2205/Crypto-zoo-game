@@ -49,10 +49,12 @@ router.post("/api/deposit/create", (req, res) => {
     db.deposits.push(deposit);
     writeDb(db);
 
+    const payment = buildDepositPaymentData(deposit);
+
     return res.json({
         ok: true,
         deposit,
-        payment: buildDepositPaymentData(deposit)
+        payment
     });
 });
 
@@ -71,7 +73,7 @@ router.post("/api/deposit/payment-data", (req, res) => {
         return res.status(400).json({ error: "Missing depositId" });
     }
 
-    const deposit = db.deposits.find((d) => d.id === depositId);
+    const deposit = db.deposits.find((d) => String(d.id) === depositId);
 
     if (!deposit) {
         return res.status(404).json({ error: "Deposit not found" });
@@ -79,7 +81,10 @@ router.post("/api/deposit/payment-data", (req, res) => {
 
     const paymentData = buildDepositPaymentData(deposit);
 
-    return res.json(paymentData);
+    return res.json({
+        ok: true,
+        payment: paymentData
+    });
 });
 
 /* =========================
@@ -104,7 +109,7 @@ router.post("/api/deposit/confirm", (req, res) => {
         return res.status(400).json({ error: "Invalid status" });
     }
 
-    const deposit = db.deposits.find((d) => d.id === depositId);
+    const deposit = db.deposits.find((d) => String(d.id) === depositId);
 
     if (!deposit) {
         return res.status(404).json({ error: "Deposit not found" });
@@ -152,7 +157,10 @@ router.get("/api/deposit/:telegramId", (req, res) => {
 
     const deposits = getPlayerDeposits(db, telegramId);
 
-    return res.json({ deposits });
+    return res.json({
+        ok: true,
+        deposits
+    });
 });
 
 module.exports = router;
