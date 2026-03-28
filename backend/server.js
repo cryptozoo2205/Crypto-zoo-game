@@ -67,6 +67,45 @@ const REFERRAL_REWARDS = {
     ACTIVATED_REFERRER_GEMS: 0
 };
 
+const EXPEDITIONS_CONFIG = {
+    forest: {
+        id: "forest",
+        startCostCoins: 50
+    },
+    river: {
+        id: "river",
+        startCostCoins: 250
+    },
+    volcano: {
+        id: "volcano",
+        startCostCoins: 750
+    },
+    canyon: {
+        id: "canyon",
+        startCostCoins: 2000
+    },
+    glacier: {
+        id: "glacier",
+        startCostCoins: 5000
+    },
+    jungle: {
+        id: "jungle",
+        startCostCoins: 12000
+    },
+    temple: {
+        id: "temple",
+        startCostCoins: 28000
+    },
+    oasis: {
+        id: "oasis",
+        startCostCoins: 60000
+    },
+    kingdom: {
+        id: "kingdom",
+        startCostCoins: 125000
+    }
+};
+
 const ADMIN_SECRET = String(process.env.ADMIN_SECRET || "");
 
 /* =========================
@@ -325,6 +364,7 @@ function normalizeExpedition(rawExpedition) {
         rewardRarity: String(rawExpedition.rewardRarity || "common"),
         rewardCoins: Math.max(0, normalizeNumber(rawExpedition.rewardCoins, 0)),
         rewardGems: Math.max(0, normalizeNumber(rawExpedition.rewardGems, 0)),
+        startCostCoins: Math.max(0, normalizeNumber(rawExpedition.startCostCoins, 0)),
         selectedAnimals: Array.isArray(rawExpedition.selectedAnimals)
             ? rawExpedition.selectedAnimals.map((entry) => ({
                 type: safeString(entry?.type, ""),
@@ -547,6 +587,55 @@ function sanitizeRewardState(oldPlayer, newPlayer) {
     return safePlayer;
 }
 
+function validateExpeditionIntegrity(oldPlayer, newPlayer) {
+    const oldExpedition = oldPlayer?.expedition ? normalizeExpedition(oldPlayer.expedition) : null;
+    const newExpedition = newPlayer?.expedition ? normalizeExpedition(newPlayer.expedition) : null;
+
+    if (!oldExpedition && !newExpedition) {
+        return newPlayer;
+    }
+
+    if (!oldExpedition && newExpedition) {
+        const allowed = EXPEDITIONS_CONFIG[newExpedition.id];
+        if (!allowed) {
+            newPlayer.expedition = null;
+            return newPlayer;
+        }
+
+        const expectedCost = Math.max(0, Number(allowed.startCostCoins) || 0);
+        const actualCost = Math.max(0, Number(newExpedition.startCostCoins) || 0);
+
+        if (actualCost !== expectedCost) {
+            newPlayer.expedition = null;
+            return newPlayer;
+        }
+
+        if ((newPlayer.coins - oldPlayer.coins) > -expectedCost) {
+            newPlayer.expedition = null;
+            newPlayer.coins = oldPlayer.coins;
+            return newPlayer;
+        }
+
+        return newPlayer;
+    }
+
+    if (oldExpedition && newExpedition) {
+        if (oldExpedition.id !== newExpedition.id) {
+            newPlayer.expedition = oldExpedition;
+            return newPlayer;
+        }
+
+        if (newExpedition.startTime !== oldExpedition.startTime) {
+            newPlayer.expedition = oldExpedition;
+            return newPlayer;
+        }
+
+        return newPlayer;
+    }
+
+    return newPlayer;
+}
+
 function validateProgress(oldPlayer, newPlayer) {
     if (!oldPlayer) return newPlayer;
 
@@ -569,6 +658,8 @@ function validateProgress(oldPlayer, newPlayer) {
     if (newPlayer.xp < oldPlayer.xp && oldPlayer.xp - newPlayer.xp > 5000) {
         newPlayer.xp = oldPlayer.xp;
     }
+
+    newPlayer = validateExpeditionIntegrity(oldPlayer, newPlayer);
 
     return newPlayer;
 }
