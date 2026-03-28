@@ -1,7 +1,7 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.api = {
-    testResetMode: true,
+    testResetMode: false,
     initialized: false,
 
     async init() {
