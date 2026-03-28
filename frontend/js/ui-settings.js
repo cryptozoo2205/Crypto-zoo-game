@@ -10,7 +10,6 @@ CryptoZoo.uiSettings = {
     depositsHistoryLoading: false,
 
     financeSectionOpen: false,
-    selectedDepositAmount: 3,
 
     getDefaultSettings() {
         return {
@@ -131,119 +130,8 @@ CryptoZoo.uiSettings = {
         return sound ? "ON" : "OFF";
     },
 
-    getDepositOptions() {
-        return [3, 5, 10, 25, 50];
-    },
-
     getDepositButtonAmount() {
-        const safeAmount = Number(this.selectedDepositAmount) || 3;
-        return safeAmount > 0 ? safeAmount : 3;
-    },
-
-    setDepositAmount(amount) {
-        const safeAmount = Number(amount) || 0;
-        const options = this.getDepositOptions();
-
-        if (!options.includes(safeAmount)) {
-            return;
-        }
-
-        this.selectedDepositAmount = safeAmount;
-        this.renderDepositAmountOptions();
-        this.refreshSettingsModalData();
-    },
-
-    getStatusLabel(status) {
-        const safe = String(status || "").toLowerCase();
-
-        if (safe === "approved") {
-            return this.t("approved", "Approved");
-        }
-
-        if (safe === "rejected") {
-            return this.t("rejected", "Rejected");
-        }
-
-        if (safe === "pending") {
-            return this.t("pendingStatus", "Pending");
-        }
-
-        return safe || "-";
-    },
-
-    getStatusColor(status) {
-        const safe = String(status || "").toLowerCase();
-
-        if (safe === "approved") return "#8df0a8";
-        if (safe === "rejected") return "#ff9b9b";
-        if (safe === "pending") return "#ffd36e";
-        return "rgba(255,255,255,0.72)";
-    },
-
-    getDepositSourceLabel(source) {
-        const safe = String(source || "").toLowerCase();
-
-        if (safe === "manual") return "Manual";
-        if (safe === "ton") return "TON";
-        if (safe === "usdt") return "USDT";
-        if (safe === "telegram_ads") return "Telegram Ads";
-
-        return safe ? safe.toUpperCase() : "-";
-    },
-
-    formatHistoryDate(timestamp) {
-        const safe = Number(timestamp) || 0;
-        if (!safe) return "-";
-
-        try {
-            return new Date(safe).toLocaleString(
-                CryptoZoo.lang?.current === "en" ? "en-GB" : "pl-PL",
-                {
-                    year: "numeric",
-                    month: "2-digit",
-                    day: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit"
-                }
-            );
-        } catch (error) {
-            return "-";
-        }
-    },
-
-    renderDepositAmountOptions() {
-        const wrap = document.getElementById("settingsDepositAmountOptions");
-        if (!wrap) return;
-
-        const options = this.getDepositOptions();
-        const currentAmount = this.getDepositButtonAmount();
-
-        wrap.innerHTML = options.map((amount) => {
-            const isActive = amount === currentAmount;
-
-            return `
-                <button
-                    type="button"
-                    class="profile-close-btn settings-deposit-option${isActive ? " active" : ""}"
-                    data-deposit-amount="${amount}"
-                    style="
-                        margin-top:0;
-                        flex:1 1 calc(50% - 6px);
-                        min-width:calc(50% - 6px);
-                        ${isActive ? "box-shadow:0 0 0 2px rgba(255,255,255,0.28) inset;" : "opacity:0.92;"}
-                    "
-                >
-                    ${amount.toFixed(3)}
-                </button>
-            `;
-        }).join("");
-
-        wrap.querySelectorAll("[data-deposit-amount]").forEach((btn) => {
-            btn.onclick = () => {
-                CryptoZoo.audio?.play?.("click");
-                this.setDepositAmount(Number(btn.dataset.depositAmount || 0));
-            };
-        });
+        return 3;
     },
 
     refreshSettingsModalData() {
@@ -305,7 +193,6 @@ CryptoZoo.uiSettings = {
             depositBtn.textContent = `${this.t("createDeposit", "Create Deposit")} (${this.getDepositButtonAmount().toFixed(3)})`;
         }
 
-        this.renderDepositAmountOptions();
         this.renderFinanceSectionToggle();
         this.renderWithdrawHistory();
         this.renderDepositsHistory();
@@ -403,15 +290,38 @@ CryptoZoo.uiSettings = {
         const amount = this.getDepositButtonAmount();
 
         try {
-            await CryptoZoo.api.createDeposit(amount);
+            const result = await CryptoZoo.api.createDepositWithPayment(amount);
 
-            CryptoZoo.ui?.showToast?.(`Deposit ${amount.toFixed(3)}`);
+            const payment = result?.payment || {};
+            const receiverAddress = String(payment.receiverAddress || "").trim();
+            const paymentComment = String(payment.paymentComment || "").trim();
+            const paymentAmount = Number(payment.amount || amount) || amount;
+
+            if (!receiverAddress) {
+                throw new Error("Missing TON receiver address");
+            }
+
+            const nanoAmount = Math.floor(paymentAmount * 1000000000);
+
+            const tonLink =
+                `ton://transfer/${receiverAddress}` +
+                `?amount=${nanoAmount}` +
+                `&text=${encodeURIComponent(paymentComment)}`;
+
+            if (window.Telegram?.WebApp?.openTelegramLink) {
+                window.Telegram.WebApp.openTelegramLink(tonLink);
+            } else {
+                window.open(tonLink, "_blank");
+            }
+
+            CryptoZoo.ui?.showToast?.(`Deposit ${paymentAmount.toFixed(3)} TON`);
 
             await this.loadDepositsHistory();
             this.refreshSettingsModalData();
 
             return true;
         } catch (e) {
+            console.error("Create deposit error:", e);
             CryptoZoo.ui?.showToast?.(e.message || this.t("depositCreateError", "Błąd depozytu"));
             return false;
         }
@@ -448,18 +358,10 @@ CryptoZoo.uiSettings = {
 
         el.innerHTML = this.withdrawHistory
             .map((w) => {
-                const amount = this.format(w.amount).toFixed(3);
-                const statusLabel = this.getStatusLabel(w.status);
-                const statusColor = this.getStatusColor(w.status);
-                const createdAt = this.formatHistoryDate(w.createdAt || w.updatedAt || 0);
-                const note = String(w.note || "").trim();
-
                 return `
-                    <div style="padding:10px;border:1px solid rgba(255,255,255,0.1);border-radius:10px;margin-bottom:8px;background:rgba(255,255,255,0.03);">
-                        <div style="font-weight:800;">${amount} reward</div>
-                        <div style="margin-top:4px;color:${statusColor};font-weight:700;">${statusLabel}</div>
-                        <div style="margin-top:4px;font-size:12px;color:rgba(255,255,255,0.68);">${createdAt}</div>
-                        ${note ? `<div style="margin-top:6px;font-size:12px;color:rgba(255,255,255,0.82);">${this.t("note", "Note")}: ${note}</div>` : ""}
+                    <div style="padding:10px;border:1px solid rgba(255,255,255,0.1);border-radius:10px;margin-bottom:8px;">
+                        <div>${this.format(w.amount).toFixed(3)} reward</div>
+                        <div style="margin-top:4px;">${w.status}</div>
                     </div>
                 `;
             })
@@ -497,20 +399,10 @@ CryptoZoo.uiSettings = {
 
         el.innerHTML = this.depositsHistory
             .map((d) => {
-                const amount = this.format(d.amount).toFixed(3);
-                const statusLabel = this.getStatusLabel(d.status);
-                const statusColor = this.getStatusColor(d.status);
-                const createdAt = this.formatHistoryDate(d.createdAt || d.updatedAt || 0);
-                const sourceLabel = this.getDepositSourceLabel(d.source);
-                const note = String(d.note || "").trim();
-
                 return `
-                    <div style="padding:10px;border:1px solid rgba(255,255,255,0.1);border-radius:10px;margin-bottom:8px;background:rgba(255,255,255,0.03);">
-                        <div style="font-weight:800;">${amount} reward</div>
-                        <div style="margin-top:4px;color:${statusColor};font-weight:700;">${statusLabel}</div>
-                        <div style="margin-top:4px;font-size:12px;color:rgba(255,255,255,0.68);">Source: ${sourceLabel}</div>
-                        <div style="margin-top:4px;font-size:12px;color:rgba(255,255,255,0.68);">${createdAt}</div>
-                        ${note ? `<div style="margin-top:6px;font-size:12px;color:rgba(255,255,255,0.82);">${this.t("note", "Note")}: ${note}</div>` : ""}
+                    <div style="padding:10px;border:1px solid rgba(255,255,255,0.1);border-radius:10px;margin-bottom:8px;">
+                        <div>${this.format(d.amount).toFixed(3)} reward</div>
+                        <div style="margin-top:4px;">${d.status}</div>
                     </div>
                 `;
             })
