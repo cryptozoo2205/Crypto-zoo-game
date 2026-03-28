@@ -17,7 +17,9 @@ CryptoZoo.uiProfile = {
         referrals: []
     },
     referralsLoading: false,
+
     referralExpanded: false,
+    withdrawExpanded: false,
 
     getRewardBalance() {
         return Number((Number(CryptoZoo.state?.rewardBalance) || 0).toFixed(3));
@@ -164,12 +166,17 @@ CryptoZoo.uiProfile = {
     },
 
     /* =========================
-       REFERRALS
+       TOGGLES
     ========================= */
 
     toggleReferralPanel() {
         this.referralExpanded = !this.referralExpanded;
         this.renderReferralPanelVisibility();
+    },
+
+    toggleWithdrawPanel() {
+        this.withdrawExpanded = !this.withdrawExpanded;
+        this.renderWithdrawPanelVisibility();
     },
 
     renderReferralPanelVisibility() {
@@ -196,6 +203,35 @@ CryptoZoo.uiProfile = {
             toggleArrow.textContent = this.referralExpanded ? "▲" : "▼";
         }
     },
+
+    renderWithdrawPanelVisibility() {
+        const content = document.getElementById("profileWithdrawContent");
+        const toggleBtn = document.getElementById("toggleWithdrawBtn");
+        const toggleLabel = document.getElementById("toggleWithdrawBtnLabel");
+        const toggleArrow = document.getElementById("toggleWithdrawBtnArrow");
+
+        if (content) {
+            content.style.display = this.withdrawExpanded ? "block" : "none";
+        }
+
+        if (toggleBtn) {
+            toggleBtn.setAttribute("aria-expanded", this.withdrawExpanded ? "true" : "false");
+        }
+
+        if (toggleLabel) {
+            toggleLabel.textContent = this.withdrawExpanded
+                ? "Ukryj reward / wypłaty"
+                : "Reward / Withdraw";
+        }
+
+        if (toggleArrow) {
+            toggleArrow.textContent = this.withdrawExpanded ? "▲" : "▼";
+        }
+    },
+
+    /* =========================
+       REFERRALS
+    ========================= */
 
     async loadReferralsData() {
         const telegramId = this.getPlayerId();
@@ -378,6 +414,7 @@ CryptoZoo.uiProfile = {
         }
 
         this.renderTopBarProfile();
+        this.renderWithdrawPanelVisibility();
         this.renderReferralPanelVisibility();
         this.renderReferralsSection();
         this.renderWithdrawHistory();
@@ -491,6 +528,7 @@ CryptoZoo.uiProfile = {
         modal.classList.remove("hidden");
         this.modalOpen = true;
         this.referralExpanded = false;
+        this.withdrawExpanded = false;
 
         this.refreshProfileModalData();
 
@@ -520,6 +558,7 @@ CryptoZoo.uiProfile = {
         const copyReferralBtn = document.getElementById("copyReferralBtn");
         const profileBackdrop = document.getElementById("profileBackdrop");
         const toggleReferralBtn = document.getElementById("toggleReferralBtn");
+        const toggleWithdrawBtn = document.getElementById("toggleWithdrawBtn");
 
         if (openBtn && !openBtn.dataset.bound) {
             openBtn.dataset.bound = "1";
@@ -554,6 +593,11 @@ CryptoZoo.uiProfile = {
         if (toggleReferralBtn && !toggleReferralBtn.dataset.bound) {
             toggleReferralBtn.dataset.bound = "1";
             toggleReferralBtn.onclick = () => this.toggleReferralPanel();
+        }
+
+        if (toggleWithdrawBtn && !toggleWithdrawBtn.dataset.bound) {
+            toggleWithdrawBtn.dataset.bound = "1";
+            toggleWithdrawBtn.onclick = () => this.toggleWithdrawPanel();
         }
     }
 };
