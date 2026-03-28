@@ -55,10 +55,16 @@ const LIMITS = {
 };
 
 const REFERRAL_REWARDS = {
-    NEW_PLAYER_COINS: 5000,
-    NEW_PLAYER_GEMS: 2,
-    REFERRER_COINS: 3000,
-    REFERRER_GEMS: 1
+    ACTIVATE_AT_LEVEL: 3,
+
+    VISIT_NEW_PLAYER_COINS: 50,
+    VISIT_NEW_PLAYER_GEMS: 0,
+
+    ACTIVATED_NEW_PLAYER_COINS: 150,
+    ACTIVATED_NEW_PLAYER_GEMS: 0,
+
+    ACTIVATED_REFERRER_COINS: 250,
+    ACTIVATED_REFERRER_GEMS: 0
 };
 
 const ADMIN_SECRET = String(process.env.ADMIN_SECRET || "");
@@ -209,7 +215,8 @@ function getDefaultPlayer(telegramId = "local-player", username = "Gracz") {
         referralsCount: 0,
         referrals: [],
         referralWelcomeBonusClaimed: false,
-        referralReferrerBonusGranted: false,
+        referralActivated: false,
+        referralActivationBonusClaimed: false,
 
         animals: {
             monkey: { count: 0, level: 1 },
@@ -364,7 +371,9 @@ function normalizeReferralEntry(rawEntry) {
         telegramId: safeString(rawEntry?.telegramId, ""),
         username: safeString(rawEntry?.username, "Gracz"),
         firstName: safeString(rawEntry?.firstName, ""),
-        createdAt: Math.max(0, normalizeNumber(rawEntry?.createdAt, Date.now()))
+        createdAt: Math.max(0, normalizeNumber(rawEntry?.createdAt, Date.now())),
+        activated: !!rawEntry?.activated,
+        activatedAt: Math.max(0, normalizeNumber(rawEntry?.activatedAt, 0))
     };
 }
 
@@ -447,7 +456,8 @@ function normalizePlayer(input) {
         ),
         referrals,
         referralWelcomeBonusClaimed: !!input?.referralWelcomeBonusClaimed,
-        referralReferrerBonusGranted: !!input?.referralReferrerBonusGranted,
+        referralActivated: !!input?.referralActivated,
+        referralActivationBonusClaimed: !!input?.referralActivationBonusClaimed,
 
         animals: normalizeAnimalState(input?.animals, base.animals),
         boxes: normalizeBoxes(input?.boxes),
@@ -585,7 +595,8 @@ function buildSafePlayerState(oldPlayer, incomingRaw) {
         referredBy: oldPlayer?.referredBy || incomingRaw?.referredBy || "",
         referralCode: incomingTelegramId,
         referralWelcomeBonusClaimed: !!oldPlayer?.referralWelcomeBonusClaimed,
-        referralReferrerBonusGranted: !!oldPlayer?.referralReferrerBonusGranted
+        referralActivated: !!oldPlayer?.referralActivated,
+        referralActivationBonusClaimed: !!oldPlayer?.referralActivationBonusClaimed
     });
 
     let safe = normalizePlayer({
@@ -597,7 +608,8 @@ function buildSafePlayerState(oldPlayer, incomingRaw) {
         referredBy: oldPlayer?.referredBy || incoming.referredBy || "",
         referralCode: incoming.telegramId,
         referralWelcomeBonusClaimed: !!oldPlayer?.referralWelcomeBonusClaimed,
-        referralReferrerBonusGranted: !!oldPlayer?.referralReferrerBonusGranted
+        referralActivated: !!oldPlayer?.referralActivated,
+        referralActivationBonusClaimed: !!oldPlayer?.referralActivationBonusClaimed
     });
 
     safe = sanitizeRewardState(oldPlayer, safe);
@@ -677,6 +689,27 @@ function extractReferrerId(req) {
     );
 }
 
+function markReferralActivated(referrer, playerId) {
+    referrer.referrals = normalizeReferrals(referrer.referrals);
+
+    referrer.referrals = referrer.referrals.map((entry) => {
+        if (String(entry.telegramId) !== String(playerId)) {
+            return entry;
+        }
+
+        return {
+            ...entry,
+            activated: true,
+            activatedAt: Date.now()
+        };
+    });
+
+    referrer.referralsCount = Math.max(
+        Array.isArray(referrer.referrals) ? referrer.referrals.length : 0,
+        normalizeNumber(referrer.referralsCount, 0)
+    );
+}
+
 function applyReferralIfPossible(db, player, rawReferrerId) {
     const referrerId = sanitizeReferrerId(rawReferrerId);
     if (!player || !referrerId) return false;
@@ -712,7 +745,9 @@ function applyReferralIfPossible(db, player, rawReferrerId) {
             telegramId: playerId,
             username: safeString(player.username, "Gracz"),
             firstName: safeString(player.telegramUser?.first_name, ""),
-            createdAt: Date.now()
+            createdAt: Date.now(),
+            activated: false,
+            activatedAt: 0
         });
         referrer.referrals = referrer.referrals.slice(0, LIMITS.MAX_REFERRALS_STORED);
     }
@@ -728,7 +763,38 @@ function applyReferralIfPossible(db, player, rawReferrerId) {
     return true;
 }
 
-function applyReferralRewardsIfPossible(db, player) {
+function applyReferralWelcomeBonusIfPossible(db, player) {
+    if (!player) return false;
+
+    const safePlayer = normalizePlayer(player);
+
+    if (!safeString(safePlayer.referredBy, "")) {
+        db.players[safePlayer.telegramId] = normalizePlayer(safePlayer);
+        return false;
+    }
+
+    if (safePlayer.referralWelcomeBonusClaimed) {
+        db.players[safePlayer.telegramId] = normalizePlayer(safePlayer);
+        return false;
+    }
+
+    safePlayer.coins = clamp(
+        safePlayer.coins + REFERRAL_REWARDS.VISIT_NEW_PLAYER_COINS,
+        0,
+        LIMITS.MAX_COINS
+    );
+    safePlayer.gems = clamp(
+        safePlayer.gems + REFERRAL_REWARDS.VISIT_NEW_PLAYER_GEMS,
+        0,
+        LIMITS.MAX_GEMS
+    );
+    safePlayer.referralWelcomeBonusClaimed = true;
+
+    db.players[safePlayer.telegramId] = normalizePlayer(safePlayer);
+    return true;
+}
+
+function applyReferralActivationRewardsIfPossible(db, player) {
     if (!player) return false;
 
     let changed = false;
@@ -749,33 +815,42 @@ function applyReferralRewardsIfPossible(db, player) {
         return false;
     }
 
-    if (!safePlayer.referralWelcomeBonusClaimed) {
+    const meetsActivationLevel =
+        Math.max(1, normalizeNumber(safePlayer.level, 1)) >= REFERRAL_REWARDS.ACTIVATE_AT_LEVEL;
+
+    if (meetsActivationLevel && !safePlayer.referralActivated) {
+        safePlayer.referralActivated = true;
+        markReferralActivated(referrer, safePlayer.telegramId);
+        changed = true;
+    }
+
+    if (meetsActivationLevel && !safePlayer.referralActivationBonusClaimed) {
         safePlayer.coins = clamp(
-            safePlayer.coins + REFERRAL_REWARDS.NEW_PLAYER_COINS,
+            safePlayer.coins + REFERRAL_REWARDS.ACTIVATED_NEW_PLAYER_COINS,
             0,
             LIMITS.MAX_COINS
         );
         safePlayer.gems = clamp(
-            safePlayer.gems + REFERRAL_REWARDS.NEW_PLAYER_GEMS,
+            safePlayer.gems + REFERRAL_REWARDS.ACTIVATED_NEW_PLAYER_GEMS,
             0,
             LIMITS.MAX_GEMS
         );
-        safePlayer.referralWelcomeBonusClaimed = true;
-        changed = true;
-    }
 
-    if (!safePlayer.referralReferrerBonusGranted) {
         referrer.coins = clamp(
-            referrer.coins + REFERRAL_REWARDS.REFERRER_COINS,
+            referrer.coins + REFERRAL_REWARDS.ACTIVATED_REFERRER_COINS,
             0,
             LIMITS.MAX_COINS
         );
         referrer.gems = clamp(
-            referrer.gems + REFERRAL_REWARDS.REFERRER_GEMS,
+            referrer.gems + REFERRAL_REWARDS.ACTIVATED_REFERRER_GEMS,
             0,
             LIMITS.MAX_GEMS
         );
-        safePlayer.referralReferrerBonusGranted = true;
+
+        safePlayer.referralActivated = true;
+        safePlayer.referralActivationBonusClaimed = true;
+
+        markReferralActivated(referrer, safePlayer.telegramId);
         changed = true;
     }
 
@@ -825,7 +900,8 @@ app.get("/api/player/:telegramId", (req, res) => {
     const player = getPlayerOrCreate(db, telegramId, username);
 
     applyReferralIfPossible(db, player, referrerId);
-    applyReferralRewardsIfPossible(db, db.players[telegramId] || player);
+    applyReferralWelcomeBonusIfPossible(db, db.players[telegramId] || player);
+    applyReferralActivationRewardsIfPossible(db, db.players[telegramId] || player);
 
     db.players[telegramId] = normalizePlayer(db.players[telegramId] || player);
     writeDb(db);
@@ -877,7 +953,8 @@ app.post("/api/player/save", (req, res) => {
     db.players[telegramId] = safePlayer;
 
     applyReferralIfPossible(db, db.players[telegramId], referrerId);
-    applyReferralRewardsIfPossible(db, db.players[telegramId]);
+    applyReferralWelcomeBonusIfPossible(db, db.players[telegramId]);
+    applyReferralActivationRewardsIfPossible(db, db.players[telegramId]);
 
     db.players[telegramId] = normalizePlayer(db.players[telegramId]);
     writeDb(db);
@@ -928,9 +1005,6 @@ app.get("/api/referrals/:telegramId", (req, res) => {
     }
 
     const player = getPlayerOrCreate(db, telegramId, "Gracz");
-    const safeReferralCode = safeString(player.referralCode, telegramId);
-    const referralLinkCode = `ref_${safeReferralCode}`;
-
     db.players[telegramId] = normalizePlayer(player);
     writeDb(db);
 
@@ -938,13 +1012,16 @@ app.get("/api/referrals/:telegramId", (req, res) => {
         ok: true,
         referralsCount: Math.max(0, normalizeNumber(player.referralsCount, 0)),
         referredBy: safeString(player.referredBy, ""),
-        referralCode: safeReferralCode,
-        referralLinkCode,
+        referralCode: safeString(player.referralCode, telegramId),
+        referralLinkCode: `ref_${safeString(player.referralCode, telegramId)}`,
         referralRewards: {
-            newPlayerCoins: REFERRAL_REWARDS.NEW_PLAYER_COINS,
-            newPlayerGems: REFERRAL_REWARDS.NEW_PLAYER_GEMS,
-            referrerCoins: REFERRAL_REWARDS.REFERRER_COINS,
-            referrerGems: REFERRAL_REWARDS.REFERRER_GEMS
+            activateAtLevel: REFERRAL_REWARDS.ACTIVATE_AT_LEVEL,
+            visitNewPlayerCoins: REFERRAL_REWARDS.VISIT_NEW_PLAYER_COINS,
+            visitNewPlayerGems: REFERRAL_REWARDS.VISIT_NEW_PLAYER_GEMS,
+            activatedNewPlayerCoins: REFERRAL_REWARDS.ACTIVATED_NEW_PLAYER_COINS,
+            activatedNewPlayerGems: REFERRAL_REWARDS.ACTIVATED_NEW_PLAYER_GEMS,
+            activatedReferrerCoins: REFERRAL_REWARDS.ACTIVATED_REFERRER_COINS,
+            activatedReferrerGems: REFERRAL_REWARDS.ACTIVATED_REFERRER_GEMS
         },
         referrals: normalizeReferrals(player.referrals)
     });
