@@ -457,8 +457,8 @@ CryptoZoo.uiSettings = {
 
         if (label) {
             label.textContent = this.financeSectionOpen
-                ? this.t("hideWithdraw", "Ukryj reward / wypłaty")
-                : this.t("toggleWithdraw", "Reward / Withdraw");
+                ? this.t("hideWithdraw", "Ukryj deposit / withdraw")
+                : this.t("toggleWithdraw", "Deposit / Withdraw");
         }
     },
 
