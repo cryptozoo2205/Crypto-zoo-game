@@ -11,6 +11,8 @@ CryptoZoo.uiSettings = {
 
     financeSectionOpen: false,
 
+    depositAmounts: [1, 3, 5, 10],
+
     getDefaultSettings() {
         return {
             language: "pl",
@@ -130,8 +132,42 @@ CryptoZoo.uiSettings = {
         return sound ? "ON" : "OFF";
     },
 
-    getDepositButtonAmount() {
-        return 3;
+    getSelectedDepositAmount() {
+        const amount = Number(CryptoZoo.depositBind?.selectedAmount || this.depositAmounts[1] || 3);
+        return amount > 0 ? amount : 3;
+    },
+
+    renderDepositAmountOptions() {
+        const wrap = document.getElementById("settingsDepositAmountOptions");
+        if (!wrap) return;
+
+        const selectedAmount = this.getSelectedDepositAmount();
+
+        wrap.innerHTML = this.depositAmounts.map((amount) => {
+            const isActive = amount === selectedAmount;
+
+            return `
+                <button
+                    type="button"
+                    class="deposit-amount-btn${isActive ? " active" : ""}"
+                    data-amount="${amount}"
+                    style="
+                        min-width:88px;
+                        padding:12px 16px;
+                        border-radius:14px;
+                        border:${isActive ? "2px solid rgba(255,210,60,0.95)" : "1px solid rgba(255,255,255,0.14)"};
+                        background:${isActive ? "linear-gradient(180deg, rgba(255,210,60,0.24) 0%, rgba(255,185,0,0.14) 100%)" : "rgba(255,255,255,0.04)"};
+                        color:#ffffff;
+                        font-weight:900;
+                        font-size:14px;
+                        box-shadow:${isActive ? "0 10px 24px rgba(255,190,0,0.18)" : "none"};
+                        cursor:pointer;
+                    "
+                >${amount} TON</button>
+            `;
+        }).join("");
+
+        CryptoZoo.depositBind?.bindAmountButtons?.();
     },
 
     refreshSettingsModalData() {
@@ -188,11 +224,13 @@ CryptoZoo.uiSettings = {
 
         const depositBtn = document.getElementById("settingsCreateDepositBtn");
         if (depositBtn) {
+            const selectedAmount = this.getSelectedDepositAmount();
             depositBtn.disabled = false;
             depositBtn.style.opacity = "1";
-            depositBtn.textContent = `${this.t("createDeposit", "Create Deposit")} (${this.getDepositButtonAmount().toFixed(3)})`;
+            depositBtn.textContent = `${this.t("createDeposit", "Create Deposit")} (${selectedAmount.toFixed(3)})`;
         }
 
+        this.renderDepositAmountOptions();
         this.renderFinanceSectionToggle();
         this.renderWithdrawHistory();
         this.renderDepositsHistory();
@@ -287,7 +325,7 @@ CryptoZoo.uiSettings = {
     },
 
     async createDeposit() {
-        const amount = this.getDepositButtonAmount();
+        const amount = this.getSelectedDepositAmount();
 
         try {
             if (!CryptoZoo.depositUI?.createDeposit) {
@@ -383,7 +421,7 @@ CryptoZoo.uiSettings = {
             .map((d) => {
                 return `
                     <div style="padding:10px;border:1px solid rgba(255,255,255,0.1);border-radius:10px;margin-bottom:8px;">
-                        <div>${this.format(d.amount).toFixed(3)} reward</div>
+                        <div>${this.format(d.amount).toFixed(3)} TON</div>
                         <div style="margin-top:4px;">${d.status}</div>
                     </div>
                 `;
