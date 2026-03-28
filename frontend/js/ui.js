@@ -950,6 +950,7 @@ CryptoZoo.ui = {
             const count = Math.max(0, Number(state.count) || 0);
             const displayLevel = count > 0 ? Math.max(1, Number(state.level) || 1) : 0;
             const upgradeCost = CryptoZoo.animalsSystem?.getUpgradeCost?.(type) || 0;
+            const buyCost = CryptoZoo.animalsSystem?.getBuyCost?.(type) || Number(config.buyCost) || 0;
             const localizedName = this.getLocalizedAnimalName(type, config);
 
             return `
@@ -962,7 +963,7 @@ CryptoZoo.ui = {
                         <div class="animal-text">
                             <div class="animal-name">${localizedName}</div>
                             <div class="animal-desc">
-                                ${this.t("incomePerSec", "Dochód")} ${CryptoZoo.formatNumber(config.baseIncome)}/${this.t("secShort", "sek")} • ${this.t("cost", "Koszt")} ${CryptoZoo.formatNumber(config.buyCost)}
+                                ${this.t("incomePerSec", "Dochód")} ${CryptoZoo.formatNumber(config.baseIncome)}/${this.t("secShort", "sek")} • ${this.t("cost", "Koszt")} ${CryptoZoo.formatNumber(buyCost)}
                             </div>
                             <div class="animal-owned">
                                 ${this.t("owned", "Posiadane")}: ${CryptoZoo.formatNumber(count)} • ${this.t("level", "Poziom")}: ${CryptoZoo.formatNumber(displayLevel)}
@@ -971,7 +972,7 @@ CryptoZoo.ui = {
                     </div>
 
                     <div class="animal-actions">
-                        <button id="buy-${type}-btn" type="button">${this.t("buy", "Kup")}</button>
+                        <button id="buy-${type}-btn" type="button">${this.t("buy", "Kup")} (${CryptoZoo.formatNumber(buyCost)})</button>
                         <button id="upgrade-${type}-btn" type="button">${this.t("lvlUp", "Lvl Up")} (${CryptoZoo.formatNumber(upgradeCost)})</button>
                     </div>
                 </div>
