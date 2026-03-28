@@ -1,7 +1,7 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.api = {
-    testResetMode: true,
+    testResetMode: false,
     initialized: false,
 
     async init() {
@@ -80,95 +80,48 @@ window.CryptoZoo.api = {
         }
     },
 
-    getUrlRefCode() {
-        try {
-            const params = new URLSearchParams(window.location.search || "");
-            const rawRef =
-                String(params.get("ref") || "").trim() ||
-                String(params.get("startapp") || "").trim() ||
-                String(params.get("start") || "").trim();
-
-            return this.normalizeRefCode(rawRef);
-        } catch (error) {
-            console.warn("URL ref parse failed:", error);
-            return "";
-        }
-    },
-
-    getTelegramStartParamRefCode() {
-        try {
-            const startParam =
-                window.Telegram &&
-                window.Telegram.WebApp &&
-                window.Telegram.WebApp.initDataUnsafe &&
-                window.Telegram.WebApp.initDataUnsafe.start_param
-                    ? String(window.Telegram.WebApp.initDataUnsafe.start_param).trim()
-                    : "";
-
-            return this.normalizeRefCode(startParam);
-        } catch (error) {
-            console.warn("Telegram start_param parse failed:", error);
-            return "";
-        }
-    },
-
-    getStoredRefCode() {
-        const stored = String(localStorage.getItem("cryptozoo_ref_code") || "").trim();
-        return this.normalizeRefCode(stored);
-    },
-
-    normalizeRefCode(rawValue) {
+    sanitizeReferralValue(rawValue) {
         const safe = String(rawValue || "").trim();
         if (!safe) return "";
 
         if (safe.startsWith("ref_")) {
-            const code = safe.slice(4).trim();
-
-            if (!/^[a-zA-Z0-9_]{3,64}$/.test(code)) {
-                return "";
-            }
-
-            return `ref_${code}`;
+            return safe;
         }
 
-        if (/^[a-zA-Z0-9_]{3,64}$/.test(safe)) {
-            return `ref_${safe}`;
-        }
-
-        return "";
+        return safe;
     },
 
-    getRefCode() {
-        const telegramRef = this.getTelegramStartParamRefCode();
-        if (telegramRef) {
-            localStorage.setItem("cryptozoo_ref_code", telegramRef);
-            return telegramRef;
-        }
+    getLaunchReferralCode() {
+        try {
+            const params = new URLSearchParams(window.location.search || "");
 
-        const urlRef = this.getUrlRefCode();
-        if (urlRef) {
-            localStorage.setItem("cryptozoo_ref_code", urlRef);
-            return urlRef;
-        }
+            const fromRef = this.sanitizeReferralValue(params.get("ref"));
+            if (fromRef) return fromRef;
 
-        const storedRef = this.getStoredRefCode();
-        if (storedRef) {
-            return storedRef;
-        }
+            const fromStart = this.sanitizeReferralValue(params.get("start"));
+            if (fromStart) return fromStart;
 
-        return "";
+            const fromStartApp = this.sanitizeReferralValue(params.get("startapp"));
+            if (fromStartApp) return fromStartApp;
+
+            const stored = this.sanitizeReferralValue(
+                localStorage.getItem("cryptozoo_referral_code")
+            );
+            if (stored) return stored;
+
+            return "";
+        } catch (error) {
+            console.warn("Referral parse failed:", error);
+            return "";
+        }
     },
 
-    clearRefCodeIfSelfReferral(playerId) {
-        const refCode = this.getStoredRefCode();
-        if (!refCode) return;
-
-        const normalizedPlayerId = String(playerId || "").trim();
-        const refId = String(refCode.replace(/^ref_/, "")).trim();
-
-        if (normalizedPlayerId && refId && normalizedPlayerId === refId) {
-            localStorage.removeItem("cryptozoo_ref_code");
+    persistLaunchReferralCode() {
+        const refCode = this.getLaunchReferralCode();
+        if (refCode) {
+            localStorage.setItem("cryptozoo_referral_code", refCode);
         }
+        return refCode;
     },
 
     getStoredTelegramUser() {
@@ -225,6 +178,7 @@ window.CryptoZoo.api = {
             localStorage.setItem("telegramUsername", safeUser.username);
             localStorage.setItem("telegramFirstName", safeUser.first_name);
             localStorage.setItem("cryptozoo_launch_mode", "telegram");
+            this.persistLaunchReferralCode();
 
             return safeUser;
         }
@@ -243,6 +197,7 @@ window.CryptoZoo.api = {
             localStorage.setItem("telegramUsername", safeUser.username);
             localStorage.setItem("telegramFirstName", safeUser.first_name);
             localStorage.setItem("cryptozoo_launch_mode", "telegram-link");
+            this.persistLaunchReferralCode();
 
             return safeUser;
         }
@@ -630,13 +585,11 @@ window.CryptoZoo.api = {
     getSavePayload() {
         const state = this.normalizeState(CryptoZoo.state || {});
         const telegramUser = this.getTelegramUser();
-        const refCode = this.getRefCode();
 
         return {
             telegramId: this.getPlayerId(),
             username: this.getUsername(),
             telegramUser,
-            ref: refCode,
 
             coins: state.coins,
             gems: state.gems,
@@ -709,24 +662,37 @@ window.CryptoZoo.api = {
         return response.text();
     },
 
-    async loadPlayerFromBackend() {
+    buildPlayerLoadPath() {
         const telegramId = this.getPlayerId();
         const username = this.getUsername();
-        const refCode = this.getRefCode();
+        const refCode = this.persistLaunchReferralCode();
 
-        const query = new URLSearchParams();
-        query.set("username", username);
+        const params = new URLSearchParams();
+        params.set("username", username);
 
         if (refCode) {
-            query.set("ref", refCode);
+            params.set("ref", refCode);
         }
 
-        const result = await this.request(
-            `/player/${encodeURIComponent(telegramId)}?${query.toString()}`,
-            {
-                method: "GET"
-            }
-        );
+        return `/player/${encodeURIComponent(telegramId)}?${params.toString()}`;
+    },
+
+    buildPlayerSavePath() {
+        const refCode = this.persistLaunchReferralCode();
+
+        if (refCode) {
+            const params = new URLSearchParams();
+            params.set("ref", refCode);
+            return `/player/save?${params.toString()}`;
+        }
+
+        return "/player/save";
+    },
+
+    async loadPlayerFromBackend() {
+        const result = await this.request(this.buildPlayerLoadPath(), {
+            method: "GET"
+        });
 
         const payload =
             result?.player ||
@@ -741,7 +707,7 @@ window.CryptoZoo.api = {
     },
 
     async savePlayerToBackend(payload) {
-        const result = await this.request("/player/save", {
+        const result = await this.request(this.buildPlayerSavePath(), {
             method: "POST",
             body: JSON.stringify(payload)
         });
@@ -793,7 +759,6 @@ window.CryptoZoo.api = {
         }
 
         loaded.telegramUser = this.getTelegramUser();
-        this.clearRefCodeIfSelfReferral(loaded.telegramUser?.id);
         CryptoZoo.state = loaded;
 
         if (CryptoZoo.gameplay?.recalculateProgress) {
@@ -822,7 +787,6 @@ window.CryptoZoo.api = {
         try {
             CryptoZoo.state = await this.savePlayerToBackend(payload);
             CryptoZoo.state.telegramUser = this.getTelegramUser();
-            this.clearRefCodeIfSelfReferral(CryptoZoo.state.telegramUser?.id);
         } catch (error) {
             console.warn("Backend save failed, fallback to local save:", error);
             CryptoZoo.state = this.normalizeState(payload);
