@@ -142,13 +142,21 @@ CryptoZoo.init = {
             CryptoZoo.gameplay?.init?.();
         });
 
-        this.setLoadingProgress(76);
+        this.setLoadingProgress(75);
 
+        // 💰 DEPOSIT (UI)
         await this.runSafe(async () => {
             CryptoZoo.depositBind?.init?.();
         });
 
         this.setLoadingProgress(82);
+
+        // 🔍 VERIFY TON (AUTO CHECK)
+        await this.runSafe(async () => {
+            CryptoZoo.depositVerifyUI?.init?.();
+        });
+
+        this.setLoadingProgress(88);
 
         await this.runSafe(async () => {
             CryptoZoo.minigames?.init?.();
@@ -164,10 +172,11 @@ CryptoZoo.init = {
             CryptoZoo.telegram?.forceFullscreen?.();
             CryptoZoo.telegram?.applyIdentityToUi?.();
             CryptoZoo.telegram?.applyViewportFix?.();
+
             CryptoZoo.ui?.bindHomeButtons?.();
             CryptoZoo.uiSettings?.bindSettingsModal?.();
             CryptoZoo.uiProfile?.bindProfileModal?.();
-            CryptoZoo.depositBind?.init?.();
+
             this.bindLifecycleEvents();
         });
 
