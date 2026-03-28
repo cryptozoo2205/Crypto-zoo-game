@@ -971,18 +971,16 @@ window.CryptoZoo.api = {
             })
         });
 
-        const deposit = result?.deposit;
+        const deposit = result?.deposit || null;
+        const payment = result?.payment || null;
 
         if (!deposit) {
             throw new Error("Deposit create failed");
         }
 
-        const payment = await this.request("/deposit/payment-data", {
-            method: "POST",
-            body: JSON.stringify({
-                depositId: deposit.id
-            })
-        });
+        if (!payment) {
+            throw new Error("Deposit payment data missing");
+        }
 
         return {
             deposit,
