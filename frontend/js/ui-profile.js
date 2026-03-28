@@ -12,6 +12,7 @@ CryptoZoo.uiProfile = {
         referredBy: "",
         referralCode: "",
         referralLinkCode: "",
+        referralLink: "",
         referralRewards: null,
         referrals: []
     },
@@ -42,7 +43,7 @@ CryptoZoo.uiProfile = {
     },
 
     getPlayerId() {
-        return String(this.getTelegramUser()?.id || "");
+        return String(this.getTelegramUser()?.id || CryptoZoo.api?.getPlayerId?.() || "");
     },
 
     getPlayerUsername() {
@@ -66,17 +67,26 @@ CryptoZoo.uiProfile = {
     },
 
     buildReferralLink() {
-        const code =
-            String(this.referralsData?.referralLinkCode || "").trim() ||
+        const data = this.referralsData || {};
+        const backendLink = String(data.referralLink || "").trim();
+        if (backendLink) {
+            return backendLink;
+        }
+
+        const referralLinkCode =
+            String(data.referralLinkCode || "").trim() ||
             `ref_${this.getPlayerId()}`;
 
         const botUsername = this.getBotUsername();
-
         if (botUsername) {
-            return `https://t.me/${botUsername}?start=${code}`;
+            return `https://t.me/${botUsername}?start=${referralLinkCode}`;
         }
 
-        return code;
+        if (referralLinkCode) {
+            return referralLinkCode;
+        }
+
+        return "";
     },
 
     /* =========================
@@ -158,12 +168,14 @@ CryptoZoo.uiProfile = {
 
     async loadReferralsData() {
         const telegramId = this.getPlayerId();
+
         if (!telegramId) {
             this.referralsData = {
                 referralsCount: 0,
                 referredBy: "",
                 referralCode: "",
                 referralLinkCode: "",
+                referralLink: "",
                 referralRewards: null,
                 referrals: []
             };
@@ -184,6 +196,7 @@ CryptoZoo.uiProfile = {
                 referredBy: String(result?.referredBy || ""),
                 referralCode: String(result?.referralCode || telegramId),
                 referralLinkCode: String(result?.referralLinkCode || `ref_${telegramId}`),
+                referralLink: String(result?.referralLink || ""),
                 referralRewards: result?.referralRewards || null,
                 referrals: Array.isArray(result?.referrals) ? result.referrals : []
             };
@@ -193,6 +206,7 @@ CryptoZoo.uiProfile = {
                 referredBy: "",
                 referralCode: telegramId,
                 referralLinkCode: `ref_${telegramId}`,
+                referralLink: "",
                 referralRewards: null,
                 referrals: []
             };
@@ -223,12 +237,13 @@ CryptoZoo.uiProfile = {
         }
 
         const data = this.referralsData || {};
-        const referralCode = String(data.referralCode || this.getPlayerId() || "-");
+        const fallbackPlayerId = this.getPlayerId();
+        const referralCode = String(data.referralCode || fallbackPlayerId || "-");
         const referralLink = this.buildReferralLink();
 
         countEl.textContent = String(Math.max(0, Number(data.referralsCount) || 0));
         codeEl.textContent = referralCode || "-";
-        linkEl.textContent = referralLink || "-";
+        linkEl.textContent = referralLink || `ref_${fallbackPlayerId || ""}` || "-";
 
         const rewards = data.referralRewards;
         if (rewards) {
@@ -348,9 +363,7 @@ CryptoZoo.uiProfile = {
             return false;
         }
 
-        CryptoZoo.state.rewardWallet =
-            this.getRewardWallet() + amount;
-
+        CryptoZoo.state.rewardWallet = this.getRewardWallet() + amount;
         CryptoZoo.state.rewardBalance = 0;
 
         await CryptoZoo.api.savePlayer();
@@ -378,9 +391,7 @@ CryptoZoo.uiProfile = {
         try {
             await CryptoZoo.api.createWithdrawRequest(wallet);
 
-            CryptoZoo.ui?.showToast?.(
-                `Withdraw ${wallet.toFixed(3)}`
-            );
+            CryptoZoo.ui?.showToast?.(`Withdraw ${wallet.toFixed(3)}`);
 
             await this.loadWithdrawHistory();
             this.refreshProfileModalData();
@@ -449,6 +460,7 @@ CryptoZoo.uiProfile = {
         this.modalOpen = true;
 
         this.refreshProfileModalData();
+
         await Promise.all([
             this.loadWithdrawHistory(),
             this.loadReferralsData()
