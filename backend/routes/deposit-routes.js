@@ -15,10 +15,11 @@ const router = express.Router();
 router.post("/api/deposit/create", (req, res) => {
     const db = readDb();
 
-    db.deposits = db.deposits || [];
+    db.deposits = Array.isArray(db.deposits) ? db.deposits : [];
 
     const telegramId = safeString(req.body?.telegramId, "");
     const username = safeString(req.body?.username, "Gracz");
+    const source = safeString(req.body?.source, "manual") || "manual";
 
     const amount = clamp(
         normalizeRewardNumber(req.body?.amount, 0),
@@ -37,7 +38,8 @@ router.post("/api/deposit/create", (req, res) => {
     const deposit = createDeposit({
         telegramId,
         username,
-        amount
+        amount,
+        source
     });
 
     db.deposits.push(deposit);
@@ -57,9 +59,11 @@ router.post("/api/deposit/confirm", (req, res) => {
     if (!requireAdmin(req, res)) return;
 
     const db = readDb();
+    db.deposits = Array.isArray(db.deposits) ? db.deposits : [];
 
     const depositId = safeString(req.body?.depositId, "");
     const status = safeString(req.body?.status, "").toLowerCase();
+    const note = safeString(req.body?.note, "");
 
     if (!depositId) {
         return res.status(400).json({ error: "Missing depositId" });
@@ -69,7 +73,7 @@ router.post("/api/deposit/confirm", (req, res) => {
         return res.status(400).json({ error: "Invalid status" });
     }
 
-    const deposit = (db.deposits || []).find((d) => d.id === depositId);
+    const deposit = db.deposits.find((d) => d.id === depositId);
 
     if (!deposit) {
         return res.status(404).json({ error: "Deposit not found" });
@@ -80,12 +84,16 @@ router.post("/api/deposit/confirm", (req, res) => {
     }
 
     deposit.status = status;
+    deposit.note = note;
     deposit.updatedAt = Date.now();
 
     const player = getPlayerOrCreate(db, deposit.telegramId, deposit.username);
 
     if (status === "approved") {
-        player.rewardWallet += deposit.amount;
+        player.rewardWallet = normalizeRewardNumber(
+            (Number(player.rewardWallet) || 0) + (Number(deposit.amount) || 0),
+            0
+        );
     }
 
     db.players[player.telegramId] = normalizePlayer(player);
@@ -107,9 +115,13 @@ router.get("/api/deposit/:telegramId", (req, res) => {
 
     const telegramId = safeString(req.params.telegramId, "");
 
+    if (!telegramId) {
+        return res.status(400).json({ error: "Missing telegramId" });
+    }
+
     const deposits = getPlayerDeposits(db, telegramId);
 
-    res.json({ deposits });
+    return res.json({ deposits });
 });
 
 module.exports = router;
