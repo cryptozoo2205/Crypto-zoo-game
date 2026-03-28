@@ -30,26 +30,59 @@ CryptoZoo.depositUI = {
         return link;
     },
 
-    openTonPayment(link) {
-        const safeLink = String(link || "").trim();
-        if (!safeLink) {
-            return false;
+    buildTonkeeperUniversalLink({ address, amount, comment }) {
+        const safeAddress = String(address || "").trim();
+        const safeAmount = Math.max(0, Number(amount) || 0);
+        const safeComment = String(comment || "").trim();
+
+        if (!safeAddress) {
+            return "";
         }
 
+        const nanoAmount = this.toNano(safeAmount);
+
+        let link = `https://app.tonkeeper.com/transfer/${encodeURIComponent(safeAddress)}?amount=${nanoAmount}`;
+
+        if (safeComment) {
+            link += `&text=${encodeURIComponent(safeComment)}`;
+        }
+
+        return link;
+    },
+
+    openTonPayment({ tonLink, universalLink }) {
+        const safeTonLink = String(tonLink || "").trim();
+        const safeUniversalLink = String(universalLink || "").trim();
         const tg = this.getTelegramWebApp();
 
         try {
-            if (tg?.openLink) {
-                tg.openLink(safeLink);
+            if (tg?.openLink && safeUniversalLink) {
+                tg.openLink(safeUniversalLink);
                 return true;
             }
-
-            window.open(safeLink, "_blank");
-            return true;
         } catch (error) {
-            console.error("TON open link error:", error);
-            return false;
+            console.error("Telegram openLink error:", error);
         }
+
+        try {
+            if (safeUniversalLink) {
+                window.open(safeUniversalLink, "_blank");
+                return true;
+            }
+        } catch (error) {
+            console.error("Window universal link open error:", error);
+        }
+
+        try {
+            if (safeTonLink) {
+                window.location.href = safeTonLink;
+                return true;
+            }
+        } catch (error) {
+            console.error("TON deep link open error:", error);
+        }
+
+        return false;
     },
 
     async createDeposit(amount) {
@@ -67,7 +100,8 @@ CryptoZoo.depositUI = {
 
             const result = await CryptoZoo.api.createDepositWithPayment(safeAmount);
             const deposit = result?.deposit || null;
-            const payment = result?.payment || null;
+            const paymentRaw = result?.payment || null;
+            const payment = paymentRaw?.payment || paymentRaw;
 
             if (!deposit || !payment) {
                 throw new Error("Deposit payment data missing");
@@ -87,11 +121,16 @@ CryptoZoo.depositUI = {
                 comment: paymentComment
             });
 
-            if (!tonLink) {
-                throw new Error("Failed to build TON payment link");
-            }
+            const universalLink = this.buildTonkeeperUniversalLink({
+                address: receiverAddress,
+                amount: paymentAmount,
+                comment: paymentComment
+            });
 
-            const opened = this.openTonPayment(tonLink);
+            const opened = this.openTonPayment({
+                tonLink,
+                universalLink
+            });
 
             if (!opened) {
                 throw new Error("Failed to open TON payment");
@@ -103,7 +142,8 @@ CryptoZoo.depositUI = {
                 ok: true,
                 deposit,
                 payment,
-                tonLink
+                tonLink,
+                universalLink
             };
         } catch (error) {
             console.error("Create deposit error:", error);
