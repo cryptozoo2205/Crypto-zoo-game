@@ -26,7 +26,7 @@ CryptoZoo.config = {
             nameEn: "Panda",
             asset: "panda",
             buyCost: 520,
-            baseIncome: 3
+            baseIncome: 5
         },
         lion: {
             name: "Lion",
@@ -34,7 +34,7 @@ CryptoZoo.config = {
             nameEn: "Lion",
             asset: "lion",
             buyCost: 2200,
-            baseIncome: 8
+            baseIncome: 14
         },
         tiger: {
             name: "Tiger",
@@ -42,7 +42,7 @@ CryptoZoo.config = {
             nameEn: "Tiger",
             asset: "tiger",
             buyCost: 9000,
-            baseIncome: 18
+            baseIncome: 36
         },
         elephant: {
             name: "Elephant",
@@ -50,7 +50,7 @@ CryptoZoo.config = {
             nameEn: "Elephant",
             asset: "elephant",
             buyCost: 36000,
-            baseIncome: 42
+            baseIncome: 90
         },
         giraffe: {
             name: "Giraffe",
@@ -58,7 +58,7 @@ CryptoZoo.config = {
             nameEn: "Giraffe",
             asset: "giraffe",
             buyCost: 145000,
-            baseIncome: 95
+            baseIncome: 220
         },
         zebra: {
             name: "Zebra",
@@ -66,7 +66,7 @@ CryptoZoo.config = {
             nameEn: "Zebra",
             asset: "zebra",
             buyCost: 580000,
-            baseIncome: 210
+            baseIncome: 520
         },
         hippo: {
             name: "Hippo",
@@ -74,7 +74,7 @@ CryptoZoo.config = {
             nameEn: "Hippo",
             asset: "hippo",
             buyCost: 2300000,
-            baseIncome: 470
+            baseIncome: 1200
         },
         penguin: {
             name: "Penguin",
@@ -82,7 +82,7 @@ CryptoZoo.config = {
             nameEn: "Penguin",
             asset: "penguin",
             buyCost: 9200000,
-            baseIncome: 1050
+            baseIncome: 2700
         },
         bear: {
             name: "Bear",
@@ -90,7 +90,7 @@ CryptoZoo.config = {
             nameEn: "Bear",
             asset: "bear",
             buyCost: 37000000,
-            baseIncome: 2300
+            baseIncome: 6000
         },
         crocodile: {
             name: "Crocodile",
@@ -98,7 +98,7 @@ CryptoZoo.config = {
             nameEn: "Crocodile",
             asset: "crocodile",
             buyCost: 148000000,
-            baseIncome: 5000
+            baseIncome: 13200
         },
         kangaroo: {
             name: "Kangaroo",
@@ -106,7 +106,7 @@ CryptoZoo.config = {
             nameEn: "Kangaroo",
             asset: "kangaroo",
             buyCost: 590000000,
-            baseIncome: 10800
+            baseIncome: 29000
         },
         wolf: {
             name: "Wolf",
@@ -114,7 +114,7 @@ CryptoZoo.config = {
             nameEn: "Wolf",
             asset: "wolf",
             buyCost: 2360000000,
-            baseIncome: 23000
+            baseIncome: 64000
         }
     },
 
