@@ -130,6 +130,10 @@ CryptoZoo.uiSettings = {
         return sound ? "ON" : "OFF";
     },
 
+    getDepositButtonAmount() {
+        return 3;
+    },
+
     refreshSettingsModalData() {
         const settings = this.getSettings();
 
@@ -180,6 +184,13 @@ CryptoZoo.uiSettings = {
             withdrawBtn.textContent = can
                 ? `${this.t("withdrawRequest", "Withdraw Request")} (${wallet.toFixed(3)})`
                 : `${this.t("minWithdraw", "Min withdraw")} ${this.minWithdrawReward}`;
+        }
+
+        const depositBtn = document.getElementById("settingsCreateDepositBtn");
+        if (depositBtn) {
+            depositBtn.disabled = false;
+            depositBtn.style.opacity = "1";
+            depositBtn.textContent = `${this.t("createDeposit", "Create Deposit")} (${this.getDepositButtonAmount().toFixed(3)})`;
         }
 
         this.renderFinanceSectionToggle();
@@ -275,6 +286,24 @@ CryptoZoo.uiSettings = {
         }
     },
 
+    async createDeposit() {
+        const amount = this.getDepositButtonAmount();
+
+        try {
+            await CryptoZoo.api.createDeposit(amount);
+
+            CryptoZoo.ui?.showToast?.(`Deposit ${amount.toFixed(3)}`);
+
+            await this.loadDepositsHistory();
+            this.refreshSettingsModalData();
+
+            return true;
+        } catch (e) {
+            CryptoZoo.ui?.showToast?.(e.message || this.t("depositCreateError", "Błąd depozytu"));
+            return false;
+        }
+    },
+
     async loadWithdrawHistory() {
         this.withdrawHistoryLoading = true;
         this.renderWithdrawHistory();
@@ -341,7 +370,7 @@ CryptoZoo.uiSettings = {
         }
 
         if (!this.depositsHistory.length) {
-            el.innerHTML = `<div>Brak historii wpłat</div>`;
+            el.innerHTML = `<div>${this.t("noDepositsHistory", "Brak historii wpłat")}</div>`;
             return;
         }
 
@@ -494,6 +523,15 @@ CryptoZoo.uiSettings = {
             withdrawBtn.addEventListener("click", () => {
                 CryptoZoo.audio?.play?.("click");
                 this.requestWithdraw();
+            });
+        }
+
+        const depositBtn = document.getElementById("settingsCreateDepositBtn");
+        if (depositBtn && !depositBtn.dataset.bound) {
+            depositBtn.dataset.bound = "1";
+            depositBtn.addEventListener("click", () => {
+                CryptoZoo.audio?.play?.("click");
+                this.createDeposit();
             });
         }
 
