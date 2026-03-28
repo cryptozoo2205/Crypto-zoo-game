@@ -69,6 +69,62 @@ CryptoZoo.animalsSystem = {
         );
     },
 
+    getAnimalTypesInOrder() {
+        return Object.keys(CryptoZoo.config?.animals || {});
+    },
+
+    getAnimalTierIndex(type) {
+        const orderedTypes = this.getAnimalTypesInOrder();
+        const index = orderedTypes.findIndex((item) => item === type);
+        return index >= 0 ? index : 0;
+    },
+
+    getBuyGrowth(type) {
+        const tierIndex = this.getAnimalTierIndex(type);
+
+        const growthByTier = [
+            1.20,  // monkey
+            1.185, // panda
+            1.17,  // lion
+            1.16,  // tiger
+            1.155, // elephant
+            1.15,  // giraffe
+            1.145, // zebra
+            1.14,  // hippo
+            1.135, // penguin
+            1.13,  // bear
+            1.125, // crocodile
+            1.12,  // kangaroo
+            1.115  // wolf
+        ];
+
+        if (tierIndex < growthByTier.length) {
+            return growthByTier[tierIndex];
+        }
+
+        return 1.12;
+    },
+
+    getBuyCost(type) {
+        const config = CryptoZoo.config?.animals?.[type];
+        const animal = this.ensureAnimalState(type);
+
+        if (!config || !animal) return 0;
+
+        const baseCost = Math.max(1, Math.floor(Number(config.buyCost) || 1));
+        const ownedCount = Math.max(0, Math.floor(Number(animal.count) || 0));
+        const growth = this.getBuyGrowth(type);
+
+        const rawCost = baseCost * Math.pow(growth, ownedCount);
+        const safeCost = Math.floor(rawCost);
+
+        if (!Number.isFinite(safeCost) || safeCost < 1) {
+            return 1;
+        }
+
+        return safeCost;
+    },
+
     buy(type) {
         const config = CryptoZoo.config?.animals?.[type];
         if (!config) return false;
@@ -81,11 +137,13 @@ CryptoZoo.animalsSystem = {
             return false;
         }
 
-        const buyCost = Math.max(0, Math.floor(Number(config.buyCost) || 0));
+        const buyCost = this.getBuyCost(type);
         const currentCoins = Math.max(0, Number(CryptoZoo.state?.coins) || 0);
 
         if (currentCoins < buyCost) {
-            CryptoZoo.ui?.showToast?.("Za mało coins");
+            CryptoZoo.ui?.showToast?.(
+                `Za mało coins • ${CryptoZoo.formatNumber(buyCost)}`
+            );
             return false;
         }
 
@@ -98,7 +156,9 @@ CryptoZoo.animalsSystem = {
         CryptoZoo.gameplay?.persistAndRender?.();
 
         const animalName = this.getLocalizedAnimalName(type, config);
-        CryptoZoo.ui?.showToast?.(`Kupiono ${animalName}`);
+        CryptoZoo.ui?.showToast?.(
+            `Kupiono ${animalName} • -${CryptoZoo.formatNumber(buyCost)}`
+        );
 
         return true;
     },
@@ -109,18 +169,16 @@ CryptoZoo.animalsSystem = {
 
         if (!config || !animal) return 0;
 
-        const buyCost = Math.max(1, Number(config.buyCost) || 1);
+        const baseCost = Math.max(1, Math.floor(Number(config.buyCost) || 1));
         const level = Math.max(1, Math.floor(Number(animal.level) || 1));
         const count = Math.max(0, Math.floor(Number(animal.count) || 0));
+        const tierIndex = this.getAnimalTierIndex(type);
 
-        const levelMultiplier = Math.pow(1.45, level - 1);
+        const levelMultiplier = Math.pow(1.42, level - 1);
+        const countMultiplier = 1 + Math.min(0.75, count * 0.015);
+        const tierMultiplier = 0.85 + tierIndex * 0.08;
 
-        const ownershipDiscount =
-            count >= 50 ? 0.90 :
-            count >= 25 ? 0.94 :
-            count >= 10 ? 0.97 : 1;
-
-        const rawCost = buyCost * 0.8 * levelMultiplier * ownershipDiscount;
+        const rawCost = baseCost * 0.75 * levelMultiplier * countMultiplier * tierMultiplier;
         const safeCost = Math.floor(rawCost);
 
         if (!Number.isFinite(safeCost) || safeCost < 1) {
@@ -152,7 +210,9 @@ CryptoZoo.animalsSystem = {
         const currentCoins = Math.max(0, Number(CryptoZoo.state?.coins) || 0);
 
         if (currentCoins < cost) {
-            CryptoZoo.ui?.showToast?.("Za mało coins");
+            CryptoZoo.ui?.showToast?.(
+                `Za mało coins • ${CryptoZoo.formatNumber(cost)}`
+            );
             return false;
         }
 
@@ -165,7 +225,9 @@ CryptoZoo.animalsSystem = {
         CryptoZoo.gameplay?.persistAndRender?.();
 
         const animalName = this.getLocalizedAnimalName(type, config);
-        CryptoZoo.ui?.showToast?.(`Ulepszono ${animalName}`);
+        CryptoZoo.ui?.showToast?.(
+            `Ulepszono ${animalName} • -${CryptoZoo.formatNumber(cost)}`
+        );
 
         return true;
     }
