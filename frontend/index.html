@@ -446,7 +446,22 @@
                 </div>
             </div>
 
-            <div class="profile-boost-row" style="margin-top:12px;">
+            <button
+                id="toggleReferralBtn"
+                class="profile-close-btn"
+                type="button"
+                aria-expanded="false"
+                style="margin-top:12px; display:flex; align-items:center; justify-content:space-between; gap:10px;"
+            >
+                <span id="toggleReferralBtnLabel">Referral / Zaproś znajomych</span>
+                <span id="toggleReferralBtnArrow">▼</span>
+            </button>
+
+            <div
+                id="profileReferralContent"
+                class="profile-boost-row"
+                style="margin-top:12px; display:none;"
+            >
                 <div class="profile-boost-left" style="width:100%;">
                     <div class="profile-boost-label">Referral</div>
 
