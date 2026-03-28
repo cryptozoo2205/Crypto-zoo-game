@@ -23,7 +23,7 @@ router.post("/api/deposit/create", (req, res) => {
 
     const telegramId = safeString(req.body?.telegramId, "");
     const username = safeString(req.body?.username, "Gracz");
-    const source = safeString(req.body?.source, "manual") || "manual";
+    const source = safeString(req.body?.source, "ton") || "ton";
 
     const amount = clamp(
         normalizeRewardNumber(req.body?.amount, 0),
@@ -51,7 +51,8 @@ router.post("/api/deposit/create", (req, res) => {
 
     return res.json({
         ok: true,
-        deposit
+        deposit,
+        payment: buildDepositPaymentData(deposit)
     });
 });
 
@@ -120,9 +121,9 @@ router.post("/api/deposit/confirm", (req, res) => {
     const player = getPlayerOrCreate(db, deposit.telegramId, deposit.username);
 
     if (status === "approved") {
-        player.rewardWallet = normalizeRewardNumber(
-            (Number(player.rewardWallet) || 0) + (Number(deposit.amount) || 0),
-            0
+        player.gems = Math.max(
+            0,
+            Number(player.gems || 0) + Math.max(0, Number(deposit.gemsAmount) || 0)
         );
     }
 
