@@ -429,20 +429,35 @@
                 </div>
             </div>
 
-            <div class="profile-boost-row">
-                <div class="profile-boost-left">
+            <button
+                id="toggleWithdrawBtn"
+                class="profile-close-btn"
+                type="button"
+                aria-expanded="false"
+                style="margin-top:12px; display:flex; align-items:center; justify-content:space-between; gap:10px;"
+            >
+                <span id="toggleWithdrawBtnLabel">Reward / Withdraw</span>
+                <span id="toggleWithdrawBtnArrow">▼</span>
+            </button>
+
+            <div
+                id="profileWithdrawContent"
+                class="profile-boost-row"
+                style="margin-top:12px; display:none;"
+            >
+                <div class="profile-boost-left" style="width:100%;">
                     <div class="profile-boost-label" id="langProfileRewardWalletTitle">Reward Wallet</div>
                     <div class="profile-boost-value" id="langProfileRewardWalletDesc">Przenieś Reward do Wallet lub wyślij request wypłaty</div>
-                </div>
-            </div>
 
-            <button id="transferRewardBtn" class="profile-close-btn" type="button">Transfer Reward</button>
-            <button id="requestWithdrawBtn" class="profile-close-btn" type="button">Withdraw Request</button>
+                    <button id="transferRewardBtn" class="profile-close-btn" type="button" style="margin-top:12px;">Transfer Reward</button>
+                    <button id="requestWithdrawBtn" class="profile-close-btn" type="button">Withdraw Request</button>
 
-            <div class="profile-boost-row" style="margin-top:12px;">
-                <div class="profile-boost-left" style="width:100%;">
-                    <div class="profile-boost-label" id="langProfileWithdrawHistory">Withdraw History</div>
-                    <div id="profileWithdrawHistoryList" style="margin-top:10px;"></div>
+                    <div class="profile-boost-row" style="margin-top:12px;">
+                        <div class="profile-boost-left" style="width:100%;">
+                            <div class="profile-boost-label" id="langProfileWithdrawHistory">Withdraw History</div>
+                            <div id="profileWithdrawHistoryList" style="margin-top:10px;"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
