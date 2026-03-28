@@ -2,6 +2,7 @@ window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.config = {
     apiBase: "/api",
+    telegramBotUsername: "cryptzoo_bot",
 
     limits: {
         maxOwnedPerAnimal: 50,
