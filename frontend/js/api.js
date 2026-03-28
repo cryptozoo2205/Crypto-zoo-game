@@ -411,6 +411,7 @@ window.CryptoZoo.api = {
             rewardRarity: String(rawExpedition.rewardRarity || "common"),
             rewardCoins: Math.max(0, Number(rawExpedition.rewardCoins) || 0),
             rewardGems: Math.max(0, Number(rawExpedition.rewardGems) || 0),
+            startCostCoins: Math.max(0, Number(rawExpedition.startCostCoins) || 0),
             selectedAnimals: this.normalizeSelectedAnimals(rawExpedition.selectedAnimals)
         };
     },
@@ -939,6 +940,37 @@ window.CryptoZoo.api = {
             return Array.isArray(list) ? list : [];
         } catch (error) {
             console.warn("Withdraw history load failed:", error);
+            return [];
+        }
+    },
+
+    async createDeposit(amount) {
+        const safeAmount = Number((Math.max(0, Number(amount) || 0)).toFixed(3));
+
+        const result = await this.request("/deposit/create", {
+            method: "POST",
+            body: JSON.stringify({
+                telegramId: this.getPlayerId(),
+                username: this.getUsername(),
+                amount: safeAmount
+            })
+        });
+
+        return result;
+    },
+
+    async loadDepositsHistory() {
+        const telegramId = this.getPlayerId();
+
+        try {
+            const result = await this.request(`/deposit/${encodeURIComponent(telegramId)}`, {
+                method: "GET"
+            });
+
+            const list = result?.deposits || result?.history || result?.data || [];
+            return Array.isArray(list) ? list : [];
+        } catch (error) {
+            console.warn("Deposits history load failed:", error);
             return [];
         }
     }
