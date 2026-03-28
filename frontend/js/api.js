@@ -959,6 +959,37 @@ window.CryptoZoo.api = {
         return result;
     },
 
+    async createDepositWithPayment(amount) {
+        const safeAmount = Number((Math.max(0, Number(amount) || 0)).toFixed(3));
+
+        const result = await this.request("/deposit/create", {
+            method: "POST",
+            body: JSON.stringify({
+                telegramId: this.getPlayerId(),
+                username: this.getUsername(),
+                amount: safeAmount
+            })
+        });
+
+        const deposit = result?.deposit;
+
+        if (!deposit) {
+            throw new Error("Deposit create failed");
+        }
+
+        const payment = await this.request("/deposit/payment-data", {
+            method: "POST",
+            body: JSON.stringify({
+                depositId: deposit.id
+            })
+        });
+
+        return {
+            deposit,
+            payment
+        };
+    },
+
     async loadDepositsHistory() {
         const telegramId = this.getPlayerId();
 
@@ -975,35 +1006,3 @@ window.CryptoZoo.api = {
         }
     }
 };
-
-async createDepositWithPayment(amount) {
-    const safeAmount = Number((Math.max(0, Number(amount) || 0)).toFixed(3));
-
-    const result = await this.request("/deposit/create", {
-        method: "POST",
-        body: JSON.stringify({
-            telegramId: this.getPlayerId(),
-            username: this.getUsername(),
-            amount: safeAmount
-        })
-    });
-
-    const deposit = result?.deposit;
-
-    if (!deposit) {
-        throw new Error("Deposit create failed");
-    }
-
-    // 🔥 pobieramy dane do płatności
-    const payment = await this.request("/deposit/payment-data", {
-        method: "POST",
-        body: JSON.stringify({
-            depositId: deposit.id
-        })
-    });
-
-    return {
-        deposit,
-        payment
-    };
-}
