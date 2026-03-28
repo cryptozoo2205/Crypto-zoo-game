@@ -177,6 +177,7 @@ CryptoZoo.lang = {
             referralLinkLabel: "Referral link",
             copyReferralLink: "Copy link",
             referralRewardsLabel: "Referral rewards",
+            profileReferralRewards: "New player: +50 coins at start\nLevel 3: +150 coins\n\nReferrer:\nReferred player level 3: +250 coins\n\nRewards unlock when the referred player reaches level 3",
             latestReferrals: "Latest invited",
 
             approved: "Approved",
@@ -431,6 +432,7 @@ CryptoZoo.lang = {
             referralLinkLabel: "Link referral",
             copyReferralLink: "Kopiuj link",
             referralRewardsLabel: "Nagrody referral",
+            profileReferralRewards: "Nowy gracz: +50 coins na start\nPoziom 3: +150 coins\n\nPolecający:\nPoziom 3 zaproszonego: +250 coins\n\nNagrody aktywują się po osiągnięciu poziomu 3 przez zaproszonego gracza",
             latestReferrals: "Ostatni zaproszeni",
 
             approved: "Approved",
