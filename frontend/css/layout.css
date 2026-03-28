@@ -262,17 +262,18 @@ main#game {
 .tap-area {
     position: relative;
     width: 100%;
-    min-height: 260px;
+    min-height: 300px;
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
+    overflow: visible;
+    padding: 10px 0 16px;
 }
 
 .tap-glow {
     position: absolute;
-    width: 240px;
-    height: 240px;
+    width: 290px;
+    height: 290px;
     border-radius: 50%;
     background:
         radial-gradient(circle, rgba(58, 210, 255, 0.22) 0%, rgba(58, 210, 255, 0.10) 36%, rgba(58, 210, 255, 0) 70%);
@@ -283,11 +284,13 @@ main#game {
 .tap-button {
     position: relative;
     z-index: 1;
-    width: 190px;
-    height: 190px;
+    width: 210px;
+    height: 210px;
     border: none;
     border-radius: 50%;
     cursor: pointer;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
     background:
         radial-gradient(circle at 30% 28%, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.06) 22%, rgba(255,255,255,0) 24%),
         linear-gradient(180deg, rgba(54, 111, 255, 0.96) 0%, rgba(36, 78, 209, 0.98) 100%);
@@ -295,6 +298,17 @@ main#game {
         0 24px 44px rgba(8, 20, 48, 0.34),
         inset 0 3px 12px rgba(255,255,255,0.16),
         inset 0 -10px 18px rgba(7, 18, 48, 0.24);
+}
+
+.tap-button::before {
+    content: "";
+    position: absolute;
+    top: -36px;
+    right: -36px;
+    bottom: -36px;
+    left: -36px;
+    border-radius: 50%;
+    background: transparent;
 }
 
 .tap-button:active {
@@ -901,17 +915,25 @@ main#game {
     }
 
     .tap-area {
-        min-height: 220px;
+        min-height: 260px;
+        padding: 8px 0 14px;
     }
 
     .tap-glow {
-        width: 210px;
-        height: 210px;
+        width: 245px;
+        height: 245px;
     }
 
     .tap-button {
-        width: 164px;
-        height: 164px;
+        width: 182px;
+        height: 182px;
+    }
+
+    .tap-button::before {
+        top: -30px;
+        right: -30px;
+        bottom: -30px;
+        left: -30px;
     }
 
     .home-tap-title {
@@ -1108,17 +1130,25 @@ main#game {
     }
 
     .tap-area {
-        min-height: 200px;
+        min-height: 232px;
+        padding: 8px 0 12px;
     }
 
     .tap-glow {
-        width: 190px;
-        height: 190px;
+        width: 215px;
+        height: 215px;
     }
 
     .tap-button {
-        width: 150px;
-        height: 150px;
+        width: 166px;
+        height: 166px;
+    }
+
+    .tap-button::before {
+        top: -26px;
+        right: -26px;
+        bottom: -26px;
+        left: -26px;
     }
 
     .home-zoo-preview-list {
