@@ -168,6 +168,17 @@ CryptoZoo.lang = {
             transferReward: "Transfer Reward",
             withdrawRequest: "Withdraw Request",
 
+            toggleWithdraw: "Reward / Withdraw",
+            hideWithdraw: "Hide reward / withdraw",
+            toggleReferral: "Referral / Invite friends",
+            hideReferral: "Hide referral",
+            referralsInvited: "Invited",
+            referralCodeLabel: "Code",
+            referralLinkLabel: "Referral link",
+            copyReferralLink: "Copy link",
+            referralRewardsLabel: "Referral rewards",
+            latestReferrals: "Latest invited",
+
             approved: "Approved",
             rejected: "Rejected",
             pendingStatus: "Pending",
@@ -411,6 +422,17 @@ CryptoZoo.lang = {
             transferReward: "Transfer Reward",
             withdrawRequest: "Withdraw Request",
 
+            toggleWithdraw: "Reward / Withdraw",
+            hideWithdraw: "Ukryj reward / wypłaty",
+            toggleReferral: "Referral / Zaproś znajomych",
+            hideReferral: "Ukryj referral",
+            referralsInvited: "Zaproszeni",
+            referralCodeLabel: "Kod",
+            referralLinkLabel: "Link referral",
+            copyReferralLink: "Kopiuj link",
+            referralRewardsLabel: "Nagrody referral",
+            latestReferrals: "Ostatni zaproszeni",
+
             approved: "Approved",
             rejected: "Rejected",
             pendingStatus: "Pending",
@@ -586,6 +608,10 @@ CryptoZoo.lang = {
         this.setText("requestWithdrawBtn", "withdrawRequest");
         this.setText("langProfileWithdrawHistory", "profileWithdrawHistory");
         this.setText("closeProfileBtn", "close");
+
+        this.setText("toggleWithdrawBtnLabel", "toggleWithdraw");
+        this.setText("toggleReferralBtnLabel", "toggleReferral");
+        this.setText("copyReferralBtn", "copyReferralLink");
 
         this.setText("langSettingsTitle", "settings");
         this.setText("langSettingsSubtitle", "settingsSubtitle");
