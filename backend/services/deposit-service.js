@@ -1,5 +1,18 @@
 const { normalizeRewardNumber, safeString } = require("../utils/helpers");
 
+const TON_RECEIVER_WALLET = "UQBTjBORP2cXRNE_hakpG-2DZlBn0uUWME8tKhi7HCcynER5";
+
+function getDepositGemsAmount(amount) {
+    const safeAmount = normalizeRewardNumber(amount, 0);
+
+    if (safeAmount >= 10) return 60;
+    if (safeAmount >= 5) return 28;
+    if (safeAmount >= 3) return 16;
+    if (safeAmount >= 1) return 5;
+
+    return 0;
+}
+
 function createDeposit({
     telegramId,
     username,
@@ -12,12 +25,16 @@ function createDeposit({
     const randomPart = Math.random().toString(36).slice(2, 8);
     const id = `dp_${now}_${randomPart}`;
     const paymentComment = `CRYPTOZOO_${id}`;
+    const safeAmount = normalizeRewardNumber(amount, 0);
+    const gemsAmount = getDepositGemsAmount(safeAmount);
 
     return {
         id,
         telegramId: String(telegramId),
         username: String(username || "Gracz"),
-        amount: normalizeRewardNumber(amount, 0),
+
+        amount: safeAmount,
+        gemsAmount: Math.max(0, Number(gemsAmount) || 0),
 
         source: safeString(source, "ton") || "ton",
         asset: safeString(asset, "TON") || "TON",
@@ -36,14 +53,14 @@ function createDeposit({
 }
 
 function buildDepositPaymentData(deposit) {
-    // 🔥 TU TYLKO ZMIANA — TWÓJ ADRES NA SZTYWNO
     const receiverAddress =
         process.env.TON_DEPOSIT_WALLET ||
-        "UQBTjBORP2cXRNE_hakpG-2DZlBn0uUWME8tKhi7HCcynER5";
+        TON_RECEIVER_WALLET;
 
     return {
         depositId: String(deposit?.id || ""),
         amount: normalizeRewardNumber(deposit?.amount, 0),
+        gemsAmount: Math.max(0, Number(deposit?.gemsAmount) || 0),
         asset: String(deposit?.asset || "TON"),
         source: String(deposit?.source || "ton"),
         receiverAddress: String(receiverAddress || ""),
@@ -59,6 +76,8 @@ function getPlayerDeposits(db, telegramId) {
 }
 
 module.exports = {
+    TON_RECEIVER_WALLET,
+    getDepositGemsAmount,
     createDeposit,
     buildDepositPaymentData,
     getPlayerDeposits
