@@ -290,36 +290,18 @@ CryptoZoo.uiSettings = {
         const amount = this.getDepositButtonAmount();
 
         try {
-            const result = await CryptoZoo.api.createDepositWithPayment(amount);
-
-            const payment = result?.payment || {};
-            const receiverAddress = String(payment.receiverAddress || "").trim();
-            const paymentComment = String(payment.paymentComment || "").trim();
-            const paymentAmount = Number(payment.amount || amount) || amount;
-
-            if (!receiverAddress) {
-                throw new Error("Missing TON receiver address");
+            if (!CryptoZoo.depositUI?.createDeposit) {
+                throw new Error("Deposit UI not loaded");
             }
 
-            const nanoAmount = Math.floor(paymentAmount * 1000000000);
+            const success = await CryptoZoo.depositUI.createDeposit(amount);
 
-            const tonLink =
-                `ton://transfer/${receiverAddress}` +
-                `?amount=${nanoAmount}` +
-                `&text=${encodeURIComponent(paymentComment)}`;
-
-            if (window.Telegram?.WebApp?.openTelegramLink) {
-                window.Telegram.WebApp.openTelegramLink(tonLink);
-            } else {
-                window.open(tonLink, "_blank");
+            if (success) {
+                await this.loadDepositsHistory();
+                this.refreshSettingsModalData();
             }
 
-            CryptoZoo.ui?.showToast?.(`Deposit ${paymentAmount.toFixed(3)} TON`);
-
-            await this.loadDepositsHistory();
-            this.refreshSettingsModalData();
-
-            return true;
+            return success;
         } catch (e) {
             console.error("Create deposit error:", e);
             CryptoZoo.ui?.showToast?.(e.message || this.t("depositCreateError", "Błąd depozytu"));
