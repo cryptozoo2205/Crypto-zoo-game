@@ -36,10 +36,10 @@ function createDeposit({
 }
 
 function buildDepositPaymentData(deposit) {
+    // 🔥 TU TYLKO ZMIANA — TWÓJ ADRES NA SZTYWNO
     const receiverAddress =
         process.env.TON_DEPOSIT_WALLET ||
-        process.env.TON_RECEIVER_WALLET ||
-        "";
+        "UQBTjBORP2cXRNE_hakpG-2DZlBn0uUWME8tKhi7HCcynER5";
 
     return {
         depositId: String(deposit?.id || ""),
