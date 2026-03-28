@@ -1,6 +1,6 @@
 const { normalizeRewardNumber, safeString } = require("../utils/helpers");
 
-function createDeposit({ telegramId, username, amount }) {
+function createDeposit({ telegramId, username, amount, source = "manual" }) {
     return {
         id: `dp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
         telegramId: String(telegramId),
@@ -9,15 +9,15 @@ function createDeposit({ telegramId, username, amount }) {
         status: "pending",
         createdAt: Date.now(),
         updatedAt: Date.now(),
-        source: "manual", // później: ton / usdt / telegram_ads
+        source: safeString(source, "manual") || "manual",
         note: ""
     };
 }
 
 function getPlayerDeposits(db, telegramId) {
-    return (db.deposits || [])
+    return (Array.isArray(db?.deposits) ? db.deposits : [])
         .filter((d) => String(d.telegramId) === String(telegramId))
-        .sort((a, b) => b.createdAt - a.createdAt);
+        .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
 }
 
 module.exports = {
