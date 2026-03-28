@@ -13,6 +13,7 @@ const rankingRoutes = require("./routes/ranking-routes");
 const referralRoutes = require("./routes/referral-routes");
 const withdrawRoutes = require("./routes/withdraw-routes");
 const depositRoutes = require("./routes/deposit-routes");
+const depositVerifierRoutes = require("./routes/deposit-verifier-routes");
 
 process.on("uncaughtException", (error) => {
     console.error("UNCAUGHT EXCEPTION:", error);
@@ -42,6 +43,7 @@ app.use(rankingRoutes);
 app.use(referralRoutes);
 app.use(withdrawRoutes);
 app.use(depositRoutes);
+app.use(depositVerifierRoutes);
 
 if (fs.existsSync(FRONTEND_DIR)) {
     app.use(express.static(FRONTEND_DIR));
