@@ -170,12 +170,13 @@ function approveDepositInDb(db, deposit, tx) {
     deposit.note = safeString(deposit.note, "") || "TON verified";
     deposit.updatedAt = Date.now();
 
-    player.rewardWallet = normalizeRewardNumber(
-        (Number(player.rewardWallet) || 0) + (Number(deposit.amount) || 0),
-        0
+    player.gems = Math.max(
+        0,
+        Number(player.gems || 0) + Math.max(0, Number(deposit.gemsAmount) || 0)
     );
 
     db.players[player.telegramId] = normalizePlayer(player);
+
     return {
         deposit,
         player: normalizePlayer(player)
