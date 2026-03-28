@@ -10,6 +10,8 @@ CryptoZoo.gameplay = {
     maxOfflineSeconds: 1 * 60 * 60,
     dailyRewardCooldownMs: 24 * 60 * 60 * 1000,
     dailyRewardMaxStreak: 7,
+    tapTouchIds: null,
+    tapAreaPadding: 55,
 
     init() {
         this.ensureState();
@@ -196,11 +198,49 @@ CryptoZoo.gameplay = {
         return CryptoZoo.offline?.normalizeState?.() || false;
     },
 
+    getTapAreaBounds(tapButton) {
+        const rect = tapButton.getBoundingClientRect();
+        const padding = Math.max(0, Number(this.tapAreaPadding) || 0);
+
+        return {
+            left: rect.left - padding,
+            right: rect.right + padding,
+            top: rect.top - padding,
+            bottom: rect.bottom + padding
+        };
+    },
+
+    isPointInsideTapArea(x, y, tapButton) {
+        if (!tapButton) return false;
+
+        const bounds = this.getTapAreaBounds(tapButton);
+
+        return (
+            x >= bounds.left &&
+            x <= bounds.right &&
+            y >= bounds.top &&
+            y <= bounds.bottom
+        );
+    },
+
+    isTouchInsideTapArea(touch, tapButton) {
+        if (!touch) return false;
+
+        return this.isPointInsideTapArea(
+            Number(touch.clientX) || 0,
+            Number(touch.clientY) || 0,
+            tapButton
+        );
+    },
+
     bindTap() {
         const tapButton = document.getElementById("tapButton");
         if (!tapButton || tapButton.dataset.tapBound === "1") return;
 
         tapButton.dataset.tapBound = "1";
+        this.tapTouchIds = new Set();
+
+        tapButton.style.touchAction = "none";
 
         tapButton.onclick = (e) => {
             e?.preventDefault?.();
@@ -209,29 +249,55 @@ CryptoZoo.gameplay = {
             if (this.touchBurstActive) return;
 
             this.suppressClickUntil = Date.now() + 250;
-            this.handleTap();
+            this.handleTap(1);
         };
 
-        tapButton.addEventListener("touchstart", (e) => {
+        const onTouchStart = (e) => {
+            const changedTouches = Array.from(e.changedTouches || []);
+            if (!changedTouches.length) return;
+
+            let newTapCount = 0;
+
+            for (const touch of changedTouches) {
+                const touchId = String(touch.identifier);
+
+                if (this.tapTouchIds.has(touchId)) continue;
+                if (!this.isTouchInsideTapArea(touch, tapButton)) continue;
+
+                this.tapTouchIds.add(touchId);
+                newTapCount += 1;
+            }
+
+            if (newTapCount <= 0) return;
+
             e.preventDefault();
-
             clearTimeout(this.touchReleaseTimer);
-
-            if (this.touchBurstActive) return;
 
             this.touchBurstActive = true;
             this.suppressClickUntil = Date.now() + 800;
 
-            this.handleTap();
-        }, { passive: false });
+            this.handleTap(newTapCount);
+        };
 
-        tapButton.addEventListener("touchmove", (e) => {
-            e.preventDefault();
-        }, { passive: false });
+        const onTouchMove = (e) => {
+            const touches = Array.from(e.touches || []);
+            const hasTrackedTouch = touches.some((touch) =>
+                this.tapTouchIds.has(String(touch.identifier))
+            );
+
+            if (hasTrackedTouch) {
+                e.preventDefault();
+            }
+        };
 
         const unlockTouchBurst = (e) => {
-            const stillTouching = Number(e?.touches?.length) || 0;
-            if (stillTouching > 0) return;
+            const changedTouches = Array.from(e.changedTouches || []);
+
+            for (const touch of changedTouches) {
+                this.tapTouchIds.delete(String(touch.identifier));
+            }
+
+            if (this.tapTouchIds.size > 0) return;
 
             clearTimeout(this.touchReleaseTimer);
             this.touchReleaseTimer = setTimeout(() => {
@@ -239,23 +305,27 @@ CryptoZoo.gameplay = {
             }, 40);
         };
 
-        tapButton.addEventListener("touchend", unlockTouchBurst, { passive: false });
-        tapButton.addEventListener("touchcancel", unlockTouchBurst, { passive: false });
+        document.addEventListener("touchstart", onTouchStart, { passive: false });
+        document.addEventListener("touchmove", onTouchMove, { passive: false });
+        document.addEventListener("touchend", unlockTouchBurst, { passive: false });
+        document.addEventListener("touchcancel", unlockTouchBurst, { passive: false });
     },
 
-    handleTap() {
-        const value = this.getEffectiveCoinsPerClick();
+    handleTap(amount = 1) {
+        const safeAmount = Math.max(1, Math.floor(Number(amount) || 1));
+        const valuePerTap = this.getEffectiveCoinsPerClick();
+        const totalCoins = valuePerTap * safeAmount;
 
-        CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + value;
-        CryptoZoo.state.xp = (Number(CryptoZoo.state.xp) || 0) + 1;
+        CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + totalCoins;
+        CryptoZoo.state.xp = (Number(CryptoZoo.state.xp) || 0) + safeAmount;
         CryptoZoo.state.lastLogin = Date.now();
 
         this.recalculateLevel();
 
-        CryptoZoo.dailyMissions?.recordTap?.(1);
+        CryptoZoo.dailyMissions?.recordTap?.(safeAmount);
 
         CryptoZoo.audio?.play?.("tap");
-        CryptoZoo.ui?.animateCoin?.(1);
+        CryptoZoo.ui?.animateCoin?.(safeAmount);
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
     },
