@@ -610,12 +610,6 @@ function validateExpeditionIntegrity(oldPlayer, newPlayer) {
             return newPlayer;
         }
 
-        if ((newPlayer.coins - oldPlayer.coins) > -expectedCost) {
-            newPlayer.expedition = null;
-            newPlayer.coins = oldPlayer.coins;
-            return newPlayer;
-        }
-
         return newPlayer;
     }
 
