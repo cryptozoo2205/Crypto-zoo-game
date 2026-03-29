@@ -1,5 +1,7 @@
 function clamp(val, min, max) {
-    return Math.max(min, Math.min(max, val));
+    const num = Number(val);
+    if (!Number.isFinite(num)) return min;
+    return Math.max(min, Math.min(max, num));
 }
 
 function normalizeNumber(value, fallback = 0) {
@@ -8,11 +10,18 @@ function normalizeNumber(value, fallback = 0) {
 }
 
 function normalizeRewardNumber(value, fallback = 0) {
-    return Number(normalizeNumber(value, fallback).toFixed(3));
+    const num = normalizeNumber(value, fallback);
+
+    if (!Number.isFinite(num)) return fallback;
+
+    // 🔥 zabezpieczenie przed ekstremami
+    const safe = Math.max(0, num);
+
+    return Number(safe.toFixed(3));
 }
 
 function safeString(value, fallback = "") {
-    return String(value || fallback).trim();
+    return String(value ?? fallback).trim();
 }
 
 function normalizeTelegramUser(rawTelegramUser, fallbackTelegramId = "local-player", fallbackUsername = "Gracz") {
