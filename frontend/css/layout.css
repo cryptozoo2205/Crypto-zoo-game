@@ -263,6 +263,87 @@ main#game {
     overflow-wrap: anywhere;
 }
 
+/* REWARD PREMIUM CARD */
+
+.home-reward-premium-card {
+    position: relative;
+    width: 100%;
+    padding: 16px 16px 15px;
+    border-radius: 22px;
+    background:
+        radial-gradient(circle at 16% 18%, rgba(255, 211, 91, 0.18) 0%, rgba(255, 211, 91, 0) 28%),
+        radial-gradient(circle at 88% 22%, rgba(111, 255, 156, 0.12) 0%, rgba(111, 255, 156, 0) 22%),
+        linear-gradient(180deg, rgba(28, 36, 58, 0.98) 0%, rgba(14, 21, 37, 0.98) 100%);
+    border: 1px solid rgba(255, 220, 120, 0.18);
+    box-shadow:
+        0 14px 28px rgba(0, 0, 0, 0.20),
+        0 0 0 1px rgba(255, 220, 120, 0.05),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+    overflow: hidden;
+}
+
+.home-reward-premium-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 22px;
+    pointer-events: none;
+    background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 42%);
+}
+
+.home-reward-premium-head {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.home-reward-premium-label {
+    font-size: 11px;
+    font-weight: 900;
+    color: rgba(255, 240, 195, 0.88);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.home-reward-premium-badge {
+    flex: 0 0 auto;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 900;
+    color: #1a1a1a;
+    background: linear-gradient(180deg, #ffe27a 0%, #ffbf00 100%);
+    box-shadow: 0 6px 14px rgba(255, 191, 0, 0.18);
+}
+
+.home-reward-premium-value {
+    position: relative;
+    z-index: 1;
+    margin-top: 10px;
+    font-size: 32px;
+    font-weight: 900;
+    color: #fff4c4;
+    line-height: 1;
+    text-shadow:
+        0 0 16px rgba(255, 220, 100, 0.12),
+        0 2px 10px rgba(0, 0, 0, 0.22);
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.home-reward-premium-subtitle {
+    position: relative;
+    z-index: 1;
+    margin-top: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.76);
+    line-height: 1.35;
+}
+
 /* LEVEL STRIP */
 
 .home-level-strip {
@@ -445,7 +526,7 @@ main#game {
 .home-income-row-card {
     width: 100%;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) 1px auto;
     gap: 14px;
     align-items: center;
     border-radius: 20px;
@@ -497,9 +578,11 @@ main#game {
 }
 
 .home-income-row-side-boost {
+    min-width: 148px;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: flex-start;
 }
 
 .home-boost-row-actions {
@@ -507,20 +590,22 @@ main#game {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    gap: 10px;
-    flex-wrap: wrap;
+    gap: 8px;
+    flex-wrap: nowrap;
 }
 
 .home-boost-button {
     border: none;
-    border-radius: 14px;
-    padding: 10px 14px;
-    font-size: 13px;
+    border-radius: 12px;
+    padding: 8px 14px;
+    min-width: 96px;
+    font-size: 12px;
     font-weight: 900;
     cursor: pointer;
     color: #1a1a1a;
     background: linear-gradient(180deg, #ffe27a 0%, #ffbf00 100%);
     box-shadow: 0 8px 16px rgba(255, 191, 0, 0.18);
+    white-space: nowrap;
 }
 
 .home-boost-button:active {
@@ -528,10 +613,18 @@ main#game {
 }
 
 .home-boost-status {
-    font-size: 12px;
-    font-weight: 700;
-    color: rgba(255,255,255,0.78);
-    line-height: 1.3;
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.82);
+    line-height: 1;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    white-space: nowrap;
 }
 
 /* ZOO PREVIEW */
@@ -1054,6 +1147,19 @@ main#game {
         font-size: 17px;
     }
 
+    .home-reward-premium-card {
+        padding: 14px;
+        border-radius: 18px;
+    }
+
+    .home-reward-premium-value {
+        font-size: 26px;
+    }
+
+    .home-reward-premium-subtitle {
+        font-size: 11px;
+    }
+
     .home-level-strip {
         padding: 12px;
         border-radius: 18px;
@@ -1107,24 +1213,45 @@ main#game {
     }
 
     .home-income-row-card {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr) 1px auto;
         gap: 10px;
         padding: 12px;
         border-radius: 18px;
+        align-items: center;
     }
 
     .home-income-row-divider {
-        width: 100%;
-        height: 1px;
-        min-height: 1px;
+        width: 1px;
+        height: 100%;
+        min-height: 48px;
     }
 
     .home-income-value {
         font-size: 20px;
     }
 
+    .home-income-row-side-boost {
+        min-width: 116px;
+    }
+
     .home-boost-row-actions {
-        gap: 8px;
+        margin-top: 6px;
+        gap: 6px;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .home-boost-button {
+        min-width: 84px;
+        padding: 7px 12px;
+        font-size: 11px;
+        border-radius: 11px;
+    }
+
+    .home-boost-status {
+        min-height: auto;
+        padding: 5px 8px;
+        font-size: 10px;
     }
 
     .home-zoo-preview {
@@ -1306,6 +1433,10 @@ main#game {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .home-reward-premium-value {
+        font-size: 22px;
+    }
+
     .home-level-strip-head {
         flex-direction: column;
         align-items: flex-start;
@@ -1340,6 +1471,26 @@ main#game {
         right: -26px;
         bottom: -26px;
         left: -26px;
+    }
+
+    .home-income-row-card {
+        grid-template-columns: minmax(0, 1fr) 1px auto;
+        gap: 8px;
+    }
+
+    .home-income-row-side-boost {
+        min-width: 104px;
+    }
+
+    .home-boost-button {
+        min-width: 76px;
+        padding: 7px 10px;
+        font-size: 10px;
+    }
+
+    .home-boost-status {
+        font-size: 9px;
+        padding: 5px 7px;
     }
 
     .home-zoo-preview-list {
