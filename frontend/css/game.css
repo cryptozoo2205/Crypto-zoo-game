@@ -82,6 +82,9 @@
         0 8px 18px rgba(0,0,0,0.24),
         0 0 0 4px rgba(88, 219, 255, 0.06),
         inset 0 1px 0 rgba(255,255,255,0.08);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .top-profile-ring {
@@ -203,18 +206,23 @@ main#game {
     overflow: visible !important;
 }
 
+/* TOP STATS */
+
 .home-stats-panel {
     width: 100%;
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 9px;
     margin: 0 0 12px;
+}
+
+.home-stats-panel-top {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .home-stat-box {
     position: relative;
     min-width: 0;
-    min-height: 78px;
+    min-height: 74px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -225,9 +233,9 @@ main#game {
     );
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 18px;
-    padding: 11px 12px;
+    padding: 10px 12px;
     box-shadow:
-        0 14px 24px rgba(0, 0, 0, 0.18),
+        0 12px 22px rgba(0, 0, 0, 0.16),
         inset 0 1px 0 rgba(255,255,255,0.05);
     backdrop-filter: blur(8px);
     overflow: hidden;
@@ -257,6 +265,89 @@ main#game {
     word-break: break-word;
     overflow-wrap: anywhere;
 }
+
+/* LEVEL STRIP */
+
+.home-level-strip {
+    width: 100%;
+    border-radius: 18px;
+    padding: 12px 14px;
+    margin-bottom: 4px;
+    background: linear-gradient(
+        180deg,
+        rgba(20, 29, 49, 0.94) 0%,
+        rgba(11, 18, 34, 0.96) 100%
+    );
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow:
+        0 12px 22px rgba(0, 0, 0, 0.14),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+.home-level-strip-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.home-level-strip-left {
+    min-width: 0;
+    width: 100%;
+}
+
+.home-level-strip-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.70);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.home-level-strip-value {
+    margin-top: 4px;
+    font-size: 13px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.88);
+    line-height: 1.2;
+    word-break: break-word;
+}
+
+.home-level-progress {
+    width: 100%;
+}
+
+.home-xp-bar {
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow:
+        inset 0 2px 6px rgba(0,0,0,0.18),
+        0 0 0 1px rgba(255,255,255,0.02);
+}
+
+.home-xp-fill {
+    width: 0%;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #2dd4ff 0%, #66ff99 50%, #ffcf3f 100%);
+    box-shadow: 0 0 14px rgba(100, 255, 170, 0.24);
+    transition: width 0.25s ease;
+}
+
+.home-xp-text {
+    margin-top: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.78);
+    text-align: left;
+}
+
+/* TAP */
 
 .tap-area {
     width: 100%;
@@ -441,36 +532,56 @@ main#game {
     animation: boostFlash 0.24s ease-out forwards;
 }
 
+/* INCOME + BOOST */
+
 .home-income-strip {
     width: 100%;
     margin-top: 2px;
     margin-bottom: 12px;
-    padding: 14px 15px;
-    display: flex;
+}
+
+.home-income-strip-single {
+    display: block;
+}
+
+.home-income-row-card,
+.home-income-row-card-compact {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 1px auto;
+    gap: 10px;
     align-items: center;
-    justify-content: space-between;
-    gap: 12px;
+    border-radius: 18px;
+    padding: 12px 14px;
     background: linear-gradient(
         180deg,
         rgba(22, 31, 54, 0.95) 0%,
         rgba(11, 18, 34, 0.95) 100%
     );
     border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 20px;
     box-shadow:
-        0 14px 24px rgba(0, 0, 0, 0.18),
+        0 12px 22px rgba(0, 0, 0, 0.16),
         inset 0 1px 0 rgba(255,255,255,0.05);
     backdrop-filter: blur(8px);
-    transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 
-.home-income-strip.boost-active {
-    border-color: rgba(255, 195, 0, 0.34);
-    box-shadow:
-        0 14px 24px rgba(0, 0, 0, 0.20),
-        0 0 28px rgba(255, 196, 0, 0.14),
-        inset 0 1px 0 rgba(255,255,255,0.06);
-    transform: translateY(-1px);
+.home-income-row-side {
+    min-width: 0;
+}
+
+.home-income-row-divider {
+    width: 1px;
+    height: 42px;
+    min-height: 42px;
+    background: linear-gradient(
+        180deg,
+        rgba(255,255,255,0.04) 0%,
+        rgba(255,255,255,0.14) 50%,
+        rgba(255,255,255,0.04) 100%
+    );
+    border-radius: 999px;
 }
 
 .home-income-left {
@@ -482,10 +593,13 @@ main#game {
     font-size: 11px;
     color: rgba(255,255,255,0.74);
     margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-weight: 800;
 }
 
 .home-income-value {
-    font-size: 22px;
+    font-size: 18px;
     font-weight: 900;
     color: #6cff7d;
     line-height: 1.05;
@@ -493,10 +607,14 @@ main#game {
     overflow-wrap: anywhere;
 }
 
-.home-boost-right {
+.home-boost-right,
+.home-income-row-side-boost {
     flex: 0 0 auto;
-    text-align: right;
-    min-width: 138px;
+    min-width: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
 }
 
 .home-boost-title {
@@ -504,14 +622,25 @@ main#game {
     font-weight: 800;
     color: #ffffff;
     margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.home-boost-row-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    width: 100%;
 }
 
 .home-boost-button {
     border: none;
     border-radius: 13px;
-    padding: 11px 16px;
+    padding: 8px 12px;
+    min-width: 86px;
     font-weight: 900;
-    font-size: 14px;
+    font-size: 12px;
     cursor: pointer;
     color: #1a1a1a;
     background: linear-gradient(180deg, #ffe27a 0%, #ffbf00 100%);
@@ -519,6 +648,7 @@ main#game {
         0 8px 16px rgba(255, 191, 0, 0.18),
         inset 0 1px 0 rgba(255,255,255,0.35);
     transition: transform 0.12s ease, opacity 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+    white-space: nowrap;
 }
 
 .home-boost-button:active {
@@ -539,7 +669,6 @@ main#game {
 }
 
 .home-boost-status {
-    margin-top: 7px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -547,12 +676,13 @@ main#game {
     min-height: 21px;
     padding: 4px 8px;
     border-radius: 999px;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 800;
     color: rgba(255,255,255,0.76);
     background: rgba(255,255,255,0.05);
     max-width: 100%;
     overflow-wrap: anywhere;
+    line-height: 1;
 }
 
 .home-boost-status.boost-active {
@@ -568,35 +698,7 @@ main#game {
     flex: 0 0 auto;
 }
 
-.home-xp-bar-wrap {
-    margin-top: 8px;
-}
-
-.home-xp-bar {
-    width: 100%;
-    height: 8px;
-    border-radius: 999px;
-    background: rgba(255,255,255,0.08);
-    overflow: hidden;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.28);
-}
-
-.home-xp-fill {
-    width: 0%;
-    height: 100%;
-    border-radius: 999px;
-    background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
-    box-shadow: 0 0 12px rgba(79, 172, 254, 0.28);
-    transition: width 0.25s ease;
-}
-
-.home-xp-text {
-    margin-top: 5px;
-    font-size: 11px;
-    font-weight: 800;
-    color: rgba(255,255,255,0.72);
-    line-height: 1.2;
-}
+/* ZOO PREVIEW */
 
 .home-zoo-preview {
     width: 100%;
@@ -641,6 +743,7 @@ main#game {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
+    margin-top: 12px;
 }
 
 .home-zoo-preview-card {
@@ -648,22 +751,27 @@ main#game {
     padding: 10px 8px;
     text-align: center;
     background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.05);
 }
 
 .home-zoo-preview-card img {
     width: 52px;
     height: 52px;
     margin: 0 auto 8px;
+    object-fit: contain;
 }
 
 .home-zoo-preview-name {
     font-size: 13px;
     font-weight: 900;
+    color: #ffffff;
 }
 
 .home-zoo-preview-meta {
     font-size: 11px;
     margin-bottom: 8px;
+    color: rgba(255,255,255,0.78);
+    line-height: 1.35;
 }
 
 .home-zoo-preview-actions {
@@ -678,7 +786,20 @@ main#game {
     padding: 8px;
     font-size: 10px;
     font-weight: 800;
+    cursor: pointer;
 }
+
+.home-zoo-preview-actions button:first-child {
+    color: #ffffff;
+    background: linear-gradient(180deg, #41cf88 0%, #23a86b 100%);
+}
+
+.home-zoo-preview-actions button:last-child {
+    color: #ffffff;
+    background: linear-gradient(180deg, rgba(73, 91, 138, 0.95) 0%, rgba(56, 71, 110, 0.95) 100%);
+}
+
+/* QUICK PANEL */
 
 .home-quick-panel {
     width: 100%;
@@ -698,21 +819,32 @@ main#game {
         rgba(18, 28, 48, 0.96) 0%,
         rgba(10, 17, 31, 0.95) 100%
     );
+    border: 1px solid rgba(255,255,255,0.08);
 }
 
 .home-quick-icon {
     width: 46px;
     height: 46px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 23px;
+    background: rgba(255,255,255,0.06);
 }
 
 .home-quick-title {
     font-size: 15px;
     font-weight: 900;
+    color: #ffffff;
 }
 
 .home-quick-subtitle {
     font-size: 11px;
+    color: rgba(255,255,255,0.72);
 }
+
+/* ANIMATIONS */
 
 @keyframes tapPulse {
     0% {
@@ -838,7 +970,106 @@ main#game {
     }
 }
 
+/* MOBILE */
+
 @media (max-width: 520px) {
+    .top-bar {
+        margin-bottom: 8px;
+    }
+
+    .top-bar-shell {
+        min-height: 78px;
+        border-radius: 18px;
+    }
+
+    .top-bar-shell::before {
+        left: 10px;
+        right: 10px;
+        top: 8px;
+        bottom: 8px;
+        border-radius: 14px;
+    }
+
+    .top-bar-main {
+        min-height: 78px;
+        padding: 8px 10px;
+        gap: 10px;
+    }
+
+    .top-bar-left {
+        gap: 10px;
+    }
+
+    .top-profile-trigger {
+        width: 48px;
+        height: 48px;
+    }
+
+    .top-avatar {
+        width: 48px;
+        height: 48px;
+    }
+
+    .top-profile-ring {
+        width: 12px;
+        height: 12px;
+        right: 1px;
+        bottom: 1px;
+    }
+
+    .top-user-name {
+        font-size: 18px;
+    }
+
+    .top-user-status {
+        font-size: 10px;
+        margin-top: 5px;
+        padding: 3px 8px;
+    }
+
+    .top-bar-overlay-actions {
+        gap: 6px;
+    }
+
+    .top-icon-chip {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+
+    .home-stats-panel-top {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .home-stat-box {
+        min-height: 68px;
+        padding: 10px;
+        border-radius: 16px;
+    }
+
+    .home-stat-title {
+        font-size: 9px;
+    }
+
+    .home-stat-value {
+        font-size: 17px;
+    }
+
+    .home-level-strip {
+        padding: 10px 12px;
+        border-radius: 16px;
+    }
+
+    .home-level-strip-value {
+        font-size: 12px;
+    }
+
+    .home-xp-bar {
+        height: 9px;
+    }
+
     .tap-area {
         min-height: 232px;
         padding: 10px 0 4px;
@@ -849,22 +1080,102 @@ main#game {
         height: 176px;
     }
 
-    .home-income-strip {
-        flex-direction: column;
-        align-items: stretch;
+    .home-tap-title {
+        font-size: 22px;
+    }
+
+    .home-tap-subtitle {
+        font-size: 12px;
+    }
+
+    .home-income-row-card,
+    .home-income-row-card-compact {
+        grid-template-columns: minmax(0, 1fr) 1px auto;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 16px;
+    }
+
+    .home-income-row-divider {
+        height: 36px;
+        min-height: 36px;
+    }
+
+    .home-income-value {
+        font-size: 15px;
+    }
+
+    .home-income-row-side-boost {
+        min-width: 102px;
+    }
+
+    .home-boost-title {
+        font-size: 10px;
+        margin-bottom: 5px;
     }
 
     .home-boost-button {
+        padding: 7px 10px;
+        min-width: 74px;
+        font-size: 11px;
+    }
+
+    .home-boost-status {
+        font-size: 9px;
+        padding: 4px 7px;
+        min-height: 19px;
+    }
+
+    .home-zoo-preview {
+        margin-top: 8px;
+        margin-bottom: 8px;
+        padding: 11px;
+        border-radius: 18px;
+    }
+
+    .home-zoo-preview-head {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .home-zoo-preview-title {
+        font-size: 15px;
+    }
+
+    .home-zoo-preview-button {
         width: 100%;
+        padding: 8px 11px;
+        font-size: 12px;
     }
 
     .home-zoo-preview-list {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 6px;
+    }
+
+    .home-zoo-preview-card {
+        padding: 8px 6px;
+        border-radius: 16px;
     }
 
     .home-zoo-preview-card img {
         width: 42px;
         height: 42px;
+    }
+
+    .home-zoo-preview-name {
+        font-size: 11px;
+    }
+
+    .home-zoo-preview-meta {
+        font-size: 10px;
+        margin-bottom: 6px;
+    }
+
+    .home-zoo-preview-actions button {
+        padding: 6px 4px;
+        font-size: 9px;
+        border-radius: 9px;
     }
 
     .tap-flash {
@@ -877,60 +1188,111 @@ main#game {
     }
 }
 
+@media (max-width: 380px) {
+    .top-bar-shell {
+        min-height: 72px;
+        border-radius: 16px;
+    }
+
+    .top-bar-shell::before {
+        left: 8px;
+        right: 8px;
+        top: 7px;
+        bottom: 7px;
+        border-radius: 12px;
+    }
+
+    .top-bar-main {
+        min-height: 72px;
+        padding: 8px;
+        gap: 8px;
+    }
+
+    .top-bar-left {
+        gap: 8px;
+    }
+
+    .top-profile-trigger {
+        width: 42px;
+        height: 42px;
+    }
+
+    .top-avatar {
+        width: 42px;
+        height: 42px;
+    }
+
+    .top-user-name {
+        font-size: 16px;
+    }
+
+    .top-user-status {
+        font-size: 9px;
+        padding: 3px 7px;
+    }
+
+    .top-bar-overlay-actions {
+        gap: 5px;
+    }
+
+    .top-icon-chip {
+        width: 34px;
+        height: 34px;
+        font-size: 15px;
+    }
+
+    .home-stats-panel-top {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .home-level-strip-value,
+    .home-xp-text {
+        font-size: 10px;
+    }
+
+    .tap-area {
+        min-height: 218px;
+    }
+
+    .tap-button {
+        width: 164px;
+        height: 164px;
+    }
+
+    .home-income-row-card,
+    .home-income-row-card-compact {
+        gap: 6px;
+        padding: 9px 10px;
+    }
+
+    .home-income-row-side-boost {
+        min-width: 88px;
+    }
+
+    .home-income-value {
+        font-size: 13px;
+    }
+
+    .home-boost-button {
+        min-width: 62px;
+        padding: 6px 8px;
+        font-size: 10px;
+    }
+
+    .home-boost-status {
+        font-size: 8px;
+        padding: 3px 6px;
+    }
+
+    .home-zoo-preview-list {
+        grid-template-columns: 1fr;
+    }
+
+    .home-zoo-preview-card {
+        padding: 10px;
+    }
+}
+
 .screen {
     padding-bottom: 0;
-}
-
-/* =========================
-   FORCE FIX INCOME PANEL
-========================= */
-
-.home-income-row-card {
-    max-width: 380px !important;
-    padding: 10px 12px !important;
-    gap: 8px !important;
-    border-radius: 14px !important;
-}
-
-.home-income-row-divider {
-    height: 34px !important;
-    min-height: 34px !important;
-}
-
-.home-income-label {
-    font-size: 10px !important;
-}
-
-.home-income-value {
-    margin-top: 2px !important;
-    font-size: 11px !important;
-    font-weight: 900 !important;
-    color: #58f76c !important;
-    line-height: 1 !important;
-}
-
-.home-income-row-side-boost {
-    min-width: 95px !important;
-}
-
-.home-boost-title {
-    font-size: 10px !important;
-}
-
-.home-boost-row-actions {
-    gap: 4px !important;
-    margin-top: 4px !important;
-}
-
-.home-boost-button {
-    padding: 4px 8px !important;
-    min-width: 60px !important;
-    font-size: 9px !important;
-    border-radius: 999px !important;
-}
-
-.home-boost-status {
-    font-size: 8px !important;
-    padding: 3px 6px !important;
-    min-height: 20px !important;
 }
