@@ -351,6 +351,7 @@ main#game {
     text-align: left;
 }
 
+
 /* TAP */
 
 .tap-area {
@@ -368,37 +369,37 @@ main#game {
 .tap-area::before {
     content: "";
     position: absolute;
-    width: 420px;
-    height: 420px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(94, 255, 116, 0.10) 0%, rgba(94, 255, 116, 0.03) 55%, rgba(94, 255, 116, 0) 74%);
-    filter: blur(16px);
+    inset: 0;
+    background:
+        radial-gradient(circle at center, rgba(108, 255, 125, 0.14) 0%, rgba(108, 255, 125, 0.07) 22%, rgba(108, 255, 125, 0.02) 42%, rgba(108, 255, 125, 0) 68%),
+        url("../assets/backgrounds/background_main.png") center center / 180% auto no-repeat;
+    opacity: 0.28;
+    filter: blur(10px) saturate(1.1);
     pointer-events: none;
     z-index: 0;
+    border-radius: 50px;
 }
 
 .tap-area::after {
     content: "";
     position: absolute;
-    width: 330px;
-    height: 330px;
+    width: 360px;
+    height: 360px;
     border-radius: 50%;
-    border: 1px solid rgba(108, 255, 125, 0.08);
-    box-shadow:
-        0 0 0 22px rgba(108, 255, 125, 0.03),
-        0 0 0 52px rgba(108, 255, 125, 0.018);
+    background: radial-gradient(circle, rgba(80, 255, 120, 0.10) 0%, rgba(80, 255, 120, 0.05) 32%, rgba(80, 255, 120, 0.015) 48%, rgba(80, 255, 120, 0) 72%);
+    filter: blur(18px);
     pointer-events: none;
     z-index: 0;
 }
 
 .tap-glow {
     position: absolute;
-    width: 304px;
-    height: 304px;
+    width: 300px;
+    height: 300px;
     border-radius: 50%;
     background:
-        radial-gradient(circle, rgba(112, 255, 120, 0.28) 0%, rgba(112, 255, 120, 0.11) 45%, rgba(112, 255, 120, 0) 72%);
-    filter: blur(16px);
+        radial-gradient(circle, rgba(112, 255, 120, 0.22) 0%, rgba(112, 255, 120, 0.10) 42%, rgba(112, 255, 120, 0.03) 58%, rgba(112, 255, 120, 0) 74%);
+    filter: blur(14px);
     animation: tapPulse 2.2s ease-in-out infinite;
     z-index: 1;
 }
@@ -431,16 +432,16 @@ main#game {
     position: absolute;
     inset: 18%;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(119,255,129,0.22) 0%, rgba(119,255,129,0.08) 55%, rgba(119,255,129,0) 100%);
+    background: radial-gradient(circle, rgba(119,255,129,0.18) 0%, rgba(119,255,129,0.07) 55%, rgba(119,255,129,0) 100%);
     z-index: -1;
 }
 
 .tap-button::after {
     content: "";
     position: absolute;
-    inset: -18px;
+    inset: -12px;
     border-radius: 50%;
-    border: 1px solid rgba(255, 227, 122, 0.08);
+    background: radial-gradient(circle, rgba(255, 224, 122, 0.08) 0%, rgba(255, 224, 122, 0.03) 45%, rgba(255, 224, 122, 0) 72%);
     pointer-events: none;
 }
 
@@ -456,7 +457,7 @@ main#game {
 .home-tap-caption {
     text-align: center;
     margin-top: -2px;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
 }
 
 .home-tap-title {
@@ -474,122 +475,6 @@ main#game {
     font-size: 13px;
     color: rgba(255,255,255,0.76);
 }
-
-.home-tap-premium-strip {
-    width: 100%;
-    max-width: 330px;
-    margin: 0 auto 14px;
-    padding: 10px 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    border-radius: 16px;
-    background: linear-gradient(
-        180deg,
-        rgba(20, 29, 49, 0.78) 0%,
-        rgba(11, 18, 34, 0.84) 100%
-    );
-    border: 1px solid rgba(255,255,255,0.07);
-    box-shadow:
-        0 10px 18px rgba(0,0,0,0.14),
-        inset 0 1px 0 rgba(255,255,255,0.04);
-    color: rgba(255,255,255,0.82);
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.2px;
-}
-
-.home-tap-premium-strip::before,
-.home-tap-premium-strip::after {
-    content: "";
-    flex: 1 1 auto;
-    height: 1px;
-    background: linear-gradient(
-        90deg,
-        rgba(255,255,255,0) 0%,
-        rgba(255,255,255,0.14) 50%,
-        rgba(255,255,255,0) 100%
-    );
-}
-
-.coin-pop {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 32px;
-    font-weight: 900;
-    line-height: 1;
-    pointer-events: none;
-    opacity: 0;
-    z-index: 12;
-    color: #ffd54f;
-    text-shadow:
-        0 2px 8px rgba(0, 0, 0, 0.32),
-        0 0 14px rgba(255, 213, 79, 0.20);
-    white-space: nowrap;
-}
-
-.coin-pop.animate {
-    animation: coinFloat 0.85s ease-out forwards;
-}
-
-.coin-pop.boost-pop {
-    color: #ffe88b;
-    text-shadow:
-        0 2px 10px rgba(0, 0, 0, 0.32),
-        0 0 18px rgba(255, 216, 76, 0.34),
-        0 0 30px rgba(255, 196, 0, 0.20);
-    animation: coinFloatBoost 0.95s ease-out forwards;
-}
-
-.tap-spark {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 11;
-    background: radial-gradient(circle, rgba(255,245,180,0.95) 0%, rgba(255,210,80,0.9) 55%, rgba(255,210,80,0) 100%);
-    box-shadow: 0 0 12px rgba(255, 214, 102, 0.28);
-    animation: sparkFly 0.6s ease-out forwards;
-}
-
-.tap-flash {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 210px;
-    height: 210px;
-    transform: translate(-50%, -50%) scale(0.7);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 10;
-    opacity: 0;
-    background: radial-gradient(circle, rgba(255,235,150,0.32) 0%, rgba(255,220,120,0.16) 42%, rgba(255,220,120,0) 72%);
-    filter: blur(2px);
-}
-
-.tap-flash.animate {
-    animation: tapFlashBurst 0.32s ease-out forwards;
-}
-
-.screen-boost-flash {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 40;
-    background: radial-gradient(circle at center, rgba(255, 224, 122, 0.16) 0%, rgba(255, 224, 122, 0.05) 28%, rgba(255, 224, 122, 0) 58%);
-    opacity: 0;
-}
-
-.screen-boost-flash.active {
-    animation: boostFlash 0.24s ease-out forwards;
-}
-
 /* INCOME + BOOST */
 
 .home-income-strip {
@@ -1125,23 +1010,25 @@ main#game {
         height: 9px;
     }
 
-    .tap-area {
-        min-height: 268px;
-        padding: 12px 0 6px;
-    }
+  .tap-area {
+    min-height: 268px;
+    padding: 12px 0 6px;
+}
 
-    .tap-area::before {
-        width: 320px;
-        height: 320px;
-    }
+.tap-area::before {
+    background:
+        radial-gradient(circle at center, rgba(108, 255, 125, 0.12) 0%, rgba(108, 255, 125, 0.06) 22%, rgba(108, 255, 125, 0.018) 42%, rgba(108, 255, 125, 0) 68%),
+        url("../assets/backgrounds/background_main.png") center center / 200% auto no-repeat;
+    opacity: 0.24;
+    filter: blur(10px) saturate(1.08);
+}
 
-    .tap-area::after {
-        width: 250px;
-        height: 250px;
-        box-shadow:
-            0 0 0 16px rgba(108, 255, 125, 0.03),
-            0 0 0 36px rgba(108, 255, 125, 0.018);
-    }
+.tap-area::after {
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(80, 255, 120, 0.08) 0%, rgba(80, 255, 120, 0.04) 34%, rgba(80, 255, 120, 0.012) 48%, rgba(80, 255, 120, 0) 72%);
+    filter: blur(16px);
+}
 
     .tap-button {
         width: 176px;
