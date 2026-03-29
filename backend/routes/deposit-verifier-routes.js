@@ -21,6 +21,16 @@ router.post("/api/deposit/verify", async (req, res) => {
         }
 
         const result = await verifySingleDepositById(depositId);
+
+        // 🔥 FIX: nie wywalaj błędu → zwróć normalny response
+        if (!result.ok) {
+            return res.json({
+                ok: true,
+                matched: false,
+                message: result.error || "Deposit not matched yet"
+            });
+        }
+
         return res.json(result);
     } catch (error) {
         console.error("Deposit verify error:", error);
@@ -31,7 +41,7 @@ router.post("/api/deposit/verify", async (req, res) => {
 });
 
 /* =========================
-   VERIFY PLAYER PENDING DEPOSITS
+   VERIFY PLAYER PENDING DEPOSITS (AUTO VERIFY)
 ========================= */
 
 router.post("/api/deposit/verify-player", async (req, res) => {
@@ -43,7 +53,14 @@ router.post("/api/deposit/verify-player", async (req, res) => {
         }
 
         const result = await verifyPendingDepositsForPlayer(telegramId);
-        return res.json(result);
+
+        return res.json({
+            ok: true,
+            checked: result.checked || 0,
+            matched: result.matched || 0,
+            skippedDuplicates: result.skippedDuplicates || 0,
+            player: result.player || null
+        });
     } catch (error) {
         console.error("Deposit verify player error:", error);
         return res.status(500).json({
