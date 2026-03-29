@@ -216,9 +216,9 @@ main#game {
     inset: 0;
     border-radius: 28px;
     background:
-        linear-gradient(rgba(7, 14, 28, 0.16), rgba(7, 14, 28, 0.28)),
+        linear-gradient(rgba(7, 14, 28, 0.14), rgba(7, 14, 28, 0.22)),
         url("../assets/backgrounds/background_main.png") center center / cover no-repeat;
-    opacity: 0.28;
+    opacity: 0.20;
     pointer-events: none;
     z-index: 0;
 }
@@ -240,8 +240,8 @@ main#game {
 #screen-ranking .panel.card {
     background: linear-gradient(
         180deg,
-        rgba(12, 22, 40, 0.72) 0%,
-        rgba(8, 14, 28, 0.78) 100%
+        rgba(12, 22, 40, 0.78) 0%,
+        rgba(8, 14, 28, 0.82) 100%
     );
     border: 1px solid rgba(255,255,255,0.08);
     backdrop-filter: blur(6px);
@@ -1338,4 +1338,4 @@ main#game {
 
 .screen {
     padding-bottom: 0;
-}
+} Zobacz czy jest okej
