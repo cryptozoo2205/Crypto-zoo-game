@@ -42,6 +42,14 @@ function sanitizeRewardState(oldPlayer, newPlayer) {
         safePlayer.withdrawPending = oldSafe.withdrawPending;
     }
 
+    if (safePlayer.rewardBalance < oldSafe.rewardBalance) {
+        safePlayer.rewardBalance = oldSafe.rewardBalance;
+    }
+
+    if (safePlayer.rewardWallet < oldSafe.rewardWallet) {
+        safePlayer.rewardWallet = oldSafe.rewardWallet;
+    }
+
     safePlayer.rewardBalance = clamp(
         normalizeRewardNumber(safePlayer.rewardBalance, oldSafe.rewardBalance),
         0,
@@ -109,39 +117,65 @@ function validateExpeditionIntegrity(oldPlayer, newPlayer) {
 function validateProgress(oldPlayer, newPlayer) {
     if (!oldPlayer) return newPlayer;
 
-    const coinsDiff = newPlayer.coins - oldPlayer.coins;
-    const gemsDiff = newPlayer.gems - oldPlayer.gems;
-    const levelDiff = newPlayer.level - oldPlayer.level;
+    const oldSafe = normalizePlayer(oldPlayer);
+
+    const coinsDiff = newPlayer.coins - oldSafe.coins;
+    const gemsDiff = newPlayer.gems - oldSafe.gems;
+    const levelDiff = newPlayer.level - oldSafe.level;
 
     if (coinsDiff > LIMITS.MAX_COINS_GAIN_PER_SAVE) {
-        newPlayer.coins = oldPlayer.coins;
+        newPlayer.coins = oldSafe.coins;
     }
 
     if (gemsDiff > LIMITS.MAX_GEMS_GAIN_PER_SAVE) {
-        newPlayer.gems = oldPlayer.gems;
+        newPlayer.gems = oldSafe.gems;
     }
 
     if (levelDiff > LIMITS.MAX_LEVEL_GAIN_PER_SAVE) {
-        newPlayer.level = oldPlayer.level;
+        newPlayer.level = oldSafe.level;
     }
 
-    if (newPlayer.xp < oldPlayer.xp && oldPlayer.xp - newPlayer.xp > 5000) {
-        newPlayer.xp = oldPlayer.xp;
+    if (newPlayer.coins < oldSafe.coins) {
+        newPlayer.coins = oldSafe.coins;
     }
 
-    newPlayer = validateExpeditionIntegrity(oldPlayer, newPlayer);
+    if (newPlayer.gems < oldSafe.gems) {
+        newPlayer.gems = oldSafe.gems;
+    }
+
+    if (newPlayer.level < oldSafe.level) {
+        newPlayer.level = oldSafe.level;
+    }
+
+    if (newPlayer.xp < oldSafe.xp) {
+        newPlayer.xp = oldSafe.xp;
+    }
+
+    newPlayer.coins = clamp(newPlayer.coins, 0, LIMITS.MAX_COINS);
+    newPlayer.gems = clamp(newPlayer.gems, 0, LIMITS.MAX_GEMS);
+    newPlayer.level = clamp(newPlayer.level, 1, LIMITS.MAX_LEVEL);
+    newPlayer.xp = clamp(newPlayer.xp, 0, LIMITS.MAX_XP);
+
+    newPlayer = validateExpeditionIntegrity(oldSafe, newPlayer);
 
     return newPlayer;
 }
 
 function buildSafePlayerState(oldPlayer, incomingRaw, normalizeTelegramUser) {
+    const basePlayer = oldPlayer
+        ? normalizePlayer(oldPlayer)
+        : getDefaultPlayer(
+            safeString(incomingRaw?.telegramId, "local-player"),
+            safeString(incomingRaw?.username, "Gracz")
+        );
+
     const incomingTelegramId = safeString(
         incomingRaw?.telegramId,
-        oldPlayer?.telegramId || "local-player"
+        basePlayer.telegramId || "local-player"
     );
     const incomingUsername = safeString(
         incomingRaw?.username,
-        oldPlayer?.username || "Gracz"
+        basePlayer.username || "Gracz"
     );
 
     const incoming = normalizePlayer({
@@ -153,28 +187,64 @@ function buildSafePlayerState(oldPlayer, incomingRaw, normalizeTelegramUser) {
             incomingTelegramId,
             incomingUsername
         ),
-        referredBy: oldPlayer?.referredBy || incomingRaw?.referredBy || "",
-        referralCode: oldPlayer?.referralCode || incomingTelegramId,
-        referralWelcomeBonusClaimed: !!oldPlayer?.referralWelcomeBonusClaimed,
-        referralActivated: !!oldPlayer?.referralActivated,
-        referralActivationBonusClaimed: !!oldPlayer?.referralActivationBonusClaimed
+        referredBy: basePlayer.referredBy || incomingRaw?.referredBy || "",
+        referralCode: basePlayer.referralCode || incomingTelegramId,
+        referralWelcomeBonusClaimed: !!basePlayer.referralWelcomeBonusClaimed,
+        referralActivated: !!basePlayer.referralActivated,
+        referralActivationBonusClaimed: !!basePlayer.referralActivationBonusClaimed
     });
 
     let safe = normalizePlayer({
-        ...(oldPlayer || getDefaultPlayer(incoming.telegramId, incoming.username)),
-        ...incoming,
+        ...basePlayer,
+
+        coins: incoming.coins,
+        gems: incoming.gems,
+        rewardBalance: incoming.rewardBalance,
+        rewardWallet: incoming.rewardWallet,
+        level: incoming.level,
+        xp: incoming.xp,
+        coinsPerClick: incoming.coinsPerClick,
+        upgradeCost: incoming.upgradeCost,
+        zooIncome: incoming.zooIncome,
+        expeditionBoost: incoming.expeditionBoost,
+
+        offlineMaxSeconds: incoming.offlineMaxSeconds,
+        offlineBoostMultiplier: incoming.offlineBoostMultiplier,
+        offlineBoostActiveUntil: incoming.offlineBoostActiveUntil,
+        offlineBoost: incoming.offlineBoost,
+
+        lastLogin: incoming.lastLogin,
+        lastDailyRewardAt: incoming.lastDailyRewardAt,
+        dailyRewardStreak: incoming.dailyRewardStreak,
+        dailyRewardClaimDayKey: incoming.dailyRewardClaimDayKey,
+        boost2xActiveUntil: incoming.boost2xActiveUntil,
+        playTimeSeconds: incoming.playTimeSeconds,
+        lastAwardedLevel: incoming.lastAwardedLevel,
+
+        animals: incoming.animals,
+        boxes: incoming.boxes,
+        expedition: incoming.expedition,
+        minigames: incoming.minigames,
+        shopPurchases: incoming.shopPurchases,
+        expeditionStats: incoming.expeditionStats,
+        dailyMissions: incoming.dailyMissions,
+
         telegramId: incoming.telegramId,
         username: incoming.username,
         telegramUser: incoming.telegramUser,
-        referredBy: oldPlayer?.referredBy || incoming.referredBy || "",
-        referralCode: oldPlayer?.referralCode || incomingTelegramId,
-        referralWelcomeBonusClaimed: !!oldPlayer?.referralWelcomeBonusClaimed,
-        referralActivated: !!oldPlayer?.referralActivated,
-        referralActivationBonusClaimed: !!oldPlayer?.referralActivationBonusClaimed
+
+        referredBy: basePlayer.referredBy || incoming.referredBy || "",
+        referralCode: basePlayer.referralCode || incomingTelegramId,
+        referralWelcomeBonusClaimed: !!basePlayer.referralWelcomeBonusClaimed,
+        referralActivated: !!basePlayer.referralActivated,
+        referralActivationBonusClaimed: !!basePlayer.referralActivationBonusClaimed,
+        referralsCount: basePlayer.referralsCount,
+        referrals: basePlayer.referrals,
+        withdrawPending: basePlayer.withdrawPending
     });
 
-    safe = sanitizeRewardState(oldPlayer, safe);
-    safe = validateProgress(oldPlayer, safe);
+    safe = sanitizeRewardState(basePlayer, safe);
+    safe = validateProgress(basePlayer, safe);
 
     return normalizePlayer(safe);
 }
