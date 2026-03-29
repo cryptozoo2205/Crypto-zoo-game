@@ -356,29 +356,26 @@ main#game {
 .tap-area {
     width: 100%;
     min-height: 328px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     position: relative;
-    padding: 16px 0 8px;
     margin-top: 8px;
-    overflow: visible;
+    margin-bottom: 6px;
+    overflow: hidden;
     isolation: isolate;
 }
 
 .tap-area::before {
     content: "";
     position: absolute;
-    inset: 18px 0 18px 0;
+    inset: 14px 10px;
+    border-radius: 42px;
     background:
-        linear-gradient(rgba(8, 16, 26, 0.16), rgba(8, 16, 26, 0.28)),
-        radial-gradient(circle at center, rgba(108, 255, 125, 0.10) 0%, rgba(108, 255, 125, 0.05) 22%, rgba(108, 255, 125, 0.015) 42%, rgba(108, 255, 125, 0) 68%),
-        url("../assets/backgrounds/background_main.png") center center / 145% auto no-repeat;
-    opacity: 0.62;
-    filter: saturate(1.08) contrast(1.04);
+        linear-gradient(rgba(8, 16, 26, 0.14), rgba(8, 16, 26, 0.22)),
+        radial-gradient(circle at center, rgba(108, 255, 125, 0.10) 0%, rgba(108, 255, 125, 0.05) 24%, rgba(108, 255, 125, 0.015) 44%, rgba(108, 255, 125, 0) 70%),
+        url("../assets/backgrounds/background_main.png") center center / 140% auto no-repeat;
+    opacity: 0.78;
+    filter: saturate(1.06) contrast(1.03);
     pointer-events: none;
     z-index: 0;
-    border-radius: 42px;
 }
 
 .tap-area::after {
@@ -386,12 +383,12 @@ main#game {
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 340px;
-    height: 340px;
+    width: 320px;
+    height: 320px;
     transform: translate(-50%, -50%);
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(80, 255, 120, 0.10) 0%, rgba(80, 255, 120, 0.05) 34%, rgba(80, 255, 120, 0.015) 48%, rgba(80, 255, 120, 0) 72%);
-    filter: blur(16px);
+    background: radial-gradient(circle, rgba(80, 255, 120, 0.09) 0%, rgba(80, 255, 120, 0.04) 36%, rgba(80, 255, 120, 0.012) 52%, rgba(80, 255, 120, 0) 74%);
+    filter: blur(10px);
     pointer-events: none;
     z-index: 0;
 }
@@ -400,41 +397,41 @@ main#game {
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 300px;
-    height: 300px;
+    width: 290px;
+    height: 290px;
     transform: translate(-50%, -50%);
     border-radius: 50%;
-    background:
-        radial-gradient(circle, rgba(112, 255, 120, 0.22) 0%, rgba(112, 255, 120, 0.10) 42%, rgba(112, 255, 120, 0.03) 58%, rgba(112, 255, 120, 0) 74%);
-    filter: blur(14px);
+    background: radial-gradient(circle, rgba(112, 255, 120, 0.18) 0%, rgba(112, 255, 120, 0.08) 44%, rgba(112, 255, 120, 0.02) 60%, rgba(112, 255, 120, 0) 76%);
+    filter: blur(10px);
     animation: tapPulse 2.2s ease-in-out infinite;
     pointer-events: none;
     z-index: 1;
 }
 
 .tap-button {
-    position: relative;
-    z-index: 2;
-    width: 208px;
-    height: 208px;
-    display: block;
-    flex: 0 0 208px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 224px;
+    height: 224px;
+    margin: 0;
     border: none;
     border-radius: 50%;
     cursor: pointer;
     padding: 0;
     outline: none;
-    background: url("../assets/buttons/tap_button_main.png") center center / contain no-repeat;
+    background: url("../assets/buttons/tap_button_main.png") center center / 106% 106% no-repeat;
     box-shadow:
         0 0 0 10px rgba(255,255,255,0.03),
         0 0 28px rgba(91, 255, 110, 0.18),
         0 14px 30px rgba(0, 0, 0, 0.22);
-    transition: transform 0.10s ease, filter 0.10s ease, box-shadow 0.14s ease;
     overflow: visible;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+    transform: translate(-50%, -50%);
     transform-origin: center center;
     will-change: transform;
+    z-index: 2;
 }
 
 .tap-button::before {
@@ -442,7 +439,7 @@ main#game {
     position: absolute;
     inset: 18%;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(119,255,129,0.18) 0%, rgba(119,255,129,0.07) 55%, rgba(119,255,129,0) 100%);
+    background: radial-gradient(circle, rgba(119,255,129,0.16) 0%, rgba(119,255,129,0.06) 55%, rgba(119,255,129,0) 100%);
     z-index: -1;
     pointer-events: none;
 }
@@ -457,17 +454,17 @@ main#game {
 }
 
 .tap-button:active {
-    transform: scale(0.94);
+    transform: translate(-50%, -50%) scale(0.94);
     filter: brightness(0.95);
 }
 
 .tap-button.tap-hit {
-    animation: tapHitPulse 0.18s ease-out;
+    animation: tapHitPulseCentered 0.18s ease-out;
 }
 
 .home-tap-caption {
     text-align: center;
-    margin-top: -2px;
+    margin-top: 0;
     margin-bottom: 14px;
 }
 
@@ -804,15 +801,15 @@ main#game {
 
 @keyframes tapPulse {
     0% {
-        transform: scale(0.96);
+        transform: translate(-50%, -50%) scale(0.96);
         opacity: 0.75;
     }
     50% {
-        transform: scale(1.04);
+        transform: translate(-50%, -50%) scale(1.04);
         opacity: 1;
     }
     100% {
-        transform: scale(0.96);
+        transform: translate(-50%, -50%) scale(0.96);
         opacity: 0.75;
     }
 }
@@ -879,15 +876,15 @@ main#game {
     }
 }
 
-@keyframes tapHitPulse {
+@keyframes tapHitPulseCentered {
     0% {
-        transform: scale(1);
+        transform: translate(-50%, -50%) scale(1);
     }
     50% {
-        transform: scale(0.93);
+        transform: translate(-50%, -50%) scale(0.93);
     }
     100% {
-        transform: scale(1);
+        transform: translate(-50%, -50%) scale(1);
     }
 }
 
@@ -1037,27 +1034,35 @@ main#game {
 
     .tap-area {
         min-height: 268px;
-        padding: 12px 0 6px;
+        margin-top: 6px;
     }
 
     .tap-area::before {
+        inset: 12px 6px;
         background:
-            linear-gradient(rgba(8, 16, 26, 0.24), rgba(8, 16, 26, 0.40)),
-            radial-gradient(circle at center, rgba(108, 255, 125, 0.14) 0%, rgba(108, 255, 125, 0.07) 22%, rgba(108, 255, 125, 0.025) 42%, rgba(108, 255, 125, 0) 68%),
-            url("../assets/backgrounds/background_main.png") center center / 180% auto no-repeat;
-        opacity: 0.42;
-        filter: blur(7px) saturate(1.08);
+            linear-gradient(rgba(8, 16, 26, 0.16), rgba(8, 16, 26, 0.24)),
+            radial-gradient(circle at center, rgba(108, 255, 125, 0.09) 0%, rgba(108, 255, 125, 0.04) 24%, rgba(108, 255, 125, 0.012) 44%, rgba(108, 255, 125, 0) 70%),
+            url("../assets/backgrounds/background_main.png") center center / 165% auto no-repeat;
+        opacity: 0.74;
+        filter: saturate(1.04) contrast(1.02);
     }
 
     .tap-area::after {
-        width: 280px;
-        height: 280px;
-        background: radial-gradient(circle, rgba(80, 255, 120, 0.08) 0%, rgba(80, 255, 120, 0.035) 34%, rgba(80, 255, 120, 0.01) 48%, rgba(80, 255, 120, 0) 72%);
+        width: 270px;
+        height: 270px;
+        filter: blur(9px);
+    }
+
+    .tap-glow {
+        width: 250px;
+        height: 250px;
+        filter: blur(9px);
     }
 
     .tap-button {
-        width: 176px;
-        height: 176px;
+        width: 190px;
+        height: 190px;
+        background-size: 106% 106%;
     }
 
     .home-tap-title {
@@ -1239,21 +1244,28 @@ main#game {
     }
 
     .tap-area::before {
+        inset: 10px 4px;
         background:
-            linear-gradient(rgba(8, 16, 26, 0.26), rgba(8, 16, 26, 0.42)),
-            radial-gradient(circle at center, rgba(108, 255, 125, 0.12) 0%, rgba(108, 255, 125, 0.06) 22%, rgba(108, 255, 125, 0.02) 42%, rgba(108, 255, 125, 0) 68%),
-            url("../assets/backgrounds/background_main.png") center center / 200% auto no-repeat;
-        opacity: 0.40;
+            linear-gradient(rgba(8, 16, 26, 0.18), rgba(8, 16, 26, 0.26)),
+            radial-gradient(circle at center, rgba(108, 255, 125, 0.08) 0%, rgba(108, 255, 125, 0.035) 24%, rgba(108, 255, 125, 0.01) 44%, rgba(108, 255, 125, 0) 70%),
+            url("../assets/backgrounds/background_main.png") center center / 178% auto no-repeat;
+        opacity: 0.70;
     }
 
     .tap-area::after {
-        width: 240px;
-        height: 240px;
+        width: 230px;
+        height: 230px;
+    }
+
+    .tap-glow {
+        width: 220px;
+        height: 220px;
     }
 
     .tap-button {
-        width: 164px;
-        height: 164px;
+        width: 176px;
+        height: 176px;
+        background-size: 106% 106%;
     }
 
     .home-income-row-card,
@@ -1293,4 +1305,3 @@ main#game {
 .screen {
     padding-bottom: 0;
 }
-
