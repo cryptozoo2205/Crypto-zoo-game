@@ -8,6 +8,10 @@ const {
     getPlayerDeposits,
     buildDepositPaymentData
 } = require("../services/deposit-service");
+const {
+    verifySingleDepositById,
+    verifyPendingDepositsForPlayer
+} = require("../services/deposit-verifier-service");
 const { requireAdmin } = require("../services/withdraw-service");
 
 const router = express.Router();
@@ -49,12 +53,10 @@ router.post("/api/deposit/create", (req, res) => {
     db.deposits.push(deposit);
     writeDb(db);
 
-    const payment = buildDepositPaymentData(deposit);
-
     return res.json({
         ok: true,
         deposit,
-        payment
+        payment: buildDepositPaymentData(deposit)
     });
 });
 
@@ -73,7 +75,7 @@ router.post("/api/deposit/payment-data", (req, res) => {
         return res.status(400).json({ error: "Missing depositId" });
     }
 
-    const deposit = db.deposits.find((d) => String(d.id) === depositId);
+    const deposit = db.deposits.find((d) => String(d.id) === String(depositId));
 
     if (!deposit) {
         return res.status(404).json({ error: "Deposit not found" });
@@ -85,6 +87,51 @@ router.post("/api/deposit/payment-data", (req, res) => {
         ok: true,
         payment: paymentData
     });
+});
+
+/* =========================
+   VERIFY SINGLE DEPOSIT
+========================= */
+
+router.post("/api/deposit/verify", async (req, res) => {
+    try {
+        const depositId = safeString(req.body?.depositId, "");
+
+        if (!depositId) {
+            return res.status(400).json({ error: "Missing depositId" });
+        }
+
+        const result = await verifySingleDepositById(depositId);
+
+        if (!result.ok) {
+            return res.status(404).json({ error: result.error || "Verify failed" });
+        }
+
+        return res.json(result);
+    } catch (error) {
+        console.error("Deposit verify error:", error);
+        return res.status(500).json({ error: error.message || "Deposit verify failed" });
+    }
+});
+
+/* =========================
+   VERIFY PLAYER PENDING DEPOSITS
+========================= */
+
+router.post("/api/deposit/verify-player", async (req, res) => {
+    try {
+        const telegramId = safeString(req.body?.telegramId, "");
+
+        if (!telegramId) {
+            return res.status(400).json({ error: "Missing telegramId" });
+        }
+
+        const result = await verifyPendingDepositsForPlayer(telegramId);
+        return res.json(result);
+    } catch (error) {
+        console.error("Player deposit verify error:", error);
+        return res.status(500).json({ error: error.message || "Player deposit verify failed" });
+    }
 });
 
 /* =========================
@@ -109,7 +156,7 @@ router.post("/api/deposit/confirm", (req, res) => {
         return res.status(400).json({ error: "Invalid status" });
     }
 
-    const deposit = db.deposits.find((d) => String(d.id) === depositId);
+    const deposit = db.deposits.find((d) => String(d.id) === String(depositId));
 
     if (!deposit) {
         return res.status(404).json({ error: "Deposit not found" });
@@ -157,10 +204,7 @@ router.get("/api/deposit/:telegramId", (req, res) => {
 
     const deposits = getPlayerDeposits(db, telegramId);
 
-    return res.json({
-        ok: true,
-        deposits
-    });
+    return res.json({ deposits });
 });
 
 module.exports = router;
