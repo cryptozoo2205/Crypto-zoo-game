@@ -130,6 +130,42 @@ CryptoZoo.uiProfile = {
         return "";
     },
 
+    getProfileRankingText() {
+        const possibleRank =
+            CryptoZoo.state?.rankingPosition ??
+            CryptoZoo.state?.rankPosition ??
+            CryptoZoo.state?.playerRank ??
+            CryptoZoo.state?.rankingRank ??
+            CryptoZoo.state?.rank ??
+            CryptoZoo.state?.ranking?.position ??
+            CryptoZoo.state?.ranking?.rank ??
+            CryptoZoo.ranking?.playerPosition ??
+            CryptoZoo.ranking?.position ??
+            CryptoZoo.rankingSystem?.playerPosition ??
+            CryptoZoo.rankingSystem?.position ??
+            CryptoZoo.uiRanking?.playerPosition ??
+            CryptoZoo.uiRanking?.position ??
+            CryptoZoo.rankingSystem?.getPlayerRank?.() ??
+            CryptoZoo.uiRanking?.getPlayerRank?.();
+
+        const rankNumber = Number(possibleRank);
+
+        if (Number.isFinite(rankNumber) && rankNumber > 0) {
+            return `#${Math.floor(rankNumber)}`;
+        }
+
+        return "#--";
+    },
+
+    setFirstExistingText(ids, value) {
+        ids.forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.textContent = value;
+            }
+        });
+    },
+
     renderTopBarProfile() {
         const topPlayerName = document.getElementById("topPlayerName");
         const topPlayerStatus = document.getElementById("topPlayerStatus");
@@ -184,6 +220,18 @@ CryptoZoo.uiProfile = {
         setText("profileRewardBalance", this.format(this.getRewardBalance()).toFixed(3));
         setText("profileRewardWallet", this.format(this.getRewardWallet()).toFixed(3));
         setText("profileWithdrawPending", this.format(this.getWithdrawPending()).toFixed(3));
+
+        const rankingText = this.getProfileRankingText();
+        this.setFirstExistingText(
+            [
+                "profileRankingPosition",
+                "profileRankingValue",
+                "profileRankingRank",
+                "profileRankingPlace",
+                "profilePlayerRanking"
+            ],
+            rankingText
+        );
     },
 
     renderBoostStatus() {
