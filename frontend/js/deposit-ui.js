@@ -16,37 +16,12 @@ CryptoZoo.depositUI = {
 
     stopEvent(event) {
         if (!event) return;
-        if (typeof event.preventDefault === "function") {
-            event.preventDefault();
-        }
-        if (typeof event.stopPropagation === "function") {
-            event.stopPropagation();
-        }
-        if (typeof event.stopImmediatePropagation === "function") {
-            event.stopImmediatePropagation();
-        }
-    },
-
-    bindBlockTouches(element) {
-        if (!element || element.dataset.touchBlocked) return;
-
-        element.dataset.touchBlocked = "1";
-
-        const block = (event) => {
-            this.stopEvent(event);
-        };
-
-        element.addEventListener("click", block, true);
-        element.addEventListener("mousedown", block, true);
-        element.addEventListener("mouseup", block, true);
-        element.addEventListener("touchstart", block, { passive: false, capture: true });
-        element.addEventListener("touchend", block, { passive: false, capture: true });
-        element.addEventListener("pointerdown", block, true);
-        element.addEventListener("pointerup", block, true);
+        event.preventDefault?.();
+        event.stopPropagation?.();
     },
 
     async copy(text, label = "Skopiowano") {
-        const safeText = String(text || "");
+        const safeText = String(text || "").trim();
 
         if (!safeText) {
             CryptoZoo.ui?.showToast?.("Brak danych do skopiowania");
@@ -61,8 +36,8 @@ CryptoZoo.depositUI = {
                 textarea.value = safeText;
                 textarea.setAttribute("readonly", "");
                 textarea.style.position = "fixed";
+                textarea.style.left = "-9999px";
                 textarea.style.opacity = "0";
-                textarea.style.pointerEvents = "none";
                 document.body.appendChild(textarea);
                 textarea.focus();
                 textarea.select();
@@ -107,11 +82,11 @@ CryptoZoo.depositUI = {
         modal = document.createElement("div");
         modal.id = "depositPaymentModal";
         modal.className = "profile-modal hidden";
-        modal.style.pointerEvents = "auto";
+        modal.style.zIndex = "10020";
         modal.innerHTML = `
             <div class="profile-backdrop" id="depositPaymentBackdrop"></div>
 
-            <div id="depositPaymentCard" class="profile-card" style="max-width:520px; pointer-events:auto;">
+            <div id="depositPaymentCard" class="profile-card" style="max-width:520px;">
                 <div class="profile-header">
                     <div class="profile-avatar">💰</div>
 
@@ -194,14 +169,25 @@ CryptoZoo.depositUI = {
         const copyAllBtn = document.getElementById("depositCopyAllBtn");
         const openWalletBtn = document.getElementById("depositOpenWalletBtn");
 
-        this.bindBlockTouches(modal);
-        this.bindBlockTouches(card);
-        this.bindBlockTouches(closeBtn);
-        this.bindBlockTouches(copyAmountBtn);
-        this.bindBlockTouches(copyAddressBtn);
-        this.bindBlockTouches(copyCommentBtn);
-        this.bindBlockTouches(copyAllBtn);
-        this.bindBlockTouches(openWalletBtn);
+        if (modal && !modal.dataset.boundModal) {
+            modal.dataset.boundModal = "1";
+
+            ["click", "touchstart", "touchend", "pointerdown", "pointerup"].forEach((eventName) => {
+                modal.addEventListener(eventName, (event) => {
+                    event.stopPropagation?.();
+                });
+            });
+        }
+
+        if (card && !card.dataset.boundCard) {
+            card.dataset.boundCard = "1";
+
+            ["click", "touchstart", "touchend", "pointerdown", "pointerup"].forEach((eventName) => {
+                card.addEventListener(eventName, (event) => {
+                    event.stopPropagation?.();
+                });
+            });
+        }
 
         if (backdrop && !backdrop.dataset.bound) {
             backdrop.dataset.bound = "1";
@@ -211,24 +197,8 @@ CryptoZoo.depositUI = {
                 this.closeDepositModal();
             };
 
-            backdrop.addEventListener("click", closeFromBackdrop, true);
-            backdrop.addEventListener("touchstart", closeFromBackdrop, { passive: false, capture: true });
-        }
-
-        if (card && !card.dataset.boundCard) {
-            card.dataset.boundCard = "1";
-
-            const blockInside = (event) => {
-                this.stopEvent(event);
-            };
-
-            card.addEventListener("click", blockInside, true);
-            card.addEventListener("mousedown", blockInside, true);
-            card.addEventListener("mouseup", blockInside, true);
-            card.addEventListener("touchstart", blockInside, { passive: false, capture: true });
-            card.addEventListener("touchend", blockInside, { passive: false, capture: true });
-            card.addEventListener("pointerdown", blockInside, true);
-            card.addEventListener("pointerup", blockInside, true);
+            backdrop.addEventListener("click", closeFromBackdrop);
+            backdrop.addEventListener("touchstart", closeFromBackdrop, { passive: false });
         }
 
         if (closeBtn && !closeBtn.dataset.bound) {
@@ -237,7 +207,7 @@ CryptoZoo.depositUI = {
                 this.stopEvent(event);
                 CryptoZoo.audio?.play?.("click");
                 this.closeDepositModal();
-            }, true);
+            });
         }
 
         if (copyAmountBtn && !copyAmountBtn.dataset.bound) {
@@ -247,7 +217,7 @@ CryptoZoo.depositUI = {
                 CryptoZoo.audio?.play?.("click");
                 const amount = Number(this.currentDepositData?.amount || 0).toFixed(3);
                 await this.copy(`${amount} TON`, "Skopiowano kwotę");
-            }, true);
+            });
         }
 
         if (copyAddressBtn && !copyAddressBtn.dataset.bound) {
@@ -256,7 +226,7 @@ CryptoZoo.depositUI = {
                 this.stopEvent(event);
                 CryptoZoo.audio?.play?.("click");
                 await this.copy(this.currentDepositData?.address || "", "Skopiowano adres");
-            }, true);
+            });
         }
 
         if (copyCommentBtn && !copyCommentBtn.dataset.bound) {
@@ -265,7 +235,7 @@ CryptoZoo.depositUI = {
                 this.stopEvent(event);
                 CryptoZoo.audio?.play?.("click");
                 await this.copy(this.currentDepositData?.comment || "", "Skopiowano komentarz");
-            }, true);
+            });
         }
 
         if (copyAllBtn && !copyAllBtn.dataset.bound) {
@@ -285,7 +255,7 @@ CryptoZoo.depositUI = {
                 ].join("\n");
 
                 await this.copy(fullText, "Skopiowano wszystko");
-            }, true);
+            });
         }
 
         if (openWalletBtn && !openWalletBtn.dataset.bound) {
@@ -294,7 +264,7 @@ CryptoZoo.depositUI = {
                 this.stopEvent(event);
                 CryptoZoo.audio?.play?.("click");
                 await this.openWallet();
-            }, true);
+            });
         }
     },
 
