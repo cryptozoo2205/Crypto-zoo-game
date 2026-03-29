@@ -330,6 +330,24 @@ CryptoZoo.expeditions = {
         return "common";
     },
 
+    getRewardTierMultiplier(expedition) {
+        const expeditionId = String(expedition?.id || "").toLowerCase();
+
+        const tierMap = {
+            forest: 1.00,
+            river: 1.03,
+            volcano: 1.06,
+            canyon: 1.10,
+            glacier: 1.14,
+            jungle: 1.18,
+            temple: 1.22,
+            oasis: 1.26,
+            kingdom: 1.30
+        };
+
+        return Number(tierMap[expeditionId]) || 1.00;
+    },
+
     getRewardBalanceAmount(expedition) {
         if (!expedition) return 0;
 
@@ -341,8 +359,7 @@ CryptoZoo.expeditions = {
         );
 
         const hours = durationSeconds / 3600;
-
-        let base = 0.0015 + hours * 0.0205;
+        const tierMultiplier = this.getRewardTierMultiplier(expedition);
 
         const rarity = this.normalizeRewardRarity(expedition.rewardRarity);
         let rarityMultiplier = 1;
@@ -352,8 +369,8 @@ CryptoZoo.expeditions = {
 
         const boostMultiplier = this.getExpeditionBoostMultiplier();
 
-        let reward = base * rarityMultiplier * boostMultiplier;
-        reward = Math.min(reward, 0.95);
+        let reward = hours * 0.024 * tierMultiplier * rarityMultiplier * boostMultiplier;
+        reward = Math.min(reward, 1.5);
 
         return Number(reward.toFixed(3));
     },
