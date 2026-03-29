@@ -128,7 +128,7 @@
         <main id="game">
             <section id="screen-game" class="screen">
                 <div class="panel card game-main-card">
-                    <div class="home-stats-panel">
+                    <div class="home-stats-panel home-stats-panel-top">
                         <div class="home-stat-box">
                             <div class="home-stat-title" id="langHomeCoinsTitle">Coins</div>
                             <div class="home-stat-value" id="homeCoins">0</div>
@@ -145,24 +145,28 @@
                         </div>
 
                         <div class="home-stat-box">
-                            <div class="home-stat-title" id="langHomeLevelTitle">Poziom</div>
-                            <div class="home-stat-value" id="homeLevel">1</div>
-                            <div class="home-xp-bar-wrap">
-                                <div class="home-xp-bar">
-                                    <div id="homeXpFill" class="home-xp-fill"></div>
-                                </div>
-                                <div id="homeXpText" class="home-xp-text">0 / 100 XP</div>
-                            </div>
-                        </div>
-
-                        <div class="home-stat-box">
                             <div class="home-stat-title" id="langHomeClickTitle">Za klik</div>
                             <div class="home-stat-value" id="homeCoinsPerClick">1</div>
                         </div>
+                    </div>
 
-                        <div class="home-stat-box">
-                            <div class="home-stat-title" id="langHomeZooPerSecTitle">Zoo / sek</div>
-                            <div class="home-stat-value" id="homeZooIncomeStat">0</div>
+                    <div class="home-level-strip">
+                        <div class="home-level-strip-head">
+                            <div class="home-level-strip-left">
+                                <div class="home-level-strip-label" id="langHomeLevelTitle">Poziom</div>
+                                <div class="home-level-strip-value" id="homeLevel">1</div>
+                            </div>
+
+                            <div class="home-level-strip-right">
+                                <div class="home-level-strip-rank-label">XP</div>
+                                <div class="home-level-strip-rank-value" id="homeXpText">0 / 100 XP</div>
+                            </div>
+                        </div>
+
+                        <div class="home-level-progress">
+                            <div class="home-xp-bar">
+                                <div id="homeXpFill" class="home-xp-fill"></div>
+                            </div>
                         </div>
                     </div>
 
@@ -176,16 +180,22 @@
                         <div class="home-tap-subtitle" id="langTapSubtitle">Klikaj i rozwijaj swoje zoo</div>
                     </div>
 
-                    <div class="home-income-strip">
-                        <div class="home-income-left">
-                            <div class="home-income-label" id="langIncomeLabel">🐾 Dochód zoo / sek</div>
-                            <div class="home-income-value" id="homeIncomeStripValue">0</div>
-                        </div>
+                    <div class="home-income-strip home-income-strip-single">
+                        <div class="home-income-row-card">
+                            <div class="home-income-row-side">
+                                <div class="home-income-label" id="langHomeZooPerSecTitle">🐾 Dochód zoo / sek</div>
+                                <div class="home-income-value" id="homeZooIncomeStat">0</div>
+                            </div>
 
-                        <div class="home-boost-right">
-                            <div class="home-boost-title" id="langBoostTitle">⚡ X2 Boost</div>
-                            <button id="homeBoostBtn" class="home-boost-button" type="button">Aktywuj</button>
-                            <div id="homeBoostStatus" class="home-boost-status">Nieaktywny</div>
+                            <div class="home-income-row-divider"></div>
+
+                            <div class="home-income-row-side home-income-row-side-boost">
+                                <div class="home-boost-title" id="langBoostTitle">⚡ X2 Boost</div>
+                                <div class="home-boost-row-actions">
+                                    <button id="homeBoostBtn" class="home-boost-button" type="button">Aktywuj</button>
+                                    <div id="homeBoostStatus" class="home-boost-status">Nieaktywny</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -273,6 +283,7 @@
                         <span id="level">1</span>
                         <span id="coinsPerClick">1</span>
                         <span id="zooIncome">0</span>
+                        <span id="homeIncomeStripValue">0</span>
                     </div>
                 </div>
             </section>
