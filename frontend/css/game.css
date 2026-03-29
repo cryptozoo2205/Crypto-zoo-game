@@ -962,6 +962,43 @@ main#game {
     }
 }
 
+/* =========================
+   BACKGROUND FOR ALL TABS (FIX)
+========================= */
+
+#screen-zoo,
+#screen-shop,
+#screen-missions,
+#screen-minigames,
+#screen-ranking {
+    position: relative;
+    overflow: hidden;
+}
+
+#screen-zoo::before,
+#screen-shop::before,
+#screen-missions::before,
+#screen-minigames::before,
+#screen-ranking::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: url("../assets/backgrounds/background_main.png") center center / cover no-repeat;
+    opacity: 0.9;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* żeby UI było nad tłem */
+#screen-zoo > *,
+#screen-shop > *,
+#screen-missions > *,
+#screen-minigames > *,
+#screen-ranking > * {
+    position: relative;
+    z-index: 1;
+}
+
 @keyframes tapFlashBurst {
     0% {
         opacity: 0.85;
