@@ -22,7 +22,6 @@
     position: relative;
 }
 
-
 .top-bar-shell::before {
     content: "";
     position: absolute;
@@ -31,7 +30,9 @@
     top: 10px;
     bottom: 10px;
     border-radius: 18px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+    background:
+        linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%),
+        radial-gradient(circle at 18% 50%, rgba(93, 255, 126, 0.06) 0%, rgba(93, 255, 126, 0) 30%);
     border: 1px solid rgba(255,255,255,0.04);
     pointer-events: none;
 }
@@ -354,24 +355,38 @@ main#game {
 
 .tap-area {
     width: 100%;
-    min-height: 292px;
+    min-height: 328px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    padding: 16px 0 10px;
-    margin-top: 4px;
+    padding: 16px 0 8px;
+    margin-top: 8px;
     overflow: visible;
 }
 
 .tap-area::before {
     content: "";
     position: absolute;
-    width: 356px;
-    height: 356px;
+    width: 420px;
+    height: 420px;
     border-radius: 50%;
     background: radial-gradient(circle, rgba(94, 255, 116, 0.10) 0%, rgba(94, 255, 116, 0.03) 55%, rgba(94, 255, 116, 0) 74%);
-    filter: blur(14px);
+    filter: blur(16px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.tap-area::after {
+    content: "";
+    position: absolute;
+    width: 330px;
+    height: 330px;
+    border-radius: 50%;
+    border: 1px solid rgba(108, 255, 125, 0.08);
+    box-shadow:
+        0 0 0 22px rgba(108, 255, 125, 0.03),
+        0 0 0 52px rgba(108, 255, 125, 0.018);
     pointer-events: none;
     z-index: 0;
 }
@@ -423,7 +438,9 @@ main#game {
 .tap-button::after {
     content: "";
     position: absolute;
-    inset: 0;
+    inset: -18px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 227, 122, 0.08);
     pointer-events: none;
 }
 
@@ -439,7 +456,7 @@ main#game {
 .home-tap-caption {
     text-align: center;
     margin-top: -2px;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
 }
 
 .home-tap-title {
@@ -456,6 +473,44 @@ main#game {
     margin-top: 5px;
     font-size: 13px;
     color: rgba(255,255,255,0.76);
+}
+
+.home-tap-premium-strip {
+    width: 100%;
+    max-width: 330px;
+    margin: 0 auto 14px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border-radius: 16px;
+    background: linear-gradient(
+        180deg,
+        rgba(20, 29, 49, 0.78) 0%,
+        rgba(11, 18, 34, 0.84) 100%
+    );
+    border: 1px solid rgba(255,255,255,0.07);
+    box-shadow:
+        0 10px 18px rgba(0,0,0,0.14),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+    color: rgba(255,255,255,0.82);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+}
+
+.home-tap-premium-strip::before,
+.home-tap-premium-strip::after {
+    content: "";
+    flex: 1 1 auto;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,0.14) 50%,
+        rgba(255,255,255,0) 100%
+    );
 }
 
 .coin-pop {
@@ -539,7 +594,7 @@ main#game {
 
 .home-income-strip {
     width: 100%;
-    margin-top: 2px;
+    margin-top: 4px;
     margin-bottom: 12px;
 }
 
@@ -587,11 +642,6 @@ main#game {
     border-radius: 999px;
 }
 
-.home-income-left {
-    min-width: 0;
-    flex: 1 1 auto;
-}
-
 .home-income-label {
     font-size: 11px;
     color: rgba(255,255,255,0.74);
@@ -610,10 +660,9 @@ main#game {
     overflow-wrap: anywhere;
 }
 
-.home-boost-right,
 .home-income-row-side-boost {
     flex: 0 0 auto;
-    min-width: 120px;
+    min-width: 124px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -631,17 +680,17 @@ main#game {
 
 .home-boost-row-actions {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
     width: 100%;
 }
 
 .home-boost-button {
     border: none;
-    border-radius: 13px;
-    padding: 8px 12px;
-    min-width: 86px;
+    border-radius: 999px;
+    padding: 7px 14px;
+    min-width: 92px;
     font-weight: 900;
     font-size: 12px;
     cursor: pointer;
@@ -676,16 +725,19 @@ main#game {
     align-items: center;
     justify-content: center;
     gap: 6px;
-    min-height: 21px;
-    padding: 4px 8px;
+    min-height: 24px;
+    padding: 5px 10px;
     border-radius: 999px;
     font-size: 10px;
     font-weight: 800;
-    color: rgba(255,255,255,0.76);
-    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.84);
+    background: linear-gradient(180deg, rgba(78, 90, 118, 0.50) 0%, rgba(47, 56, 77, 0.66) 100%);
+    border: 1px solid rgba(255,255,255,0.07);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
     max-width: 100%;
     overflow-wrap: anywhere;
     line-height: 1;
+    white-space: nowrap;
 }
 
 .home-boost-status.boost-active {
@@ -1074,8 +1126,21 @@ main#game {
     }
 
     .tap-area {
-        min-height: 232px;
-        padding: 10px 0 4px;
+        min-height: 268px;
+        padding: 12px 0 6px;
+    }
+
+    .tap-area::before {
+        width: 320px;
+        height: 320px;
+    }
+
+    .tap-area::after {
+        width: 250px;
+        height: 250px;
+        box-shadow:
+            0 0 0 16px rgba(108, 255, 125, 0.03),
+            0 0 0 36px rgba(108, 255, 125, 0.018);
     }
 
     .tap-button {
@@ -1089,6 +1154,12 @@ main#game {
 
     .home-tap-subtitle {
         font-size: 12px;
+    }
+
+    .home-tap-premium-strip {
+        max-width: 280px;
+        padding: 8px 12px;
+        font-size: 10px;
     }
 
     .home-income-row-card,
@@ -1115,6 +1186,10 @@ main#game {
     .home-boost-title {
         font-size: 10px;
         margin-bottom: 5px;
+    }
+
+    .home-boost-row-actions {
+        gap: 6px;
     }
 
     .home-boost-button {
@@ -1254,7 +1329,20 @@ main#game {
     }
 
     .tap-area {
-        min-height: 218px;
+        min-height: 244px;
+    }
+
+    .tap-area::before {
+        width: 280px;
+        height: 280px;
+    }
+
+    .tap-area::after {
+        width: 220px;
+        height: 220px;
+        box-shadow:
+            0 0 0 12px rgba(108, 255, 125, 0.03),
+            0 0 0 28px rgba(108, 255, 125, 0.018);
     }
 
     .tap-button {
