@@ -114,7 +114,6 @@ CryptoZoo.uiSettings = {
 
     renderExtraPanels() {
         CryptoZoo.uiUpdates?.render?.();
-        CryptoZoo.uiFaq?.render?.();
     },
 
     initSettings() {
@@ -235,7 +234,6 @@ CryptoZoo.uiSettings = {
         this.renderFinanceSectionToggle();
         this.renderWithdrawHistory();
         this.renderDepositsHistory();
-        CryptoZoo.uiFaq?.render?.();
     },
 
     toggleLanguage() {
