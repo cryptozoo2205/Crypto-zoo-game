@@ -11,7 +11,7 @@
         linear-gradient(rgba(7, 14, 28, 0.42), rgba(7, 14, 28, 0.62)),
         radial-gradient(circle at 20% 30%, rgba(66, 220, 255, 0.10) 0%, rgba(66, 220, 255, 0) 28%),
         radial-gradient(circle at 72% 20%, rgba(255, 214, 102, 0.08) 0%, rgba(255, 214, 102, 0) 24%),
-        url("../assets/backgrounds/background_main.png") center center / cover no-repeat,
+        url("../assets/backgrounds/background_main.png") center center / cover no-repeat, 
         linear-gradient(180deg, rgba(20, 31, 56, 0.98) 0%, rgba(10, 17, 32, 0.98) 100%);
     border: 1px solid rgba(255,255,255,0.08);
     box-shadow:
