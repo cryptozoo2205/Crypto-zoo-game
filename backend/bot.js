@@ -59,8 +59,13 @@ function getPlayer(db, telegramId) {
 function getPlayersArray(db) {
     if (!db || !db.players) return [];
 
-    if (Array.isArray(db.players)) return db.players;
-    if (typeof db.players === "object") return Object.values(db.players);
+    if (Array.isArray(db.players)) {
+        return db.players;
+    }
+
+    if (typeof db.players === "object") {
+        return Object.values(db.players);
+    }
 
     return [];
 }
@@ -68,8 +73,13 @@ function getPlayersArray(db) {
 function getTotalUsers(db) {
     if (!db || !db.players) return 0;
 
-    if (Array.isArray(db.players)) return db.players.length;
-    if (typeof db.players === "object") return Object.keys(db.players).length;
+    if (Array.isArray(db.players)) {
+        return db.players.length;
+    }
+
+    if (typeof db.players === "object") {
+        return Object.keys(db.players).length;
+    }
 
     return 0;
 }
@@ -77,21 +87,28 @@ function getTotalUsers(db) {
 function getDepositEntries(db) {
     if (!db || typeof db !== "object") return [];
 
-    if (Array.isArray(db.deposits)) return db.deposits.filter(Boolean);
-    if (Array.isArray(db.depositRequests)) return db.depositRequests.filter(Boolean);
+    if (Array.isArray(db.deposits)) {
+        return db.deposits.filter(Boolean);
+    }
+
+    if (Array.isArray(db.depositRequests)) {
+        return db.depositRequests.filter(Boolean);
+    }
 
     const players = getPlayersArray(db);
     const all = [];
 
     for (const player of players) {
-        if (!player) continue;
+        if (!player || typeof player !== "object") continue;
 
         if (Array.isArray(player.depositHistory)) {
-            all.push(...player.depositHistory);
+            all.push(...player.depositHistory.filter(Boolean));
+            continue;
         }
 
         if (Array.isArray(player.deposits)) {
-            all.push(...player.deposits);
+            all.push(...player.deposits.filter(Boolean));
+            continue;
         }
     }
 
@@ -107,25 +124,39 @@ function getDepositorsCount(db) {
     let total = 0;
 
     for (const player of players) {
-        if (!player) continue;
+        if (!player || typeof player !== "object") continue;
 
         const hasDeposits =
-            (player.depositHistory?.length > 0) ||
-            (player.deposits?.length > 0) ||
-            Number(player.totalDeposits || 0) > 0;
+            (Array.isArray(player.depositHistory) && player.depositHistory.length > 0) ||
+            (Array.isArray(player.deposits) && player.deposits.length > 0) ||
+            Number(player.totalDeposits || 0) > 0 ||
+            Number(player.depositAmount || 0) > 0;
 
-        if (hasDeposits) total++;
+        if (hasDeposits) {
+            total += 1;
+        }
     }
 
     return total;
 }
 
 function getDepositTonValue(item) {
-    return toNumber(item?.tonAmount ?? item?.amount ?? 0);
+    return toNumber(
+        item?.tonAmount ??
+        item?.amount ??
+        item?.depositAmount ??
+        item?.value ??
+        0
+    );
 }
 
 function getDepositUsdValue(item) {
-    return toNumber(item?.usdAmount ?? 0);
+    return toNumber(
+        item?.usdAmount ??
+        item?.usd ??
+        item?.usdValue ??
+        0
+    );
 }
 
 function getDepositStats(db) {
@@ -147,23 +178,16 @@ function getDepositStats(db) {
 }
 
 // =======================
-// START (PLAY BUTTON)
+// START
 // =======================
 
 bot.onText(/\/start/, async (msg) => {
-    const chatId = msg.chat.id;
+    const url = `${WEBAPP_URL}`;
 
-    await bot.sendMessage(chatId, "🎮 Crypto Zoo", {
+    await bot.sendMessage(msg.chat.id, "🎮 Crypto Zoo", {
         reply_markup: {
             inline_keyboard: [
-                [
-                    {
-                        text: "▶ Play",
-                        web_app: {
-                            url: WEBAPP_URL
-                        }
-                    }
-                ]
+                [{ text: "Zagraj", web_app: { url } }]
             ]
         }
     });
@@ -178,13 +202,14 @@ bot.onText(/\/ping/, (msg) => {
 });
 
 // =======================
-// ADMIN SYSTEM (bez zmian)
+// ADMIN COMMANDS
 // =======================
 
 bot.on("message", async (msg) => {
     const text = String(msg.text || "");
     if (!text.startsWith("/")) return;
 
+    // 🔒 ADMIN BLOCK
     if (!isAdmin(msg.chat.id)) {
         if (
             text.startsWith("/admin") ||
@@ -198,7 +223,204 @@ bot.on("message", async (msg) => {
         }
     }
 
-    // reszta zostaje bez zmian...
+    // =======================
+    // ADMIN MENU
+    // =======================
+    if (text.startsWith("/admin")) {
+        const db = readDb();
+        const totalUsers = getTotalUsers(db);
+        const depositStats = getDepositStats(db);
+        const depositUsersCount = getDepositorsCount(db);
+        const allWithdraws = db.withdrawRequests || [];
+        const pending = allWithdraws.filter((w) => w.status === "pending");
+        const paid = allWithdraws.filter((w) => w.status === "paid");
+        const rejected = allWithdraws.filter((w) => w.status === "rejected");
+
+        return bot.sendMessage(
+            msg.chat.id,
+            `🛠 ADMIN PANEL
+
+👥 Users total: ${totalUsers}
+💸 Deposits: ${depositStats.count}
+💰 TON total: ${depositStats.totalTon}
+💵 USD total: ${depositStats.totalUsd}
+🧑‍💳 Users with deposit: ${depositUsersCount}
+
+📤 Pending withdraws: ${pending.length}
+✅ Paid withdraws: ${paid.length}
+❌ Rejected withdraws: ${rejected.length}
+
+/live_withdraws
+/paid_withdraws
+/withdraw_stats
+
+/pay <id>
+/reject <id> <note>`
+        );
+    }
+
+    // =======================
+    // LIVE
+    // =======================
+    if (text.startsWith("/live_withdraws")) {
+        const db = readDb();
+
+        const list = (db.withdrawRequests || []).filter((w) => w.status === "pending");
+
+        if (!list.length) {
+            return bot.sendMessage(msg.chat.id, "Brak pending.");
+        }
+
+        const txt = list.map((w, i) =>
+            `${i + 1}.
+ID: ${w.id}
+User: ${w.username}
+Reward: ${normalizeAmount(w)}
+USD: $${normalizeUsd(w)}`
+        ).join("\n\n");
+
+        return bot.sendMessage(msg.chat.id, txt);
+    }
+
+    // =======================
+    // PAID
+    // =======================
+    if (text.startsWith("/paid_withdraws")) {
+        const db = readDb();
+
+        const list = (db.withdrawRequests || [])
+            .filter((w) => w.status === "paid")
+            .slice(0, 20);
+
+        if (!list.length) {
+            return bot.sendMessage(msg.chat.id, "Brak paid.");
+        }
+
+        const txt = list.map((w, i) =>
+            `${i + 1}.
+${w.username}
+${normalizeAmount(w)} ($${normalizeUsd(w)})`
+        ).join("\n\n");
+
+        return bot.sendMessage(msg.chat.id, txt);
+    }
+
+    // =======================
+    // STATS
+    // =======================
+    if (text.startsWith("/withdraw_stats")) {
+        const db = readDb();
+        const all = db.withdrawRequests || [];
+        const depositStats = getDepositStats(db);
+        const totalUsers = getTotalUsers(db);
+        const depositUsersCount = getDepositorsCount(db);
+
+        const pending = all.filter((w) => w.status === "pending");
+        const paid = all.filter((w) => w.status === "paid");
+        const rejected = all.filter((w) => w.status === "rejected");
+
+        return bot.sendMessage(
+            msg.chat.id,
+            `📊 STATS
+
+👥 Users total: ${totalUsers}
+💸 Deposits: ${depositStats.count}
+💰 TON total: ${depositStats.totalTon}
+💵 USD total: ${depositStats.totalUsd}
+🧑‍💳 Users with deposit: ${depositUsersCount}
+
+Pending: ${pending.length}
+Paid: ${paid.length}
+Rejected: ${rejected.length}`
+        );
+    }
+
+    // =======================
+    // PAY
+    // =======================
+    if (text.startsWith("/pay")) {
+        const db = readDb();
+        const parts = text.split(" ");
+        const id = parts[1];
+
+        if (!id) {
+            return bot.sendMessage(msg.chat.id, "Podaj ID");
+        }
+
+        const w = findWithdraw(db, id);
+
+        if (!w) {
+            return bot.sendMessage(msg.chat.id, "Nie znaleziono");
+        }
+
+        if (w.status !== "pending") {
+            return bot.sendMessage(msg.chat.id, "Już przetworzone");
+        }
+
+        const player = getPlayer(db, w.telegramId);
+
+        if (!player) {
+            return bot.sendMessage(msg.chat.id, "Nie znaleziono gracza");
+        }
+
+        const amount = normalizeAmount(w);
+
+        player.withdrawPending = Number(player.withdrawPending || 0) - amount;
+        player.rewardWallet = Number(player.rewardWallet || 0) + amount;
+
+        w.status = "paid";
+        w.updatedAt = Date.now();
+
+        writeDb(db);
+
+        await bot.sendMessage(msg.chat.id, `✅ PAID ${id}`);
+    }
+
+    // =======================
+    // REJECT
+    // =======================
+    if (text.startsWith("/reject")) {
+        const db = readDb();
+        const parts = text.split(" ");
+
+        const id = parts[1];
+        const note = parts.slice(2).join(" ") || "";
+
+        if (!id) {
+            return bot.sendMessage(msg.chat.id, "Podaj ID");
+        }
+
+        const w = findWithdraw(db, id);
+
+        if (!w) {
+            return bot.sendMessage(msg.chat.id, "Nie znaleziono");
+        }
+
+        if (w.status !== "pending") {
+            return bot.sendMessage(msg.chat.id, "Już przetworzone");
+        }
+
+        const player = getPlayer(db, w.telegramId);
+
+        if (!player) {
+            return bot.sendMessage(msg.chat.id, "Nie znaleziono gracza");
+        }
+
+        const amount = normalizeAmount(w);
+
+        player.withdrawPending = Number(player.withdrawPending || 0) - amount;
+        player.rewardBalance = Number(player.rewardBalance || 0) + amount;
+
+        w.status = "rejected";
+        w.note = note;
+        w.updatedAt = Date.now();
+
+        writeDb(db);
+
+        await bot.sendMessage(msg.chat.id, `❌ REJECTED ${id}`);
+    }
 });
 
-module.exports = { bot };
+module.exports = {
+    bot
+};
