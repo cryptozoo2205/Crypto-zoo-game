@@ -1002,8 +1002,9 @@ window.CryptoZoo.api = {
             console.warn("Deposits history load failed:", error);
             return [];
         }
-    }
-async verifyDepositById(depositId) {
+    },
+
+    async verifyDepositById(depositId) {
         const safeDepositId = String(depositId || "").trim();
 
         if (!safeDepositId) {
