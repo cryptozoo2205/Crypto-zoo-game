@@ -50,6 +50,45 @@ CryptoZoo.uiProfile = {
         return String(user?.first_name || user?.username || "Gracz");
     },
 
+    getAvatarUrl() {
+        const user = this.getTelegramUser();
+        const fromUser = String(user?.photo_url || "").trim();
+        if (fromUser) {
+            return fromUser;
+        }
+
+        const fromStorage = String(localStorage.getItem("telegramPhotoUrl") || "").trim();
+        if (fromStorage) {
+            return fromStorage;
+        }
+
+        return String(this.fallbackAvatarPath || "").trim();
+    },
+
+    applyAvatarToElement(element, avatarUrl) {
+        if (!element) return;
+
+        const safeUrl = String(avatarUrl || "").trim();
+
+        element.style.backgroundImage = safeUrl ? `url("${safeUrl}")` : "";
+        element.style.backgroundSize = "cover";
+        element.style.backgroundPosition = "center";
+        element.style.backgroundRepeat = "no-repeat";
+        element.style.overflow = "hidden";
+    },
+
+    renderAvatarImages() {
+        const avatarUrl = this.getAvatarUrl();
+
+        const topAvatar = document.querySelector(".top-avatar");
+        const profileAvatar = document.querySelector("#profileModal .profile-avatar");
+        const settingsAvatar = document.querySelector("#settingsModal .profile-avatar");
+
+        this.applyAvatarToElement(topAvatar, avatarUrl);
+        this.applyAvatarToElement(profileAvatar, avatarUrl);
+        this.applyAvatarToElement(settingsAvatar, avatarUrl);
+    },
+
     getBotUsername() {
         const fromConfig =
             CryptoZoo.config?.telegramBotUsername ||
@@ -116,6 +155,7 @@ CryptoZoo.uiProfile = {
             profileSubtitle.textContent = username ? `@${username}` : "Player";
         }
 
+        this.renderAvatarImages();
         this.renderProfileStats();
         this.renderBoostStatus();
     },
@@ -317,6 +357,7 @@ CryptoZoo.uiProfile = {
         if (elPending) elPending.textContent = this.format(pending).toFixed(3);
 
         this.renderTopBarProfile();
+        this.renderAvatarImages();
         this.renderToggleSections();
         this.renderReferralsSection();
     },
@@ -406,5 +447,7 @@ CryptoZoo.uiProfile = {
             toggleReferralBtn.dataset.bound = "1";
             toggleReferralBtn.onclick = () => this.toggleReferralSection();
         }
+
+        this.renderAvatarImages();
     }
 };
