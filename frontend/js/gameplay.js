@@ -13,6 +13,11 @@ CryptoZoo.gameplay = {
     tapTouchIds: null,
     tapAreaPadding: 55,
 
+    tapSaveTimer: null,
+    tapSaveDelayMs: 350,
+    tapSaveInFlight: false,
+    tapSaveQueued: false,
+
     init() {
         this.ensureState();
         this.recalculateProgress();
@@ -373,6 +378,37 @@ CryptoZoo.gameplay = {
         document.addEventListener("touchcancel", unlockTouchBurst, { passive: false });
     },
 
+    scheduleTapSave() {
+        clearTimeout(this.tapSaveTimer);
+
+        this.tapSaveTimer = setTimeout(() => {
+            this.flushTapSave();
+        }, this.tapSaveDelayMs);
+    },
+
+    async flushTapSave() {
+        if (this.tapSaveInFlight) {
+            this.tapSaveQueued = true;
+            return;
+        }
+
+        this.tapSaveInFlight = true;
+        this.tapSaveQueued = false;
+
+        try {
+            await CryptoZoo.api?.savePlayer?.();
+        } catch (error) {
+            console.error("Tap save failed:", error);
+        } finally {
+            this.tapSaveInFlight = false;
+
+            if (this.tapSaveQueued) {
+                this.tapSaveQueued = false;
+                this.flushTapSave();
+            }
+        }
+    },
+
     handleTap(amount = 1) {
         const safeAmount = Math.max(1, Math.floor(Number(amount) || 1));
         const valuePerTap = this.getEffectiveCoinsPerClick();
@@ -389,7 +425,8 @@ CryptoZoo.gameplay = {
         CryptoZoo.audio?.play?.("tap");
         CryptoZoo.ui?.animateCoin?.(safeAmount);
         CryptoZoo.ui?.render?.();
-        CryptoZoo.api?.savePlayer?.();
+
+        this.scheduleTapSave();
     },
 
     getBaseCoinsPerClick() {
