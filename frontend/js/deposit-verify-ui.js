@@ -1,174 +1,123 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.depositVerifyUI = {
-    checking: false,
     intervalId: null,
-    intervalMs: 15000,
+    checking: false,
+    intervalMs: 12000,
 
-    getPlayerId() {
-        return String(
-            CryptoZoo.api?.getPlayerId?.() ||
-            CryptoZoo.state?.telegramUser?.id ||
-            ""
-        );
-    },
-
-    getPendingDeposits() {
-        const history = Array.isArray(CryptoZoo.uiSettings?.depositsHistory)
-            ? CryptoZoo.uiSettings.depositsHistory
-            : [];
-
-        return history.filter((item) => {
-            const status = String(item?.status || "").toLowerCase();
-            return status === "created" || status === "pending";
-        });
-    },
-
-    hasPendingDeposits() {
-        return this.getPendingDeposits().length > 0;
-    },
-
-    async verifyPlayerDeposits() {
-        if (this.checking) {
-            return false;
+    async verifyDepositById(depositId) {
+        const safeDepositId = String(depositId || "").trim();
+        if (!safeDepositId) {
+            return null;
         }
-
-        const telegramId = this.getPlayerId();
-        if (!telegramId) {
-            return false;
-        }
-
-        if (!CryptoZoo.api?.request) {
-            return false;
-        }
-
-        this.checking = true;
 
         try {
-            const result = await CryptoZoo.api.request("/deposit/verify-player", {
-                method: "POST",
-                body: JSON.stringify({
-                    telegramId
-                })
-            });
-
-            if (typeof CryptoZoo.uiSettings?.loadDepositsHistory === "function") {
-                await CryptoZoo.uiSettings.loadDepositsHistory();
+            if (!CryptoZoo.api?.verifyDepositById) {
+                return null;
             }
 
-            if (result?.matched > 0) {
-                if (typeof CryptoZoo.api?.loadPlayer === "function") {
-                    await CryptoZoo.api.loadPlayer();
-                }
+            const result = await CryptoZoo.api.verifyDepositById(safeDepositId);
+
+            if (result?.matched && result?.player) {
+                CryptoZoo.state = CryptoZoo.api.normalizeState({
+                    ...(CryptoZoo.state || {}),
+                    ...result.player,
+                    telegramUser: CryptoZoo.api.getTelegramUser()
+                });
 
                 CryptoZoo.ui?.render?.();
+                await CryptoZoo.uiSettings?.loadDepositsHistory?.();
                 CryptoZoo.uiSettings?.refreshSettingsModalData?.();
-                CryptoZoo.uiProfile?.refreshProfileModalData?.();
 
+                const gemsAdded = Math.max(0, Number(result?.deposit?.gemsAmount) || 0);
                 CryptoZoo.ui?.showToast?.(
-                    `Deposit approved +${Number(result.matched || 0)}`
+                    gemsAdded > 0
+                        ? `✅ Deposit approved +${gemsAdded} gems`
+                        : "✅ Deposit approved"
                 );
             }
 
             return result;
         } catch (error) {
-            console.error("Verify player deposits error:", error);
-            return false;
+            console.error("Verify deposit by id error:", error);
+            return null;
+        }
+    },
+
+    async verifyPendingPlayerDeposits() {
+        if (this.checking) return null;
+
+        this.checking = true;
+
+        try {
+            if (!CryptoZoo.api?.verifyPendingDepositsForPlayer) {
+                return null;
+            }
+
+            const result = await CryptoZoo.api.verifyPendingDepositsForPlayer();
+
+            if (result?.matched > 0) {
+                await CryptoZoo.api.loadPlayer();
+                CryptoZoo.ui?.render?.();
+                await CryptoZoo.uiSettings?.loadDepositsHistory?.();
+                CryptoZoo.uiSettings?.refreshSettingsModalData?.();
+
+                CryptoZoo.ui?.showToast?.(
+                    result.matched === 1
+                        ? "✅ Deposit approved"
+                        : `✅ Approved deposits: ${result.matched}`
+                );
+            }
+
+            return result;
+        } catch (error) {
+            console.error("Verify pending player deposits error:", error);
+            return null;
         } finally {
             this.checking = false;
         }
     },
 
-    async verifySingleDeposit(depositId) {
-        const safeDepositId = String(depositId || "").trim();
-        if (!safeDepositId) {
-            return false;
-        }
+    startInterval() {
+        if (this.intervalId) return;
 
-        if (!CryptoZoo.api?.request) {
-            return false;
-        }
-
-        try {
-            const result = await CryptoZoo.api.request("/deposit/verify", {
-                method: "POST",
-                body: JSON.stringify({
-                    depositId: safeDepositId
-                })
-            });
-
-            if (typeof CryptoZoo.uiSettings?.loadDepositsHistory === "function") {
-                await CryptoZoo.uiSettings.loadDepositsHistory();
-            }
-
-            if (result?.matched) {
-                if (typeof CryptoZoo.api?.loadPlayer === "function") {
-                    await CryptoZoo.api.loadPlayer();
-                }
-
-                CryptoZoo.ui?.render?.();
-                CryptoZoo.uiSettings?.refreshSettingsModalData?.();
-                CryptoZoo.uiProfile?.refreshProfileModalData?.();
-
-                CryptoZoo.ui?.showToast?.("Deposit approved");
-            }
-
-            return result;
-        } catch (error) {
-            console.error("Verify single deposit error:", error);
-            return false;
-        }
-    },
-
-    startAutoVerify() {
-        this.stopAutoVerify();
-
-        this.intervalId = setInterval(async () => {
-            try {
-                if (!this.hasPendingDeposits()) {
-                    return;
-                }
-
-                await this.verifyPlayerDeposits();
-            } catch (error) {
-                console.error("Auto verify deposits interval error:", error);
-            }
+        this.intervalId = setInterval(() => {
+            this.verifyPendingPlayerDeposits();
         }, this.intervalMs);
     },
 
-    stopAutoVerify() {
-        if (this.intervalId) {
-            clearInterval(this.intervalId);
-            this.intervalId = null;
-        }
+    stopInterval() {
+        if (!this.intervalId) return;
+
+        clearInterval(this.intervalId);
+        this.intervalId = null;
     },
 
-    async verifyNowIfNeeded() {
-        if (!this.hasPendingDeposits()) {
-            return false;
+    bindVisibilityRefresh() {
+        if (document.body?.dataset.depositVerifyVisibilityBound === "1") {
+            return;
         }
 
-        return this.verifyPlayerDeposits();
-    },
+        document.body.dataset.depositVerifyVisibilityBound = "1";
 
-    bindManualVerifyButton() {
-        const btn = document.getElementById("settingsVerifyDepositsBtn");
-        if (!btn || btn.dataset.bound) return;
-
-        btn.dataset.bound = "1";
-        btn.addEventListener("click", async () => {
-            CryptoZoo.audio?.play?.("click");
-
-            const result = await this.verifyPlayerDeposits();
-
-            if (!result || !result.matched) {
-                CryptoZoo.ui?.showToast?.("No new TON deposits");
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") {
+                this.verifyPendingPlayerDeposits();
             }
         });
+
+        window.addEventListener("focus", () => {
+            this.verifyPendingPlayerDeposits();
+        }, { passive: true });
+
+        window.addEventListener("pageshow", () => {
+            this.verifyPendingPlayerDeposits();
+        }, { passive: true });
     },
 
     init() {
-        this.bindManualVerifyButton();
-        this.startAutoVerify();
+        this.bindVisibilityRefresh();
+        this.startInterval();
+        this.verifyPendingPlayerDeposits();
     }
 };
