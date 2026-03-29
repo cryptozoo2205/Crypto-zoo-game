@@ -5,7 +5,6 @@ const { readDb } = require("./db/db");
 
 const token = process.env.BOT_TOKEN;
 const WEBAPP_URL = process.env.WEBAPP_URL;
-const ADMIN_CHAT_ID = String(process.env.ADMIN_CHAT_ID || "").trim();
 
 if (!token) {
     console.error("BOT_TOKEN missing");
@@ -21,32 +20,11 @@ const bot = new TelegramBot(token, { polling: true });
 
 console.log("🤖 Bot started");
 console.log("🌐 WEBAPP_URL:", WEBAPP_URL);
-console.log("👮 ADMIN_CHAT_ID:", ADMIN_CHAT_ID || "not set");
+
+/* ================= HELPERS ================= */
 
 function escapeText(text) {
     return String(text || "").replace(/[_*[\]()~`>#+\-=|{}.!]/g, "\\$&");
-}
-
-function buildTelegramUser(from) {
-    return {
-        id: String(from?.id || ""),
-        username: String(from?.username || ""),
-        first_name: String(from?.first_name || "Gracz")
-    };
-}
-
-function buildWebAppUrl(telegramUser, refCode = "") {
-    const url = new URL(WEBAPP_URL);
-
-    url.searchParams.set("tgId", telegramUser.id);
-    url.searchParams.set("username", telegramUser.username);
-    url.searchParams.set("first_name", telegramUser.first_name);
-
-    if (refCode) {
-        url.searchParams.set("ref", refCode);
-    }
-
-    return url.toString();
 }
 
 function formatDateTime(value) {
@@ -69,44 +47,42 @@ function getAllWithdraws() {
 
 function getPendingWithdraws() {
     return getAllWithdraws()
-        .filter((item) => String(item?.status || "pending").toLowerCase() === "pending")
-        .sort((a, b) => Number(b?.createdAt || 0) - Number(a?.createdAt || 0));
+        .filter(x => String(x?.status || "pending").toLowerCase() === "pending")
+        .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
 }
 
 function getPaidWithdraws() {
     return getAllWithdraws()
-        .filter((item) => String(item?.status || "").toLowerCase() === "paid")
-        .sort((a, b) => Number(b?.updatedAt || b?.createdAt || 0) - Number(a?.updatedAt || a?.createdAt || 0));
+        .filter(x => String(x?.status || "").toLowerCase() === "paid")
+        .sort((a, b) => Number(b.updatedAt || b.createdAt || 0) - Number(a.updatedAt || a.createdAt || 0));
 }
 
 function buildWithdrawLine(item, index) {
     const username = escapeText(item?.username || "Gracz");
-    const telegramId = item?.telegramId || "";
-    const rewardAmount = normalizeWithdrawAmount(item);
-    const usdAmount = normalizeWithdrawUsd(item);
 
     return [
         `${index + 1}. @${username}`,
-        `ID: ${telegramId}`,
-        `Reward: ${rewardAmount}`,
-        `USD: $${usdAmount.toFixed(3)}`,
+        `ID: ${item?.telegramId || ""}`,
+        `Reward: ${normalizeWithdrawAmount(item)}`,
+        `USD: $${normalizeWithdrawUsd(item).toFixed(3)}`,
+        `Status: ${item?.status || "pending"}`,
         `Date: ${formatDateTime(item?.createdAt)}`
     ].join("\n");
 }
 
-function chunkText(text, maxLength = 3500) {
+function chunkText(text, max = 3500) {
     const chunks = [];
     let current = "";
 
-    text.split("\n\n").forEach((block) => {
+    text.split("\n\n").forEach(block => {
         const next = current ? `${current}\n\n${block}` : block;
 
-        if (next.length > maxLength) {
+        if (next.length > max) {
             if (current) chunks.push(current);
 
-            if (block.length > maxLength) {
-                for (let i = 0; i < block.length; i += maxLength) {
-                    chunks.push(block.slice(i, i + maxLength));
+            if (block.length > max) {
+                for (let i = 0; i < block.length; i += max) {
+                    chunks.push(block.slice(i, i + max));
                 }
                 current = "";
             } else {
@@ -121,131 +97,150 @@ function chunkText(text, maxLength = 3500) {
     return chunks;
 }
 
-async function sendAdminMessage(text) {
-    if (!ADMIN_CHAT_ID) return;
-
-    try {
-        return await bot.sendMessage(ADMIN_CHAT_ID, text, {
-            disable_web_page_preview: true
-        });
-    } catch (error) {
-        console.error("ADMIN MESSAGE ERROR:", error?.message || error);
-    }
-}
-
-function formatWithdrawNotification(title, item) {
-    const username = escapeText(item?.username || "Gracz");
-    const telegramId = item?.telegramId || "";
-    const rewardAmount = normalizeWithdrawAmount(item);
-    const usdAmount = normalizeWithdrawUsd(item);
-    const note = escapeText(item?.note || "");
-
-    return [
-        title,
-        "",
-        `👤 @${username}`,
-        `🆔 ${telegramId}`,
-        `🎯 Reward: ${rewardAmount}`,
-        `💵 USD: $${usdAmount.toFixed(3)}`,
-        `🕒 ${formatDateTime(item?.createdAt)}`,
-        note ? `📝 ${note}` : ""
-    ].filter(Boolean).join("\n");
-}
+/* ================= NOTIFICATIONS ================= */
 
 async function notifyNewWithdraw(item) {
-    return sendAdminMessage(
-        formatWithdrawNotification("💸 NEW WITHDRAW", item)
+    return bot.sendMessage(
+        process.env.ADMIN_CHAT_ID,
+        `💸 NEW WITHDRAW\n\n@${item.username}\n${item.amount}`
     );
 }
 
 async function notifyWithdrawPaid(item) {
-    return sendAdminMessage(
-        formatWithdrawNotification("✅ WITHDRAW PAID", item)
+    return bot.sendMessage(
+        process.env.ADMIN_CHAT_ID,
+        `✅ PAID\n\n@${item.username}\n${item.amount}`
     );
 }
 
 async function notifyWithdrawRejected(item) {
-    return sendAdminMessage(
-        formatWithdrawNotification("❌ WITHDRAW REJECTED", item)
+    return bot.sendMessage(
+        process.env.ADMIN_CHAT_ID,
+        `❌ REJECTED\n\n@${item.username}\n${item.amount}`
     );
 }
 
-/* ================= ADMIN COMMANDS ================= */
+/* ================= START ================= */
 
-function isAdminChat(msg) {
-    return String(msg?.chat?.id || "") === ADMIN_CHAT_ID;
-}
+bot.onText(/^\/start/, async (msg) => {
+    try {
+        const url = new URL(WEBAPP_URL);
 
-bot.onText(/\/admin/, async (msg) => {
-    if (!isAdminChat(msg)) return;
+        url.searchParams.set("tgId", msg.from.id);
+        url.searchParams.set("username", msg.from.username || "");
+        url.searchParams.set("first_name", msg.from.first_name || "Gracz");
 
-    await bot.sendMessage(msg.chat.id,
-        "🛠 Commands:\n" +
-        "/live_withdraws\n" +
-        "/paid_withdraws\n" +
-        "/withdraw_stats"
-    );
-});
+        await bot.sendMessage(
+            msg.chat.id,
+            `🐾 Witaj w Crypto Zoo!
 
-bot.onText(/\/live_withdraws/, async (msg) => {
-    if (!isAdminChat(msg)) return;
+Kliknij poniżej 👇`
+        );
 
-    const list = getPendingWithdraws();
+        await bot.sendMessage(msg.chat.id, "🎮 Zagraj", {
+            reply_markup: {
+                inline_keyboard: [[{ text: "🎮 Zagraj", web_app: { url: url.toString() } }]]
+            }
+        });
 
-    if (!list.length) {
-        return bot.sendMessage(msg.chat.id, "Brak pending.");
-    }
-
-    const text = list
-        .map((item, i) => buildWithdrawLine(item, i))
-        .join("\n\n--------\n\n");
-
-    for (const part of chunkText(text)) {
-        await bot.sendMessage(msg.chat.id, part);
+    } catch (e) {
+        console.error(e);
     }
 });
 
-bot.onText(/\/paid_withdraws/, async (msg) => {
-    if (!isAdminChat(msg)) return;
+/* ================= 🔥 MAIN FIX ================= */
 
-    const list = getPaidWithdraws().slice(0, 20);
+bot.on("message", async (msg) => {
+    if (!msg.text) return;
 
-    if (!list.length) {
-        return bot.sendMessage(msg.chat.id, "Brak paid.");
+    const text = msg.text.trim().toLowerCase();
+
+    console.log("MSG:", text, "CHAT:", msg.chat.id);
+
+    // ✅ ping
+    if (text.startsWith("/ping")) {
+        return bot.sendMessage(
+            msg.chat.id,
+            `pong\nchat.id: ${msg.chat.id}`
+        );
     }
 
-    const text = list
-        .map((item, i) => buildWithdrawLine(item, i))
-        .join("\n\n--------\n\n");
+    // ✅ admin menu
+    if (text.startsWith("/admin")) {
+        return bot.sendMessage(
+            msg.chat.id,
+            "🛠 Commands:\n/live_withdraws\n/paid_withdraws\n/withdraw_stats"
+        );
+    }
 
-    for (const part of chunkText(text)) {
-        await bot.sendMessage(msg.chat.id, part);
+    // ✅ live withdraws
+    if (text.startsWith("/live_withdraws")) {
+        const list = getPendingWithdraws();
+
+        if (!list.length) {
+            return bot.sendMessage(msg.chat.id, "Brak pending.");
+        }
+
+        const textOut = list
+            .map((item, i) => buildWithdrawLine(item, i))
+            .join("\n\n--------\n\n");
+
+        for (const part of chunkText(textOut)) {
+            await bot.sendMessage(msg.chat.id, part);
+        }
+
+        return;
+    }
+
+    // ✅ paid withdraws
+    if (text.startsWith("/paid_withdraws")) {
+        const list = getPaidWithdraws().slice(0, 20);
+
+        if (!list.length) {
+            return bot.sendMessage(msg.chat.id, "Brak paid.");
+        }
+
+        const textOut = list
+            .map((item, i) => buildWithdrawLine(item, i))
+            .join("\n\n--------\n\n");
+
+        for (const part of chunkText(textOut)) {
+            await bot.sendMessage(msg.chat.id, part);
+        }
+
+        return;
+    }
+
+    // ✅ stats
+    if (text.startsWith("/withdraw_stats")) {
+        const all = getAllWithdraws();
+
+        const sum = (arr, fn) => arr.reduce((s, x) => s + fn(x), 0);
+
+        const pending = all.filter(x => x.status === "pending");
+        const paid = all.filter(x => x.status === "paid");
+        const rejected = all.filter(x => x.status === "rejected");
+
+        return bot.sendMessage(
+            msg.chat.id,
+            `📊 STATS
+
+Pending: ${pending.length}
+Paid: ${paid.length}
+Rejected: ${rejected.length}
+
+Paid USD: $${sum(paid, normalizeWithdrawUsd).toFixed(3)}`
+        );
     }
 });
 
-bot.onText(/\/withdraw_stats/, async (msg) => {
-    if (!isAdminChat(msg)) return;
-
-    const all = getAllWithdraws();
-
-    const sum = (arr, fn) => arr.reduce((s, x) => s + fn(x), 0);
-
-    const pending = all.filter(x => x.status === "pending");
-    const paid = all.filter(x => x.status === "paid");
-    const rejected = all.filter(x => x.status === "rejected");
-
-    await bot.sendMessage(msg.chat.id,
-        `📊 STATS\n\n` +
-        `Pending: ${pending.length}\n` +
-        `Paid: ${paid.length}\n` +
-        `Rejected: ${rejected.length}\n\n` +
-        `Paid USD: $${sum(paid, normalizeWithdrawUsd).toFixed(3)}`
-    );
-});
+/* ================= ERRORS ================= */
 
 bot.on("polling_error", (error) => {
     console.error("POLLING ERROR:", error?.message || error);
 });
+
+/* ================= EXPORT ================= */
 
 module.exports = {
     bot,
