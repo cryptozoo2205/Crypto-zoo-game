@@ -351,7 +351,6 @@ main#game {
     text-align: left;
 }
 
-
 /* TAP */
 
 .tap-area {
@@ -371,10 +370,11 @@ main#game {
     position: absolute;
     inset: 0;
     background:
-        radial-gradient(circle at center, rgba(108, 255, 125, 0.14) 0%, rgba(108, 255, 125, 0.07) 22%, rgba(108, 255, 125, 0.02) 42%, rgba(108, 255, 125, 0) 68%),
-        url("../assets/backgrounds/background_main.png") center center / 180% auto no-repeat;
-    opacity: 0.28;
-    filter: blur(10px) saturate(1.1);
+        linear-gradient(rgba(8, 16, 26, 0.22), rgba(8, 16, 26, 0.38)),
+        radial-gradient(circle at center, rgba(108, 255, 125, 0.16) 0%, rgba(108, 255, 125, 0.08) 22%, rgba(108, 255, 125, 0.03) 42%, rgba(108, 255, 125, 0) 68%),
+        url("../assets/backgrounds/background_main.png") center center / 155% auto no-repeat;
+    opacity: 0.45;
+    filter: blur(7px) saturate(1.12);
     pointer-events: none;
     z-index: 0;
     border-radius: 50px;
@@ -383,11 +383,11 @@ main#game {
 .tap-area::after {
     content: "";
     position: absolute;
-    width: 360px;
-    height: 360px;
+    width: 340px;
+    height: 340px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(80, 255, 120, 0.10) 0%, rgba(80, 255, 120, 0.05) 32%, rgba(80, 255, 120, 0.015) 48%, rgba(80, 255, 120, 0) 72%);
-    filter: blur(18px);
+    background: radial-gradient(circle, rgba(80, 255, 120, 0.10) 0%, rgba(80, 255, 120, 0.05) 34%, rgba(80, 255, 120, 0.015) 48%, rgba(80, 255, 120, 0) 72%);
+    filter: blur(16px);
     pointer-events: none;
     z-index: 0;
 }
@@ -475,6 +475,11 @@ main#game {
     font-size: 13px;
     color: rgba(255,255,255,0.76);
 }
+
+.home-tap-premium-strip {
+    display: none !important;
+}
+
 /* INCOME + BOOST */
 
 .home-income-strip {
@@ -574,10 +579,10 @@ main#game {
 .home-boost-button {
     border: none;
     border-radius: 999px;
-    padding: 7px 14px;
-    min-width: 92px;
+    padding: 8px 16px;
+    min-width: 100px;
     font-weight: 900;
-    font-size: 12px;
+    font-size: 13px;
     cursor: pointer;
     color: #1a1a1a;
     background: linear-gradient(180deg, #ffe27a 0%, #ffbf00 100%);
@@ -600,9 +605,9 @@ main#game {
     color: #1b1b1b;
     background: linear-gradient(180deg, #fff0a5 0%, #ffd54d 100%);
     box-shadow:
-        0 8px 18px rgba(255, 191, 0, 0.26),
-        0 0 20px rgba(255, 208, 0, 0.18);
-    animation: boostPulse 1.4s ease-in-out infinite;
+        0 0 22px rgba(255, 200, 0, 0.35),
+        0 8px 18px rgba(255, 191, 0, 0.26);
+    animation: boostPulse 1.2s ease-in-out infinite;
 }
 
 .home-boost-status {
@@ -616,8 +621,8 @@ main#game {
     font-size: 10px;
     font-weight: 800;
     color: rgba(255,255,255,0.84);
-    background: linear-gradient(180deg, rgba(78, 90, 118, 0.50) 0%, rgba(47, 56, 77, 0.66) 100%);
-    border: 1px solid rgba(255,255,255,0.07);
+    background: rgba(60, 70, 95, 0.55);
+    border: 1px solid rgba(255,255,255,0.08);
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
     max-width: 100%;
     overflow-wrap: anywhere;
@@ -804,12 +809,21 @@ main#game {
 @keyframes boostPulse {
     0% {
         transform: scale(1);
+        box-shadow:
+            0 0 18px rgba(255, 200, 0, 0.22),
+            0 8px 18px rgba(255, 191, 0, 0.22);
     }
     50% {
-        transform: scale(1.03);
+        transform: scale(1.04);
+        box-shadow:
+            0 0 28px rgba(255, 200, 0, 0.42),
+            0 10px 22px rgba(255, 191, 0, 0.30);
     }
     100% {
         transform: scale(1);
+        box-shadow:
+            0 0 18px rgba(255, 200, 0, 0.22),
+            0 8px 18px rgba(255, 191, 0, 0.22);
     }
 }
 
@@ -1010,25 +1024,25 @@ main#game {
         height: 9px;
     }
 
-  .tap-area {
-    min-height: 268px;
-    padding: 12px 0 6px;
-}
+    .tap-area {
+        min-height: 268px;
+        padding: 12px 0 6px;
+    }
 
-.tap-area::before {
-    background:
-        radial-gradient(circle at center, rgba(108, 255, 125, 0.12) 0%, rgba(108, 255, 125, 0.06) 22%, rgba(108, 255, 125, 0.018) 42%, rgba(108, 255, 125, 0) 68%),
-        url("../assets/backgrounds/background_main.png") center center / 200% auto no-repeat;
-    opacity: 0.24;
-    filter: blur(10px) saturate(1.08);
-}
+    .tap-area::before {
+        background:
+            linear-gradient(rgba(8, 16, 26, 0.24), rgba(8, 16, 26, 0.40)),
+            radial-gradient(circle at center, rgba(108, 255, 125, 0.14) 0%, rgba(108, 255, 125, 0.07) 22%, rgba(108, 255, 125, 0.025) 42%, rgba(108, 255, 125, 0) 68%),
+            url("../assets/backgrounds/background_main.png") center center / 180% auto no-repeat;
+        opacity: 0.42;
+        filter: blur(7px) saturate(1.08);
+    }
 
-.tap-area::after {
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, rgba(80, 255, 120, 0.08) 0%, rgba(80, 255, 120, 0.04) 34%, rgba(80, 255, 120, 0.012) 48%, rgba(80, 255, 120, 0) 72%);
-    filter: blur(16px);
-}
+    .tap-area::after {
+        width: 280px;
+        height: 280px;
+        background: radial-gradient(circle, rgba(80, 255, 120, 0.08) 0%, rgba(80, 255, 120, 0.035) 34%, rgba(80, 255, 120, 0.01) 48%, rgba(80, 255, 120, 0) 72%);
+    }
 
     .tap-button {
         width: 176px;
@@ -1041,12 +1055,6 @@ main#game {
 
     .home-tap-subtitle {
         font-size: 12px;
-    }
-
-    .home-tap-premium-strip {
-        max-width: 280px;
-        padding: 8px 12px;
-        font-size: 10px;
     }
 
     .home-income-row-card,
@@ -1220,16 +1228,16 @@ main#game {
     }
 
     .tap-area::before {
-        width: 280px;
-        height: 280px;
+        background:
+            linear-gradient(rgba(8, 16, 26, 0.26), rgba(8, 16, 26, 0.42)),
+            radial-gradient(circle at center, rgba(108, 255, 125, 0.12) 0%, rgba(108, 255, 125, 0.06) 22%, rgba(108, 255, 125, 0.02) 42%, rgba(108, 255, 125, 0) 68%),
+            url("../assets/backgrounds/background_main.png") center center / 200% auto no-repeat;
+        opacity: 0.40;
     }
 
     .tap-area::after {
-        width: 220px;
-        height: 220px;
-        box-shadow:
-            0 0 0 12px rgba(108, 255, 125, 0.03),
-            0 0 0 28px rgba(108, 255, 125, 0.018);
+        width: 240px;
+        height: 240px;
     }
 
     .tap-button {
@@ -1273,115 +1281,4 @@ main#game {
 
 .screen {
     padding-bottom: 0;
-}
-
-/* =========================
-   FINAL TAP BACKGROUND FIX
-========================= */
-
-.tap-area::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background:
-        linear-gradient(rgba(8, 16, 26, 0.22), rgba(8, 16, 26, 0.38)),
-        radial-gradient(circle at center, rgba(108, 255, 125, 0.16) 0%, rgba(108, 255, 125, 0.08) 22%, rgba(108, 255, 125, 0.03) 42%, rgba(108, 255, 125, 0) 68%),
-        url("../assets/backgrounds/background_main.png") center center / 155% auto no-repeat;
-    opacity: 0.45;
-    filter: blur(7px) saturate(1.12);
-    pointer-events: none;
-    z-index: 0;
-    border-radius: 50px;
-}
-
-.tap-area::after {
-    content: "";
-    position: absolute;
-    width: 340px;
-    height: 340px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(80, 255, 120, 0.10) 0%, rgba(80, 255, 120, 0.05) 34%, rgba(80, 255, 120, 0.015) 48%, rgba(80, 255, 120, 0) 72%);
-    filter: blur(16px);
-    pointer-events: none;
-    z-index: 0;
-}
-
-/* =========================
-   BOOST BUTTON IMPROVE
-========================= */
-
-.home-boost-button {
-    border-radius: 999px !important;
-    padding: 8px 16px !important;
-    font-size: 13px !important;
-    min-width: 100px !important;
-}
-
-.home-boost-button.boost-active {
-    animation: boostPulse 1.2s ease-in-out infinite;
-    box-shadow:
-        0 0 22px rgba(255, 200, 0, 0.35),
-        0 8px 18px rgba(255, 191, 0, 0.26);
-}
-
-/* =========================
-   BOOST STATUS LOOK
-========================= */
-
-.home-boost-status {
-    background: rgba(60, 70, 95, 0.55) !important;
-    border: 1px solid rgba(255,255,255,0.08) !important;
-}
-
-.home-boost-status.boost-active {
-    background: linear-gradient(180deg, #fff0a5 0%, #ffd54d 100%) !important;
-    color: #1b1b1b !important;
-}
-
-/* =========================
-   REMOVE OLD PREMIUM STRIP
-========================= */
-
-.home-tap-premium-strip {
-    display: none !important;
-}
-
-/* =========================
-   MOBILE FIX
-========================= */
-
-@media (max-width: 520px) {
-    .tap-area::before {
-        background:
-            linear-gradient(rgba(8, 16, 26, 0.24), rgba(8, 16, 26, 0.40)),
-            radial-gradient(circle at center, rgba(108, 255, 125, 0.14) 0%, rgba(108, 255, 125, 0.07) 22%, rgba(108, 255, 125, 0.025) 42%, rgba(108, 255, 125, 0) 68%),
-            url("../assets/backgrounds/background_main.png") center center / 180% auto no-repeat;
-        opacity: 0.42;
-        filter: blur(7px) saturate(1.08);
-    }
-
-    .tap-area::after {
-        width: 280px;
-        height: 280px;
-        background: radial-gradient(circle, rgba(80, 255, 120, 0.08) 0%, rgba(80, 255, 120, 0.035) 34%, rgba(80, 255, 120, 0.01) 48%, rgba(80, 255, 120, 0) 72%);
-    }
-}
-
-/* =========================
-   SMALL MOBILE FIX
-========================= */
-
-@media (max-width: 380px) {
-    .tap-area::before {
-        background:
-            linear-gradient(rgba(8, 16, 26, 0.26), rgba(8, 16, 26, 0.42)),
-            radial-gradient(circle at center, rgba(108, 255, 125, 0.12) 0%, rgba(108, 255, 125, 0.06) 22%, rgba(108, 255, 125, 0.02) 42%, rgba(108, 255, 125, 0) 68%),
-            url("../assets/backgrounds/background_main.png") center center / 200% auto no-repeat;
-        opacity: 0.40;
-    }
-
-    .tap-area::after {
-        width: 240px;
-        height: 240px;
-    }
 }
