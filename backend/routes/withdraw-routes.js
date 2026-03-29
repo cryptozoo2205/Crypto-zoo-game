@@ -21,10 +21,15 @@ const {
     markWithdrawAsRejected,
     requireAdmin
 } = require("../services/withdraw-service");
+const {
+    notifyNewWithdraw,
+    notifyWithdrawPaid,
+    notifyWithdrawRejected
+} = require("../bot");
 
 const router = express.Router();
 
-router.post("/api/withdraw/request", (req, res) => {
+router.post("/api/withdraw/request", async (req, res) => {
     const db = readDb();
 
     const telegramId = safeString(req.body?.telegramId, "");
@@ -91,6 +96,12 @@ router.post("/api/withdraw/request", (req, res) => {
     db.players[telegramId] = normalizePlayer(player);
     writeDb(db);
 
+    try {
+        await notifyNewWithdraw(request);
+    } catch (error) {
+        console.error("notifyNewWithdraw failed:", error?.message || error);
+    }
+
     return res.json({
         ok: true,
         request,
@@ -118,7 +129,7 @@ router.get("/api/withdraw/:telegramId", (req, res) => {
     });
 });
 
-router.post("/api/withdraw/update", (req, res) => {
+router.post("/api/withdraw/update", async (req, res) => {
     if (!requireAdmin(req, res)) return;
 
     const db = readDb();
@@ -159,6 +170,18 @@ router.post("/api/withdraw/update", (req, res) => {
 
     db.players[player.telegramId] = normalizePlayer(player);
     writeDb(db);
+
+    try {
+        if (nextStatus === "paid") {
+            await notifyWithdrawPaid(request);
+        }
+
+        if (nextStatus === "rejected") {
+            await notifyWithdrawRejected(request);
+        }
+    } catch (error) {
+        console.error("withdraw notification failed:", error?.message || error);
+    }
 
     return res.json({
         ok: true,
