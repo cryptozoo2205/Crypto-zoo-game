@@ -134,11 +134,50 @@ function isTransactionSuccessful(tx) {
     return true;
 }
 
-function matchDepositToTransaction(deposit, tx) {
+function normalizeComment(value) {
+    return safeString(value, "");
+}
+
+function isTxHashAlreadyUsed(db, txHash, currentDepositId = "") {
+    const safeTxHash = safeString(txHash, "");
+    if (!safeTxHash) return false;
+
+    const deposits = Array.isArray(db?.deposits) ? db.deposits : [];
+
+    return deposits.some((deposit) => {
+        const depositTxHash = safeString(deposit?.txHash, "");
+        const depositId = safeString(deposit?.id, "");
+
+        if (!depositTxHash) return false;
+        if (depositId === String(currentDepositId || "")) return false;
+
+        return depositTxHash === safeTxHash;
+    });
+}
+
+function findApprovedDepositByComment(db, paymentComment, currentDepositId = "") {
+    const safeComment = normalizeComment(paymentComment);
+    if (!safeComment) return null;
+
+    const deposits = Array.isArray(db?.deposits) ? db.deposits : [];
+
+    return deposits.find((deposit) => {
+        const depositId = safeString(deposit?.id, "");
+        if (depositId === String(currentDepositId || "")) return false;
+
+        return (
+            normalizeDepositStatus(deposit?.status) === "approved" &&
+            normalizeComment(deposit?.paymentComment) === safeComment
+        );
+    }) || null;
+}
+
+function matchDepositToTransaction(db, deposit, tx) {
     if (!deposit || !tx) return false;
 
-    const depositComment = safeString(deposit.paymentComment, "");
-    const txComment = extractTransactionComment(tx);
+    const depositComment = normalizeComment(deposit.paymentComment);
+    const txComment = normalizeComment(extractTransactionComment(tx));
+    const txHash = extractTransactionHash(tx);
 
     if (!depositComment || !txComment) {
         return false;
@@ -159,24 +198,66 @@ function matchDepositToTransaction(deposit, tx) {
         return false;
     }
 
+    if (isTxHashAlreadyUsed(db, txHash, deposit.id)) {
+        return false;
+    }
+
+    const approvedWithSameComment = findApprovedDepositByComment(db, depositComment, deposit.id);
+    if (approvedWithSameComment) {
+        return false;
+    }
+
     return true;
 }
 
 function approveDepositInDb(db, deposit, tx) {
-    const player = getPlayerOrCreate(db, deposit.telegramId, deposit.username);
+    db.players = db.players && typeof db.players === "object" ? db.players : {};
+    db.deposits = Array.isArray(db.deposits) ? db.deposits : [];
 
-    deposit.status = "approved";
-    deposit.txHash = extractTransactionHash(tx);
-    deposit.note = safeString(deposit.note, "") || "TON verified";
-    deposit.updatedAt = Date.now();
+    const safeDeposit = deposit || {};
+    const txHash = extractTransactionHash(tx);
 
-    const gemsToAdd = Math.max(0, Number(deposit.gemsAmount) || 0);
+    if (!txHash) {
+        return {
+            ok: false,
+            error: "Missing transaction hash"
+        };
+    }
+
+    if (normalizeDepositStatus(safeDeposit.status) === "approved") {
+        const player = getPlayerOrCreate(db, safeDeposit.telegramId, safeDeposit.username);
+
+        return {
+            ok: true,
+            alreadyApproved: true,
+            deposit: safeDeposit,
+            player: normalizePlayer(player)
+        };
+    }
+
+    if (isTxHashAlreadyUsed(db, txHash, safeDeposit.id)) {
+        return {
+            ok: false,
+            duplicateTxHash: true,
+            error: "Transaction already used by another deposit"
+        };
+    }
+
+    const player = getPlayerOrCreate(db, safeDeposit.telegramId, safeDeposit.username);
+
+    safeDeposit.status = "approved";
+    safeDeposit.txHash = txHash;
+    safeDeposit.note = safeString(safeDeposit.note, "") || "TON verified";
+    safeDeposit.updatedAt = Date.now();
+
+    const gemsToAdd = Math.max(0, Number(safeDeposit.gemsAmount) || 0);
     player.gems = Math.max(0, Number(player.gems || 0) + gemsToAdd);
 
     db.players[player.telegramId] = normalizePlayer(player);
 
     return {
-        deposit,
+        ok: true,
+        deposit: safeDeposit,
         player: normalizePlayer(player)
     };
 }
@@ -193,7 +274,12 @@ async function verifySingleDepositById(depositId) {
     }
 
     if (!isDepositPendingLike(deposit)) {
-        return { ok: true, matched: false, alreadyProcessed: true, deposit };
+        return {
+            ok: true,
+            matched: false,
+            alreadyProcessed: true,
+            deposit
+        };
     }
 
     if (isDepositExpired(deposit)) {
@@ -210,20 +296,31 @@ async function verifySingleDepositById(depositId) {
     }
 
     const txs = await fetchTonTransactions(getReceiverWalletAddress(), 40);
-    const match = txs.find((tx) => matchDepositToTransaction(deposit, tx));
+    const match = txs.find((tx) => matchDepositToTransaction(db, deposit, tx));
 
     if (!match) {
         return { ok: true, matched: false, deposit };
     }
 
     const result = approveDepositInDb(db, deposit, match);
+
+    if (!result.ok) {
+        return {
+            ok: false,
+            error: result.error || "Deposit approval failed",
+            duplicateTxHash: !!result.duplicateTxHash,
+            deposit
+        };
+    }
+
     writeDb(db);
 
     return {
         ok: true,
         matched: true,
         deposit: result.deposit,
-        player: result.player
+        player: result.player,
+        alreadyApproved: !!result.alreadyApproved
     };
 }
 
@@ -245,6 +342,7 @@ async function verifyPendingDepositsForPlayer(telegramId) {
     const txs = await fetchTonTransactions(getReceiverWalletAddress(), 50);
 
     let matched = 0;
+    let skippedDuplicates = 0;
     let lastPlayer = null;
 
     deposits.forEach((deposit) => {
@@ -254,10 +352,18 @@ async function verifyPendingDepositsForPlayer(telegramId) {
             return;
         }
 
-        const match = txs.find((tx) => matchDepositToTransaction(deposit, tx));
+        const match = txs.find((tx) => matchDepositToTransaction(db, deposit, tx));
         if (!match) return;
 
         const result = approveDepositInDb(db, deposit, match);
+
+        if (!result.ok) {
+            if (result.duplicateTxHash) {
+                skippedDuplicates += 1;
+            }
+            return;
+        }
+
         matched += 1;
         lastPlayer = result.player;
     });
@@ -268,6 +374,7 @@ async function verifyPendingDepositsForPlayer(telegramId) {
         ok: true,
         checked: deposits.length,
         matched,
+        skippedDuplicates,
         player: lastPlayer
     };
 }
