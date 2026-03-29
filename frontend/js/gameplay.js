@@ -261,6 +261,11 @@ CryptoZoo.gameplay = {
             return false;
         }
 
+        const tapButton = document.getElementById("tapButton");
+        if (tapButton && (targetElement === tapButton || tapButton.contains(targetElement))) {
+            return false;
+        }
+
         if (
             targetElement.closest("#profileModal") ||
             targetElement.closest("#settingsModal") ||
@@ -268,9 +273,17 @@ CryptoZoo.gameplay = {
             targetElement.closest("#depositPaymentModal") ||
             targetElement.closest(".profile-modal") ||
             targetElement.closest(".profile-card") ||
-            targetElement.closest(".profile-backdrop") ||
-            targetElement.closest("button, a, input, textarea, select, label")
+            targetElement.closest(".profile-backdrop")
         ) {
+            return true;
+        }
+
+        if (targetElement.closest("a, input, textarea, select, label")) {
+            return true;
+        }
+
+        const closestButton = targetElement.closest("button");
+        if (closestButton && closestButton !== tapButton) {
             return true;
         }
 
