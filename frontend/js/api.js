@@ -13,6 +13,7 @@ window.CryptoZoo.api = {
 
         try {
             await this.loadPlayer();
+            await this.syncPendingDeposits(true);
         } catch (error) {
             console.error("API init load failed:", error);
             CryptoZoo.state = this.normalizeState(
@@ -1026,5 +1027,25 @@ window.CryptoZoo.api = {
                 telegramId: this.getPlayerId()
             })
         });
+    },
+
+    async syncPendingDeposits(silent = true) {
+        try {
+            const result = await this.verifyPendingDepositsForPlayer();
+
+            if ((Number(result?.matched) || 0) > 0 || result?.player) {
+                await this.loadPlayer();
+                CryptoZoo.ui?.render?.();
+
+                if (!silent) {
+                    CryptoZoo.ui?.showToast?.("✅ Wykryto i zatwierdzono wpłatę");
+                }
+            }
+
+            return result;
+        } catch (error) {
+            console.warn("Pending deposit sync failed:", error);
+            return null;
+        }
     }
 };
