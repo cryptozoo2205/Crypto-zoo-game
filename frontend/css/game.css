@@ -11,7 +11,7 @@
         linear-gradient(rgba(7, 14, 28, 0.42), rgba(7, 14, 28, 0.62)),
         radial-gradient(circle at 20% 30%, rgba(66, 220, 255, 0.10) 0%, rgba(66, 220, 255, 0) 28%),
         radial-gradient(circle at 72% 20%, rgba(255, 214, 102, 0.08) 0%, rgba(255, 214, 102, 0) 24%),
-        url("../assets/backgrounds/background_main.png") center center / cover no-repeat, 
+        url("../assets/backgrounds/background_main.png") center center / cover no-repeat,
         linear-gradient(180deg, rgba(20, 31, 56, 0.98) 0%, rgba(10, 17, 32, 0.98) 100%);
     border: 1px solid rgba(255,255,255,0.08);
     box-shadow:
@@ -355,7 +355,7 @@ main#game {
 
 .tap-area {
     width: 100%;
-    min-height: 328px;
+    min-height: 320px;
     position: relative;
     margin-top: 8px;
     margin-bottom: 6px;
@@ -366,14 +366,13 @@ main#game {
 .tap-area::before {
     content: "";
     position: absolute;
-    inset: 14px 10px;
-    border-radius: 42px;
+    inset: 18px 12px;
+    border-radius: 40px;
     background:
-        linear-gradient(rgba(8, 16, 26, 0.14), rgba(8, 16, 26, 0.22)),
-        radial-gradient(circle at center, rgba(108, 255, 125, 0.10) 0%, rgba(108, 255, 125, 0.05) 24%, rgba(108, 255, 125, 0.015) 44%, rgba(108, 255, 125, 0) 70%),
-        url("../assets/backgrounds/background_main.png") center center / 140% auto no-repeat;
-    opacity: 0.78;
-    filter: saturate(1.06) contrast(1.03);
+        linear-gradient(rgba(8, 16, 26, 0.10), rgba(8, 16, 26, 0.16)),
+        url("../assets/backgrounds/background_main.png") center center / cover no-repeat;
+    opacity: 0.92;
+    filter: saturate(1.04) contrast(1.02);
     pointer-events: none;
     z-index: 0;
 }
@@ -383,12 +382,12 @@ main#game {
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 320px;
-    height: 320px;
+    width: 300px;
+    height: 300px;
     transform: translate(-50%, -50%);
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(80, 255, 120, 0.09) 0%, rgba(80, 255, 120, 0.04) 36%, rgba(80, 255, 120, 0.012) 52%, rgba(80, 255, 120, 0) 74%);
-    filter: blur(10px);
+    background: radial-gradient(circle, rgba(80, 255, 120, 0.08) 0%, rgba(80, 255, 120, 0.03) 38%, rgba(80, 255, 120, 0.00) 72%);
+    filter: blur(8px);
     pointer-events: none;
     z-index: 0;
 }
@@ -397,12 +396,12 @@ main#game {
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 290px;
-    height: 290px;
+    width: 250px;
+    height: 250px;
     transform: translate(-50%, -50%);
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(112, 255, 120, 0.18) 0%, rgba(112, 255, 120, 0.08) 44%, rgba(112, 255, 120, 0.02) 60%, rgba(112, 255, 120, 0) 76%);
-    filter: blur(10px);
+    background: radial-gradient(circle, rgba(112, 255, 120, 0.16) 0%, rgba(112, 255, 120, 0.07) 46%, rgba(112, 255, 120, 0.00) 74%);
+    filter: blur(8px);
     animation: tapPulse 2.2s ease-in-out infinite;
     pointer-events: none;
     z-index: 1;
@@ -412,19 +411,23 @@ main#game {
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 224px;
-    height: 224px;
+    width: 210px;
+    height: 210px;
     margin: 0;
     border: none;
     border-radius: 50%;
     cursor: pointer;
     padding: 0;
     outline: none;
-    background: url("../assets/buttons/tap_button_main.png") center center / 106% 106% no-repeat;
+    background-color: transparent;
+    background-image: url("../assets/buttons/tap_button_main.png");
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: contain;
     box-shadow:
-        0 0 0 10px rgba(255,255,255,0.03),
-        0 0 28px rgba(91, 255, 110, 0.18),
-        0 14px 30px rgba(0, 0, 0, 0.22);
+        0 0 0 8px rgba(255,255,255,0.03),
+        0 0 22px rgba(91, 255, 110, 0.16),
+        0 12px 26px rgba(0, 0, 0, 0.22);
     overflow: visible;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
@@ -437,9 +440,9 @@ main#game {
 .tap-button::before {
     content: "";
     position: absolute;
-    inset: 18%;
+    inset: 14%;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(119,255,129,0.16) 0%, rgba(119,255,129,0.06) 55%, rgba(119,255,129,0) 100%);
+    background: radial-gradient(circle, rgba(119,255,129,0.14) 0%, rgba(119,255,129,0.05) 58%, rgba(119,255,129,0) 100%);
     z-index: -1;
     pointer-events: none;
 }
@@ -447,15 +450,15 @@ main#game {
 .tap-button::after {
     content: "";
     position: absolute;
-    inset: -12px;
+    inset: -10px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(255, 224, 122, 0.08) 0%, rgba(255, 224, 122, 0.03) 45%, rgba(255, 224, 122, 0) 72%);
+    background: radial-gradient(circle, rgba(255, 224, 122, 0.06) 0%, rgba(255, 224, 122, 0.02) 45%, rgba(255, 224, 122, 0) 72%);
     pointer-events: none;
 }
 
 .tap-button:active {
-    transform: translate(-50%, -50%) scale(0.94);
-    filter: brightness(0.95);
+    transform: translate(-50%, -50%) scale(0.95);
+    filter: brightness(0.96);
 }
 
 .tap-button.tap-hit {
@@ -486,6 +489,85 @@ main#game {
 
 .home-tap-premium-strip {
     display: none !important;
+}
+
+/* TAP FX */
+
+.coin-pop {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 30px;
+    font-weight: 900;
+    line-height: 1;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 12;
+    color: #ffd54f;
+    text-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.32),
+        0 0 14px rgba(255, 213, 79, 0.20);
+    white-space: nowrap;
+}
+
+.coin-pop.animate {
+    animation: coinFloatCentered 0.85s ease-out forwards;
+}
+
+.coin-pop.boost-pop {
+    color: #ffe88b;
+    text-shadow:
+        0 2px 10px rgba(0, 0, 0, 0.32),
+        0 0 18px rgba(255, 216, 76, 0.34),
+        0 0 30px rgba(255, 196, 0, 0.20);
+    animation: coinFloatBoostCentered 0.95s ease-out forwards;
+}
+
+.tap-spark {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 11;
+    background: radial-gradient(circle, rgba(255,245,180,0.95) 0%, rgba(255,210,80,0.9) 55%, rgba(255,210,80,0) 100%);
+    box-shadow: 0 0 12px rgba(255, 214, 102, 0.28);
+    animation: sparkFlyCentered 0.6s ease-out forwards;
+}
+
+.tap-flash {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 210px;
+    height: 210px;
+    transform: translate(-50%, -50%) scale(0.7);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+    background: radial-gradient(circle, rgba(255,235,150,0.28) 0%, rgba(255,220,120,0.12) 42%, rgba(255,220,120,0) 72%);
+    filter: blur(2px);
+}
+
+.tap-flash.animate {
+    animation: tapFlashBurst 0.32s ease-out forwards;
+}
+
+.screen-boost-flash {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 40;
+    background: radial-gradient(circle at center, rgba(255, 224, 122, 0.16) 0%, rgba(255, 224, 122, 0.05) 28%, rgba(255, 224, 122, 0) 58%);
+    opacity: 0;
+}
+
+.screen-boost-flash.active {
+    animation: boostFlash 0.24s ease-out forwards;
 }
 
 /* INCOME + BOOST */
@@ -835,7 +917,7 @@ main#game {
     }
 }
 
-@keyframes coinFloat {
+@keyframes coinFloatCentered {
     0% {
         opacity: 0;
         transform: translate(-50%, -50%) scale(0.75);
@@ -846,11 +928,11 @@ main#game {
     }
     100% {
         opacity: 0;
-        transform: translate(calc(-50% + var(--moveX)), calc(-50% + var(--moveY))) scale(1.08);
+        transform: translate(-50%, calc(-50% - 70px)) scale(1.06);
     }
 }
 
-@keyframes coinFloatBoost {
+@keyframes coinFloatBoostCentered {
     0% {
         opacity: 0;
         transform: translate(-50%, -50%) scale(0.70);
@@ -861,11 +943,11 @@ main#game {
     }
     100% {
         opacity: 0;
-        transform: translate(calc(-50% + var(--moveX)), calc(-50% + calc(var(--moveY) - 18px))) scale(1.18);
+        transform: translate(-50%, calc(-50% - 90px)) scale(1.14);
     }
 }
 
-@keyframes sparkFly {
+@keyframes sparkFlyCentered {
     0% {
         opacity: 1;
         transform: translate(-50%, -50%) scale(0.7);
@@ -881,7 +963,7 @@ main#game {
         transform: translate(-50%, -50%) scale(1);
     }
     50% {
-        transform: translate(-50%, -50%) scale(0.93);
+        transform: translate(-50%, -50%) scale(0.95);
     }
     100% {
         transform: translate(-50%, -50%) scale(1);
@@ -1033,36 +1115,35 @@ main#game {
     }
 
     .tap-area {
-        min-height: 268px;
+        min-height: 280px;
         margin-top: 6px;
     }
 
     .tap-area::before {
-        inset: 12px 6px;
+        inset: 12px 8px;
         background:
-            linear-gradient(rgba(8, 16, 26, 0.16), rgba(8, 16, 26, 0.24)),
-            radial-gradient(circle at center, rgba(108, 255, 125, 0.09) 0%, rgba(108, 255, 125, 0.04) 24%, rgba(108, 255, 125, 0.012) 44%, rgba(108, 255, 125, 0) 70%),
-            url("../assets/backgrounds/background_main.png") center center / 165% auto no-repeat;
-        opacity: 0.74;
-        filter: saturate(1.04) contrast(1.02);
+            linear-gradient(rgba(8, 16, 26, 0.10), rgba(8, 16, 26, 0.16)),
+            url("../assets/backgrounds/background_main.png") center center / cover no-repeat;
+        opacity: 0.88;
+        filter: saturate(1.03) contrast(1.01);
     }
 
     .tap-area::after {
-        width: 270px;
-        height: 270px;
-        filter: blur(9px);
+        width: 260px;
+        height: 260px;
+        filter: blur(8px);
     }
 
     .tap-glow {
-        width: 250px;
-        height: 250px;
-        filter: blur(9px);
+        width: 230px;
+        height: 230px;
+        filter: blur(8px);
     }
 
     .tap-button {
         width: 190px;
         height: 190px;
-        background-size: 106% 106%;
+        background-size: contain;
     }
 
     .home-tap-title {
@@ -1071,6 +1152,10 @@ main#game {
 
     .home-tap-subtitle {
         font-size: 12px;
+    }
+
+    .coin-pop {
+        font-size: 24px;
     }
 
     .home-income-row-card,
@@ -1171,10 +1256,6 @@ main#game {
         width: 178px;
         height: 178px;
     }
-
-    .coin-pop {
-        font-size: 24px;
-    }
 }
 
 @media (max-width: 380px) {
@@ -1240,32 +1321,31 @@ main#game {
     }
 
     .tap-area {
-        min-height: 244px;
+        min-height: 252px;
     }
 
     .tap-area::before {
-        inset: 10px 4px;
+        inset: 10px 6px;
         background:
-            linear-gradient(rgba(8, 16, 26, 0.18), rgba(8, 16, 26, 0.26)),
-            radial-gradient(circle at center, rgba(108, 255, 125, 0.08) 0%, rgba(108, 255, 125, 0.035) 24%, rgba(108, 255, 125, 0.01) 44%, rgba(108, 255, 125, 0) 70%),
-            url("../assets/backgrounds/background_main.png") center center / 178% auto no-repeat;
-        opacity: 0.70;
+            linear-gradient(rgba(8, 16, 26, 0.10), rgba(8, 16, 26, 0.16)),
+            url("../assets/backgrounds/background_main.png") center center / cover no-repeat;
+        opacity: 0.86;
     }
 
     .tap-area::after {
-        width: 230px;
-        height: 230px;
-    }
-
-    .tap-glow {
         width: 220px;
         height: 220px;
     }
 
+    .tap-glow {
+        width: 200px;
+        height: 200px;
+    }
+
     .tap-button {
-        width: 176px;
-        height: 176px;
-        background-size: 106% 106%;
+        width: 172px;
+        height: 172px;
+        background-size: contain;
     }
 
     .home-income-row-card,
