@@ -233,6 +233,50 @@ CryptoZoo.gameplay = {
         );
     },
 
+    isAnyBlockingModalOpen() {
+        const blockingIds = [
+            "profileModal",
+            "settingsModal",
+            "dailyRewardModal",
+            "depositPaymentModal"
+        ];
+
+        return blockingIds.some((id) => {
+            const el = document.getElementById(id);
+            return el && !el.classList.contains("hidden");
+        });
+    },
+
+    isInteractiveBlocked(target) {
+        if (this.activeScreen !== "game") {
+            return true;
+        }
+
+        if (this.isAnyBlockingModalOpen()) {
+            return true;
+        }
+
+        const targetElement = target instanceof Element ? target : null;
+        if (!targetElement) {
+            return false;
+        }
+
+        if (
+            targetElement.closest("#profileModal") ||
+            targetElement.closest("#settingsModal") ||
+            targetElement.closest("#dailyRewardModal") ||
+            targetElement.closest("#depositPaymentModal") ||
+            targetElement.closest(".profile-modal") ||
+            targetElement.closest(".profile-card") ||
+            targetElement.closest(".profile-backdrop") ||
+            targetElement.closest("button, a, input, textarea, select, label")
+        ) {
+            return true;
+        }
+
+        return false;
+    },
+
     bindTap() {
         const tapButton = document.getElementById("tapButton");
         if (!tapButton || tapButton.dataset.tapBound === "1") return;
@@ -245,6 +289,7 @@ CryptoZoo.gameplay = {
         tapButton.onclick = (e) => {
             e?.preventDefault?.();
 
+            if (this.isInteractiveBlocked(e?.target)) return;
             if (Date.now() < this.suppressClickUntil) return;
             if (this.touchBurstActive) return;
 
@@ -253,6 +298,8 @@ CryptoZoo.gameplay = {
         };
 
         const onTouchStart = (e) => {
+            if (this.isInteractiveBlocked(e?.target)) return;
+
             const changedTouches = Array.from(e.changedTouches || []);
             if (!changedTouches.length) return;
 
@@ -280,6 +327,8 @@ CryptoZoo.gameplay = {
         };
 
         const onTouchMove = (e) => {
+            if (this.isInteractiveBlocked(e?.target)) return;
+
             const touches = Array.from(e.touches || []);
             const hasTrackedTouch = touches.some((touch) =>
                 this.tapTouchIds.has(String(touch.identifier))
