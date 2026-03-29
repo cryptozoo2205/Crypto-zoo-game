@@ -1,9 +1,9 @@
 const { readDb, writeDb } = require("../db/db");
 const { normalizeRewardNumber, safeString } = require("../utils/helpers");
 const { getPlayerOrCreate, normalizePlayer } = require("./player-service");
+const { TON_RECEIVER_WALLET } = require("./deposit-service");
 
 const TONCENTER_BASE_URL = "https://toncenter.com/api/v2";
-const TON_RECEIVER_WALLET = "UQBTjBORP2cXRNE_hakpG-2DZlBn0uUWME8tKhi7HCcynER5";
 
 function getReceiverWalletAddress() {
     return safeString(
@@ -170,10 +170,8 @@ function approveDepositInDb(db, deposit, tx) {
     deposit.note = safeString(deposit.note, "") || "TON verified";
     deposit.updatedAt = Date.now();
 
-    player.gems = Math.max(
-        0,
-        Number(player.gems || 0) + Math.max(0, Number(deposit.gemsAmount) || 0)
-    );
+    const gemsToAdd = Math.max(0, Number(deposit.gemsAmount) || 0);
+    player.gems = Math.max(0, Number(player.gems || 0) + gemsToAdd);
 
     db.players[player.telegramId] = normalizePlayer(player);
 
@@ -189,7 +187,7 @@ async function verifySingleDepositById(depositId) {
 
     markExpiredDeposits(db);
 
-    const deposit = db.deposits.find((item) => item.id === depositId);
+    const deposit = db.deposits.find((item) => String(item.id) === String(depositId));
     if (!deposit) {
         return { ok: false, error: "Deposit not found", deposit: null };
     }
@@ -202,7 +200,13 @@ async function verifySingleDepositById(depositId) {
         deposit.status = "expired";
         deposit.updatedAt = Date.now();
         writeDb(db);
-        return { ok: true, matched: false, expired: true, deposit };
+
+        return {
+            ok: true,
+            matched: false,
+            expired: true,
+            deposit
+        };
     }
 
     const txs = await fetchTonTransactions(getReceiverWalletAddress(), 40);
