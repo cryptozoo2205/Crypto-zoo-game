@@ -4,6 +4,10 @@ CryptoZoo.depositUI = {
     currentDepositData: null,
     isCreatingDeposit: false,
     isOpeningWallet: false,
+    isVerifyingDeposit: false,
+    verifyIntervalId: null,
+    verifyTimeoutId: null,
+    resumeEventsBound: false,
 
     getTelegramWebApp() {
         return window.Telegram?.WebApp || null;
@@ -92,7 +96,7 @@ CryptoZoo.depositUI = {
 
                     <div class="profile-user-meta">
                         <div class="profile-name">Deposit TON</div>
-                        <div class="profile-subtitle">Skopiuj dane lub otwórz portfel</div>
+                        <div class="profile-subtitle">Skopiuj dane, wyślij TON i wróć do gry</div>
                     </div>
                 </div>
 
@@ -138,12 +142,25 @@ CryptoZoo.depositUI = {
                     </div>
                 </div>
 
+                <div class="profile-boost-row" style="margin-top:12px;">
+                    <div class="profile-boost-left" style="width:100%;">
+                        <div class="profile-boost-label">Ważne</div>
+                        <div class="profile-boost-value" style="margin-top:6px; font-size:13px; line-height:1.5;">
+                            Wyślij dokładną kwotę i dokładnie ten komentarz. Po powrocie do gry system sam sprawdzi wpłatę.
+                        </div>
+                    </div>
+                </div>
+
                 <button id="depositCopyAllBtn" class="profile-close-btn" type="button" style="margin-top:12px;">
                     Kopiuj wszystko
                 </button>
 
                 <button id="depositOpenWalletBtn" class="profile-close-btn" type="button">
                     Otwórz portfel
+                </button>
+
+                <button id="depositVerifyBtn" class="profile-close-btn" type="button">
+                    Sprawdź wpłatę
                 </button>
 
                 <button id="depositCloseBtn" class="profile-close-btn" type="button">
@@ -168,6 +185,7 @@ CryptoZoo.depositUI = {
         const copyCommentBtn = document.getElementById("depositCopyCommentBtn");
         const copyAllBtn = document.getElementById("depositCopyAllBtn");
         const openWalletBtn = document.getElementById("depositOpenWalletBtn");
+        const verifyBtn = document.getElementById("depositVerifyBtn");
 
         if (modal && !modal.dataset.boundModal) {
             modal.dataset.boundModal = "1";
@@ -266,6 +284,15 @@ CryptoZoo.depositUI = {
                 await this.openWallet();
             });
         }
+
+        if (verifyBtn && !verifyBtn.dataset.bound) {
+            verifyBtn.dataset.bound = "1";
+            verifyBtn.addEventListener("click", async (event) => {
+                this.stopEvent(event);
+                CryptoZoo.audio?.play?.("click");
+                await this.verifyCurrentDeposit(false);
+            });
+        }
     },
 
     fillModalData() {
@@ -300,6 +327,129 @@ CryptoZoo.depositUI = {
         document.getElementById("depositPaymentModal")?.classList.add("hidden");
     },
 
+    bindResumeEvents() {
+        if (this.resumeEventsBound) {
+            return;
+        }
+
+        this.resumeEventsBound = true;
+
+        window.addEventListener("focus", () => {
+            this.verifyCurrentDeposit(true);
+        });
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") {
+                this.verifyCurrentDeposit(true);
+            }
+        });
+    },
+
+    stopVerifyWatcher() {
+        if (this.verifyIntervalId) {
+            clearInterval(this.verifyIntervalId);
+            this.verifyIntervalId = null;
+        }
+
+        if (this.verifyTimeoutId) {
+            clearTimeout(this.verifyTimeoutId);
+            this.verifyTimeoutId = null;
+        }
+    },
+
+    startVerifyWatcher() {
+        this.stopVerifyWatcher();
+        this.bindResumeEvents();
+
+        this.verifyIntervalId = setInterval(() => {
+            this.verifyCurrentDeposit(true);
+        }, 5000);
+
+        this.verifyTimeoutId = setTimeout(() => {
+            this.stopVerifyWatcher();
+        }, 120000);
+    },
+
+    async refreshPlayerAndUi(successMessage = "") {
+        try {
+            await CryptoZoo.api?.loadPlayer?.();
+        } catch (error) {
+            console.warn("Player reload after deposit failed:", error);
+        }
+
+        CryptoZoo.ui?.render?.();
+        CryptoZoo.ui?.renderProfile?.();
+        CryptoZoo.ui?.renderWithdrawHistory?.();
+        CryptoZoo.ui?.renderDepositHistory?.();
+        CryptoZoo.ui?.renderDepositsHistory?.();
+
+        if (successMessage) {
+            CryptoZoo.ui?.showToast?.(successMessage);
+        }
+    },
+
+    async verifyCurrentDeposit(silent = true) {
+        if (this.isVerifyingDeposit) {
+            return false;
+        }
+
+        if (!CryptoZoo.api?.verifyDepositById || !CryptoZoo.api?.verifyPendingDepositsForPlayer) {
+            return false;
+        }
+
+        this.isVerifyingDeposit = true;
+
+        try {
+            let result = null;
+            const depositId = String(this.currentDepositData?.depositId || "").trim();
+
+            if (depositId) {
+                result = await CryptoZoo.api.verifyDepositById(depositId);
+            } else {
+                result = await CryptoZoo.api.verifyPendingDepositsForPlayer();
+            }
+
+            const deposit = result?.deposit || null;
+            const matched = !!result?.matched;
+            const expired = !!result?.expired;
+            const alreadyProcessed = !!result?.alreadyProcessed;
+            const approved =
+                String(deposit?.status || "").toLowerCase() === "approved" ||
+                matched;
+
+            if (approved || alreadyProcessed || result?.player) {
+                this.stopVerifyWatcher();
+                await this.refreshPlayerAndUi("✅ Depozyt zatwierdzony, gems dodane");
+                this.closeDepositModal();
+                return true;
+            }
+
+            if (expired) {
+                this.stopVerifyWatcher();
+                if (!silent) {
+                    CryptoZoo.ui?.showToast?.("Ten depozyt wygasł");
+                }
+                return false;
+            }
+
+            if (!silent) {
+                CryptoZoo.ui?.showToast?.("Wpłata jeszcze niepotwierdzona");
+            }
+
+            return false;
+        } catch (error) {
+            console.error("Verify deposit error:", error);
+
+            if (!silent) {
+                CryptoZoo.ui?.showToast?.(error.message || "Nie udało się sprawdzić wpłaty");
+            }
+
+            return false;
+        } finally {
+            this.isVerifyingDeposit = false;
+        }
+    },
+
     async openWallet() {
         if (this.isOpeningWallet) {
             return false;
@@ -328,12 +478,15 @@ CryptoZoo.depositUI = {
 
             const tg = this.getTelegramWebApp();
 
+            this.startVerifyWatcher();
+
             if (tg?.openLink) {
                 tg.openLink(universalLink);
             } else {
                 window.open(universalLink, "_blank");
             }
 
+            CryptoZoo.ui?.showToast?.("Po wysłaniu TON wróć do gry — system sprawdzi wpłatę");
             return true;
         } catch (error) {
             console.error("Open wallet error:", error);
@@ -388,6 +541,7 @@ CryptoZoo.depositUI = {
                 comment: paymentComment
             };
 
+            this.bindResumeEvents();
             this.showDepositModal();
             CryptoZoo.ui?.showToast?.(`Deposit ${paymentAmount.toFixed(3)} TON utworzony`);
 
