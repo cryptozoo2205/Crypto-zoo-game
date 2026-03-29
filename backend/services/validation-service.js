@@ -42,14 +42,6 @@ function sanitizeRewardState(oldPlayer, newPlayer) {
         safePlayer.withdrawPending = oldSafe.withdrawPending;
     }
 
-    if (safePlayer.rewardBalance < oldSafe.rewardBalance) {
-        safePlayer.rewardBalance = oldSafe.rewardBalance;
-    }
-
-    if (safePlayer.rewardWallet < oldSafe.rewardWallet) {
-        safePlayer.rewardWallet = oldSafe.rewardWallet;
-    }
-
     safePlayer.rewardBalance = clamp(
         normalizeRewardNumber(safePlayer.rewardBalance, oldSafe.rewardBalance),
         0,
@@ -135,11 +127,11 @@ function validateProgress(oldPlayer, newPlayer) {
         newPlayer.level = oldSafe.level;
     }
 
-    if (newPlayer.coins < oldSafe.coins) {
+    if (newPlayer.coins < 0) {
         newPlayer.coins = oldSafe.coins;
     }
 
-    if (newPlayer.gems < oldSafe.gems) {
+    if (newPlayer.gems < 0) {
         newPlayer.gems = oldSafe.gems;
     }
 
@@ -147,7 +139,7 @@ function validateProgress(oldPlayer, newPlayer) {
         newPlayer.level = oldSafe.level;
     }
 
-    if (newPlayer.xp < oldSafe.xp) {
+    if (newPlayer.xp < oldSafe.xp && oldSafe.xp - newPlayer.xp > 5000) {
         newPlayer.xp = oldSafe.xp;
     }
 
