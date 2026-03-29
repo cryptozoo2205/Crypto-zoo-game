@@ -5,9 +5,20 @@ const { LIMITS } = require("../config/game-config");
 const { safeString, clamp, normalizeRewardNumber } = require("../utils/helpers");
 const { getPlayerOrCreate, normalizePlayer } = require("../services/player-service");
 const {
+    WITHDRAW_RATE_USD,
+    MIN_WITHDRAW_REWARD,
+    MIN_WITHDRAW_LEVEL,
+    MIN_ACCOUNT_AGE_MS,
     createWithdrawRequest,
     getPendingWithdrawsForPlayer,
     getLatestWithdrawForPlayer,
+    findWithdrawById,
+    validateWithdrawRequest,
+    applyCreateWithdrawToPlayer,
+    applyPaidWithdrawToPlayer,
+    applyRejectedWithdrawToPlayer,
+    markWithdrawAsPaid,
+    markWithdrawAsRejected,
     requireAdmin
 } = require("../services/withdraw-service");
 
@@ -18,19 +29,21 @@ router.post("/api/withdraw/request", (req, res) => {
 
     const telegramId = safeString(req.body?.telegramId, "");
     const username = safeString(req.body?.username, "Gracz");
-    const amount = clamp(
-        normalizeRewardNumber(req.body?.amount, 0),
-        0,
-        LIMITS.MAX_WITHDRAW
-    );
+    const rawAmount = normalizeRewardNumber(req.body?.amount, 0);
 
     if (!telegramId) {
         return res.status(400).json({ error: "Missing telegramId" });
     }
 
-    if (amount < LIMITS.MIN_WITHDRAW) {
+    const amount = clamp(rawAmount, 0, LIMITS.MAX_WITHDRAW);
+
+    if (amount <= 0) {
+        return res.status(400).json({ error: "Invalid withdraw amount" });
+    }
+
+    if (amount < MIN_WITHDRAW_REWARD) {
         return res.status(400).json({
-            error: `Minimum withdraw is ${LIMITS.MIN_WITHDRAW.toFixed(3)} reward`
+            error: `Minimum withdraw is ${MIN_WITHDRAW_REWARD.toFixed(3)} reward`
         });
     }
 
@@ -59,23 +72,14 @@ router.post("/api/withdraw/request", (req, res) => {
         });
     }
 
-    if (normalizeRewardNumber(player.rewardWallet, 0) < amount) {
+    const validation = validateWithdrawRequest(db, player, amount);
+    if (!validation.ok) {
         return res.status(400).json({
-            error: "Not enough rewardWallet balance"
+            error: validation.error
         });
     }
 
-    player.rewardWallet = clamp(
-        normalizeRewardNumber(player.rewardWallet - amount, 0),
-        0,
-        LIMITS.MAX_REWARD_WALLET
-    );
-
-    player.withdrawPending = clamp(
-        normalizeRewardNumber(player.withdrawPending + amount, 0),
-        0,
-        LIMITS.MAX_WITHDRAW_PENDING
-    );
+    applyCreateWithdrawToPlayer(player, amount);
 
     const request = createWithdrawRequest({
         telegramId,
@@ -90,7 +94,13 @@ router.post("/api/withdraw/request", (req, res) => {
     return res.json({
         ok: true,
         request,
-        player: normalizePlayer(player)
+        player: normalizePlayer(player),
+        payoutConfig: {
+            rewardToUsdRate: WITHDRAW_RATE_USD,
+            minWithdrawReward: MIN_WITHDRAW_REWARD,
+            minWithdrawLevel: MIN_WITHDRAW_LEVEL,
+            minAccountAgeMs: MIN_ACCOUNT_AGE_MS
+        }
     });
 });
 
@@ -99,10 +109,13 @@ router.get("/api/withdraw/:telegramId", (req, res) => {
     const telegramId = String(req.params.telegramId || "");
 
     const requests = db.withdrawRequests
-        .filter((item) => String(item.telegramId) === telegramId)
+        .filter((item) => String(item.telegramId || "") === telegramId)
         .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
 
-    res.json({ requests });
+    res.json({
+        ok: true,
+        requests
+    });
 });
 
 router.post("/api/withdraw/update", (req, res) => {
@@ -118,52 +131,36 @@ router.post("/api/withdraw/update", (req, res) => {
         return res.status(400).json({ error: "Missing requestId" });
     }
 
-    if (!["approved", "rejected"].includes(nextStatus)) {
+    if (!["paid", "rejected"].includes(nextStatus)) {
         return res.status(400).json({ error: "Invalid status" });
     }
 
-    const request = db.withdrawRequests.find((item) => item.id === requestId);
+    const request = findWithdrawById(db, requestId);
 
     if (!request) {
         return res.status(404).json({ error: "Withdraw request not found" });
     }
 
-    if (request.status !== "pending") {
+    if (String(request.status || "pending").toLowerCase() !== "pending") {
         return res.status(400).json({ error: "Request already processed" });
     }
 
     const player = getPlayerOrCreate(db, request.telegramId, request.username);
-    const amount = normalizeRewardNumber(request.amount, 0);
 
-    request.status = nextStatus;
-    request.note = note;
-    request.updatedAt = Date.now();
-
-    if (nextStatus === "approved") {
-        player.withdrawPending = clamp(
-            normalizeRewardNumber(player.withdrawPending - amount, 0),
-            0,
-            LIMITS.MAX_WITHDRAW_PENDING
-        );
+    if (nextStatus === "paid") {
+        applyPaidWithdrawToPlayer(player, request);
+        markWithdrawAsPaid(request, note);
     }
 
     if (nextStatus === "rejected") {
-        player.withdrawPending = clamp(
-            normalizeRewardNumber(player.withdrawPending - amount, 0),
-            0,
-            LIMITS.MAX_WITHDRAW_PENDING
-        );
-        player.rewardWallet = clamp(
-            normalizeRewardNumber(player.rewardWallet + amount, 0),
-            0,
-            LIMITS.MAX_REWARD_WALLET
-        );
+        applyRejectedWithdrawToPlayer(player, request);
+        markWithdrawAsRejected(request, note);
     }
 
     db.players[player.telegramId] = normalizePlayer(player);
     writeDb(db);
 
-    res.json({
+    return res.json({
         ok: true,
         request,
         player: normalizePlayer(player)
