@@ -232,18 +232,21 @@ CryptoZoo.ui = {
         area.style.position = "relative";
 
         const clickValue =
-            CryptoZoo.gameplay?.getEffectiveCoinsPerClick?.(tapCount) ||
+            CryptoZoo.gameplay?.getEffectiveCoinsPerClick?.() ||
             Number(CryptoZoo.state?.coinsPerClick) ||
             Number(CryptoZoo.config?.clickValue) ||
             1;
+
+        const safeTapCount = Math.max(1, Math.floor(Number(tapCount) || 1));
+        const totalDisplayValue = clickValue * safeTapCount;
 
         const boostActive = (CryptoZoo.boostSystem?.getMultiplier?.() || 1) > 1;
 
         const pop = document.createElement("div");
         pop.className = `coin-pop${boostActive ? " boost-pop" : ""}`;
-        pop.textContent = "+" + CryptoZoo.formatNumber(clickValue);
+        pop.textContent = "+" + CryptoZoo.formatNumber(totalDisplayValue);
 
-        const offsetX = Math.floor(Math.random() * 80) - 40;
+        const offsetX = Math.floor(Math.random() * 40) - 20;
         const offsetY = boostActive
             ? -110 - Math.floor(Math.random() * 26)
             : -90 - Math.floor(Math.random() * 20);
