@@ -1274,3 +1274,114 @@ main#game {
 .screen {
     padding-bottom: 0;
 }
+
+/* =========================
+   FINAL TAP BACKGROUND FIX
+========================= */
+
+.tap-area::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(rgba(8, 16, 26, 0.22), rgba(8, 16, 26, 0.38)),
+        radial-gradient(circle at center, rgba(108, 255, 125, 0.16) 0%, rgba(108, 255, 125, 0.08) 22%, rgba(108, 255, 125, 0.03) 42%, rgba(108, 255, 125, 0) 68%),
+        url("../assets/backgrounds/background_main.png") center center / 155% auto no-repeat;
+    opacity: 0.45;
+    filter: blur(7px) saturate(1.12);
+    pointer-events: none;
+    z-index: 0;
+    border-radius: 50px;
+}
+
+.tap-area::after {
+    content: "";
+    position: absolute;
+    width: 340px;
+    height: 340px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(80, 255, 120, 0.10) 0%, rgba(80, 255, 120, 0.05) 34%, rgba(80, 255, 120, 0.015) 48%, rgba(80, 255, 120, 0) 72%);
+    filter: blur(16px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* =========================
+   BOOST BUTTON IMPROVE
+========================= */
+
+.home-boost-button {
+    border-radius: 999px !important;
+    padding: 8px 16px !important;
+    font-size: 13px !important;
+    min-width: 100px !important;
+}
+
+.home-boost-button.boost-active {
+    animation: boostPulse 1.2s ease-in-out infinite;
+    box-shadow:
+        0 0 22px rgba(255, 200, 0, 0.35),
+        0 8px 18px rgba(255, 191, 0, 0.26);
+}
+
+/* =========================
+   BOOST STATUS LOOK
+========================= */
+
+.home-boost-status {
+    background: rgba(60, 70, 95, 0.55) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+}
+
+.home-boost-status.boost-active {
+    background: linear-gradient(180deg, #fff0a5 0%, #ffd54d 100%) !important;
+    color: #1b1b1b !important;
+}
+
+/* =========================
+   REMOVE OLD PREMIUM STRIP
+========================= */
+
+.home-tap-premium-strip {
+    display: none !important;
+}
+
+/* =========================
+   MOBILE FIX
+========================= */
+
+@media (max-width: 520px) {
+    .tap-area::before {
+        background:
+            linear-gradient(rgba(8, 16, 26, 0.24), rgba(8, 16, 26, 0.40)),
+            radial-gradient(circle at center, rgba(108, 255, 125, 0.14) 0%, rgba(108, 255, 125, 0.07) 22%, rgba(108, 255, 125, 0.025) 42%, rgba(108, 255, 125, 0) 68%),
+            url("../assets/backgrounds/background_main.png") center center / 180% auto no-repeat;
+        opacity: 0.42;
+        filter: blur(7px) saturate(1.08);
+    }
+
+    .tap-area::after {
+        width: 280px;
+        height: 280px;
+        background: radial-gradient(circle, rgba(80, 255, 120, 0.08) 0%, rgba(80, 255, 120, 0.035) 34%, rgba(80, 255, 120, 0.01) 48%, rgba(80, 255, 120, 0) 72%);
+    }
+}
+
+/* =========================
+   SMALL MOBILE FIX
+========================= */
+
+@media (max-width: 380px) {
+    .tap-area::before {
+        background:
+            linear-gradient(rgba(8, 16, 26, 0.26), rgba(8, 16, 26, 0.42)),
+            radial-gradient(circle at center, rgba(108, 255, 125, 0.12) 0%, rgba(108, 255, 125, 0.06) 22%, rgba(108, 255, 125, 0.02) 42%, rgba(108, 255, 125, 0) 68%),
+            url("../assets/backgrounds/background_main.png") center center / 200% auto no-repeat;
+        opacity: 0.40;
+    }
+
+    .tap-area::after {
+        width: 240px;
+        height: 240px;
+    }
+}
