@@ -1003,4 +1003,27 @@ window.CryptoZoo.api = {
             return [];
         }
     }
+async verifyDepositById(depositId) {
+        const safeDepositId = String(depositId || "").trim();
+
+        if (!safeDepositId) {
+            throw new Error("Missing depositId");
+        }
+
+        return this.request("/deposit/verify", {
+            method: "POST",
+            body: JSON.stringify({
+                depositId: safeDepositId
+            })
+        });
+    },
+
+    async verifyPendingDepositsForPlayer() {
+        return this.request("/deposit/verify-player", {
+            method: "POST",
+            body: JSON.stringify({
+                telegramId: this.getPlayerId()
+            })
+        });
+    }
 };
