@@ -880,3 +880,57 @@ main#game {
 .screen {
     padding-bottom: 0;
 }
+
+/* =========================
+   FORCE FIX INCOME PANEL
+========================= */
+
+.home-income-row-card {
+    max-width: 380px !important;
+    padding: 10px 12px !important;
+    gap: 8px !important;
+    border-radius: 14px !important;
+}
+
+.home-income-row-divider {
+    height: 34px !important;
+    min-height: 34px !important;
+}
+
+.home-income-label {
+    font-size: 10px !important;
+}
+
+.home-income-value {
+    margin-top: 2px !important;
+    font-size: 11px !important;
+    font-weight: 900 !important;
+    color: #58f76c !important;
+    line-height: 1 !important;
+}
+
+.home-income-row-side-boost {
+    min-width: 95px !important;
+}
+
+.home-boost-title {
+    font-size: 10px !important;
+}
+
+.home-boost-row-actions {
+    gap: 4px !important;
+    margin-top: 4px !important;
+}
+
+.home-boost-button {
+    padding: 4px 8px !important;
+    min-width: 60px !important;
+    font-size: 9px !important;
+    border-radius: 999px !important;
+}
+
+.home-boost-status {
+    font-size: 8px !important;
+    padding: 3px 6px !important;
+    min-height: 20px !important;
+}
