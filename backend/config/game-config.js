@@ -16,12 +16,12 @@ const LIMITS = {
     MAX_REWARD_WALLET_GAIN_PER_SAVE: 10,
     MAX_REWARD_TOTAL_GAIN_PER_SAVE: 10,
 
-    MIN_WITHDRAW: 10,
+    MIN_WITHDRAW: 20,
     MAX_WITHDRAW: 100000,
     WITHDRAW_COOLDOWN_MS: 5 * 60 * 1000,
 
     withdrawUsdPerReward: 0.005,
-    minWithdrawReward: 10,
+    minWithdrawReward: 20,
     minWithdrawLevel: 7,
     minWithdrawAccountAgeMs: 24 * 60 * 60 * 1000,
 
