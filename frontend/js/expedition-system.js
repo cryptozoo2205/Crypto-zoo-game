@@ -289,6 +289,16 @@ CryptoZoo.expeditions = {
         return 1 + boostLevel;
     },
 
+    getTotalExpeditionRewardMultiplier() {
+        const baseMultiplier = this.getExpeditionBoostMultiplier();
+        const dailyMultiplier = Math.max(
+            1,
+            Number(CryptoZoo.shopSystem?.getDailyBoostMultiplier?.() || 1)
+        );
+
+        return baseMultiplier * dailyMultiplier;
+    },
+
     getEffectiveDurationSeconds(expeditionConfig) {
         return Math.max(
             60,
@@ -367,7 +377,7 @@ CryptoZoo.expeditions = {
         if (rarity === "rare") rarityMultiplier = 1.35;
         if (rarity === "epic") rarityMultiplier = 1.90;
 
-        const boostMultiplier = this.getExpeditionBoostMultiplier();
+        const boostMultiplier = this.getTotalExpeditionRewardMultiplier();
 
         let reward = hours * 0.024 * tierMultiplier * rarityMultiplier * boostMultiplier;
         reward = Math.min(reward, 1.5);
@@ -377,7 +387,7 @@ CryptoZoo.expeditions = {
 
     getCoinsReward(expeditionConfig, rewardRarity) {
         const baseCoins = Math.max(0, Number(expeditionConfig?.baseCoins) || 0);
-        const boostMultiplier = this.getExpeditionBoostMultiplier();
+        const boostMultiplier = this.getTotalExpeditionRewardMultiplier();
 
         let rarityMultiplier = 1;
         if (rewardRarity === "rare") rarityMultiplier = 1.35;
