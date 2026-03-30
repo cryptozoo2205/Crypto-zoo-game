@@ -8,8 +8,8 @@ const TONCENTER_BASE_URL = "https://toncenter.com/api/v2";
 function getReceiverWalletAddress() {
     return safeString(
         process.env.TON_DEPOSIT_WALLET ||
-        process.env.TON_RECEIVER_WALLET ||
-        TON_RECEIVER_WALLET,
+            process.env.TON_RECEIVER_WALLET ||
+            TON_RECEIVER_WALLET,
         TON_RECEIVER_WALLET
     );
 }
@@ -75,9 +75,12 @@ async function fetchTonTransactions(address, limit = 30) {
         params.set("api_key", apiKey);
     }
 
-    const response = await fetch(`${TONCENTER_BASE_URL}/getTransactions?${params.toString()}`, {
-        method: "GET"
-    });
+    const response = await fetch(
+        `${TONCENTER_BASE_URL}/getTransactions?${params.toString()}`,
+        {
+            method: "GET"
+        }
+    );
 
     if (!response.ok) {
         throw new Error(`TONCENTER HTTP ${response.status}`);
@@ -110,19 +113,11 @@ function extractTransactionComment(tx) {
 }
 
 function extractTransactionHash(tx) {
-    return safeString(
-        tx?.transaction_id?.hash ||
-        tx?.hash ||
-        "",
-        ""
-    );
+    return safeString(tx?.transaction_id?.hash || tx?.hash || "", "");
 }
 
 function extractTransactionAmountTon(tx) {
-    const rawValue =
-        Number(tx?.in_msg?.value) ||
-        Number(tx?.in_msg?.amount) ||
-        0;
+    const rawValue = Number(tx?.in_msg?.value) || Number(tx?.in_msg?.amount) || 0;
 
     if (!rawValue) return 0;
 
@@ -161,15 +156,17 @@ function findApprovedDepositByComment(db, paymentComment, currentDepositId = "")
 
     const deposits = Array.isArray(db?.deposits) ? db.deposits : [];
 
-    return deposits.find((deposit) => {
-        const depositId = safeString(deposit?.id, "");
-        if (depositId === String(currentDepositId || "")) return false;
+    return (
+        deposits.find((deposit) => {
+            const depositId = safeString(deposit?.id, "");
+            if (depositId === String(currentDepositId || "")) return false;
 
-        return (
-            normalizeDepositStatus(deposit?.status) === "approved" &&
-            normalizeComment(deposit?.paymentComment) === safeComment
-        );
-    }) || null;
+            return (
+                normalizeDepositStatus(deposit?.status) === "approved" &&
+                normalizeComment(deposit?.paymentComment) === safeComment
+            );
+        }) || null
+    );
 }
 
 function matchDepositToTransaction(db, deposit, tx) {
@@ -202,12 +199,109 @@ function matchDepositToTransaction(db, deposit, tx) {
         return false;
     }
 
-    const approvedWithSameComment = findApprovedDepositByComment(db, depositComment, deposit.id);
+    const approvedWithSameComment = findApprovedDepositByComment(
+        db,
+        depositComment,
+        deposit.id
+    );
     if (approvedWithSameComment) {
         return false;
     }
 
     return true;
+}
+
+function ensurePlayerCollections(player) {
+    player.depositHistory = Array.isArray(player.depositHistory)
+        ? player.depositHistory
+        : [];
+    player.deposits = Array.isArray(player.deposits) ? player.deposits : [];
+    player.transactions = Array.isArray(player.transactions) ? player.transactions : [];
+    player.withdrawHistory = Array.isArray(player.withdrawHistory)
+        ? player.withdrawHistory
+        : [];
+    player.payoutHistory = Array.isArray(player.payoutHistory)
+        ? player.payoutHistory
+        : [];
+    player.referrals = Array.isArray(player.referrals) ? player.referrals : [];
+    player.referralHistory = Array.isArray(player.referralHistory)
+        ? player.referralHistory
+        : [];
+
+    return player;
+}
+
+function hasItemByKey(list, key, value) {
+    const safeList = Array.isArray(list) ? list : [];
+    const safeValue = String(value || "");
+
+    if (!safeValue) return false;
+
+    return safeList.some((item) => String(item?.[key] || "") === safeValue);
+}
+
+function buildPlayerDepositHistoryEntry(deposit, txHash) {
+    return {
+        id: safeString(deposit?.id, ""),
+        depositId: safeString(deposit?.id, ""),
+        txHash: safeString(txHash, ""),
+        amount: normalizeRewardNumber(deposit?.amount, 0),
+        currency: safeString(deposit?.currency, "TON") || "TON",
+        gemsAmount: Math.max(0, Number(deposit?.gemsAmount) || 0),
+        expeditionBoostAmount: Math.max(
+            0,
+            Number(deposit?.expeditionBoostAmount) || 0
+        ),
+        paymentComment: safeString(deposit?.paymentComment, ""),
+        status: "approved",
+        walletAddress: safeString(deposit?.walletAddress, ""),
+        network: safeString(deposit?.network, "TON") || "TON",
+        source: "deposit-verifier",
+        createdAt: Math.max(0, Number(deposit?.createdAt) || Date.now()),
+        approvedAt: Date.now(),
+        updatedAt: Date.now()
+    };
+}
+
+function buildPlayerTransactionEntry(deposit, txHash) {
+    return {
+        id: safeString(txHash, "") || safeString(deposit?.id, ""),
+        txHash: safeString(txHash, ""),
+        type: "deposit",
+        status: "approved",
+        amount: normalizeRewardNumber(deposit?.amount, 0),
+        currency: safeString(deposit?.currency, "TON") || "TON",
+        gemsAmount: Math.max(0, Number(deposit?.gemsAmount) || 0),
+        expeditionBoostAmount: Math.max(
+            0,
+            Number(deposit?.expeditionBoostAmount) || 0
+        ),
+        depositId: safeString(deposit?.id, ""),
+        paymentComment: safeString(deposit?.paymentComment, ""),
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+    };
+}
+
+function attachApprovedDepositToPlayer(player, deposit, txHash) {
+    ensurePlayerCollections(player);
+
+    const historyEntry = buildPlayerDepositHistoryEntry(deposit, txHash);
+    const transactionEntry = buildPlayerTransactionEntry(deposit, txHash);
+
+    if (!hasItemByKey(player.depositHistory, "depositId", historyEntry.depositId)) {
+        player.depositHistory.unshift(historyEntry);
+    }
+
+    if (!hasItemByKey(player.deposits, "depositId", historyEntry.depositId)) {
+        player.deposits.unshift(historyEntry);
+    }
+
+    if (!hasItemByKey(player.transactions, "txHash", transactionEntry.txHash)) {
+        player.transactions.unshift(transactionEntry);
+    }
+
+    return player;
 }
 
 function approveDepositInDb(db, deposit, tx) {
@@ -224,14 +318,23 @@ function approveDepositInDb(db, deposit, tx) {
         };
     }
 
+    const player = getPlayerOrCreate(
+        db,
+        safeDeposit.telegramId,
+        safeDeposit.username
+    );
+
+    ensurePlayerCollections(player);
+
     if (normalizeDepositStatus(safeDeposit.status) === "approved") {
-        const player = getPlayerOrCreate(db, safeDeposit.telegramId, safeDeposit.username);
+        attachApprovedDepositToPlayer(player, safeDeposit, txHash);
+        db.players[player.telegramId] = normalizePlayer(player);
 
         return {
             ok: true,
             alreadyApproved: true,
             deposit: safeDeposit,
-            player: normalizePlayer(player)
+            player: normalizePlayer(db.players[player.telegramId])
         };
     }
 
@@ -243,29 +346,34 @@ function approveDepositInDb(db, deposit, tx) {
         };
     }
 
-    const player = getPlayerOrCreate(db, safeDeposit.telegramId, safeDeposit.username);
-
     safeDeposit.status = "approved";
     safeDeposit.txHash = txHash;
     safeDeposit.note = safeString(safeDeposit.note, "") || "TON verified";
     safeDeposit.updatedAt = Date.now();
+    safeDeposit.approvedAt = Date.now();
 
     const gemsToAdd = Math.max(0, Number(safeDeposit.gemsAmount) || 0);
-    const expeditionBoostToAdd = Math.max(0, Number(safeDeposit.expeditionBoostAmount) || 0);
+    const expeditionBoostToAdd = Math.max(
+        0,
+        Number(safeDeposit.expeditionBoostAmount) || 0
+    );
 
     player.gems = Math.max(0, Number(player.gems || 0) + gemsToAdd);
     player.expeditionBoost = Number(
         (
-            Math.max(0, Number(player.expeditionBoost) || 0) + expeditionBoostToAdd
+            Math.max(0, Number(player.expeditionBoost) || 0) +
+            expeditionBoostToAdd
         ).toFixed(4)
     );
+
+    attachApprovedDepositToPlayer(player, safeDeposit, txHash);
 
     db.players[player.telegramId] = normalizePlayer(player);
 
     return {
         ok: true,
         deposit: safeDeposit,
-        player: normalizePlayer(player)
+        player: normalizePlayer(db.players[player.telegramId])
     };
 }
 
@@ -281,11 +389,22 @@ async function verifySingleDepositById(depositId) {
     }
 
     if (!isDepositPendingLike(deposit)) {
+        const existingPlayer = deposit.telegramId
+            ? getPlayerOrCreate(db, deposit.telegramId, deposit.username)
+            : null;
+
+        if (existingPlayer && normalizeDepositStatus(deposit.status) === "approved") {
+            attachApprovedDepositToPlayer(existingPlayer, deposit, deposit.txHash || "");
+            db.players[existingPlayer.telegramId] = normalizePlayer(existingPlayer);
+            writeDb(db);
+        }
+
         return {
             ok: true,
             matched: false,
             alreadyProcessed: true,
-            deposit
+            deposit,
+            player: existingPlayer ? normalizePlayer(existingPlayer) : null
         };
     }
 
@@ -343,14 +462,25 @@ async function verifyPendingDepositsForPlayer(telegramId) {
     );
 
     if (!deposits.length) {
-        return { ok: true, checked: 0, matched: 0 };
+        const existingPlayer = playerId
+            ? db.players?.[playerId]
+                ? normalizePlayer(db.players[playerId])
+                : null
+            : null;
+
+        return {
+            ok: true,
+            checked: 0,
+            matched: 0,
+            skippedDuplicates: 0,
+            player: existingPlayer
+        };
     }
 
     const txs = await fetchTonTransactions(getReceiverWalletAddress(), 50);
 
     let matched = 0;
     let skippedDuplicates = 0;
-    let lastPlayer = null;
 
     deposits.forEach((deposit) => {
         if (isDepositExpired(deposit)) {
@@ -372,17 +502,20 @@ async function verifyPendingDepositsForPlayer(telegramId) {
         }
 
         matched += 1;
-        lastPlayer = result.player;
     });
 
     writeDb(db);
+
+    const finalPlayer = db.players?.[playerId]
+        ? normalizePlayer(db.players[playerId])
+        : null;
 
     return {
         ok: true,
         checked: deposits.length,
         matched,
         skippedDuplicates,
-        player: lastPlayer
+        player: finalPlayer
     };
 }
 
