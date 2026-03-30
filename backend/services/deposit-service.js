@@ -5,10 +5,21 @@ const TON_RECEIVER_WALLET = "UQBTjBORP2cXRNE_hakpG-2DZlBn0uUWME8tKhi7HCcynER5";
 function getDepositGemsAmount(amount) {
     const safeAmount = normalizeRewardNumber(amount, 0);
 
-    if (safeAmount >= 10) return 60;
-    if (safeAmount >= 5) return 28;
-    if (safeAmount >= 3) return 16;
-    if (safeAmount >= 1) return 5;
+    if (safeAmount >= 10) return 150;
+    if (safeAmount >= 5) return 70;
+    if (safeAmount >= 3) return 35;
+    if (safeAmount >= 1) return 10;
+
+    return 0;
+}
+
+function getDepositExpeditionBoostAmount(amount) {
+    const safeAmount = normalizeRewardNumber(amount, 0);
+
+    if (safeAmount >= 10) return 0.60;
+    if (safeAmount >= 5) return 0.30;
+    if (safeAmount >= 3) return 0.15;
+    if (safeAmount >= 1) return 0.05;
 
     return 0;
 }
@@ -27,6 +38,7 @@ function createDeposit({
     const paymentComment = `CRYPTOZOO_${id}`;
     const safeAmount = normalizeRewardNumber(amount, 0);
     const gemsAmount = getDepositGemsAmount(safeAmount);
+    const expeditionBoostAmount = getDepositExpeditionBoostAmount(safeAmount);
 
     return {
         id,
@@ -35,6 +47,7 @@ function createDeposit({
 
         amount: safeAmount,
         gemsAmount: Math.max(0, Number(gemsAmount) || 0),
+        expeditionBoostAmount: Math.max(0, Number(expeditionBoostAmount) || 0),
 
         source: safeString(source, "ton") || "ton",
         asset: safeString(asset, "TON") || "TON",
@@ -61,6 +74,7 @@ function buildDepositPaymentData(deposit) {
         depositId: String(deposit?.id || ""),
         amount: normalizeRewardNumber(deposit?.amount, 0),
         gemsAmount: Math.max(0, Number(deposit?.gemsAmount) || 0),
+        expeditionBoostAmount: Math.max(0, Number(deposit?.expeditionBoostAmount) || 0),
         asset: String(deposit?.asset || "TON"),
         source: String(deposit?.source || "ton"),
         receiverAddress: String(receiverAddress || ""),
@@ -78,6 +92,7 @@ function getPlayerDeposits(db, telegramId) {
 module.exports = {
     TON_RECEIVER_WALLET,
     getDepositGemsAmount,
+    getDepositExpeditionBoostAmount,
     createDeposit,
     buildDepositPaymentData,
     getPlayerDeposits
