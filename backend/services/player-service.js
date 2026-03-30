@@ -84,6 +84,9 @@ function getDefaultPlayer(telegramId = "local-player", username = "Gracz") {
             lastPurchaseAt: 0
         },
 
+        offlineBaseHours: 1,
+        offlineBoostHours: 0,
+        offlineAdsHours: 0,
         offlineMaxSeconds: 1 * 60 * 60,
         offlineBoostMultiplier: 1,
         offlineBoostActiveUntil: 0,
@@ -189,6 +192,23 @@ function normalizePlayer(input) {
     const dailyMissionsInput = normalizeObject(safeInput.dailyMissions);
     const dailyExpeditionBoostInput = normalizeObject(safeInput.dailyExpeditionBoost);
 
+    const offlineBaseHours = Math.max(
+        1,
+        Math.floor(normalizeNumber(safeInput.offlineBaseHours, base.offlineBaseHours))
+    );
+
+    const offlineBoostHours = Math.max(
+        0,
+        Math.floor(normalizeNumber(safeInput.offlineBoostHours, base.offlineBoostHours))
+    );
+
+    const offlineAdsHours = Math.max(
+        0,
+        Math.floor(normalizeNumber(safeInput.offlineAdsHours, base.offlineAdsHours))
+    );
+
+    const computedOfflineMaxSeconds = (offlineBaseHours + offlineBoostHours + offlineAdsHours) * 60 * 60;
+
     return {
         ...base,
         ...safeInput,
@@ -250,7 +270,13 @@ function normalizePlayer(input) {
             )
         },
 
-        offlineMaxSeconds: Math.max(0, normalizeNumber(safeInput.offlineMaxSeconds, base.offlineMaxSeconds)),
+        offlineBaseHours,
+        offlineBoostHours,
+        offlineAdsHours,
+        offlineMaxSeconds: Math.max(
+            computedOfflineMaxSeconds,
+            normalizeNumber(safeInput.offlineMaxSeconds, computedOfflineMaxSeconds)
+        ),
         offlineBoostMultiplier: Math.max(
             0,
             normalizeNumber(safeInput.offlineBoostMultiplier, base.offlineBoostMultiplier)
