@@ -21,7 +21,7 @@
     <link rel="stylesheet" href="css/menu.css">
     <link rel="stylesheet" href="css/minigames-ui.css">
     <link rel="stylesheet" href="css/responsive.css">
-<link rel="stylesheet" href="css/telegram-play.css">
+    <link rel="stylesheet" href="css/telegram-play.css">
 
     <style>
         :root {
@@ -74,6 +74,12 @@
             position: fixed;
             inset: 0;
             z-index: 9999;
+        }
+
+        .profile-box-hint {
+            margin-top: 6px;
+            font-size: 12px;
+            opacity: 0.78;
         }
     </style>
 </head>
@@ -560,16 +566,19 @@
                         <div class="profile-box">
                             <div class="profile-box-label">Reward</div>
                             <div class="profile-box-value" id="settingsRewardBalance">0.000</div>
+                            <div class="profile-box-hint" id="settingsRewardBalanceUsd">$0.00</div>
                         </div>
 
                         <div class="profile-box">
                             <div class="profile-box-label">Wallet</div>
                             <div class="profile-box-value" id="settingsRewardWallet">0.000</div>
+                            <div class="profile-box-hint" id="settingsRewardWalletUsd">$0.00</div>
                         </div>
 
                         <div class="profile-box">
                             <div class="profile-box-label">Pending</div>
                             <div class="profile-box-value" id="settingsWithdrawPending">0.000</div>
+                            <div class="profile-box-hint" id="settingsWithdrawPendingUsd">$0.00</div>
                         </div>
                     </div>
 
@@ -577,6 +586,7 @@
                         <div class="profile-boost-left">
                             <div class="profile-boost-label" id="langProfileRewardWalletTitle">Reward Wallet</div>
                             <div class="profile-boost-value" id="langProfileRewardWalletDesc">Przenieś Reward do Wallet lub wyślij request wypłaty</div>
+                            <div class="profile-boost-value" id="settingsWithdrawHint" style="margin-top:6px; opacity:0.8;">Minimum withdraw: --</div>
                         </div>
                     </div>
 
@@ -696,7 +706,7 @@
     <script src="./js/gameplay.js"></script>
     <script src="./js/lang.js"></script>
     <script src="./js/deposit-verify-ui.js"></script>
-<script src="./js/telegram-play.js"></script>
+    <script src="./js/telegram-play.js"></script>
     <script src="./js/init.js"></script>
 </body>
 </html>
