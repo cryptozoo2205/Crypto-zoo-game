@@ -20,7 +20,8 @@ const LIMITS = {
     MAX_WITHDRAW: 100000,
     WITHDRAW_COOLDOWN_MS: 5 * 60 * 1000,
 
-    withdrawUsdPerReward: 0.005,
+    withdrawUsdPerReward: 0.05,
+    withdrawFeePercent: 0.10,
     minWithdrawReward: 20,
     minWithdrawLevel: 7,
     minWithdrawAccountAgeMs: 24 * 60 * 60 * 1000,
