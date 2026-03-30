@@ -95,10 +95,12 @@ CryptoZoo.shopSystem = {
         return Math.max(1, Number(CryptoZoo.config?.limits?.maxLevelPerAnimal) || 100);
     },
 
+    // 🔥 FIX: brak scalingu dla expedition (daily boost)
     shouldTrackOwnedCount(item) {
         const effect = String(item?.effect || "").toLowerCase();
         const type = String(item?.type || "").toLowerCase();
 
+        if (effect === "expedition" || type === "expedition") return false;
         if (effect === "expeditiontime" || type === "expeditiontime") return false;
         if (effect === "coinpack" || effect === "coins") return false;
         if (type === "offline") return false;
@@ -113,6 +115,12 @@ CryptoZoo.shopSystem = {
         const scale = Math.max(1, Number(item?.priceScale) || 1);
 
         if (basePrice <= 0) return 0;
+
+        // 🔥 brak scalingu dla expedition
+        if (!this.shouldTrackOwnedCount(item)) {
+            return basePrice;
+        }
+
         return Math.floor(basePrice * Math.pow(scale, owned));
     },
 
@@ -178,14 +186,9 @@ CryptoZoo.shopSystem = {
         return true;
     },
 
-    /* =========================
-       🔥 FIX: EXPEDITION BOOST
-    ========================= */
-
     applyExpeditionRewardUpgrade(item) {
         this.ensurePurchaseState();
 
-        // 🔥 zamiast stackowania → daily boost
         if (!this.canBuyDailyBoost()) {
             CryptoZoo.ui?.showToast?.("Boost dostępny raz na 24h");
             return "Cooldown";
@@ -195,8 +198,6 @@ CryptoZoo.shopSystem = {
 
         return "+25% reward z ekspedycji przez 24h";
     },
-
-    /* ========================= */
 
     applyClickUpgrade(item) {
         const bonus = Math.max(1, Number(item?.clickValueBonus) || 1);
@@ -341,50 +342,5 @@ CryptoZoo.shopSystem = {
 
         CryptoZoo.ui?.showToast?.(resultText);
         return true;
-    },
-
-    bindButtons() {
-        const items = CryptoZoo.config?.shopItems || [];
-
-        items.forEach((item) => {
-            const btn = document.getElementById(`buy-shop-${item.id}`);
-            if (!btn || btn.dataset.bound === "1") return;
-
-            btn.dataset.bound = "1";
-            btn.onclick = () => {
-                CryptoZoo.audio?.play?.("click");
-                this.purchase(item.id);
-            };
-        });
-
-        const buyBoostBtn = document.getElementById("buyBoostBtn");
-        if (buyBoostBtn && buyBoostBtn.dataset.bound !== "1") {
-            buyBoostBtn.dataset.bound = "1";
-            buyBoostBtn.onclick = () => {
-                CryptoZoo.audio?.play?.("click");
-
-                const gems = Math.max(0, Number(CryptoZoo.state?.gems) || 0);
-
-                if (CryptoZoo.boostSystem?.isActive?.()) {
-                    const left = CryptoZoo.boostSystem?.getTimeLeft?.() || 0;
-                    CryptoZoo.ui?.showToast?.(
-                        `Boost aktywny: ${CryptoZoo.ui?.formatTimeLeft?.(left) || left}`
-                    );
-                    return;
-                }
-
-                if (gems < 1) {
-                    CryptoZoo.ui?.showToast?.("Potrzebujesz 1 gema");
-                    return;
-                }
-
-                CryptoZoo.state.gems = gems - 1;
-                CryptoZoo.state.lastLogin = Date.now();
-
-                CryptoZoo.boostSystem?.activate?.();
-                CryptoZoo.ui?.render?.();
-                CryptoZoo.api?.savePlayer?.();
-            };
-        }
     }
 };
