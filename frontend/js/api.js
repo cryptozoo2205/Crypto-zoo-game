@@ -151,6 +151,14 @@ window.CryptoZoo.api = {
             boxes: {},
             expedition: null,
 
+            offlineBaseHours: 1,
+            offlineBoostHours: 0,
+            offlineAdsHours: 0,
+            offlineMaxSeconds: 3600,
+            offlineBoostMultiplier: 1,
+            offlineBoostActiveUntil: 0,
+            offlineBoost: 1,
+
             depositHistory: [],
             deposits: [],
             transactions: [],
@@ -187,21 +195,34 @@ window.CryptoZoo.api = {
         return value && typeof value === "object" && !Array.isArray(value) ? value : {};
     },
 
-    unwrapPlayerResponse(raw) {
-        if (!raw || typeof raw !== "object") {
-            return raw;
-        }
-
-        if (raw.player && typeof raw.player === "object") {
-            return raw.player;
-        }
-
-        return raw;
-    },
-
     normalizeState(raw) {
         const base = this.getDefaultState();
-        const data = this.normalizeObject(this.unwrapPlayerResponse(raw));
+        const data = this.normalizeObject(raw);
+
+        const offlineBaseHours = this.normalizeNumber(
+            data.offlineBaseHours,
+            base.offlineBaseHours,
+            1
+        );
+
+        const offlineBoostHours = Math.max(
+            0,
+            Math.floor(this.normalizeNumber(data.offlineBoostHours, base.offlineBoostHours, 0))
+        );
+
+        const offlineAdsHours = Math.max(
+            0,
+            Math.floor(this.normalizeNumber(data.offlineAdsHours, base.offlineAdsHours, 0))
+        );
+
+        const offlineMaxSeconds = Math.max(
+            3600,
+            this.normalizeNumber(
+                data.offlineMaxSeconds,
+                (offlineBaseHours + offlineBoostHours + offlineAdsHours) * 3600,
+                0
+            )
+        );
 
         return {
             ...base,
@@ -261,10 +282,15 @@ window.CryptoZoo.api = {
             shopPurchases: this.normalizeObject(data.shopPurchases),
             animals: this.normalizeObject(data.animals),
             boxes: this.normalizeObject(data.boxes),
+            expedition: data.expedition || null,
 
-            expedition: Object.prototype.hasOwnProperty.call(data, "expedition")
-                ? (data.expedition ?? null)
-                : null,
+            offlineBaseHours,
+            offlineBoostHours,
+            offlineAdsHours,
+            offlineMaxSeconds,
+            offlineBoostMultiplier: this.normalizeNumber(data.offlineBoostMultiplier, base.offlineBoostMultiplier, 1),
+            offlineBoostActiveUntil: this.normalizeNumber(data.offlineBoostActiveUntil, base.offlineBoostActiveUntil, 0),
+            offlineBoost: this.normalizeNumber(data.offlineBoost, base.offlineBoost, 1),
 
             depositHistory: this.normalizeArray(
                 data.depositHistory || data.depositsHistory || data.paymentHistory
@@ -317,12 +343,12 @@ window.CryptoZoo.api = {
         const purchasesCount = Object.keys(s.shopPurchases || {}).length;
 
         return (
-            s.level * 100000 +
-            s.xp +
             s.coins +
             s.gems * 1000 +
             s.rewardBalance * 100 +
             s.rewardWallet * 100 +
+            s.level * 10000 +
+            s.xp +
             animalsCount * 5000 +
             boxesCount * 2500 +
             purchasesCount * 3000 +
@@ -330,7 +356,9 @@ window.CryptoZoo.api = {
             (s.deposits?.length || 0) * 2000 +
             (s.transactions?.length || 0) * 1000 +
             (s.withdrawHistory?.length || 0) * 1500 +
-            (s.referrals?.length || 0) * 800
+            (s.referrals?.length || 0) * 800 +
+            s.offlineBoostHours * 5000 +
+            s.offlineAdsHours * 5000
         );
     },
 
@@ -345,7 +373,6 @@ window.CryptoZoo.api = {
                     item.id ||
                     item._id ||
                     item.txId ||
-                    item.txHash ||
                     item.hash ||
                     item.paymentId ||
                     item.depositId ||
@@ -374,16 +401,8 @@ window.CryptoZoo.api = {
         const serverScore = this.getProgressScore(server);
         const localScore = this.getProgressScore(local);
 
-        const preferred = localScore >= serverScore ? local : server;
-        const fallback = localScore >= serverScore ? server : local;
-
-        const preferredHasExpedition =
-            this.normalizeObject(this.unwrapPlayerResponse(preferred)) &&
-            Object.prototype.hasOwnProperty.call(preferred, "expedition");
-
-        const fallbackHasExpedition =
-            this.normalizeObject(this.unwrapPlayerResponse(fallback)) &&
-            Object.prototype.hasOwnProperty.call(fallback, "expedition");
+        const preferred = localScore > serverScore ? local : server;
+        const fallback = localScore > serverScore ? server : local;
 
         const merged = {
             ...fallback,
@@ -394,17 +413,19 @@ window.CryptoZoo.api = {
                 ...preferred.telegramUser
             },
 
-            coins: preferred.coins,
-            gems: preferred.gems,
-            rewardBalance: preferred.rewardBalance,
-            rewardWallet: preferred.rewardWallet,
-            withdrawPending: preferred.withdrawPending,
+            coins: Math.max(server.coins, local.coins),
+            gems: Math.max(server.gems, local.gems),
+            rewardBalance: Math.max(server.rewardBalance, local.rewardBalance),
+            rewardWallet: Math.max(server.rewardWallet, local.rewardWallet),
+            withdrawPending: Math.max(server.withdrawPending, local.withdrawPending),
 
-            level: preferred.level,
-            xp: preferred.xp,
-            coinsPerClick: preferred.coinsPerClick,
-            zooIncome: preferred.zooIncome,
-            expeditionBoost: preferred.expeditionBoost,
+            level: Math.max(server.level, local.level),
+            xp: Math.max(server.xp, local.xp),
+
+            coinsPerClick: Math.max(server.coinsPerClick, local.coinsPerClick),
+            zooIncome: Math.max(server.zooIncome, local.zooIncome),
+
+            expeditionBoost: Math.max(server.expeditionBoost, local.expeditionBoost),
 
             dailyExpeditionBoost: {
                 activeUntil: Math.max(
@@ -481,13 +502,15 @@ window.CryptoZoo.api = {
                 ...preferred.stats
             },
 
-            expedition: preferredHasExpedition
-                ? (preferred.expedition ?? null)
-                : (
-                    fallbackHasExpedition
-                        ? (fallback.expedition ?? null)
-                        : null
-                ),
+            expedition: preferred.expedition || fallback.expedition || null,
+
+            offlineBaseHours: Math.max(server.offlineBaseHours || 1, local.offlineBaseHours || 1),
+            offlineBoostHours: Math.max(server.offlineBoostHours || 0, local.offlineBoostHours || 0),
+            offlineAdsHours: Math.max(server.offlineAdsHours || 0, local.offlineAdsHours || 0),
+            offlineMaxSeconds: Math.max(server.offlineMaxSeconds || 3600, local.offlineMaxSeconds || 3600),
+            offlineBoostMultiplier: Math.max(server.offlineBoostMultiplier || 1, local.offlineBoostMultiplier || 1),
+            offlineBoostActiveUntil: Math.max(server.offlineBoostActiveUntil || 0, local.offlineBoostActiveUntil || 0),
+            offlineBoost: Math.max(server.offlineBoost || 1, local.offlineBoost || 1),
 
             depositHistory: this.mergeUniqueByKey(
                 preferred.depositHistory,
@@ -546,9 +569,15 @@ window.CryptoZoo.api = {
             shopPurchases: state.shopPurchases,
             animals: state.animals,
             boxes: state.boxes,
-            expedition: Object.prototype.hasOwnProperty.call(state, "expedition")
-                ? (state.expedition ?? null)
-                : null,
+            expedition: state.expedition,
+
+            offlineBaseHours: state.offlineBaseHours,
+            offlineBoostHours: state.offlineBoostHours,
+            offlineAdsHours: state.offlineAdsHours,
+            offlineMaxSeconds: state.offlineMaxSeconds,
+            offlineBoostMultiplier: state.offlineBoostMultiplier,
+            offlineBoostActiveUntil: state.offlineBoostActiveUntil,
+            offlineBoost: state.offlineBoost,
 
             depositHistory: state.depositHistory,
             deposits: state.deposits,
@@ -601,13 +630,20 @@ window.CryptoZoo.api = {
         return null;
     },
 
+    unwrapPlayerResponse(data) {
+        if (data && typeof data === "object" && data.player && typeof data.player === "object") {
+            return data.player;
+        }
+        return data;
+    },
+
     async loadPlayer() {
         const localRaw = this.readLocalState();
         let serverRaw = null;
 
         try {
-            const response = await this.request(`/player/${this.getPlayerId()}`);
-            serverRaw = this.unwrapPlayerResponse(response);
+            serverRaw = await this.request(`/player/${this.getPlayerId()}`);
+            serverRaw = this.unwrapPlayerResponse(serverRaw);
         } catch (error) {
             console.warn("LOAD FAIL → local fallback", error);
         }
@@ -638,7 +674,7 @@ window.CryptoZoo.api = {
         try {
             const payload = this.getSavePayload();
 
-            CryptoZoo.state = this.normalizeState(payload);
+            CryptoZoo.state = this.mergeStates(payload, CryptoZoo.state || {});
             this.writeLocalState(CryptoZoo.state);
 
             try {
@@ -647,10 +683,10 @@ window.CryptoZoo.api = {
                     body: JSON.stringify(payload)
                 });
 
-                const responsePlayer = this.unwrapPlayerResponse(response);
+                const safeResponse = this.unwrapPlayerResponse(response);
 
-                if (responsePlayer && typeof responsePlayer === "object") {
-                    CryptoZoo.state = this.mergeStates(responsePlayer, CryptoZoo.state);
+                if (safeResponse && typeof safeResponse === "object") {
+                    CryptoZoo.state = this.mergeStates(safeResponse, CryptoZoo.state);
                     this.writeLocalState(CryptoZoo.state);
                 }
             } catch (error) {
@@ -672,10 +708,9 @@ window.CryptoZoo.api = {
                 })
             });
 
-            const responsePlayer = this.unwrapPlayerResponse(response);
-
-            if (responsePlayer && typeof responsePlayer === "object") {
-                CryptoZoo.state = this.mergeStates(responsePlayer, CryptoZoo.state || {});
+            if (response && typeof response === "object") {
+                const playerPart = this.unwrapPlayerResponse(response.player || response);
+                CryptoZoo.state = this.mergeStates(playerPart, CryptoZoo.state || {});
                 this.writeLocalState(CryptoZoo.state);
             }
 
