@@ -59,6 +59,8 @@ function getDefaultPlayer(telegramId = "local-player", username = "Gracz") {
             isTelegramWebApp: false
         },
 
+        tonAddress: "",
+
         createdAt: now,
         updatedAt: now,
         lastActiveAt: now,
@@ -202,6 +204,8 @@ function normalizePlayer(input) {
             telegramId,
             username
         ),
+
+        tonAddress: safeString(safeInput.tonAddress, base.tonAddress),
 
         createdAt,
         updatedAt,
