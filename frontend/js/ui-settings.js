@@ -4,6 +4,7 @@ CryptoZoo.uiSettings = {
     storageKey: "cryptozoo_settings",
     minWithdrawReward: 20,
     usdPerReward: 0.05,
+    withdrawFeePercent: 0.10,
     minWithdrawLevel: 7,
     minWithdrawAccountAgeMs: 24 * 60 * 60 * 1000,
 
@@ -68,6 +69,17 @@ CryptoZoo.uiSettings = {
         return Number((Number(v) || 0).toFixed(3));
     },
 
+    getWithdrawFeeAmount(rewardAmount) {
+        const reward = Math.max(0, Number(rewardAmount) || 0);
+        return Number((reward * this.withdrawFeePercent).toFixed(3));
+    },
+
+    getWithdrawNetReward(rewardAmount) {
+        const reward = Math.max(0, Number(rewardAmount) || 0);
+        const fee = this.getWithdrawFeeAmount(reward);
+        return Number(Math.max(0, reward - fee).toFixed(3));
+    },
+
     formatUsdFromReward(rewardAmount) {
         const usd = Number(rewardAmount || 0) * this.usdPerReward;
         return Number(usd.toFixed(3));
@@ -75,6 +87,18 @@ CryptoZoo.uiSettings = {
 
     getRewardUsdLabel(rewardAmount) {
         return `$${this.formatUsdFromReward(rewardAmount).toFixed(3)}`;
+    },
+
+    getWithdrawGrossUsdLabel(rewardAmount) {
+        return this.getRewardUsdLabel(rewardAmount);
+    },
+
+    getWithdrawFeeUsdLabel(rewardAmount) {
+        return this.getRewardUsdLabel(this.getWithdrawFeeAmount(rewardAmount));
+    },
+
+    getWithdrawNetUsdLabel(rewardAmount) {
+        return this.getRewardUsdLabel(this.getWithdrawNetReward(rewardAmount));
     },
 
     getWithdrawAvailability() {
@@ -268,6 +292,9 @@ CryptoZoo.uiSettings = {
         const rewardWallet = this.getRewardWallet();
         const withdrawPending = this.getWithdrawPending();
 
+        const feeAmount = this.getWithdrawFeeAmount(rewardBalance);
+        const netReward = this.getWithdrawNetReward(rewardBalance);
+
         if (rewardBalanceEl) {
             rewardBalanceEl.textContent = this.format(rewardBalance).toFixed(3);
         }
@@ -310,15 +337,21 @@ CryptoZoo.uiSettings = {
             withdrawBtn.disabled = !can;
             withdrawBtn.style.opacity = can ? "1" : "0.5";
             withdrawBtn.textContent = can
-                ? `${this.t("withdrawRequest", "Withdraw Request")} (${rewardBalance.toFixed(3)} • ${this.getRewardUsdLabel(rewardBalance)})`
+                ? `${this.t("withdrawRequest", "Withdraw Request")} (${netReward.toFixed(3)} • ${this.getWithdrawNetUsdLabel(rewardBalance)})`
                 : `${this.t("minWithdraw", "Min withdraw")} ${this.minWithdrawReward}`;
         }
 
         if (withdrawHintEl) {
             const availability = this.getWithdrawAvailability();
-            withdrawHintEl.textContent = availability.ok
-                ? `${this.t("estimatedValue", "Estimated value")}: ${this.getRewardUsdLabel(rewardBalance)}`
-                : availability.reason;
+
+            if (availability.ok) {
+                withdrawHintEl.textContent =
+                    `${this.t("grossValue", "Brutto")}: ${rewardBalance.toFixed(3)} • ${this.getWithdrawGrossUsdLabel(rewardBalance)} | ` +
+                    `${this.t("fee", "Fee")} 10%: ${feeAmount.toFixed(3)} • ${this.getWithdrawFeeUsdLabel(rewardBalance)} | ` +
+                    `${this.t("netValue", "Netto")}: ${netReward.toFixed(3)} • ${this.getWithdrawNetUsdLabel(rewardBalance)}`;
+            } else {
+                withdrawHintEl.textContent = availability.reason;
+            }
         }
 
         const depositBtn = document.getElementById("settingsCreateDepositBtn");
@@ -392,6 +425,7 @@ CryptoZoo.uiSettings = {
     async requestWithdraw() {
         const rewardBalance = this.getRewardBalance();
         const availability = this.getWithdrawAvailability();
+        const netReward = this.getWithdrawNetReward(rewardBalance);
 
         if (!availability.ok) {
             CryptoZoo.ui?.showToast?.(availability.reason);
@@ -402,7 +436,7 @@ CryptoZoo.uiSettings = {
             await CryptoZoo.api.createWithdrawRequest(rewardBalance);
 
             CryptoZoo.ui?.showToast?.(
-                `${this.t("withdrawCreated", "Withdraw created")}: ${rewardBalance.toFixed(3)} • ${this.getRewardUsdLabel(rewardBalance)}`
+                `${this.t("withdrawCreated", "Withdraw created")}: ${netReward.toFixed(3)} • ${this.getWithdrawNetUsdLabel(rewardBalance)}`
             );
 
             await this.loadWithdrawHistory();
@@ -470,13 +504,29 @@ CryptoZoo.uiSettings = {
 
         el.innerHTML = this.withdrawHistory
             .map((w) => {
-                const amount = this.format(w.rewardAmount ?? w.amount).toFixed(3);
-                const usd = this.getRewardUsdLabel(w.rewardAmount ?? w.amount);
+                const grossReward = this.format(
+                    w.grossRewardAmount ??
+                    w.rewardAmount ??
+                    w.amount
+                );
+
+                const feeReward = this.format(
+                    w.feeRewardAmount ??
+                    this.getWithdrawFeeAmount(grossReward)
+                );
+
+                const netReward = this.format(
+                    w.netRewardAmount ??
+                    this.getWithdrawNetReward(grossReward)
+                );
+
                 const status = String(w.status || "pending");
 
                 return `
                     <div style="padding:10px;border:1px solid rgba(255,255,255,0.1);border-radius:10px;margin-bottom:8px;">
-                        <div>${amount} reward • ${usd}</div>
+                        <div>${this.t("grossValue", "Brutto")}: ${grossReward.toFixed(3)} reward • ${this.getWithdrawGrossUsdLabel(grossReward)}</div>
+                        <div style="margin-top:4px;">${this.t("fee", "Fee")} 10%: ${feeReward.toFixed(3)} reward • ${this.getWithdrawFeeUsdLabel(grossReward)}</div>
+                        <div style="margin-top:4px;">${this.t("netValue", "Netto")}: ${netReward.toFixed(3)} reward • ${this.getWithdrawNetUsdLabel(grossReward)}</div>
                         <div style="margin-top:4px;">${status}</div>
                     </div>
                 `;
@@ -515,9 +565,15 @@ CryptoZoo.uiSettings = {
 
         el.innerHTML = this.depositsHistory
             .map((d) => {
+                const gemsAmount = Math.max(0, Number(d.gemsAmount) || 0);
+                const expeditionBoostAmount = Math.max(0, Number(d.expeditionBoostAmount) || 0);
+                const boostPercent = Math.round(expeditionBoostAmount * 100);
+
                 return `
                     <div style="padding:10px;border:1px solid rgba(255,255,255,0.1);border-radius:10px;margin-bottom:8px;">
                         <div>${this.format(d.amount).toFixed(3)} TON</div>
+                        ${gemsAmount > 0 ? `<div style="margin-top:4px;">+${CryptoZoo.formatNumber(gemsAmount)} gem</div>` : ``}
+                        ${boostPercent > 0 ? `<div style="margin-top:4px;">+${boostPercent}% expedition boost</div>` : ``}
                         <div style="margin-top:4px;">${d.status}</div>
                     </div>
                 `;
