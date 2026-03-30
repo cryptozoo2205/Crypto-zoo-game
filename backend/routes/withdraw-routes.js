@@ -29,6 +29,52 @@ const {
 
 const router = express.Router();
 
+router.post("/api/withdraw/set-wallet", (req, res) => {
+    const db = readDb();
+
+    const telegramId = safeString(req.body?.telegramId, "");
+    const username = safeString(req.body?.username, "Gracz");
+    const tonAddress = safeString(req.body?.tonAddress || req.body?.address, "");
+
+    if (!telegramId) {
+        return res.status(400).json({ error: "Missing telegramId" });
+    }
+
+    if (!tonAddress) {
+        return res.status(400).json({ error: "Missing tonAddress" });
+    }
+
+    const player = getPlayerOrCreate(db, telegramId, username);
+    player.tonAddress = tonAddress;
+    player.updatedAt = Date.now();
+
+    db.players[telegramId] = normalizePlayer(player);
+    writeDb(db);
+
+    return res.json({
+        ok: true,
+        tonAddress: db.players[telegramId].tonAddress,
+        player: db.players[telegramId]
+    });
+});
+
+router.get("/api/withdraw/wallet/:telegramId", (req, res) => {
+    const db = readDb();
+    const telegramId = safeString(req.params.telegramId, "");
+
+    if (!telegramId) {
+        return res.status(400).json({ error: "Missing telegramId" });
+    }
+
+    const player = getPlayerOrCreate(db, telegramId, "Gracz");
+
+    return res.json({
+        ok: true,
+        tonAddress: safeString(player.tonAddress, ""),
+        player: normalizePlayer(player)
+    });
+});
+
 router.post("/api/withdraw/request", async (req, res) => {
     const db = readDb();
 
@@ -89,7 +135,8 @@ router.post("/api/withdraw/request", async (req, res) => {
     const request = createWithdrawRequest({
         telegramId,
         username: player.username || username,
-        amount
+        amount,
+        tonAddress: player.tonAddress
     });
 
     db.withdrawRequests.push(request);
@@ -119,7 +166,7 @@ router.get("/api/withdraw/:telegramId", (req, res) => {
     const db = readDb();
     const telegramId = String(req.params.telegramId || "");
 
-    const requests = db.withdrawRequests
+    const requests = (Array.isArray(db.withdrawRequests) ? db.withdrawRequests : [])
         .filter((item) => String(item.telegramId || "") === telegramId)
         .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
 
@@ -137,6 +184,7 @@ router.post("/api/withdraw/update", async (req, res) => {
     const requestId = safeString(req.body?.requestId, "");
     const nextStatus = safeString(req.body?.status, "").toLowerCase();
     const note = safeString(req.body?.note, "");
+    const payoutTxHash = safeString(req.body?.payoutTxHash, "");
 
     if (!requestId) {
         return res.status(400).json({ error: "Missing requestId" });
@@ -160,7 +208,7 @@ router.post("/api/withdraw/update", async (req, res) => {
 
     if (nextStatus === "paid") {
         applyPaidWithdrawToPlayer(player, request);
-        markWithdrawAsPaid(request, note);
+        markWithdrawAsPaid(request, note, payoutTxHash);
     }
 
     if (nextStatus === "rejected") {
