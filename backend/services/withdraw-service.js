@@ -63,6 +63,10 @@ function getPlayerRewardWallet(player) {
     return normalizeRewardNumber(player?.rewardWallet, 0);
 }
 
+function getPlayerTonAddress(player) {
+    return safeString(player?.tonAddress, "");
+}
+
 function getWithdrawFeeAmount(amount) {
     const safeAmount = normalizeRewardNumber(amount, 0);
     return normalizeRewardNumber(safeAmount * WITHDRAW_FEE_PERCENT, 0);
@@ -85,7 +89,7 @@ function getWithdrawUsdAmount(amount) {
     );
 }
 
-function createWithdrawRequest({ telegramId, username, amount }) {
+function createWithdrawRequest({ telegramId, username, amount, tonAddress }) {
     const safeAmount = normalizeRewardNumber(amount, 0);
     const feeAmount = getWithdrawFeeAmount(safeAmount);
     const netAmount = getWithdrawNetAmount(safeAmount);
@@ -95,6 +99,7 @@ function createWithdrawRequest({ telegramId, username, amount }) {
         id: `wd_${now}_${Math.random().toString(36).slice(2, 8)}`,
         telegramId: String(telegramId || ""),
         username: safeString(username || "Gracz"),
+        tonAddress: safeString(tonAddress || ""),
 
         amount: safeAmount,
         rewardAmount: safeAmount,
@@ -112,7 +117,9 @@ function createWithdrawRequest({ telegramId, username, amount }) {
         createdAt: now,
         updatedAt: now,
         processedAt: 0,
-        note: ""
+        note: "",
+        payoutTxHash: "",
+        payoutError: ""
     };
 }
 
@@ -182,6 +189,14 @@ function validateWithdrawRequest(db, player, amount) {
         };
     }
 
+    const tonAddress = getPlayerTonAddress(player);
+    if (!tonAddress) {
+        return {
+            ok: false,
+            error: "No TON wallet address set"
+        };
+    }
+
     const rewardBalance = getPlayerRewardBalance(player);
     if (rewardBalance < safeAmount) {
         return {
@@ -209,6 +224,7 @@ function validateWithdrawRequest(db, player, amount) {
     return {
         ok: true,
         amount: safeAmount,
+        tonAddress,
         grossRewardAmount: safeAmount,
         feeRewardAmount: getWithdrawFeeAmount(safeAmount),
         netRewardAmount: getWithdrawNetAmount(safeAmount),
@@ -300,13 +316,15 @@ function applyRejectedWithdrawToPlayer(player, withdrawRequest) {
     return player;
 }
 
-function markWithdrawAsPaid(withdrawRequest, note = "") {
+function markWithdrawAsPaid(withdrawRequest, note = "", payoutTxHash = "") {
     if (!withdrawRequest || typeof withdrawRequest !== "object") {
         return null;
     }
 
     withdrawRequest.status = "paid";
     withdrawRequest.note = safeString(note || "");
+    withdrawRequest.payoutTxHash = safeString(payoutTxHash || withdrawRequest.payoutTxHash || "");
+    withdrawRequest.payoutError = "";
     withdrawRequest.updatedAt = getNow();
     withdrawRequest.processedAt = getNow();
 
@@ -363,6 +381,7 @@ module.exports = {
     getPlayerRewardBalance,
     getPlayerWithdrawPending,
     getPlayerRewardWallet,
+    getPlayerTonAddress,
     getWithdrawUsdAmount,
     getWithdrawFeeAmount,
     getWithdrawNetAmount,
