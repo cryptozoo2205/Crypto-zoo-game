@@ -187,9 +187,21 @@ window.CryptoZoo.api = {
         return value && typeof value === "object" && !Array.isArray(value) ? value : {};
     },
 
+    unwrapPlayerResponse(raw) {
+        if (!raw || typeof raw !== "object") {
+            return raw;
+        }
+
+        if (raw.player && typeof raw.player === "object") {
+            return raw.player;
+        }
+
+        return raw;
+    },
+
     normalizeState(raw) {
         const base = this.getDefaultState();
-        const data = this.normalizeObject(raw);
+        const data = this.normalizeObject(this.unwrapPlayerResponse(raw));
 
         return {
             ...base,
@@ -302,12 +314,12 @@ window.CryptoZoo.api = {
         const purchasesCount = Object.keys(s.shopPurchases || {}).length;
 
         return (
+            s.level * 100000 +
+            s.xp +
             s.coins +
             s.gems * 1000 +
             s.rewardBalance * 100 +
             s.rewardWallet * 100 +
-            s.level * 10000 +
-            s.xp +
             animalsCount * 5000 +
             boxesCount * 2500 +
             purchasesCount * 3000 +
@@ -330,6 +342,7 @@ window.CryptoZoo.api = {
                     item.id ||
                     item._id ||
                     item.txId ||
+                    item.txHash ||
                     item.hash ||
                     item.paymentId ||
                     item.depositId ||
@@ -358,8 +371,8 @@ window.CryptoZoo.api = {
         const serverScore = this.getProgressScore(server);
         const localScore = this.getProgressScore(local);
 
-        const preferred = localScore > serverScore ? local : server;
-        const fallback = localScore > serverScore ? server : local;
+        const preferred = localScore >= serverScore ? local : server;
+        const fallback = localScore >= serverScore ? server : local;
 
         const merged = {
             ...fallback,
@@ -370,19 +383,19 @@ window.CryptoZoo.api = {
                 ...preferred.telegramUser
             },
 
-            coins: Math.max(server.coins, local.coins),
-            gems: Math.max(server.gems, local.gems),
-            rewardBalance: Math.max(server.rewardBalance, local.rewardBalance),
-            rewardWallet: Math.max(server.rewardWallet, local.rewardWallet),
-            withdrawPending: Math.max(server.withdrawPending, local.withdrawPending),
+            // tu NIE używamy Math.max dla coins/gems/reward itp.,
+            // żeby legalne wydawanie zasobów nie było cofane
+            coins: preferred.coins,
+            gems: preferred.gems,
+            rewardBalance: preferred.rewardBalance,
+            rewardWallet: preferred.rewardWallet,
+            withdrawPending: preferred.withdrawPending,
 
-            level: Math.max(server.level, local.level),
-            xp: Math.max(server.xp, local.xp),
-
-            coinsPerClick: Math.max(server.coinsPerClick, local.coinsPerClick),
-            zooIncome: Math.max(server.zooIncome, local.zooIncome),
-
-            expeditionBoost: Math.max(server.expeditionBoost, local.expeditionBoost),
+            level: preferred.level,
+            xp: preferred.xp,
+            coinsPerClick: preferred.coinsPerClick,
+            zooIncome: preferred.zooIncome,
+            expeditionBoost: preferred.expeditionBoost,
 
             dailyExpeditionBoost: {
                 activeUntil: Math.max(
@@ -576,7 +589,8 @@ window.CryptoZoo.api = {
         let serverRaw = null;
 
         try {
-            serverRaw = await this.request(`/player/${this.getPlayerId()}`);
+            const response = await this.request(`/player/${this.getPlayerId()}`);
+            serverRaw = this.unwrapPlayerResponse(response);
         } catch (error) {
             console.warn("LOAD FAIL → local fallback", error);
         }
@@ -607,7 +621,7 @@ window.CryptoZoo.api = {
         try {
             const payload = this.getSavePayload();
 
-            CryptoZoo.state = this.mergeStates(payload, CryptoZoo.state || {});
+            CryptoZoo.state = this.normalizeState(payload);
             this.writeLocalState(CryptoZoo.state);
 
             try {
@@ -616,8 +630,10 @@ window.CryptoZoo.api = {
                     body: JSON.stringify(payload)
                 });
 
-                if (response && typeof response === "object") {
-                    CryptoZoo.state = this.mergeStates(response, CryptoZoo.state);
+                const responsePlayer = this.unwrapPlayerResponse(response);
+
+                if (responsePlayer && typeof responsePlayer === "object") {
+                    CryptoZoo.state = this.mergeStates(responsePlayer, CryptoZoo.state);
                     this.writeLocalState(CryptoZoo.state);
                 }
             } catch (error) {
@@ -639,8 +655,10 @@ window.CryptoZoo.api = {
                 })
             });
 
-            if (response && typeof response === "object") {
-                CryptoZoo.state = this.mergeStates(response, CryptoZoo.state || {});
+            const responsePlayer = this.unwrapPlayerResponse(response);
+
+            if (responsePlayer && typeof responsePlayer === "object") {
+                CryptoZoo.state = this.mergeStates(responsePlayer, CryptoZoo.state || {});
                 this.writeLocalState(CryptoZoo.state);
             }
 
