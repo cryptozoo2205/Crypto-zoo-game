@@ -22,6 +22,7 @@ function uniqueMergeArrays(primary, fallback) {
                 item.id ||
                 item._id ||
                 item.txId ||
+                item.txHash ||
                 item.hash ||
                 item.paymentId ||
                 item.depositId ||
@@ -93,6 +94,8 @@ function validateProgress(oldPlayer, newPlayer) {
 function buildSafePlayerState(oldPlayer, incomingRaw, normalizeTelegramUser) {
     const oldSafe = oldPlayer ? normalizePlayer(oldPlayer) : null;
     const incoming = normalizePlayer(incomingRaw);
+    const incomingObj = normalizeObject(incomingRaw);
+    const hasIncomingExpeditionField = Object.prototype.hasOwnProperty.call(incomingObj, "expedition");
 
     const merged = {
         ...(oldSafe || {}),
@@ -171,7 +174,9 @@ function buildSafePlayerState(oldPlayer, incomingRaw, normalizeTelegramUser) {
             ...normalizeObject(incoming.stats)
         },
 
-        expedition: incoming.expedition || oldSafe?.expedition || null,
+        expedition: hasIncomingExpeditionField
+            ? (incomingObj.expedition ?? null)
+            : (oldSafe?.expedition ?? null),
 
         depositHistory: uniqueMergeArrays(
             incoming.depositHistory || incoming.depositsHistory || incoming.paymentHistory,
