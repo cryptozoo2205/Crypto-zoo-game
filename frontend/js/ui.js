@@ -366,17 +366,29 @@ CryptoZoo.ui = {
         const bar = this.ensureOfflineInfoBar();
         if (!bar) return;
 
-        const maxOfflineSeconds = Math.max(
+        const totalHours = Math.max(
+            1,
+            Number(CryptoZoo.gameplay?.getOfflineHoursTotal?.() || 1)
+        );
+        const baseHours = Math.max(
+            1,
+            Number(CryptoZoo.gameplay?.getOfflineBaseHours?.() || 1)
+        );
+        const boostHours = Math.max(
             0,
-            Number(CryptoZoo.state?.offlineMaxSeconds) ||
-            Number(CryptoZoo.gameplay?.maxOfflineSeconds) ||
-            0
+            Number(CryptoZoo.gameplay?.getOfflineBoostHours?.() || 0)
+        );
+        const adsHours = Math.max(
+            0,
+            Number(CryptoZoo.gameplay?.getOfflineAdsHours?.() || 0)
         );
 
-        const maxOfflineHours = maxOfflineSeconds / 3600;
-        const maxOfflineLabel = Number.isInteger(maxOfflineHours)
-            ? `${maxOfflineHours}h`
-            : `${maxOfflineHours.toFixed(1).replace(/\.0$/, "")}h`;
+        const totalLabel = `${CryptoZoo.formatNumber(totalHours)}h`;
+        const details = [
+            `${this.t("baseLimit", "Limit bazowy")}: ${CryptoZoo.formatNumber(baseHours)}h`,
+            `Shop: +${CryptoZoo.formatNumber(boostHours)}h`,
+            `Ads: +${CryptoZoo.formatNumber(adsHours)}h`
+        ].join(" • ");
 
         const offlineBoost = Math.max(1, Number(CryptoZoo.state?.offlineBoost) || 1);
 
@@ -387,8 +399,11 @@ CryptoZoo.ui = {
 
         bar.innerHTML = `
             <div style="font-size:13px; font-weight:900; margin-bottom:4px;">💤 ${this.t("offlineEarnings", "Offline Earnings")}</div>
-            <div style="color: rgba(255,255,255,0.78);">
-                ${this.t("baseLimit", "Limit bazowy")}: ${maxOfflineLabel} • ${boostLabel}
+            <div style="color: rgba(255,255,255,0.78); margin-bottom:4px;">
+                ${this.t("offlineLimit", "Limit offline")}: ${totalLabel} • ${boostLabel}
+            </div>
+            <div style="color: rgba(255,255,255,0.58); font-size:11px;">
+                ${details}
             </div>
         `;
     },
@@ -608,6 +623,16 @@ CryptoZoo.ui = {
         }
 
         if (normalizedType === "offline") {
+            const isCapacityItem = !!CryptoZoo.shopSystem?.isOfflineCapacityItem?.(item);
+
+            if (isCapacityItem) {
+                const addHours = Math.max(
+                    1,
+                    Number(CryptoZoo.shopSystem?.getOfflineCapacityHoursFromItem?.(item) || 1)
+                );
+                return `+${CryptoZoo.formatNumber(addHours)}h ${this.t("offlineLimit", "limitu offline")} • ${this.t("maxWithoutAds", "max bez reklam")}: 4h`;
+            }
+
             const multiplier = Math.max(1, Number(item.offlineMultiplier) || 2);
             const durationSeconds = Math.max(60, Number(item.offlineDurationSeconds) || 600);
             return `x${CryptoZoo.formatNumber(multiplier)} ${this.t("offlineIncomeFor", "offline income przez")} ${this.formatDurationLabel(durationSeconds)}`;
