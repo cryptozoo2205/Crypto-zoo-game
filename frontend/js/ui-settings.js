@@ -323,6 +323,7 @@ CryptoZoo.uiSettings = {
         if (transferBtn) {
             transferBtn.disabled = true;
             transferBtn.style.opacity = "0.5";
+            transferBtn.style.display = "none";
             transferBtn.textContent = this.t(
                 "rewardUsedDirectlyForWithdraw",
                 "Reward balance jest używany bezpośrednio do withdraw"
@@ -346,11 +347,13 @@ CryptoZoo.uiSettings = {
 
             if (availability.ok) {
                 withdrawHintEl.textContent =
+                    `${this.t("withdrawUsesRewardBalanceDirectly", "Withdraw używa bezpośrednio reward balance")}. ` +
                     `${this.t("grossValue", "Brutto")}: ${rewardBalance.toFixed(3)} • ${this.getWithdrawGrossUsdLabel(rewardBalance)} | ` +
                     `${this.t("fee", "Fee")} 10%: ${feeAmount.toFixed(3)} • ${this.getWithdrawFeeUsdLabel(rewardBalance)} | ` +
                     `${this.t("netValue", "Netto")}: ${netReward.toFixed(3)} • ${this.getWithdrawNetUsdLabel(rewardBalance)}`;
             } else {
-                withdrawHintEl.textContent = availability.reason;
+                withdrawHintEl.textContent =
+                    `${this.t("withdrawUsesRewardBalanceDirectly", "Withdraw używa bezpośrednio reward balance")}. ${availability.reason}`;
             }
         }
 
