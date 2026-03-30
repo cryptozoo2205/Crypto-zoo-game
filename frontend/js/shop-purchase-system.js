@@ -51,6 +51,24 @@ CryptoZoo.shopSystem = {
         CryptoZoo.state.expeditionStats.timeBoostCharges = CryptoZoo.state.expeditionStats.timeBoostCharges
             .map((value) => Math.max(0, Number(value) || 0))
             .filter((value) => value > 0);
+
+        CryptoZoo.state.offlineBaseHours = Math.max(
+            1,
+            Math.floor(Number(CryptoZoo.state.offlineBaseHours) || 1)
+        );
+
+        CryptoZoo.state.offlineBoostHours = Math.max(
+            0,
+            Math.min(
+                Number(CryptoZoo.gameplay?.maxOfflineBoostHoursFromShop) || 3,
+                Math.floor(Number(CryptoZoo.state.offlineBoostHours) || 0)
+            )
+        );
+
+        CryptoZoo.state.offlineAdsHours = Math.max(
+            0,
+            Math.floor(Number(CryptoZoo.state.offlineAdsHours) || 0)
+        );
     },
 
     isDailyBoostActive() {
@@ -73,8 +91,34 @@ CryptoZoo.shopSystem = {
         CryptoZoo.state.dailyExpeditionBoost.lastPurchaseAt = Date.now();
     },
 
+    isOfflineCapacityItem(item) {
+        const effect = String(item?.effect || item?.type || "").toLowerCase();
+        const durationSeconds = Math.max(0, Number(item?.offlineDurationSeconds) || 0);
+
+        if (effect !== "offline") return false;
+
+        return durationSeconds >= 3600;
+    },
+
+    getOfflineCapacityHoursFromItem(item) {
+        const durationSeconds = Math.max(0, Number(item?.offlineDurationSeconds) || 0);
+
+        if (durationSeconds >= 7200) {
+            return Math.max(1, Math.floor(durationSeconds / 3600));
+        }
+
+        return durationSeconds >= 3600 ? 1 : 0;
+    },
+
     getOwnedCount(itemId) {
         this.ensurePurchaseState();
+
+        const item = this.getItemById(itemId);
+
+        if (this.isOfflineCapacityItem(item)) {
+            return Math.max(0, Number(CryptoZoo.state?.offlineBoostHours) || 0);
+        }
+
         return Math.max(0, Number(CryptoZoo.state.shopPurchases[itemId]) || 0);
     },
 
@@ -86,6 +130,23 @@ CryptoZoo.shopSystem = {
 
     getMaxAnimalLevel() {
         return Math.max(1, Number(CryptoZoo.config?.limits?.maxLevelPerAnimal) || 100);
+    },
+
+    getMaxOfflineBoostHoursFromShop() {
+        return Math.max(
+            0,
+            Number(CryptoZoo.gameplay?.maxOfflineBoostHoursFromShop) || 3
+        );
+    },
+
+    canBuyOfflineCapacityItem(item) {
+        if (!this.isOfflineCapacityItem(item)) return true;
+
+        const currentHours = Math.max(0, Number(CryptoZoo.state?.offlineBoostHours) || 0);
+        const addHours = this.getOfflineCapacityHoursFromItem(item);
+        const maxHours = this.getMaxOfflineBoostHoursFromShop();
+
+        return currentHours + addHours <= maxHours;
     },
 
     shouldTrackOwnedCount(item) {
@@ -147,6 +208,10 @@ CryptoZoo.shopSystem = {
     },
 
     canAfford(item) {
+        if (this.isOfflineCapacityItem(item) && !this.canBuyOfflineCapacityItem(item)) {
+            return false;
+        }
+
         const meta = this.getCurrentPriceMeta(item);
 
         if (meta.type === "gems") {
@@ -250,6 +315,21 @@ CryptoZoo.shopSystem = {
     },
 
     applyOfflineBoost(item) {
+        this.ensurePurchaseState();
+
+        if (this.isOfflineCapacityItem(item)) {
+            const addHours = this.getOfflineCapacityHoursFromItem(item);
+            const added = CryptoZoo.gameplay?.addOfflineHourBoost?.(addHours);
+
+            if (!added) {
+                CryptoZoo.ui?.showToast?.("Masz już maksymalny limit offline 4h");
+                return "LimitReached";
+            }
+
+            const totalHours = CryptoZoo.gameplay?.getOfflineHoursWithoutAds?.() || 1;
+            return `+${CryptoZoo.formatNumber(addHours)}h offline • Limit: ${CryptoZoo.formatNumber(totalHours)}h / 4h`;
+        }
+
         const multiplier = Math.max(2, Number(item?.offlineMultiplier) || 2);
         const durationSeconds = Math.max(60, Number(item?.offlineDurationSeconds) || 600);
 
@@ -304,6 +384,11 @@ CryptoZoo.shopSystem = {
             return false;
         }
 
+        if (this.isOfflineCapacityItem(item) && !this.canBuyOfflineCapacityItem(item)) {
+            CryptoZoo.ui?.showToast?.("Masz już maksymalny limit offline 4h");
+            return false;
+        }
+
         if (!this.canAfford(item)) {
             const priceMeta = this.getCurrentPriceMeta(item);
             const text =
@@ -317,7 +402,9 @@ CryptoZoo.shopSystem = {
 
         const resultText = this.applyItemEffect(item);
 
-        if (resultText === "Cooldown") return false;
+        if (resultText === "Cooldown" || resultText === "LimitReached") {
+            return false;
+        }
 
         this.spendPrice(item);
 
