@@ -60,9 +60,9 @@ function sanitizeRewardState(oldPlayer, newPlayer) {
 
 function validateProgress(oldPlayer, newPlayer) {
     if (!oldPlayer) {
-        newPlayer.coins = clamp(newPlayer.coins, 0, LIMITS.MAX_COINS);
-        newPlayer.gems = clamp(newPlayer.gems, 0, LIMITS.MAX_GEMS);
-        newPlayer.level = clamp(newPlayer.level, 1, LIMITS.MAX_LEVEL);
+        newPlayer.coins = clamp(Number(newPlayer.coins || 0), 0, LIMITS.MAX_COINS);
+        newPlayer.gems = clamp(Number(newPlayer.gems || 0), 0, LIMITS.MAX_GEMS);
+        newPlayer.level = clamp(Number(newPlayer.level || 1), 1, LIMITS.MAX_LEVEL);
         return newPlayer;
     }
 
@@ -72,15 +72,30 @@ function validateProgress(oldPlayer, newPlayer) {
     const gemsDiff = Number(newPlayer.gems || 0) - Number(oldSafe.gems || 0);
     const levelDiff = Number(newPlayer.level || 1) - Number(oldSafe.level || 1);
 
-    if (coinsDiff > LIMITS.MAX_COINS_GAIN_PER_SAVE) {
+    const maxCoinsGain = Math.max(
+        Number(LIMITS.MAX_COINS_GAIN_PER_SAVE) || 0,
+        1000000000
+    );
+
+    const maxGemsGain = Math.max(
+        Number(LIMITS.MAX_GEMS_GAIN_PER_SAVE) || 0,
+        10000
+    );
+
+    const maxLevelGain = Math.max(
+        Number(LIMITS.MAX_LEVEL_GAIN_PER_SAVE) || 0,
+        100
+    );
+
+    if (coinsDiff > maxCoinsGain) {
         newPlayer.coins = oldSafe.coins;
     }
 
-    if (gemsDiff > LIMITS.MAX_GEMS_GAIN_PER_SAVE) {
+    if (gemsDiff > maxGemsGain) {
         newPlayer.gems = oldSafe.gems;
     }
 
-    if (levelDiff > LIMITS.MAX_LEVEL_GAIN_PER_SAVE) {
+    if (levelDiff > maxLevelGain) {
         newPlayer.level = oldSafe.level;
     }
 
@@ -134,10 +149,7 @@ function buildSafePlayerState(oldPlayer, incomingRaw, normalizeTelegramUser) {
             ...normalizeObject(incoming.shopPurchases)
         },
 
-        animals: {
-            ...normalizeObject(oldSafe?.animals),
-            ...normalizeObject(incoming.animals)
-        },
+        animals: normalizeObject(incoming.animals || oldSafe?.animals),
 
         boxes: {
             ...normalizeObject(oldSafe?.boxes),
