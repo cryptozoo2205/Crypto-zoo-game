@@ -595,9 +595,11 @@ CryptoZoo.ui = {
         }
 
         if (normalizedType === "expedition") {
-            const bonus = Math.max(0, Number(item.expeditionBonus) || 0);
-            const percent = Math.round(bonus * 100);
-            return `+${percent}% ${this.t("rewardWallet", "Reward Wallet").toLowerCase()} ${this.t("fromEveryExpedition", "z każdej ekspedycji")}`;
+            const percent = Math.round(
+                (Number(CryptoZoo.shopSystem?.DAILY_EXPEDITION_BOOST_VALUE) || 0.25) * 100
+            );
+
+            return `+${percent}% ${this.t("expeditionReward", "reward z ekspedycji")} ${this.t("for24h", "na 24h")} • ${this.t("oncePer24h", "1 raz / 24h")}`;
         }
 
         if (normalizedType === "expeditiontime" || normalizedEffect === "expeditiontime") {
@@ -678,6 +680,30 @@ CryptoZoo.ui = {
             return {
                 label: this.t("charges", "Ładunki"),
                 value: CryptoZoo.formatNumber(charges)
+            };
+        }
+
+        if (type === "expedition") {
+            const isActive = !!CryptoZoo.shopSystem?.isDailyBoostActive?.();
+            const canBuy = !!CryptoZoo.shopSystem?.canBuyDailyBoost?.();
+
+            if (isActive) {
+                return {
+                    label: this.t("status", "Status"),
+                    value: this.t("active24h", "Aktywny 24h")
+                };
+            }
+
+            if (!canBuy) {
+                return {
+                    label: this.t("status", "Status"),
+                    value: this.t("cooldown", "Cooldown")
+                };
+            }
+
+            return {
+                label: this.t("status", "Status"),
+                value: this.t("ready", "Ready")
             };
         }
 
