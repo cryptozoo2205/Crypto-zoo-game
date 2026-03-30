@@ -2,7 +2,10 @@ window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.uiSettings = {
     storageKey: "cryptozoo_settings",
-    minWithdrawReward: 3,
+    minWithdrawReward: 20,
+    usdPerReward: 0.005,
+    minWithdrawLevel: 7,
+    minWithdrawAccountAgeMs: 24 * 60 * 60 * 1000,
 
     withdrawHistory: [],
     withdrawHistoryLoading: false,
@@ -40,12 +43,82 @@ CryptoZoo.uiSettings = {
         return Number((Number(CryptoZoo.state?.withdrawPending) || 0).toFixed(3));
     },
 
+    getPlayerLevel() {
+        return Math.max(1, Math.floor(Number(CryptoZoo.state?.level) || 1));
+    },
+
+    getPlayerCreatedAtMs() {
+        return Math.max(
+            0,
+            Number(CryptoZoo.state?.createdAt) ||
+            Number(CryptoZoo.state?.registeredAt) ||
+            Number(CryptoZoo.state?.firstSeenAt) ||
+            Number(CryptoZoo.state?.joinedAt) ||
+            0
+        );
+    },
+
+    getAccountAgeMs() {
+        const createdAt = this.getPlayerCreatedAtMs();
+        if (!createdAt) return 0;
+        return Math.max(0, Date.now() - createdAt);
+    },
+
     format(v) {
         return Number((Number(v) || 0).toFixed(3));
     },
 
+    formatUsdFromReward(rewardAmount) {
+        const usd = Number(rewardAmount || 0) * this.usdPerReward;
+        return Number(usd.toFixed(3));
+    },
+
+    getRewardUsdLabel(rewardAmount) {
+        return `$${this.formatUsdFromReward(rewardAmount).toFixed(3)}`;
+    },
+
+    getWithdrawAvailability() {
+        const rewardBalance = this.getRewardBalance();
+        const withdrawPending = this.getWithdrawPending();
+        const level = this.getPlayerLevel();
+        const accountAgeMs = this.getAccountAgeMs();
+
+        if (rewardBalance < this.minWithdrawReward) {
+            return {
+                ok: false,
+                reason: `${this.t("minWithdraw", "Min withdraw")} ${this.minWithdrawReward}`
+            };
+        }
+
+        if (withdrawPending > 0) {
+            return {
+                ok: false,
+                reason: this.t("pendingWithdrawExists", "Masz już aktywny withdraw")
+            };
+        }
+
+        if (level < this.minWithdrawLevel) {
+            return {
+                ok: false,
+                reason: `${this.t("requiredLevel", "Wymagany poziom")} ${this.minWithdrawLevel}`
+            };
+        }
+
+        if (accountAgeMs < this.minWithdrawAccountAgeMs) {
+            return {
+                ok: false,
+                reason: this.t("accountMustBe24h", "Konto musi mieć minimum 24h")
+            };
+        }
+
+        return {
+            ok: true,
+            reason: ""
+        };
+    },
+
     canWithdraw() {
-        return this.getRewardWallet() >= this.minWithdrawReward;
+        return this.getWithdrawAvailability().ok;
     },
 
     getSettings() {
@@ -186,40 +259,66 @@ CryptoZoo.uiSettings = {
         const rewardBalanceEl = document.getElementById("settingsRewardBalance");
         const rewardWalletEl = document.getElementById("settingsRewardWallet");
         const withdrawPendingEl = document.getElementById("settingsWithdrawPending");
+        const rewardBalanceUsdEl = document.getElementById("settingsRewardBalanceUsd");
+        const rewardWalletUsdEl = document.getElementById("settingsRewardWalletUsd");
+        const withdrawPendingUsdEl = document.getElementById("settingsWithdrawPendingUsd");
+        const withdrawHintEl = document.getElementById("settingsWithdrawHint");
+
+        const rewardBalance = this.getRewardBalance();
+        const rewardWallet = this.getRewardWallet();
+        const withdrawPending = this.getWithdrawPending();
 
         if (rewardBalanceEl) {
-            rewardBalanceEl.textContent = this.format(this.getRewardBalance()).toFixed(3);
+            rewardBalanceEl.textContent = this.format(rewardBalance).toFixed(3);
         }
 
         if (rewardWalletEl) {
-            rewardWalletEl.textContent = this.format(this.getRewardWallet()).toFixed(3);
+            rewardWalletEl.textContent = this.format(rewardWallet).toFixed(3);
         }
 
         if (withdrawPendingEl) {
-            withdrawPendingEl.textContent = this.format(this.getWithdrawPending()).toFixed(3);
+            withdrawPendingEl.textContent = this.format(withdrawPending).toFixed(3);
+        }
+
+        if (rewardBalanceUsdEl) {
+            rewardBalanceUsdEl.textContent = this.getRewardUsdLabel(rewardBalance);
+        }
+
+        if (rewardWalletUsdEl) {
+            rewardWalletUsdEl.textContent = this.getRewardUsdLabel(rewardWallet);
+        }
+
+        if (withdrawPendingUsdEl) {
+            withdrawPendingUsdEl.textContent = this.getRewardUsdLabel(withdrawPending);
         }
 
         const transferBtn = document.getElementById("settingsTransferRewardBtn");
         if (transferBtn) {
-            const balance = this.getRewardBalance();
-            transferBtn.disabled = balance <= 0;
-            transferBtn.style.opacity = balance > 0 ? "1" : "0.5";
-            transferBtn.textContent =
-                balance > 0
-                    ? `${this.t("transferReward", "Transfer Reward")} (${balance.toFixed(3)})`
-                    : this.t("noRewardToTransfer", "Brak Reward do transferu");
+            transferBtn.disabled = true;
+            transferBtn.style.opacity = "0.5";
+            transferBtn.textContent = this.t(
+                "rewardUsedDirectlyForWithdraw",
+                "Reward balance jest używany bezpośrednio do withdraw"
+            );
         }
 
         const withdrawBtn = document.getElementById("settingsRequestWithdrawBtn");
         if (withdrawBtn) {
-            const wallet = this.getRewardWallet();
-            const can = this.canWithdraw();
+            const availability = this.getWithdrawAvailability();
+            const can = availability.ok;
 
             withdrawBtn.disabled = !can;
             withdrawBtn.style.opacity = can ? "1" : "0.5";
             withdrawBtn.textContent = can
-                ? `${this.t("withdrawRequest", "Withdraw Request")} (${wallet.toFixed(3)})`
+                ? `${this.t("withdrawRequest", "Withdraw Request")} (${rewardBalance.toFixed(3)} • ${this.getRewardUsdLabel(rewardBalance)})`
                 : `${this.t("minWithdraw", "Min withdraw")} ${this.minWithdrawReward}`;
+        }
+
+        if (withdrawHintEl) {
+            const availability = this.getWithdrawAvailability();
+            withdrawHintEl.textContent = availability.ok
+                ? `${this.t("estimatedValue", "Estimated value")}: ${this.getRewardUsdLabel(rewardBalance)}`
+                : availability.reason;
         }
 
         const depositBtn = document.getElementById("settingsCreateDepositBtn");
@@ -281,41 +380,34 @@ CryptoZoo.uiSettings = {
     },
 
     async transferRewardToWallet() {
-        const amount = this.getRewardBalance();
-
-        if (amount <= 0) {
-            CryptoZoo.ui?.showToast?.(this.t("noRewardToTransfer", "Brak Reward do transferu"));
-            return false;
-        }
-
-        CryptoZoo.state.rewardWallet = this.getRewardWallet() + amount;
-        CryptoZoo.state.rewardBalance = 0;
-
-        await CryptoZoo.api.savePlayer();
-
-        CryptoZoo.ui?.showToast?.(`+${amount.toFixed(3)} reward → wallet`);
-
-        this.refreshSettingsModalData();
-        CryptoZoo.ui?.render?.();
-
-        return true;
+        CryptoZoo.ui?.showToast?.(
+            this.t(
+                "rewardUsedDirectlyForWithdraw",
+                "Reward balance jest używany bezpośrednio do withdraw"
+            )
+        );
+        return false;
     },
 
     async requestWithdraw() {
-        const wallet = this.getRewardWallet();
+        const rewardBalance = this.getRewardBalance();
+        const availability = this.getWithdrawAvailability();
 
-        if (wallet < this.minWithdrawReward) {
-            CryptoZoo.ui?.showToast?.(`${this.t("minWithdraw", "Min withdraw")} ${this.minWithdrawReward}`);
+        if (!availability.ok) {
+            CryptoZoo.ui?.showToast?.(availability.reason);
             return false;
         }
 
         try {
-            await CryptoZoo.api.createWithdrawRequest(wallet);
+            await CryptoZoo.api.createWithdrawRequest(rewardBalance);
 
-            CryptoZoo.ui?.showToast?.(`Withdraw ${wallet.toFixed(3)}`);
+            CryptoZoo.ui?.showToast?.(
+                `${this.t("withdrawCreated", "Withdraw created")}: ${rewardBalance.toFixed(3)} • ${this.getRewardUsdLabel(rewardBalance)}`
+            );
 
             await this.loadWithdrawHistory();
             this.refreshSettingsModalData();
+            CryptoZoo.ui?.render?.();
 
             return true;
         } catch (e) {
@@ -378,10 +470,14 @@ CryptoZoo.uiSettings = {
 
         el.innerHTML = this.withdrawHistory
             .map((w) => {
+                const amount = this.format(w.rewardAmount ?? w.amount).toFixed(3);
+                const usd = this.getRewardUsdLabel(w.rewardAmount ?? w.amount);
+                const status = String(w.status || "pending");
+
                 return `
                     <div style="padding:10px;border:1px solid rgba(255,255,255,0.1);border-radius:10px;margin-bottom:8px;">
-                        <div>${this.format(w.amount).toFixed(3)} reward</div>
-                        <div style="margin-top:4px;">${w.status}</div>
+                        <div>${amount} reward • ${usd}</div>
+                        <div style="margin-top:4px;">${status}</div>
                     </div>
                 `;
             })
