@@ -30,6 +30,10 @@ function round3(value) {
     return Number(toNumber(value).toFixed(3));
 }
 
+function normalizeGems(value) {
+    return Math.max(0, Math.floor(Number(value) || 0));
+}
+
 function findWithdraw(db, id) {
     return (db.withdrawRequests || []).find((w) => String(w.id) === String(id));
 }
@@ -190,7 +194,10 @@ function formatAdminPanel(db) {
 /withdraw_stats
 
 /pay <id>
-/reject <id> <note>`;
+/reject <id> <note>
+
+/addgems <telegramId> <amount>
+/player <telegramId>`;
 }
 
 function formatLiveWithdraws(list) {
@@ -242,6 +249,23 @@ Paid: ${withdraws.paid.length}
 Rejected: ${withdraws.rejected.length}`;
 }
 
+function formatPlayerInfo(player) {
+    if (!player) {
+        return "Nie znaleziono gracza";
+    }
+
+    return `👤 PLAYER
+
+ID: ${String(player.telegramId || "")}
+Username: ${String(player.username || "Gracz")}
+Gems: ${normalizeGems(player.gems)}
+Coins: ${toNumber(player.coins)}
+Level: ${Math.max(1, Math.floor(Number(player.level) || 1))}
+Reward balance: ${toNumber(player.rewardBalance || 0).toFixed(3)}
+Reward wallet: ${toNumber(player.rewardWallet || 0).toFixed(3)}
+Pending: ${toNumber(player.withdrawPending || 0).toFixed(3)}`;
+}
+
 function applyPaidWithdraw(db, withdraw) {
     const player = getPlayer(db, withdraw.telegramId);
 
@@ -283,6 +307,35 @@ function applyRejectedWithdraw(db, withdraw, note = "") {
     return { ok: true };
 }
 
+function applyAddGems(db, telegramId, gemsAmount) {
+    if (!db.players || typeof db.players !== "object") {
+        db.players = {};
+    }
+
+    const player = getPlayer(db, telegramId);
+
+    if (!player) {
+        return { ok: false, error: "Nie znaleziono gracza" };
+    }
+
+    const safeGems = normalizeGems(gemsAmount);
+
+    if (safeGems <= 0) {
+        return { ok: false, error: "Nieprawidłowa ilość gemów" };
+    }
+
+    player.gems = normalizeGems(player.gems) + safeGems;
+    player.updatedAt = Date.now();
+
+    writeDb(db);
+
+    return {
+        ok: true,
+        player,
+        added: safeGems
+    };
+}
+
 function isAdminCommand(text) {
     return (
         text.startsWith("/admin") ||
@@ -290,7 +343,9 @@ function isAdminCommand(text) {
         text.startsWith("/paid_withdraws") ||
         text.startsWith("/withdraw_stats") ||
         text.startsWith("/pay") ||
-        text.startsWith("/reject")
+        text.startsWith("/reject") ||
+        text.startsWith("/addgems") ||
+        text.startsWith("/player")
     );
 }
 
@@ -323,6 +378,41 @@ function registerAdminHandlers(bot) {
         if (text.startsWith("/withdraw_stats")) {
             const db = readDb();
             return bot.sendMessage(msg.chat.id, formatWithdrawStats(db));
+        }
+
+        if (text.startsWith("/player")) {
+            const db = readDb();
+            const parts = text.trim().split(/\s+/);
+            const telegramId = String(parts[1] || "").trim();
+
+            if (!telegramId) {
+                return bot.sendMessage(msg.chat.id, "Użyj: /player <telegramId>");
+            }
+
+            const player = getPlayer(db, telegramId);
+            return bot.sendMessage(msg.chat.id, formatPlayerInfo(player));
+        }
+
+        if (text.startsWith("/addgems")) {
+            const db = readDb();
+            const parts = text.trim().split(/\s+/);
+            const telegramId = String(parts[1] || "").trim();
+            const gemsAmount = normalizeGems(parts[2]);
+
+            if (!telegramId || !parts[2]) {
+                return bot.sendMessage(msg.chat.id, "Użyj: /addgems <telegramId> <amount>");
+            }
+
+            const result = applyAddGems(db, telegramId, gemsAmount);
+
+            if (!result.ok) {
+                return bot.sendMessage(msg.chat.id, result.error || "Błąd");
+            }
+
+            return bot.sendMessage(
+                msg.chat.id,
+                `💎 Dodano ${result.added} gemów\nID: ${telegramId}\nNowe gemy: ${normalizeGems(result.player.gems)}`
+            );
         }
 
         if (text.startsWith("/pay")) {
