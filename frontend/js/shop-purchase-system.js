@@ -1,6 +1,9 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.shopSystem = {
+    DAILY_EXPEDITION_BOOST_COOLDOWN: 24 * 60 * 60 * 1000,
+    DAILY_EXPEDITION_BOOST_VALUE: 0.25, // +25%
+
     getItemById(itemId) {
         const items = CryptoZoo.config?.shopItems || [];
         return items.find((item) => item.id === itemId) || null;
@@ -20,6 +23,12 @@ CryptoZoo.shopSystem = {
             0,
             Number(CryptoZoo.state.expeditionBoost) || 0
         );
+
+        // 🔥 DAILY BOOST STATE
+        CryptoZoo.state.dailyExpeditionBoost = CryptoZoo.state.dailyExpeditionBoost || {
+            activeUntil: 0,
+            lastPurchaseAt: 0
+        };
 
         CryptoZoo.state.expeditionStats.rareChanceBonus = Math.max(
             0,
@@ -44,6 +53,32 @@ CryptoZoo.shopSystem = {
             .map((value) => Math.max(0, Number(value) || 0))
             .filter((value) => value > 0);
     },
+
+    /* =========================
+       DAILY BOOST
+    ========================= */
+
+    isDailyBoostActive() {
+        return (Number(CryptoZoo.state?.dailyExpeditionBoost?.activeUntil) || 0) > Date.now();
+    },
+
+    canBuyDailyBoost() {
+        const last = Number(CryptoZoo.state?.dailyExpeditionBoost?.lastPurchaseAt) || 0;
+        return Date.now() - last >= this.DAILY_EXPEDITION_BOOST_COOLDOWN;
+    },
+
+    getDailyBoostMultiplier() {
+        return this.isDailyBoostActive() ? 1 + this.DAILY_EXPEDITION_BOOST_VALUE : 1;
+    },
+
+    applyDailyBoost() {
+        CryptoZoo.state.dailyExpeditionBoost.activeUntil =
+            Date.now() + this.DAILY_EXPEDITION_BOOST_COOLDOWN;
+
+        CryptoZoo.state.dailyExpeditionBoost.lastPurchaseAt = Date.now();
+    },
+
+    /* ========================= */
 
     getOwnedCount(itemId) {
         this.ensurePurchaseState();
@@ -143,6 +178,26 @@ CryptoZoo.shopSystem = {
         return true;
     },
 
+    /* =========================
+       🔥 FIX: EXPEDITION BOOST
+    ========================= */
+
+    applyExpeditionRewardUpgrade(item) {
+        this.ensurePurchaseState();
+
+        // 🔥 zamiast stackowania → daily boost
+        if (!this.canBuyDailyBoost()) {
+            CryptoZoo.ui?.showToast?.("Boost dostępny raz na 24h");
+            return "Cooldown";
+        }
+
+        this.applyDailyBoost();
+
+        return "+25% reward z ekspedycji przez 24h";
+    },
+
+    /* ========================= */
+
     applyClickUpgrade(item) {
         const bonus = Math.max(1, Number(item?.clickValueBonus) || 1);
 
@@ -181,41 +236,6 @@ CryptoZoo.shopSystem = {
         }
 
         return `+${CryptoZoo.formatNumber(incomeBonus)} lvl do posiadanych zwierząt`;
-    },
-
-    applyExpeditionRewardUpgrade(item) {
-        this.ensurePurchaseState();
-
-        const rareBonus = Math.max(0, Number(item?.rareChanceBonus) || 0);
-        const epicBonus = Math.max(0, Number(item?.epicChanceBonus) || 0);
-
-        CryptoZoo.state.expeditionStats.rareChanceBonus =
-            Math.max(0, Number(CryptoZoo.state.expeditionStats.rareChanceBonus) || 0) + rareBonus;
-
-        CryptoZoo.state.expeditionStats.epicChanceBonus =
-            Math.max(0, Number(CryptoZoo.state.expeditionStats.epicChanceBonus) || 0) + epicBonus;
-
-        if (epicBonus > 0) {
-            return "Większa szansa na Epic nagrody";
-        }
-
-        if (rareBonus > 0) {
-            return "Większa szansa na Rare nagrody";
-        }
-
-        const bonus = Math.max(0, Number(item?.expeditionBonus) || 0);
-        if (bonus <= 0) {
-            return "Brak bonusu ekspedycji";
-        }
-
-        CryptoZoo.state.expeditionBoost = Number(
-            (
-                Math.max(0, Number(CryptoZoo.state?.expeditionBoost) || 0) + bonus
-            ).toFixed(4)
-        );
-
-        const percent = Math.round(bonus * 100);
-        return `+${percent}% reward wallet z ekspedycji`;
     },
 
     applyExpeditionTimeReduction(item) {
@@ -273,33 +293,13 @@ CryptoZoo.shopSystem = {
     applyItemEffect(item) {
         const effect = String(item?.effect || item?.type || "").toLowerCase();
 
-        if (effect === "click") {
-            return this.applyClickUpgrade(item);
-        }
-
-        if (effect === "income") {
-            return this.applyIncomeUpgrade(item);
-        }
-
-        if (effect === "expedition") {
-            return this.applyExpeditionRewardUpgrade(item);
-        }
-
-        if (effect === "expeditiontime") {
-            return this.applyExpeditionTimeReduction(item);
-        }
-
-        if (effect === "offline") {
-            return this.applyOfflineBoost(item);
-        }
-
-        if (effect === "coinpack" || effect === "coins") {
-            return this.applyCoinPack(item);
-        }
-
-        if (effect === "boost2x" || effect === "boost") {
-            return this.applyBoost2x(item);
-        }
+        if (effect === "click") return this.applyClickUpgrade(item);
+        if (effect === "income") return this.applyIncomeUpgrade(item);
+        if (effect === "expedition") return this.applyExpeditionRewardUpgrade(item);
+        if (effect === "expeditiontime") return this.applyExpeditionTimeReduction(item);
+        if (effect === "offline") return this.applyOfflineBoost(item);
+        if (effect === "coinpack" || effect === "coins") return this.applyCoinPack(item);
+        if (effect === "boost2x" || effect === "boost") return this.applyBoost2x(item);
 
         return item?.name || "Kupiono";
     },
@@ -323,9 +323,11 @@ CryptoZoo.shopSystem = {
             return false;
         }
 
-        this.spendPrice(item);
-
         const resultText = this.applyItemEffect(item);
+
+        if (resultText === "Cooldown") return false;
+
+        this.spendPrice(item);
 
         if (this.shouldTrackOwnedCount(item)) {
             this.addOwnedCount(item.id, 1);
