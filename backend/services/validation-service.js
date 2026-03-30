@@ -149,7 +149,10 @@ function buildSafePlayerState(oldPlayer, incomingRaw, normalizeTelegramUser) {
             ...normalizeObject(incoming.shopPurchases)
         },
 
-        animals: normalizeObject(incoming.animals || oldSafe?.animals),
+        animals: {
+            ...normalizeObject(oldSafe?.animals),
+            ...normalizeObject(incoming.animals)
+        },
 
         boxes: {
             ...normalizeObject(oldSafe?.boxes),
