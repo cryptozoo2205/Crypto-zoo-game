@@ -3,7 +3,7 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.uiSettings = {
     storageKey: "cryptozoo_settings",
     minWithdrawReward: 20,
-    usdPerReward: 0.005,
+    usdPerReward: 0.05,
     minWithdrawLevel: 7,
     minWithdrawAccountAgeMs: 24 * 60 * 60 * 1000,
 
