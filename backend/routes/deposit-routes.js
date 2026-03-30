@@ -16,6 +16,105 @@ const { requireAdmin } = require("../services/withdraw-service");
 
 const router = express.Router();
 
+function ensurePlayerCollections(player) {
+    player.depositHistory = Array.isArray(player.depositHistory)
+        ? player.depositHistory
+        : [];
+    player.deposits = Array.isArray(player.deposits) ? player.deposits : [];
+    player.transactions = Array.isArray(player.transactions) ? player.transactions : [];
+    player.withdrawHistory = Array.isArray(player.withdrawHistory)
+        ? player.withdrawHistory
+        : [];
+    player.payoutHistory = Array.isArray(player.payoutHistory)
+        ? player.payoutHistory
+        : [];
+    player.referrals = Array.isArray(player.referrals) ? player.referrals : [];
+    player.referralHistory = Array.isArray(player.referralHistory)
+        ? player.referralHistory
+        : [];
+
+    return player;
+}
+
+function hasItemByKey(list, key, value) {
+    const safeList = Array.isArray(list) ? list : [];
+    const safeValue = String(value || "");
+
+    if (!safeValue) return false;
+
+    return safeList.some((item) => String(item?.[key] || "") === safeValue);
+}
+
+function buildPlayerDepositHistoryEntry(deposit, txHash = "") {
+    return {
+        id: safeString(deposit?.id, ""),
+        depositId: safeString(deposit?.id, ""),
+        txHash: safeString(txHash || deposit?.txHash, ""),
+        amount: normalizeRewardNumber(deposit?.amount, 0),
+        currency: safeString(deposit?.currency, "TON") || "TON",
+        gemsAmount: Math.max(0, Number(deposit?.gemsAmount) || 0),
+        expeditionBoostAmount: Math.max(
+            0,
+            Number(deposit?.expeditionBoostAmount) || 0
+        ),
+        paymentComment: safeString(deposit?.paymentComment, ""),
+        status: safeString(deposit?.status, "approved") || "approved",
+        walletAddress: safeString(deposit?.walletAddress, ""),
+        network: safeString(deposit?.network, "TON") || "TON",
+        source: safeString(deposit?.source, "deposit-routes") || "deposit-routes",
+        note: safeString(deposit?.note, ""),
+        createdAt: Math.max(0, Number(deposit?.createdAt) || Date.now()),
+        approvedAt: Math.max(0, Number(deposit?.approvedAt) || Date.now()),
+        updatedAt: Math.max(0, Number(deposit?.updatedAt) || Date.now())
+    };
+}
+
+function buildPlayerTransactionEntry(deposit, txHash = "") {
+    return {
+        id: safeString(txHash || deposit?.txHash, "") || safeString(deposit?.id, ""),
+        txHash: safeString(txHash || deposit?.txHash, ""),
+        type: "deposit",
+        status: safeString(deposit?.status, "approved") || "approved",
+        amount: normalizeRewardNumber(deposit?.amount, 0),
+        currency: safeString(deposit?.currency, "TON") || "TON",
+        gemsAmount: Math.max(0, Number(deposit?.gemsAmount) || 0),
+        expeditionBoostAmount: Math.max(
+            0,
+            Number(deposit?.expeditionBoostAmount) || 0
+        ),
+        depositId: safeString(deposit?.id, ""),
+        paymentComment: safeString(deposit?.paymentComment, ""),
+        note: safeString(deposit?.note, ""),
+        createdAt: Math.max(0, Number(deposit?.updatedAt) || Date.now()),
+        updatedAt: Math.max(0, Number(deposit?.updatedAt) || Date.now())
+    };
+}
+
+function attachDepositToPlayer(player, deposit) {
+    ensurePlayerCollections(player);
+
+    const historyEntry = buildPlayerDepositHistoryEntry(deposit, deposit?.txHash || "");
+    const transactionEntry = buildPlayerTransactionEntry(deposit, deposit?.txHash || "");
+
+    if (!hasItemByKey(player.depositHistory, "depositId", historyEntry.depositId)) {
+        player.depositHistory.unshift(historyEntry);
+    }
+
+    if (!hasItemByKey(player.deposits, "depositId", historyEntry.depositId)) {
+        player.deposits.unshift(historyEntry);
+    }
+
+    if (transactionEntry.txHash) {
+        if (!hasItemByKey(player.transactions, "txHash", transactionEntry.txHash)) {
+            player.transactions.unshift(transactionEntry);
+        }
+    } else if (!hasItemByKey(player.transactions, "depositId", transactionEntry.depositId)) {
+        player.transactions.unshift(transactionEntry);
+    }
+
+    return player;
+}
+
 /* =========================
    CREATE DEPOSIT
 ========================= */
@@ -104,13 +203,22 @@ router.post("/api/deposit/verify", async (req, res) => {
         const result = await verifySingleDepositById(depositId);
 
         if (!result.ok) {
-            return res.status(404).json({ error: result.error || "Verify failed" });
+            return res.json({
+                ok: true,
+                matched: false,
+                message: result.error || "Deposit not matched yet",
+                duplicateTxHash: !!result.duplicateTxHash,
+                deposit: result.deposit || null,
+                player: result.player || null
+            });
         }
 
         return res.json(result);
     } catch (error) {
         console.error("Deposit verify error:", error);
-        return res.status(500).json({ error: error.message || "Deposit verify failed" });
+        return res.status(500).json({
+            error: error.message || "Deposit verify failed"
+        });
     }
 });
 
@@ -127,10 +235,19 @@ router.post("/api/deposit/verify-player", async (req, res) => {
         }
 
         const result = await verifyPendingDepositsForPlayer(telegramId);
-        return res.json(result);
+
+        return res.json({
+            ok: true,
+            checked: result.checked || 0,
+            matched: result.matched || 0,
+            skippedDuplicates: result.skippedDuplicates || 0,
+            player: result.player || null
+        });
     } catch (error) {
         console.error("Player deposit verify error:", error);
-        return res.status(500).json({ error: error.message || "Player deposit verify failed" });
+        return res.status(500).json({
+            error: error.message || "Player deposit verify failed"
+        });
     }
 });
 
@@ -143,6 +260,7 @@ router.post("/api/deposit/confirm", (req, res) => {
 
     const db = readDb();
     db.deposits = Array.isArray(db.deposits) ? db.deposits : [];
+    db.players = db.players && typeof db.players === "object" ? db.players : {};
 
     const depositId = safeString(req.body?.depositId, "");
     const status = safeString(req.body?.status, "").toLowerCase();
@@ -171,12 +289,30 @@ router.post("/api/deposit/confirm", (req, res) => {
     deposit.updatedAt = Date.now();
 
     const player = getPlayerOrCreate(db, deposit.telegramId, deposit.username);
+    ensurePlayerCollections(player);
 
     if (status === "approved") {
+        const gemsToAdd = Math.max(0, Number(deposit.gemsAmount) || 0);
+        const expeditionBoostToAdd = Math.max(
+            0,
+            Number(deposit.expeditionBoostAmount) || 0
+        );
+
         player.gems = Math.max(
             0,
-            Number(player.gems || 0) + Math.max(0, Number(deposit.gemsAmount) || 0)
+            Number(player.gems || 0) + gemsToAdd
         );
+
+        player.expeditionBoost = Number(
+            (
+                Math.max(0, Number(player.expeditionBoost) || 0) +
+                expeditionBoostToAdd
+            ).toFixed(4)
+        );
+
+        deposit.approvedAt = Date.now();
+
+        attachDepositToPlayer(player, deposit);
     }
 
     db.players[player.telegramId] = normalizePlayer(player);
@@ -185,7 +321,7 @@ router.post("/api/deposit/confirm", (req, res) => {
     return res.json({
         ok: true,
         deposit,
-        player: normalizePlayer(player)
+        player: normalizePlayer(db.players[player.telegramId])
     });
 });
 
@@ -204,7 +340,10 @@ router.get("/api/deposit/:telegramId", (req, res) => {
 
     const deposits = getPlayerDeposits(db, telegramId);
 
-    return res.json({ deposits });
+    return res.json({
+        ok: true,
+        deposits: Array.isArray(deposits) ? deposits : []
+    });
 });
 
 module.exports = router;
