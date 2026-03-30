@@ -197,11 +197,11 @@ function validateWithdrawRequest(db, player, amount) {
         };
     }
 
-    const rewardBalance = getPlayerRewardBalance(player);
-    if (rewardBalance < safeAmount) {
+    const rewardWallet = getPlayerRewardWallet(player);
+    if (rewardWallet < safeAmount) {
         return {
             ok: false,
-            error: "Insufficient reward balance"
+            error: "Insufficient reward wallet"
         };
     }
 
@@ -232,7 +232,7 @@ function validateWithdrawRequest(db, player, amount) {
         feeUsdAmount: getWithdrawUsdAmount(getWithdrawFeeAmount(safeAmount)),
         usdAmount: getWithdrawUsdAmount(getWithdrawNetAmount(safeAmount)),
         level,
-        rewardBalance,
+        rewardWallet,
         withdrawPending,
         accountAgeMs
     };
@@ -240,11 +240,11 @@ function validateWithdrawRequest(db, player, amount) {
 
 function applyCreateWithdrawToPlayer(player, amount) {
     const safeAmount = normalizeRewardNumber(amount, 0);
-    const currentRewardBalance = getPlayerRewardBalance(player);
+    const currentRewardWallet = getPlayerRewardWallet(player);
     const currentWithdrawPending = getPlayerWithdrawPending(player);
 
-    player.rewardBalance = normalizeRewardNumber(
-        currentRewardBalance - safeAmount,
+    player.rewardWallet = normalizeRewardNumber(
+        currentRewardWallet - safeAmount,
         0
     );
 
@@ -266,22 +266,10 @@ function applyPaidWithdrawToPlayer(player, withdrawRequest) {
         0
     );
 
-    const netAmount = normalizeRewardNumber(
-        withdrawRequest?.netRewardAmount ??
-        getWithdrawNetAmount(grossAmount),
-        0
-    );
-
     const currentWithdrawPending = getPlayerWithdrawPending(player);
-    const currentRewardWallet = getPlayerRewardWallet(player);
 
     player.withdrawPending = normalizeRewardNumber(
         Math.max(0, currentWithdrawPending - grossAmount),
-        0
-    );
-
-    player.rewardWallet = normalizeRewardNumber(
-        currentRewardWallet + netAmount,
         0
     );
 
@@ -299,15 +287,15 @@ function applyRejectedWithdrawToPlayer(player, withdrawRequest) {
     );
 
     const currentWithdrawPending = getPlayerWithdrawPending(player);
-    const currentRewardBalance = getPlayerRewardBalance(player);
+    const currentRewardWallet = getPlayerRewardWallet(player);
 
     player.withdrawPending = normalizeRewardNumber(
         Math.max(0, currentWithdrawPending - grossAmount),
         0
     );
 
-    player.rewardBalance = normalizeRewardNumber(
-        currentRewardBalance + grossAmount,
+    player.rewardWallet = normalizeRewardNumber(
+        currentRewardWallet + grossAmount,
         0
     );
 
