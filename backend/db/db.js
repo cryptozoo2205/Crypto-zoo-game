@@ -3,6 +3,8 @@ const path = require("path");
 
 const DATA_DIR = path.join(__dirname, "../data");
 const DB_PATH = path.join(DATA_DIR, "db.json");
+const DB_TMP_PATH = path.join(DATA_DIR, "db.tmp.json");
+const DB_BACKUP_PATH = path.join(DATA_DIR, "db.backup.json");
 
 function getDefaultDb() {
     return {
@@ -12,11 +14,15 @@ function getDefaultDb() {
     };
 }
 
+function isObject(value) {
+    return value && typeof value === "object" && !Array.isArray(value);
+}
+
 function normalizeDbShape(parsed) {
-    const safe = parsed && typeof parsed === "object" ? parsed : {};
+    const safe = isObject(parsed) ? parsed : {};
 
     return {
-        players: safe.players && typeof safe.players === "object" ? safe.players : {},
+        players: isObject(safe.players) ? safe.players : {},
         withdrawRequests: Array.isArray(safe.withdrawRequests)
             ? safe.withdrawRequests
             : [],
@@ -26,53 +32,103 @@ function normalizeDbShape(parsed) {
     };
 }
 
-function ensureDb() {
+function ensureDataDir() {
     if (!fs.existsSync(DATA_DIR)) {
         fs.mkdirSync(DATA_DIR, { recursive: true });
     }
+}
 
-    if (!fs.existsSync(DB_PATH)) {
-        fs.writeFileSync(
-            DB_PATH,
-            JSON.stringify(getDefaultDb(), null, 2),
-            "utf8"
-        );
-        return;
+function safeWriteJson(filePath, data) {
+    const json = JSON.stringify(data, null, 2);
+    fs.writeFileSync(filePath, json, "utf8");
+}
+
+function readJsonSafe(filePath) {
+    if (!fs.existsSync(filePath)) {
+        return null;
     }
 
     try {
-        const raw = fs.readFileSync(DB_PATH, "utf8");
-        const parsed = raw ? JSON.parse(raw) : getDefaultDb();
-        const normalized = normalizeDbShape(parsed);
-
-        fs.writeFileSync(DB_PATH, JSON.stringify(normalized, null, 2), "utf8");
+        const raw = fs.readFileSync(filePath, "utf8");
+        if (!raw || !raw.trim()) {
+            return null;
+        }
+        return JSON.parse(raw);
     } catch (error) {
-        console.error("DB ensure/repair error:", error);
-        fs.writeFileSync(
-            DB_PATH,
-            JSON.stringify(getDefaultDb(), null, 2),
-            "utf8"
-        );
+        console.error(`JSON read error for ${filePath}:`, error);
+        return null;
     }
+}
+
+function atomicWriteDb(db) {
+    ensureDataDir();
+
+    const normalized = normalizeDbShape(db);
+
+    safeWriteJson(DB_TMP_PATH, normalized);
+
+    if (fs.existsSync(DB_PATH)) {
+        try {
+            fs.copyFileSync(DB_PATH, DB_BACKUP_PATH);
+        } catch (error) {
+            console.error("DB backup copy error:", error);
+        }
+    }
+
+    fs.renameSync(DB_TMP_PATH, DB_PATH);
+}
+
+function ensureDb() {
+    ensureDataDir();
+
+    if (!fs.existsSync(DB_PATH)) {
+        atomicWriteDb(getDefaultDb());
+        return;
+    }
+
+    const parsed = readJsonSafe(DB_PATH);
+
+    if (parsed) {
+        const normalized = normalizeDbShape(parsed);
+        atomicWriteDb(normalized);
+        return;
+    }
+
+    const backupParsed = readJsonSafe(DB_BACKUP_PATH);
+
+    if (backupParsed) {
+        console.warn("Main DB broken, restoring from backup.");
+        atomicWriteDb(normalizeDbShape(backupParsed));
+        return;
+    }
+
+    console.error("DB ensure/repair error: main and backup invalid, recreating default DB.");
+    atomicWriteDb(getDefaultDb());
 }
 
 function readDb() {
     ensureDb();
 
-    try {
-        const raw = fs.readFileSync(DB_PATH, "utf8");
-        const parsed = JSON.parse(raw);
+    const parsed = readJsonSafe(DB_PATH);
+    if (parsed) {
         return normalizeDbShape(parsed);
-    } catch (error) {
-        console.error("DB read error:", error);
-        return getDefaultDb();
     }
+
+    const backupParsed = readJsonSafe(DB_BACKUP_PATH);
+    if (backupParsed) {
+        console.warn("DB read fallback: using backup DB.");
+        const normalized = normalizeDbShape(backupParsed);
+        atomicWriteDb(normalized);
+        return normalized;
+    }
+
+    console.error("DB read error: using default DB in memory.");
+    return getDefaultDb();
 }
 
 function writeDb(db) {
     ensureDb();
-    const normalized = normalizeDbShape(db);
-    fs.writeFileSync(DB_PATH, JSON.stringify(normalized, null, 2), "utf8");
+    atomicWriteDb(db);
 }
 
 module.exports = {
