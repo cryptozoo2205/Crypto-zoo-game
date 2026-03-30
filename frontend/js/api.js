@@ -5,6 +5,7 @@ window.CryptoZoo.api = {
     initialized: false,
     initPromise: null,
     saveInProgress: false,
+    requestTimeoutMs: 8000,
 
     async init() {
         if (this.initialized) {
@@ -18,7 +19,11 @@ window.CryptoZoo.api = {
         this.initPromise = (async () => {
             try {
                 await this.loadPlayer();
-                await this.syncPendingDeposits(true);
+
+                // nie blokujemy startu gry przez dodatkowy forceReload
+                this.syncPendingDeposits(false).catch((error) => {
+                    console.warn("Background deposit sync failed:", error);
+                });
             } catch (error) {
                 console.error("API init load failed:", error);
 
@@ -600,34 +605,52 @@ window.CryptoZoo.api = {
     },
 
     async request(path, options = {}) {
-        const config = {
-            method: options.method || "GET",
-            headers: {
-                "Content-Type": "application/json",
-                ...(options.headers || {})
-            },
-            ...options
-        };
+        const controller = new AbortController();
+        const timeoutMs = Math.max(1000, Number(options.timeoutMs) || this.requestTimeoutMs);
+        const timeoutId = setTimeout(() => {
+            controller.abort();
+        }, timeoutMs);
 
-        const response = await fetch(`${this.getApiBase()}${path}`, config);
+        try {
+            const config = {
+                method: options.method || "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(options.headers || {})
+                },
+                ...options,
+                signal: controller.signal
+            };
 
-        if (!response.ok) {
-            let errorText = "";
-            try {
-                errorText = await response.text();
-            } catch (_) {
-                errorText = "";
+            delete config.timeoutMs;
+
+            const response = await fetch(`${this.getApiBase()}${path}`, config);
+
+            if (!response.ok) {
+                let errorText = "";
+                try {
+                    errorText = await response.text();
+                } catch (_) {
+                    errorText = "";
+                }
+
+                throw new Error(`HTTP ${response.status}${errorText ? ` - ${errorText}` : ""}`);
             }
 
-            throw new Error(`HTTP ${response.status}${errorText ? ` - ${errorText}` : ""}`);
-        }
+            const contentType = response.headers.get("content-type") || "";
+            if (contentType.includes("application/json")) {
+                return response.json();
+            }
 
-        const contentType = response.headers.get("content-type") || "";
-        if (contentType.includes("application/json")) {
-            return response.json();
+            return null;
+        } catch (error) {
+            if (error?.name === "AbortError") {
+                throw new Error(`Request timeout after ${timeoutMs}ms: ${path}`);
+            }
+            throw error;
+        } finally {
+            clearTimeout(timeoutId);
         }
-
-        return null;
     },
 
     unwrapPlayerResponse(data) {
@@ -642,7 +665,9 @@ window.CryptoZoo.api = {
         let serverRaw = null;
 
         try {
-            serverRaw = await this.request(`/player/${this.getPlayerId()}`);
+            serverRaw = await this.request(`/player/${this.getPlayerId()}`, {
+                timeoutMs: 6000
+            });
             serverRaw = this.unwrapPlayerResponse(serverRaw);
         } catch (error) {
             console.warn("LOAD FAIL → local fallback", error);
@@ -680,7 +705,8 @@ window.CryptoZoo.api = {
             try {
                 const response = await this.request("/player/save", {
                     method: "POST",
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify(payload),
+                    timeoutMs: 6000
                 });
 
                 const safeResponse = this.unwrapPlayerResponse(response);
@@ -705,13 +731,17 @@ window.CryptoZoo.api = {
                 method: "POST",
                 body: JSON.stringify({
                     telegramId: this.getPlayerId()
-                })
+                }),
+                timeoutMs: 5000
             });
 
             if (response && typeof response === "object") {
                 const playerPart = this.unwrapPlayerResponse(response.player || response);
-                CryptoZoo.state = this.mergeStates(playerPart, CryptoZoo.state || {});
-                this.writeLocalState(CryptoZoo.state);
+
+                if (playerPart && typeof playerPart === "object") {
+                    CryptoZoo.state = this.mergeStates(playerPart, CryptoZoo.state || {});
+                    this.writeLocalState(CryptoZoo.state);
+                }
             }
 
             if (forceReload) {
