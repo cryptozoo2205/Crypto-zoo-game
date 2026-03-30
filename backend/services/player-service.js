@@ -7,6 +7,41 @@ const {
     normalizeTelegramUser
 } = require("../utils/helpers");
 
+function normalizeObject(value) {
+    return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function normalizeArray(value) {
+    return Array.isArray(value) ? value : [];
+}
+
+function normalizeAnimal(value) {
+    const obj = normalizeObject(value);
+
+    return {
+        count: Math.max(0, normalizeNumber(obj.count, 0)),
+        level: Math.max(1, normalizeNumber(obj.level, 1))
+    };
+}
+
+function getDefaultAnimals() {
+    return {
+        monkey: { count: 0, level: 1 },
+        panda: { count: 0, level: 1 },
+        lion: { count: 0, level: 1 },
+        tiger: { count: 0, level: 1 },
+        elephant: { count: 0, level: 1 },
+        giraffe: { count: 0, level: 1 },
+        zebra: { count: 0, level: 1 },
+        hippo: { count: 0, level: 1 },
+        penguin: { count: 0, level: 1 },
+        bear: { count: 0, level: 1 },
+        crocodile: { count: 0, level: 1 },
+        kangaroo: { count: 0, level: 1 },
+        wolf: { count: 0, level: 1 }
+    };
+}
+
 function getDefaultPlayer(telegramId = "local-player", username = "Gracz") {
     const now = Date.now();
 
@@ -18,13 +53,16 @@ function getDefaultPlayer(telegramId = "local-player", username = "Gracz") {
             id: String(telegramId),
             username: String(username || ""),
             first_name: String(username || "Gracz"),
+            last_name: "",
+            language_code: "pl",
             isMock: String(telegramId) === "local-player",
             isTelegramWebApp: false
         },
 
-        // 🔥 NOWE (CRITICAL)
         createdAt: now,
+        updatedAt: now,
         lastActiveAt: now,
+        lastLogin: now,
 
         coins: 0,
         gems: 0,
@@ -39,12 +77,16 @@ function getDefaultPlayer(telegramId = "local-player", username = "Gracz") {
         zooIncome: 0,
         expeditionBoost: 0,
 
+        dailyExpeditionBoost: {
+            activeUntil: 0,
+            lastPurchaseAt: 0
+        },
+
         offlineMaxSeconds: 1 * 60 * 60,
         offlineBoostMultiplier: 1,
         offlineBoostActiveUntil: 0,
         offlineBoost: 1,
 
-        lastLogin: now,
         lastDailyRewardAt: 0,
         dailyRewardStreak: 0,
         dailyRewardClaimDayKey: "",
@@ -56,25 +98,12 @@ function getDefaultPlayer(telegramId = "local-player", username = "Gracz") {
         referralCode: String(telegramId),
         referralsCount: 0,
         referrals: [],
+        referralHistory: [],
         referralWelcomeBonusClaimed: false,
         referralActivated: false,
         referralActivationBonusClaimed: false,
 
-        animals: {
-            monkey: { count: 0, level: 1 },
-            panda: { count: 0, level: 1 },
-            lion: { count: 0, level: 1 },
-            tiger: { count: 0, level: 1 },
-            elephant: { count: 0, level: 1 },
-            giraffe: { count: 0, level: 1 },
-            zebra: { count: 0, level: 1 },
-            hippo: { count: 0, level: 1 },
-            penguin: { count: 0, level: 1 },
-            bear: { count: 0, level: 1 },
-            crocodile: { count: 0, level: 1 },
-            kangaroo: { count: 0, level: 1 },
-            wolf: { count: 0, level: 1 }
-        },
+        animals: getDefaultAnimals(),
 
         boxes: {
             common: 0,
@@ -104,52 +133,218 @@ function getDefaultPlayer(telegramId = "local-player", username = "Gracz") {
             dayKey: "",
             missions: [],
             claimedCount: 0
-        }
+        },
+
+        missions: {},
+        boosts: {},
+        settings: {},
+        profile: {},
+        stats: {},
+
+        depositHistory: [],
+        deposits: [],
+        transactions: [],
+        withdrawHistory: [],
+        payoutHistory: []
     };
 }
 
 function normalizePlayer(input) {
-    const base = getDefaultPlayer(input?.telegramId, input?.username);
-
+    const safeInput = normalizeObject(input);
+    const base = getDefaultPlayer(safeInput.telegramId, safeInput.username);
     const now = Date.now();
+
+    const telegramId = safeString(safeInput.telegramId, base.telegramId);
+    const username = safeString(safeInput.username, base.username);
 
     const createdAt = Math.max(
         0,
-        normalizeNumber(input?.createdAt, base.createdAt || now)
+        normalizeNumber(safeInput.createdAt, base.createdAt || now)
     );
+
+    const updatedAt = Math.max(
+        createdAt,
+        normalizeNumber(safeInput.updatedAt, now)
+    );
+
+    const animalsInput = normalizeObject(safeInput.animals);
+    const defaultAnimals = getDefaultAnimals();
+    const normalizedAnimals = {};
+
+    Object.keys(defaultAnimals).forEach((key) => {
+        normalizedAnimals[key] = normalizeAnimal(animalsInput[key] || defaultAnimals[key]);
+    });
+
+    Object.keys(animalsInput).forEach((key) => {
+        if (!normalizedAnimals[key]) {
+            normalizedAnimals[key] = normalizeAnimal(animalsInput[key]);
+        }
+    });
+
+    const boxesInput = normalizeObject(safeInput.boxes);
+    const minigamesInput = normalizeObject(safeInput.minigames);
+    const expeditionStatsInput = normalizeObject(safeInput.expeditionStats);
+    const dailyMissionsInput = normalizeObject(safeInput.dailyMissions);
+    const dailyExpeditionBoostInput = normalizeObject(safeInput.dailyExpeditionBoost);
 
     return {
         ...base,
-        ...input,
+        ...safeInput,
 
-        telegramId: safeString(input?.telegramId, base.telegramId),
-        username: safeString(input?.username, base.username),
+        telegramId,
+        username,
 
-        // 🔥 CRITICAL FIELDS
+        telegramUser: normalizeTelegramUser(
+            {
+                ...normalizeObject(base.telegramUser),
+                ...normalizeObject(safeInput.telegramUser)
+            },
+            telegramId,
+            username
+        ),
+
         createdAt,
+        updatedAt,
         lastActiveAt: now,
+        lastLogin: Math.max(0, normalizeNumber(safeInput.lastLogin, base.lastLogin)),
 
-        coins: clamp(Math.max(0, normalizeNumber(input?.coins, base.coins)), 0, LIMITS.MAX_COINS),
-        gems: clamp(Math.max(0, normalizeNumber(input?.gems, base.gems)), 0, LIMITS.MAX_GEMS),
+        coins: clamp(Math.max(0, normalizeNumber(safeInput.coins, base.coins)), 0, LIMITS.MAX_COINS),
+        gems: clamp(Math.max(0, normalizeNumber(safeInput.gems, base.gems)), 0, LIMITS.MAX_GEMS),
 
         rewardBalance: clamp(
-            normalizeRewardNumber(input?.rewardBalance, base.rewardBalance),
+            normalizeRewardNumber(safeInput.rewardBalance, base.rewardBalance),
             0,
             LIMITS.MAX_REWARD_BALANCE
         ),
         rewardWallet: clamp(
-            normalizeRewardNumber(input?.rewardWallet, base.rewardWallet),
+            normalizeRewardNumber(safeInput.rewardWallet, base.rewardWallet),
             0,
             LIMITS.MAX_REWARD_WALLET
         ),
         withdrawPending: clamp(
-            normalizeRewardNumber(input?.withdrawPending, base.withdrawPending),
+            normalizeRewardNumber(safeInput.withdrawPending, base.withdrawPending),
             0,
             LIMITS.MAX_WITHDRAW_PENDING
         ),
 
-        level: clamp(Math.max(1, normalizeNumber(input?.level, base.level)), 1, LIMITS.MAX_LEVEL),
-        xp: clamp(Math.max(0, normalizeNumber(input?.xp, base.xp)), 0, LIMITS.MAX_XP)
+        level: clamp(Math.max(1, normalizeNumber(safeInput.level, base.level)), 1, LIMITS.MAX_LEVEL),
+        xp: clamp(Math.max(0, normalizeNumber(safeInput.xp, base.xp)), 0, LIMITS.MAX_XP),
+
+        coinsPerClick: Math.max(0, normalizeNumber(safeInput.coinsPerClick, base.coinsPerClick)),
+        upgradeCost: Math.max(0, normalizeNumber(safeInput.upgradeCost, base.upgradeCost)),
+        zooIncome: Math.max(0, normalizeNumber(safeInput.zooIncome, base.zooIncome)),
+        expeditionBoost: Math.max(0, normalizeNumber(safeInput.expeditionBoost, base.expeditionBoost)),
+
+        dailyExpeditionBoost: {
+            activeUntil: Math.max(
+                0,
+                normalizeNumber(dailyExpeditionBoostInput.activeUntil, base.dailyExpeditionBoost.activeUntil)
+            ),
+            lastPurchaseAt: Math.max(
+                0,
+                normalizeNumber(dailyExpeditionBoostInput.lastPurchaseAt, base.dailyExpeditionBoost.lastPurchaseAt)
+            )
+        },
+
+        offlineMaxSeconds: Math.max(0, normalizeNumber(safeInput.offlineMaxSeconds, base.offlineMaxSeconds)),
+        offlineBoostMultiplier: Math.max(
+            0,
+            normalizeNumber(safeInput.offlineBoostMultiplier, base.offlineBoostMultiplier)
+        ),
+        offlineBoostActiveUntil: Math.max(
+            0,
+            normalizeNumber(safeInput.offlineBoostActiveUntil, base.offlineBoostActiveUntil)
+        ),
+        offlineBoost: Math.max(0, normalizeNumber(safeInput.offlineBoost, base.offlineBoost)),
+
+        lastDailyRewardAt: Math.max(0, normalizeNumber(safeInput.lastDailyRewardAt, base.lastDailyRewardAt)),
+        dailyRewardStreak: Math.max(0, normalizeNumber(safeInput.dailyRewardStreak, base.dailyRewardStreak)),
+        dailyRewardClaimDayKey: safeString(
+            safeInput.dailyRewardClaimDayKey,
+            base.dailyRewardClaimDayKey
+        ),
+        boost2xActiveUntil: Math.max(0, normalizeNumber(safeInput.boost2xActiveUntil, base.boost2xActiveUntil)),
+        playTimeSeconds: Math.max(0, normalizeNumber(safeInput.playTimeSeconds, base.playTimeSeconds)),
+        lastAwardedLevel: Math.max(1, normalizeNumber(safeInput.lastAwardedLevel, base.lastAwardedLevel)),
+
+        referredBy: safeString(safeInput.referredBy, base.referredBy),
+        referralCode: safeString(safeInput.referralCode, base.referralCode),
+        referralsCount: Math.max(0, normalizeNumber(safeInput.referralsCount, base.referralsCount)),
+        referrals: normalizeArray(safeInput.referrals),
+        referralHistory: normalizeArray(safeInput.referralHistory),
+        referralWelcomeBonusClaimed: Boolean(safeInput.referralWelcomeBonusClaimed),
+        referralActivated: Boolean(safeInput.referralActivated),
+        referralActivationBonusClaimed: Boolean(safeInput.referralActivationBonusClaimed),
+
+        animals: normalizedAnimals,
+
+        boxes: {
+            common: Math.max(0, normalizeNumber(boxesInput.common, base.boxes.common)),
+            rare: Math.max(0, normalizeNumber(boxesInput.rare, base.boxes.rare)),
+            epic: Math.max(0, normalizeNumber(boxesInput.epic, base.boxes.epic)),
+            legendary: Math.max(0, normalizeNumber(boxesInput.legendary, base.boxes.legendary))
+        },
+
+        expedition: safeInput.expedition || null,
+
+        minigames: {
+            wheelCooldownUntil: Math.max(
+                0,
+                normalizeNumber(minigamesInput.wheelCooldownUntil, base.minigames.wheelCooldownUntil)
+            ),
+            memoryCooldownUntil: Math.max(
+                0,
+                normalizeNumber(minigamesInput.memoryCooldownUntil, base.minigames.memoryCooldownUntil)
+            ),
+            extraWheelSpins: Math.max(
+                0,
+                normalizeNumber(minigamesInput.extraWheelSpins, base.minigames.extraWheelSpins)
+            )
+        },
+
+        shopPurchases: normalizeObject(safeInput.shopPurchases),
+
+        expeditionStats: {
+            rareChanceBonus: Math.max(
+                0,
+                normalizeNumber(expeditionStatsInput.rareChanceBonus, base.expeditionStats.rareChanceBonus)
+            ),
+            epicChanceBonus: Math.max(
+                0,
+                normalizeNumber(expeditionStatsInput.epicChanceBonus, base.expeditionStats.epicChanceBonus)
+            ),
+            timeReductionSeconds: Math.max(
+                0,
+                normalizeNumber(
+                    expeditionStatsInput.timeReductionSeconds,
+                    base.expeditionStats.timeReductionSeconds
+                )
+            ),
+            timeBoostCharges: normalizeArray(expeditionStatsInput.timeBoostCharges)
+        },
+
+        dailyMissions: {
+            dayKey: safeString(dailyMissionsInput.dayKey, base.dailyMissions.dayKey),
+            missions: normalizeArray(dailyMissionsInput.missions),
+            claimedCount: Math.max(
+                0,
+                normalizeNumber(dailyMissionsInput.claimedCount, base.dailyMissions.claimedCount)
+            )
+        },
+
+        missions: normalizeObject(safeInput.missions),
+        boosts: normalizeObject(safeInput.boosts),
+        settings: normalizeObject(safeInput.settings),
+        profile: normalizeObject(safeInput.profile),
+        stats: normalizeObject(safeInput.stats),
+
+        depositHistory: normalizeArray(
+            safeInput.depositHistory || safeInput.depositsHistory || safeInput.paymentHistory
+        ),
+        deposits: normalizeArray(safeInput.deposits),
+        transactions: normalizeArray(safeInput.transactions),
+        withdrawHistory: normalizeArray(safeInput.withdrawHistory),
+        payoutHistory: normalizeArray(safeInput.payoutHistory)
     };
 }
 
