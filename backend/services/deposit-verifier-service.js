@@ -251,7 +251,14 @@ function approveDepositInDb(db, deposit, tx) {
     safeDeposit.updatedAt = Date.now();
 
     const gemsToAdd = Math.max(0, Number(safeDeposit.gemsAmount) || 0);
+    const expeditionBoostToAdd = Math.max(0, Number(safeDeposit.expeditionBoostAmount) || 0);
+
     player.gems = Math.max(0, Number(player.gems || 0) + gemsToAdd);
+    player.expeditionBoost = Number(
+        (
+            Math.max(0, Number(player.expeditionBoost) || 0) + expeditionBoostToAdd
+        ).toFixed(4)
+    );
 
     db.players[player.telegramId] = normalizePlayer(player);
 
