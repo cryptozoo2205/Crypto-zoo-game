@@ -3,12 +3,12 @@ const { normalizeRewardNumber, safeString } = require("../utils/helpers");
 
 const WITHDRAW_RATE_USD = normalizeRewardNumber(
     LIMITS?.withdrawUsdPerReward,
-    0.005
+    0.05
 );
 
 const MIN_WITHDRAW_REWARD = normalizeRewardNumber(
     LIMITS?.minWithdrawReward,
-    10
+    20
 );
 
 const MIN_WITHDRAW_LEVEL = Math.max(
@@ -19,6 +19,11 @@ const MIN_WITHDRAW_LEVEL = Math.max(
 const MIN_ACCOUNT_AGE_MS = Math.max(
     0,
     Number(LIMITS?.minWithdrawAccountAgeMs) || 24 * 60 * 60 * 1000
+);
+
+const WITHDRAW_FEE_PERCENT = Math.max(
+    0,
+    Math.min(1, Number(LIMITS?.withdrawFeePercent) || 0.10)
 );
 
 function getNow() {
@@ -58,6 +63,21 @@ function getPlayerRewardWallet(player) {
     return normalizeRewardNumber(player?.rewardWallet, 0);
 }
 
+function getWithdrawFeeAmount(amount) {
+    const safeAmount = normalizeRewardNumber(amount, 0);
+    return normalizeRewardNumber(safeAmount * WITHDRAW_FEE_PERCENT, 0);
+}
+
+function getWithdrawNetAmount(amount) {
+    const safeAmount = normalizeRewardNumber(amount, 0);
+    const feeAmount = getWithdrawFeeAmount(safeAmount);
+
+    return normalizeRewardNumber(
+        Math.max(0, safeAmount - feeAmount),
+        0
+    );
+}
+
 function getWithdrawUsdAmount(amount) {
     return normalizeRewardNumber(
         normalizeRewardNumber(amount, 0) * WITHDRAW_RATE_USD,
@@ -67,15 +87,26 @@ function getWithdrawUsdAmount(amount) {
 
 function createWithdrawRequest({ telegramId, username, amount }) {
     const safeAmount = normalizeRewardNumber(amount, 0);
+    const feeAmount = getWithdrawFeeAmount(safeAmount);
+    const netAmount = getWithdrawNetAmount(safeAmount);
     const now = getNow();
 
     return {
         id: `wd_${now}_${Math.random().toString(36).slice(2, 8)}`,
         telegramId: String(telegramId || ""),
         username: safeString(username || "Gracz"),
+
         amount: safeAmount,
         rewardAmount: safeAmount,
-        usdAmount: getWithdrawUsdAmount(safeAmount),
+        grossRewardAmount: safeAmount,
+        feePercent: WITHDRAW_FEE_PERCENT,
+        feeRewardAmount: feeAmount,
+        netRewardAmount: netAmount,
+
+        usdAmount: getWithdrawUsdAmount(netAmount),
+        grossUsdAmount: getWithdrawUsdAmount(safeAmount),
+        feeUsdAmount: getWithdrawUsdAmount(feeAmount),
+
         rateUsdPerReward: WITHDRAW_RATE_USD,
         status: "pending",
         createdAt: now,
@@ -178,7 +209,12 @@ function validateWithdrawRequest(db, player, amount) {
     return {
         ok: true,
         amount: safeAmount,
-        usdAmount: getWithdrawUsdAmount(safeAmount),
+        grossRewardAmount: safeAmount,
+        feeRewardAmount: getWithdrawFeeAmount(safeAmount),
+        netRewardAmount: getWithdrawNetAmount(safeAmount),
+        grossUsdAmount: getWithdrawUsdAmount(safeAmount),
+        feeUsdAmount: getWithdrawUsdAmount(getWithdrawFeeAmount(safeAmount)),
+        usdAmount: getWithdrawUsdAmount(getWithdrawNetAmount(safeAmount)),
         level,
         rewardBalance,
         withdrawPending,
@@ -207,8 +243,16 @@ function applyCreateWithdrawToPlayer(player, amount) {
 }
 
 function applyPaidWithdrawToPlayer(player, withdrawRequest) {
-    const amount = normalizeRewardNumber(
-        withdrawRequest?.rewardAmount ?? withdrawRequest?.amount,
+    const grossAmount = normalizeRewardNumber(
+        withdrawRequest?.grossRewardAmount ??
+        withdrawRequest?.rewardAmount ??
+        withdrawRequest?.amount,
+        0
+    );
+
+    const netAmount = normalizeRewardNumber(
+        withdrawRequest?.netRewardAmount ??
+        getWithdrawNetAmount(grossAmount),
         0
     );
 
@@ -216,12 +260,12 @@ function applyPaidWithdrawToPlayer(player, withdrawRequest) {
     const currentRewardWallet = getPlayerRewardWallet(player);
 
     player.withdrawPending = normalizeRewardNumber(
-        Math.max(0, currentWithdrawPending - amount),
+        Math.max(0, currentWithdrawPending - grossAmount),
         0
     );
 
     player.rewardWallet = normalizeRewardNumber(
-        currentRewardWallet + amount,
+        currentRewardWallet + netAmount,
         0
     );
 
@@ -231,8 +275,10 @@ function applyPaidWithdrawToPlayer(player, withdrawRequest) {
 }
 
 function applyRejectedWithdrawToPlayer(player, withdrawRequest) {
-    const amount = normalizeRewardNumber(
-        withdrawRequest?.rewardAmount ?? withdrawRequest?.amount,
+    const grossAmount = normalizeRewardNumber(
+        withdrawRequest?.grossRewardAmount ??
+        withdrawRequest?.rewardAmount ??
+        withdrawRequest?.amount,
         0
     );
 
@@ -240,12 +286,12 @@ function applyRejectedWithdrawToPlayer(player, withdrawRequest) {
     const currentRewardBalance = getPlayerRewardBalance(player);
 
     player.withdrawPending = normalizeRewardNumber(
-        Math.max(0, currentWithdrawPending - amount),
+        Math.max(0, currentWithdrawPending - grossAmount),
         0
     );
 
     player.rewardBalance = normalizeRewardNumber(
-        currentRewardBalance + amount,
+        currentRewardBalance + grossAmount,
         0
     );
 
@@ -304,6 +350,7 @@ module.exports = {
     MIN_WITHDRAW_REWARD,
     MIN_WITHDRAW_LEVEL,
     MIN_ACCOUNT_AGE_MS,
+    WITHDRAW_FEE_PERCENT,
 
     createWithdrawRequest,
     getPendingWithdrawsForPlayer,
@@ -317,6 +364,8 @@ module.exports = {
     getPlayerWithdrawPending,
     getPlayerRewardWallet,
     getWithdrawUsdAmount,
+    getWithdrawFeeAmount,
+    getWithdrawNetAmount,
 
     validateWithdrawRequest,
     applyCreateWithdrawToPlayer,
