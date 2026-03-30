@@ -261,7 +261,10 @@ window.CryptoZoo.api = {
             shopPurchases: this.normalizeObject(data.shopPurchases),
             animals: this.normalizeObject(data.animals),
             boxes: this.normalizeObject(data.boxes),
-            expedition: data.expedition || null,
+
+            expedition: Object.prototype.hasOwnProperty.call(data, "expedition")
+                ? (data.expedition ?? null)
+                : null,
 
             depositHistory: this.normalizeArray(
                 data.depositHistory || data.depositsHistory || data.paymentHistory
@@ -374,6 +377,14 @@ window.CryptoZoo.api = {
         const preferred = localScore >= serverScore ? local : server;
         const fallback = localScore >= serverScore ? server : local;
 
+        const preferredHasExpedition =
+            this.normalizeObject(this.unwrapPlayerResponse(preferred)) &&
+            Object.prototype.hasOwnProperty.call(preferred, "expedition");
+
+        const fallbackHasExpedition =
+            this.normalizeObject(this.unwrapPlayerResponse(fallback)) &&
+            Object.prototype.hasOwnProperty.call(fallback, "expedition");
+
         const merged = {
             ...fallback,
             ...preferred,
@@ -383,8 +394,6 @@ window.CryptoZoo.api = {
                 ...preferred.telegramUser
             },
 
-            // tu NIE używamy Math.max dla coins/gems/reward itp.,
-            // żeby legalne wydawanie zasobów nie było cofane
             coins: preferred.coins,
             gems: preferred.gems,
             rewardBalance: preferred.rewardBalance,
@@ -472,7 +481,13 @@ window.CryptoZoo.api = {
                 ...preferred.stats
             },
 
-            expedition: preferred.expedition || fallback.expedition || null,
+            expedition: preferredHasExpedition
+                ? (preferred.expedition ?? null)
+                : (
+                    fallbackHasExpedition
+                        ? (fallback.expedition ?? null)
+                        : null
+                ),
 
             depositHistory: this.mergeUniqueByKey(
                 preferred.depositHistory,
@@ -531,7 +546,9 @@ window.CryptoZoo.api = {
             shopPurchases: state.shopPurchases,
             animals: state.animals,
             boxes: state.boxes,
-            expedition: state.expedition,
+            expedition: Object.prototype.hasOwnProperty.call(state, "expedition")
+                ? (state.expedition ?? null)
+                : null,
 
             depositHistory: state.depositHistory,
             deposits: state.deposits,
