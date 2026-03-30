@@ -339,29 +339,16 @@ CryptoZoo.config = {
 
         {
             id: "expedition1",
-            name: "Better Expedition Gear",
-            namePl: "Lepszy Ekwipunek Ekspedycji",
-            nameEn: "Better Expedition Gear",
-            desc: "+6% reward z każdej ekspedycji",
-            descPl: "+6% reward z każdej ekspedycji",
-            descEn: "+6% reward from every expedition",
-            price: 28000,
-            priceScale: 1.30,
+            name: "Daily Expedition Boost",
+            namePl: "Dzienny Boost Ekspedycji",
+            nameEn: "Daily Expedition Boost",
+            desc: "+25% reward z ekspedycji przez 24h",
+            descPl: "+25% reward z ekspedycji przez 24h",
+            descEn: "+25% expedition reward for 24h",
+            price: 25000,
+            priceScale: 1,
             type: "expedition",
-            expeditionBonus: 0.06
-        },
-        {
-            id: "expedition2",
-            name: "Rare Route Maps",
-            namePl: "Mapy Rzadkich Tras",
-            nameEn: "Rare Route Maps",
-            desc: "+9% reward z każdej ekspedycji",
-            descPl: "+9% reward z każdej ekspedycji",
-            descEn: "+9% reward from every expedition",
-            price: 88000,
-            priceScale: 1.32,
-            type: "expedition",
-            expeditionBonus: 0.09
+            expeditionBonus: 0.25
         },
         {
             id: "expeditionTime1",
