@@ -36,11 +36,11 @@ CryptoZoo.init = {
 
     bindGlobalDebug() {
         // JS ERROR
-        window.onerror = (msg, src, line, col, err) => {
+        window.onerror = (msg) => {
             this.log("❌ ERROR: " + msg);
         };
 
-        window.addEventListener("unhandledrejection", (e) => {
+        window.addEventListener("unhandledrejection", () => {
             this.log("❌ PROMISE ERROR");
         });
 
@@ -103,6 +103,18 @@ CryptoZoo.init = {
             CryptoZoo.uiProfile?.bindProfileModal?.();
 
             this.log("✅ INIT DONE");
+
+            // 🔥 FIX: usuń loading screen (TO BLOKOWAŁO KLIKI)
+            const screen = document.getElementById("loading-screen");
+            if (screen) {
+                screen.style.opacity = "0";
+                screen.style.pointerEvents = "none";
+
+                setTimeout(() => {
+                    screen.style.display = "none";
+                }, 200);
+            }
+
         } catch (e) {
             console.error(e);
             this.log("❌ INIT CRASH");
