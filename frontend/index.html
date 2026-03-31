@@ -45,6 +45,8 @@
         }
 
         #app {
+            position: relative;
+            z-index: 1;
             width: 100%;
             height: 100%;
             min-height: 100%;
@@ -74,6 +76,25 @@
             position: fixed;
             inset: 0;
             z-index: 9999;
+            pointer-events: auto;
+        }
+
+        #loading-screen.loading-hidden {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            display: none !important;
+        }
+
+        .profile-modal.hidden {
+            display: none !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+
+        .profile-modal.hidden .profile-backdrop,
+        .profile-modal.hidden .profile-card {
+            pointer-events: none !important;
         }
 
         .profile-box-hint {
@@ -179,8 +200,7 @@
 
                     <div class="home-tap-caption">
                         <div class="home-tap-title" id="langTapTitle">UZYSKAJ MONETY</div>
-                        <div class="home-tap-subtitle" id="langTapSubtitle">Klikaj i rozwijaj swoje zoo 
-</div>
+                        <div class="home-tap-subtitle" id="langTapSubtitle">Klikaj i rozwijaj swoje zoo</div>
                     </div>
 
                     <div class="home-income-strip home-income-strip-single">
