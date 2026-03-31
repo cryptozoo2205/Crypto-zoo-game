@@ -2,11 +2,13 @@ window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.telegram = {
     initialized: false,
-    safeAreaBound: false,
+    eventsBound: false,
 
     init() {
         if (this.initialized) {
+            this.setupPlayerIdentity();
             this.applyIdentityToUi();
+            this.applyTelegramTheme();
             this.applyViewportFix();
             return;
         }
@@ -16,6 +18,7 @@ window.CryptoZoo.telegram = {
         const tg = this.getWebApp();
 
         if (!tg) {
+            this.setupPlayerIdentity();
             this.applyIdentityToUi();
             this.applyViewportFix();
             return;
@@ -23,30 +26,28 @@ window.CryptoZoo.telegram = {
 
         try {
             tg.ready();
-
-            this.setupPlayerIdentity();
-            this.applyTelegramTheme();
-            this.bindTelegramEvents();
-
-            try {
-                if (typeof tg.expand === "function") {
-                    tg.expand();
-                }
-            } catch (error) {
-                console.warn("expand failed:", error);
-            }
-
-            this.applyViewportFix();
-            this.applyIdentityToUi();
-
-            setTimeout(() => this.applyViewportFix(), 120);
-            setTimeout(() => this.applyViewportFix(), 300);
-            setTimeout(() => this.applyViewportFix(), 700);
         } catch (error) {
-            console.error("TELEGRAM INIT ERROR:", error);
-            this.applyIdentityToUi();
-            this.applyViewportFix();
+            console.warn("tg.ready failed:", error);
         }
+
+        this.setupPlayerIdentity();
+        this.applyTelegramTheme();
+        this.bindTelegramEvents();
+
+        try {
+            if (typeof tg.expand === "function") {
+                tg.expand();
+            }
+        } catch (error) {
+            console.warn("tg.expand failed:", error);
+        }
+
+        this.applyViewportFix();
+        this.applyIdentityToUi();
+
+        setTimeout(() => this.applyViewportFix(), 100);
+        setTimeout(() => this.applyViewportFix(), 300);
+        setTimeout(() => this.applyViewportFix(), 700);
     },
 
     getWebApp() {
@@ -57,12 +58,9 @@ window.CryptoZoo.telegram = {
 
     getTelegramUser() {
         const tg = this.getWebApp();
-        if (!tg || !tg.initDataUnsafe || !tg.initDataUnsafe.user) {
-            return null;
-        }
+        const user = tg?.initDataUnsafe?.user;
 
-        const user = tg.initDataUnsafe.user;
-        if (!user.id) {
+        if (!user || !user.id) {
             return null;
         }
 
@@ -77,6 +75,7 @@ window.CryptoZoo.telegram = {
 
     setupPlayerIdentity() {
         const user = this.getTelegramUser();
+
         if (!user) {
             return;
         }
@@ -105,9 +104,7 @@ window.CryptoZoo.telegram = {
 
     applyTelegramTheme() {
         const tg = this.getWebApp();
-        if (!tg) {
-            return;
-        }
+        if (!tg) return;
 
         try {
             if (typeof tg.setHeaderColor === "function") {
@@ -143,7 +140,7 @@ window.CryptoZoo.telegram = {
                 tg.expand();
             }
         } catch (error) {
-            console.warn("expand failed:", error);
+            console.warn("tg.expand failed:", error);
         }
 
         this.applyViewportFix();
@@ -151,17 +148,24 @@ window.CryptoZoo.telegram = {
 
     bindTelegramEvents() {
         const tg = this.getWebApp();
-        if (!tg || typeof tg.onEvent !== "function" || this.safeAreaBound) {
+
+        if (!tg || typeof tg.onEvent !== "function" || this.eventsBound) {
             return;
         }
 
-        this.safeAreaBound = true;
+        this.eventsBound = true;
 
         const refresh = () => {
-            this.applyViewportFix();
             this.setupPlayerIdentity();
             this.applyIdentityToUi();
+            this.applyViewportFix();
         };
+
+        try {
+            tg.onEvent("viewportChanged", refresh);
+        } catch (error) {
+            console.warn("viewportChanged bind failed:", error);
+        }
 
         try {
             tg.onEvent("safeAreaChanged", refresh);
@@ -173,24 +177,6 @@ window.CryptoZoo.telegram = {
             tg.onEvent("contentSafeAreaChanged", refresh);
         } catch (error) {
             console.warn("contentSafeAreaChanged bind failed:", error);
-        }
-
-        try {
-            tg.onEvent("fullscreenChanged", refresh);
-        } catch (error) {
-            console.warn("fullscreenChanged bind failed:", error);
-        }
-
-        try {
-            tg.onEvent("activated", refresh);
-        } catch (error) {
-            console.warn("activated bind failed:", error);
-        }
-
-        try {
-            tg.onEvent("viewportChanged", refresh);
-        } catch (error) {
-            console.warn("viewportChanged bind failed:", error);
         }
 
         window.addEventListener("resize", refresh, { passive: true });
@@ -232,20 +218,15 @@ window.CryptoZoo.telegram = {
             document.documentElement?.clientHeight || 0
         ].filter((value) => value > 0);
 
-        if (!candidates.length) {
-            return window.innerHeight || 0;
-        }
-
-        return Math.max(...candidates);
+        return candidates.length ? Math.max(...candidates) : (window.innerHeight || 0);
     },
 
     applyViewportFix() {
         const root = document.documentElement;
         const body = document.body;
         const app = document.getElementById("app");
-        const game = document.getElementById("game");
-        const menu = document.querySelector(".menu");
         const topBar = document.querySelector(".top-bar");
+        const menu = document.querySelector(".menu");
 
         const safe = this.getSafeAreaValues();
         const viewportHeight = this.getViewportHeight();
@@ -262,23 +243,12 @@ window.CryptoZoo.telegram = {
         if (body) {
             body.classList.add("telegram-webapp");
             body.style.background = "#0b1220";
-            body.style.width = "100%";
-            body.style.minHeight = "100%";
-            body.style.margin = "0";
-            body.style.padding = "0";
-            body.style.overflow = "hidden";
-            body.style.position = "";
-            body.style.inset = "";
-            body.style.height = "";
         }
 
-        if (app) {
-            app.style.width = "100%";
+        if (app && viewportHeight > 0) {
             app.style.height = `${viewportHeight}px`;
             app.style.minHeight = `${viewportHeight}px`;
             app.style.maxHeight = `${viewportHeight}px`;
-            app.style.overflow = "hidden";
-            app.style.background = "#0b1220";
         }
 
         if (topBar) {
@@ -289,20 +259,10 @@ window.CryptoZoo.telegram = {
         }
 
         if (menu) {
-            menu.style.paddingBottom = `${Math.max(10, safe.bottom)}px`;
             menu.style.paddingLeft = `${safe.left}px`;
             menu.style.paddingRight = `${safe.right}px`;
+            menu.style.paddingBottom = `${Math.max(10, safe.bottom)}px`;
             menu.style.boxSizing = "border-box";
-        }
-
-        if (game) {
-            game.style.paddingLeft = `${safe.left}px`;
-            game.style.paddingRight = `${safe.right}px`;
-            game.style.boxSizing = "border-box";
-            game.style.overflowY = "auto";
-            game.style.overflowX = "hidden";
-            game.style.WebkitOverflowScrolling = "touch";
-            game.style.touchAction = "pan-y";
         }
     },
 
