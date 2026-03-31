@@ -2,6 +2,7 @@ window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.incomeSystem = {
     timerStarted: false,
+    saveTick: 0,
 
     getEffectiveIncome() {
         const baseIncome = Math.max(0, Number(CryptoZoo.state?.zooIncome) || 0);
@@ -12,10 +13,8 @@ CryptoZoo.incomeSystem = {
 
         const income = baseIncome * boostMultiplier;
 
-        // HARD SAFETY (anti-bug / anti-exploit)
         if (!Number.isFinite(income) || income < 0) return 0;
 
-        // soft cap (zabezpieczenie przed absurdami typu 1e300)
         return Math.min(income, 1e15);
     },
 
@@ -26,7 +25,6 @@ CryptoZoo.incomeSystem = {
         setInterval(() => {
             CryptoZoo.state = CryptoZoo.state || {};
 
-            // playtime
             CryptoZoo.state.playTimeSeconds =
                 Math.max(0, Number(CryptoZoo.state.playTimeSeconds) || 0) + 1;
 
@@ -39,14 +37,29 @@ CryptoZoo.incomeSystem = {
 
             CryptoZoo.state.lastLogin = Date.now();
 
-            // tylko core recalculation (lekki)
             CryptoZoo.gameplay?.recalculateLevel?.();
 
-            // UI update
-            CryptoZoo.ui?.render?.();
+            if (CryptoZoo.gameplay?.activeScreen === "game") {
+                CryptoZoo.ui?.renderHome?.();
+                CryptoZoo.ui?.renderTopHiddenStats?.();
+            } else if (CryptoZoo.gameplay?.activeScreen === "zoo") {
+                CryptoZoo.ui?.renderTopHiddenStats?.();
+            } else if (CryptoZoo.gameplay?.activeScreen === "shop") {
+                CryptoZoo.ui?.renderTopHiddenStats?.();
+                CryptoZoo.ui?.renderBoostStatus?.();
+            } else if (CryptoZoo.gameplay?.activeScreen === "missions") {
+                CryptoZoo.ui?.renderTopHiddenStats?.();
+                CryptoZoo.ui?.renderExpeditions?.();
+            } else {
+                CryptoZoo.ui?.renderTopHiddenStats?.();
+            }
 
-            // autosave co sekundę zostawiamy (Telegram idle game → OK)
-            CryptoZoo.api?.savePlayer?.();
+            this.saveTick += 1;
+
+            if (this.saveTick >= 5) {
+                this.saveTick = 0;
+                CryptoZoo.api?.savePlayer?.();
+            }
         }, 1000);
     }
 };
