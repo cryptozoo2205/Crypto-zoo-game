@@ -92,13 +92,34 @@ CryptoZoo.init = {
         this.log("debug listeners ok");
     },
 
-    hideLoadingScreenNow() {
+    removeLoadingScreen() {
         const screen = document.getElementById("loading-screen");
-        if (!screen) return;
+        if (!screen) {
+            this.log("loading screen already removed");
+            return;
+        }
 
-        screen.style.opacity = "0";
         screen.style.pointerEvents = "none";
+        screen.style.opacity = "0";
+        screen.style.visibility = "hidden";
         screen.style.display = "none";
+        screen.setAttribute("hidden", "hidden");
+
+        const allLoadingChildren = screen.querySelectorAll("*");
+        allLoadingChildren.forEach((el) => {
+            el.style.pointerEvents = "none";
+            el.style.display = "none";
+            el.style.visibility = "hidden";
+        });
+
+        setTimeout(() => {
+            try {
+                screen.remove();
+                this.log("loading screen removed from DOM");
+            } catch (error) {
+                this.log("loading remove failed");
+            }
+        }, 50);
     },
 
     forceHiddenModalsSafe() {
@@ -114,6 +135,7 @@ CryptoZoo.init = {
 
             if (el.classList.contains("hidden")) {
                 el.style.pointerEvents = "none";
+                el.style.display = "";
             } else {
                 el.style.pointerEvents = "auto";
             }
@@ -167,8 +189,18 @@ CryptoZoo.init = {
             CryptoZoo.uiProfile?.bindProfileModal?.();
             this.log("modals bind ok");
 
-            this.hideLoadingScreenNow();
+            this.removeLoadingScreen();
             this.forceHiddenModalsSafe();
+
+            setTimeout(() => {
+                this.removeLoadingScreen();
+                this.forceHiddenModalsSafe();
+            }, 150);
+
+            setTimeout(() => {
+                this.removeLoadingScreen();
+                this.forceHiddenModalsSafe();
+            }, 500);
 
             this.log("✅ INIT DONE");
         } catch (e) {
