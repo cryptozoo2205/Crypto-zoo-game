@@ -8,7 +8,9 @@ CryptoZoo.init = {
 
         const el = document.getElementById("debugBox");
         if (el) {
-            el.innerHTML += `<div>${msg}</div>`;
+            const row = document.createElement("div");
+            row.textContent = msg;
+            el.appendChild(row);
             el.scrollTop = el.scrollHeight;
         }
     },
@@ -22,20 +24,39 @@ CryptoZoo.init = {
         box.style.top = "0";
         box.style.left = "0";
         box.style.right = "0";
-        box.style.maxHeight = "40%";
+        box.style.maxHeight = "42%";
         box.style.overflow = "auto";
-        box.style.background = "rgba(0,0,0,0.8)";
+        box.style.background = "rgba(0,0,0,0.82)";
         box.style.color = "#00ff88";
         box.style.fontSize = "11px";
+        box.style.lineHeight = "1.35";
         box.style.zIndex = "999999";
         box.style.padding = "6px";
         box.style.pointerEvents = "none";
+        box.style.whiteSpace = "pre-wrap";
+        box.style.wordBreak = "break-word";
 
         document.body.appendChild(box);
     },
 
+    describeElement(el) {
+        if (!el) return "null";
+
+        const tag = String(el.tagName || "unknown").toUpperCase();
+        const id = el.id ? `#${el.id}` : "";
+        const cls = typeof el.className === "string" && el.className.trim()
+            ? "." + el.className.trim().replace(/\s+/g, ".")
+            : "";
+
+        return `${tag}${id}${cls}`;
+    },
+
+    logPointTarget(x, y, label) {
+        const el = document.elementFromPoint(Number(x) || 0, Number(y) || 0);
+        this.log(`${label} @ ${Math.floor(Number(x) || 0)},${Math.floor(Number(y) || 0)} -> ${this.describeElement(el)}`);
+    },
+
     bindGlobalDebug() {
-        // JS ERROR
         window.onerror = (msg) => {
             this.log("❌ ERROR: " + msg);
         };
@@ -44,15 +65,58 @@ CryptoZoo.init = {
             this.log("❌ PROMISE ERROR");
         });
 
-        // TOUCH / CLICK DEBUG
-        document.addEventListener("touchstart", (e) => {
-            const t = e.target;
-            this.log(`👆 TOUCH: ${t.tagName}#${t.id}.${t.className}`);
-        }, { passive: true });
+        const touchHandler = (e) => {
+            const touch = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]) || null;
+            const target = e.target;
+            this.log(`👆 ${e.type} target=${this.describeElement(target)}`);
 
-        document.addEventListener("click", (e) => {
-            const t = e.target;
-            this.log(`🖱 CLICK: ${t.tagName}#${t.id}.${t.className}`);
+            if (touch) {
+                this.logPointTarget(touch.clientX, touch.clientY, "POINT");
+            }
+        };
+
+        const mouseHandler = (e) => {
+            const target = e.target;
+            this.log(`🖱 ${e.type} target=${this.describeElement(target)}`);
+            this.logPointTarget(e.clientX, e.clientY, "POINT");
+        };
+
+        window.addEventListener("touchstart", touchHandler, { capture: true, passive: true });
+        window.addEventListener("touchend", touchHandler, { capture: true, passive: true });
+        document.addEventListener("touchstart", touchHandler, { capture: true, passive: true });
+        document.addEventListener("touchend", touchHandler, { capture: true, passive: true });
+
+        window.addEventListener("click", mouseHandler, true);
+        document.addEventListener("click", mouseHandler, true);
+
+        this.log("debug listeners ok");
+    },
+
+    hideLoadingScreenNow() {
+        const screen = document.getElementById("loading-screen");
+        if (!screen) return;
+
+        screen.style.opacity = "0";
+        screen.style.pointerEvents = "none";
+        screen.style.display = "none";
+    },
+
+    forceHiddenModalsSafe() {
+        const ids = [
+            "profileModal",
+            "settingsModal",
+            "dailyRewardModal"
+        ];
+
+        ids.forEach((id) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+
+            if (el.classList.contains("hidden")) {
+                el.style.pointerEvents = "none";
+            } else {
+                el.style.pointerEvents = "auto";
+            }
         });
     },
 
@@ -101,20 +165,12 @@ CryptoZoo.init = {
 
             CryptoZoo.uiSettings?.bindSettingsModal?.();
             CryptoZoo.uiProfile?.bindProfileModal?.();
+            this.log("modals bind ok");
+
+            this.hideLoadingScreenNow();
+            this.forceHiddenModalsSafe();
 
             this.log("✅ INIT DONE");
-
-            // 🔥 FIX: usuń loading screen (TO BLOKOWAŁO KLIKI)
-            const screen = document.getElementById("loading-screen");
-            if (screen) {
-                screen.style.opacity = "0";
-                screen.style.pointerEvents = "none";
-
-                setTimeout(() => {
-                    screen.style.display = "none";
-                }, 200);
-            }
-
         } catch (e) {
             console.error(e);
             this.log("❌ INIT CRASH");
