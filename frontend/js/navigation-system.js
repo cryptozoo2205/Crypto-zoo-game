@@ -5,6 +5,9 @@ CryptoZoo.navigation = {
         const navButtons = document.querySelectorAll("[data-nav]");
 
         navButtons.forEach((button) => {
+            if (button.dataset.bound === "1") return;
+
+            button.dataset.bound = "1";
             button.onclick = (event) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -18,6 +21,7 @@ CryptoZoo.navigation = {
     },
 
     show(screenName) {
+        const targetName = String(screenName || "game");
         const screens = document.querySelectorAll('main section[id^="screen-"]');
         const navButtons = document.querySelectorAll("[data-nav]");
 
@@ -30,36 +34,39 @@ CryptoZoo.navigation = {
             button.classList.remove("active-nav");
         });
 
-        const targetScreen = document.getElementById(`screen-${screenName}`);
+        const targetScreen = document.getElementById(`screen-${targetName}`);
         if (targetScreen) {
             targetScreen.classList.remove("hidden");
             targetScreen.classList.add("active-screen");
         }
 
-        const activeButton = document.querySelector(`[data-nav="${screenName}"]`);
+        const activeButton = document.querySelector(`[data-nav="${targetName}"]`);
         if (activeButton) {
             activeButton.classList.add("active-nav");
         }
 
         if (CryptoZoo.gameplay) {
-            CryptoZoo.gameplay.activeScreen = screenName;
+            CryptoZoo.gameplay.activeScreen = targetName;
         }
 
-        sessionStorage.setItem("cryptozoo_last_screen", screenName);
+        sessionStorage.setItem("cryptozoo_last_screen", targetName);
 
-        if (screenName === "ranking") {
-            CryptoZoo.uiRanking?.renderRanking?.();
-        }
+        CryptoZoo.ui?.renderTopHiddenStats?.();
 
-        if (screenName === "missions") {
-            CryptoZoo.ui?.renderExpeditions?.();
-        }
-
-        if (screenName === "shop") {
+        if (targetName === "game") {
+            CryptoZoo.ui?.renderHome?.();
+        } else if (targetName === "zoo") {
+            CryptoZoo.ui?.renderZooList?.();
+        } else if (targetName === "shop") {
+            CryptoZoo.ui?.renderShopItems?.();
             CryptoZoo.gameplay?.bindBoostShopButton?.();
+            CryptoZoo.ui?.renderBoostStatus?.();
+        } else if (targetName === "missions") {
+            CryptoZoo.ui?.renderExpeditions?.();
+        } else if (targetName === "ranking") {
+            CryptoZoo.uiRanking?.renderRanking?.(false);
         }
 
-        CryptoZoo.ui?.render?.();
         return true;
     }
 };
