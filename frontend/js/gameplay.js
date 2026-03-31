@@ -280,41 +280,6 @@ CryptoZoo.gameplay = {
         return CryptoZoo.offline?.normalizeState?.() || false;
     },
 
-    getTapAreaBounds(tapButton) {
-        const rect = tapButton.getBoundingClientRect();
-        const padding = Math.max(0, Number(this.tapAreaPadding) || 0);
-
-        return {
-            left: rect.left - padding,
-            right: rect.right + padding,
-            top: rect.top - padding,
-            bottom: rect.bottom + padding
-        };
-    },
-
-    isPointInsideTapArea(x, y, tapButton) {
-        if (!tapButton) return false;
-
-        const bounds = this.getTapAreaBounds(tapButton);
-
-        return (
-            x >= bounds.left &&
-            x <= bounds.right &&
-            y >= bounds.top &&
-            y <= bounds.bottom
-        );
-    },
-
-    isTouchInsideTapArea(touch, tapButton) {
-        if (!touch) return false;
-
-        return this.isPointInsideTapArea(
-            Number(touch.clientX) || 0,
-            Number(touch.clientY) || 0,
-            tapButton
-        );
-    },
-
     isAnyBlockingModalOpen() {
         const blockingIds = [
             "profileModal",
@@ -343,11 +308,6 @@ CryptoZoo.gameplay = {
             return false;
         }
 
-        const tapButton = document.getElementById("tapButton");
-        if (tapButton && (targetElement === tapButton || tapButton.contains(targetElement))) {
-            return false;
-        }
-
         if (
             targetElement.closest("#profileModal") ||
             targetElement.closest("#settingsModal") ||
@@ -365,7 +325,11 @@ CryptoZoo.gameplay = {
         }
 
         const closestButton = targetElement.closest("button");
-        if (closestButton && closestButton !== tapButton) {
+        if (
+            closestButton &&
+            closestButton.id !== "tapButton" &&
+            !closestButton.closest(".tap-area")
+        ) {
             return true;
         }
 
@@ -374,72 +338,78 @@ CryptoZoo.gameplay = {
 
     bindTap() {
         const tapButton = document.getElementById("tapButton");
-        if (!tapButton || tapButton.dataset.tapBound === "1") return;
+        const tapArea = document.querySelector(".tap-area");
 
+        if (!tapButton || !tapArea || tapArea.dataset.tapBound === "1") return;
+
+        tapArea.dataset.tapBound = "1";
         tapButton.dataset.tapBound = "1";
         this.tapTouchIds = new Set();
 
-        tapButton.style.touchAction = "none";
+        tapArea.style.touchAction = "manipulation";
+        tapButton.style.touchAction = "manipulation";
+        tapArea.style.webkitTapHighlightColor = "transparent";
+        tapButton.style.webkitTapHighlightColor = "transparent";
+        tapArea.style.userSelect = "none";
+        tapButton.style.userSelect = "none";
 
-        tapButton.onclick = (e) => {
-            e?.preventDefault?.();
+        const triggerTap = (amount = 1) => {
+            if (this.isAnyBlockingModalOpen()) return false;
+            if (this.activeScreen !== "game") return false;
+            if (Date.now() < this.suppressClickUntil) return false;
 
-            if (this.isInteractiveBlocked(e?.target)) return;
-            if (Date.now() < this.suppressClickUntil) return;
-            if (this.touchBurstActive) return;
-
-            this.suppressClickUntil = Date.now() + 250;
-            this.handleTap(1);
+            this.suppressClickUntil = Date.now() + 180;
+            this.handleTap(amount);
+            return true;
         };
 
-        const onTouchStart = (e) => {
-            if (this.isInteractiveBlocked(e?.target)) return;
+        tapButton.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            triggerTap(1);
+        };
+
+        tapArea.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (this.isInteractiveBlocked(e.target)) return;
+            triggerTap(1);
+        };
+
+        tapArea.addEventListener("touchstart", (e) => {
+            if (this.isInteractiveBlocked(e.target)) return;
 
             const changedTouches = Array.from(e.changedTouches || []);
             if (!changedTouches.length) return;
 
             let newTapCount = 0;
 
-            for (const touch of changedTouches) {
+            changedTouches.forEach((touch) => {
                 const touchId = String(touch.identifier);
 
-                if (this.tapTouchIds.has(touchId)) continue;
-                if (!this.isTouchInsideTapArea(touch, tapButton)) continue;
-
+                if (this.tapTouchIds.has(touchId)) return;
                 this.tapTouchIds.add(touchId);
                 newTapCount += 1;
-            }
+            });
 
             if (newTapCount <= 0) return;
 
-            e.preventDefault();
             clearTimeout(this.touchReleaseTimer);
-
             this.touchBurstActive = true;
-            this.suppressClickUntil = Date.now() + 800;
 
-            this.handleTap(newTapCount);
-        };
+            e.preventDefault();
+            e.stopPropagation();
 
-        const onTouchMove = (e) => {
-            if (this.isInteractiveBlocked(e?.target)) return;
+            triggerTap(newTapCount);
+        }, { passive: false });
 
-            const touches = Array.from(e.touches || []);
-            const hasTrackedTouch = touches.some((touch) =>
-                this.tapTouchIds.has(String(touch.identifier))
-            );
-
-            if (hasTrackedTouch) {
-                e.preventDefault();
-            }
-        };
-
-        const unlockTouchBurst = (e) => {
+        const releaseTouches = (e) => {
             const changedTouches = Array.from(e.changedTouches || []);
 
-            for (const touch of changedTouches) {
+            changedTouches.forEach((touch) => {
                 this.tapTouchIds.delete(String(touch.identifier));
-            }
+            });
 
             if (this.tapTouchIds.size > 0) return;
 
@@ -449,10 +419,8 @@ CryptoZoo.gameplay = {
             }, 40);
         };
 
-        document.addEventListener("touchstart", onTouchStart, { passive: false });
-        document.addEventListener("touchmove", onTouchMove, { passive: false });
-        document.addEventListener("touchend", unlockTouchBurst, { passive: false });
-        document.addEventListener("touchcancel", unlockTouchBurst, { passive: false });
+        tapArea.addEventListener("touchend", releaseTouches, { passive: true });
+        tapArea.addEventListener("touchcancel", releaseTouches, { passive: true });
     },
 
     scheduleTapSave() {
