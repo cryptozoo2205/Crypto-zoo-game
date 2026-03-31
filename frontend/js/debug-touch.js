@@ -1,11 +1,11 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.debugTouch = {
-    enabled: true,
-    maxLines: 120,
+    started: false,
     overlayId: "cz-debug-overlay",
     contentId: "cz-debug-content",
-    started: false,
+    maxLines: 80,
+    tick: 0,
 
     start() {
         if (this.started) return;
@@ -14,9 +14,10 @@ window.CryptoZoo.debugTouch = {
         this.createOverlay();
         this.log("DEBUG START");
 
-        this.bindErrorLogs();
-        this.bindPointerLogs();
-        this.bindStateChecks();
+        this.bindErrors();
+        this.bindHeartbeat();
+        this.bindDirectElementLogs();
+        this.bindGlobalLogs();
 
         this.log("DEBUG READY");
     },
@@ -30,9 +31,9 @@ window.CryptoZoo.debugTouch = {
         wrap.style.top = "0";
         wrap.style.left = "0";
         wrap.style.right = "0";
-        wrap.style.maxHeight = "42%";
+        wrap.style.maxHeight = "34%";
         wrap.style.overflow = "hidden";
-        wrap.style.background = "rgba(0,0,0,0.84)";
+        wrap.style.background = "rgba(0,0,0,0.82)";
         wrap.style.color = "#00ff88";
         wrap.style.fontSize = "11px";
         wrap.style.lineHeight = "1.35";
@@ -40,13 +41,13 @@ window.CryptoZoo.debugTouch = {
         wrap.style.padding = "6px";
         wrap.style.boxSizing = "border-box";
         wrap.style.pointerEvents = "none";
-        wrap.style.borderBottom = "1px solid rgba(255,255,255,0.12)";
         wrap.style.fontFamily = "monospace";
+        wrap.style.borderBottom = "1px solid rgba(255,255,255,0.12)";
 
         const content = document.createElement("div");
         content.id = this.contentId;
-        content.style.maxHeight = "calc(42vh - 12px)";
-        content.style.overflow = "auto";
+        content.style.maxHeight = "calc(34vh - 12px)";
+        content.style.overflow = "hidden";
         content.style.whiteSpace = "pre-wrap";
         content.style.wordBreak = "break-word";
         content.style.pointerEvents = "none";
@@ -55,37 +56,29 @@ window.CryptoZoo.debugTouch = {
         document.body.appendChild(wrap);
     },
 
-    getContentEl() {
+    getBox() {
         return document.getElementById(this.contentId);
     },
 
     log(text) {
-        if (!this.enabled) return;
-
-        const el = this.getContentEl();
-        if (!el) return;
+        const box = this.getBox();
+        if (!box) return;
 
         const row = document.createElement("div");
         row.textContent = String(text);
-        el.appendChild(row);
+        box.appendChild(row);
 
-        while (el.children.length > this.maxLines) {
-            el.removeChild(el.firstChild);
+        while (box.children.length > this.maxLines) {
+            box.removeChild(box.firstChild);
         }
 
-        el.scrollTop = el.scrollHeight;
         console.log("[CZ-DEBUG]", text);
-    },
-
-    safeText(value, fallback = "") {
-        if (value === null || value === undefined) return fallback;
-        return String(value);
     },
 
     describeElement(el) {
         if (!el) return "null";
 
-        const tag = this.safeText(el.tagName, "unknown").toUpperCase();
+        const tag = String(el.tagName || "unknown").toUpperCase();
         const id = el.id ? `#${el.id}` : "";
         const cls = typeof el.className === "string" && el.className.trim()
             ? "." + el.className.trim().replace(/\s+/g, ".")
@@ -94,109 +87,140 @@ window.CryptoZoo.debugTouch = {
         return `${tag}${id}${cls}`;
     },
 
-    getElementAtPoint(x, y) {
-        try {
-            return document.elementFromPoint(Number(x) || 0, Number(y) || 0);
-        } catch (e) {
-            return null;
-        }
-    },
-
-    getOpenModalInfo() {
-        const ids = [
-            "loading-screen",
-            "profileModal",
-            "settingsModal",
-            "dailyRewardModal",
-            "depositPaymentModal"
-        ];
-
-        return ids.map((id) => {
-            const el = document.getElementById(id);
-            if (!el) return `${id}:missing`;
-
-            const hiddenClass = el.classList.contains("hidden");
-            const style = window.getComputedStyle(el);
-
-            return `${id}:{hiddenClass=${hiddenClass},display=${style.display},visibility=${style.visibility},pointer=${style.pointerEvents}}`;
-        }).join(" | ");
-    },
-
-    bindErrorLogs() {
+    bindErrors() {
         window.addEventListener("error", (event) => {
-            const msg = this.safeText(event.message, "Unknown error");
-            const src = this.safeText(event.filename, "");
-            const line = Number(event.lineno) || 0;
-            this.log(`JS ERROR -> ${msg} @ ${src}:${line}`);
+            this.log(`JS ERROR -> ${event.message || "unknown"}`);
         });
 
         window.addEventListener("unhandledrejection", (event) => {
-            let reason = "unknown";
-            try {
-                reason = this.safeText(event.reason?.message || event.reason, "unknown");
-            } catch (e) {
-                reason = "unknown";
-            }
+            const reason = event?.reason?.message || String(event?.reason || "unknown");
             this.log(`PROMISE ERROR -> ${reason}`);
         });
     },
 
-    bindPointerLogs() {
+    bindHeartbeat() {
+        setInterval(() => {
+            this.tick += 1;
+
+            const activeScreen = window.CryptoZoo?.gameplay?.activeScreen || "unknown";
+            const loading = document.getElementById("loading-screen");
+            const tapButton = document.getElementById("tapButton");
+            const tapArea = document.querySelector(".tap-area");
+            const menuButtons = document.querySelectorAll(".menu-btn").length;
+
+            this.log(
+                `TICK ${this.tick} | screen=${activeScreen} | loading=${!!loading} | tapButton=${!!tapButton} | tapArea=${!!tapArea} | menuBtns=${menuButtons}`
+            );
+        }, 3000);
+    },
+
+    bindDirectElementLogs() {
+        const bind = () => {
+            const tapButton = document.getElementById("tapButton");
+            const tapArea = document.querySelector(".tap-area");
+            const menuButtons = document.querySelectorAll(".menu-btn");
+            const topProfileBtn = document.getElementById("topProfileBtn");
+            const topSettingsBtn = document.getElementById("topSettingsBtn");
+
+            if (tapButton && tapButton.dataset.debugBound !== "1") {
+                tapButton.dataset.debugBound = "1";
+
+                tapButton.addEventListener("touchstart", () => {
+                    this.log("DIRECT tapButton touchstart");
+                }, { passive: true });
+
+                tapButton.addEventListener("touchend", () => {
+                    this.log("DIRECT tapButton touchend");
+                }, { passive: true });
+
+                tapButton.addEventListener("click", () => {
+                    this.log("DIRECT tapButton click");
+                }, true);
+            }
+
+            if (tapArea && tapArea.dataset.debugBound !== "1") {
+                tapArea.dataset.debugBound = "1";
+
+                tapArea.addEventListener("touchstart", () => {
+                    this.log("DIRECT tapArea touchstart");
+                }, { passive: true });
+
+                tapArea.addEventListener("touchend", () => {
+                    this.log("DIRECT tapArea touchend");
+                }, { passive: true });
+
+                tapArea.addEventListener("click", () => {
+                    this.log("DIRECT tapArea click");
+                }, true);
+            }
+
+            menuButtons.forEach((btn, index) => {
+                if (btn.dataset.debugBound === "1") return;
+                btn.dataset.debugBound = "1";
+
+                btn.addEventListener("touchstart", () => {
+                    this.log(`DIRECT menuBtn[${index}] touchstart nav=${btn.getAttribute("data-nav") || ""}`);
+                }, { passive: true });
+
+                btn.addEventListener("touchend", () => {
+                    this.log(`DIRECT menuBtn[${index}] touchend nav=${btn.getAttribute("data-nav") || ""}`);
+                }, { passive: true });
+
+                btn.addEventListener("click", () => {
+                    this.log(`DIRECT menuBtn[${index}] click nav=${btn.getAttribute("data-nav") || ""}`);
+                }, true);
+            });
+
+            [topProfileBtn, topSettingsBtn].forEach((btn) => {
+                if (!btn || btn.dataset.debugBound === "1") return;
+                btn.dataset.debugBound = "1";
+
+                btn.addEventListener("touchstart", () => {
+                    this.log(`DIRECT ${btn.id} touchstart`);
+                }, { passive: true });
+
+                btn.addEventListener("click", () => {
+                    this.log(`DIRECT ${btn.id} click`);
+                }, true);
+            });
+        };
+
+        bind();
+        setInterval(bind, 1000);
+    },
+
+    bindGlobalLogs() {
         const touchHandler = (e) => {
             const touch =
                 (e.touches && e.touches[0]) ||
                 (e.changedTouches && e.changedTouches[0]) ||
                 null;
 
-            const targetDesc = this.describeElement(e.target);
+            const target = this.describeElement(e.target);
 
             if (!touch) {
-                this.log(`${e.type} target=${targetDesc}`);
+                this.log(`GLOBAL ${e.type} -> ${target}`);
                 return;
             }
 
             const x = Math.floor(Number(touch.clientX) || 0);
             const y = Math.floor(Number(touch.clientY) || 0);
-            const pointEl = this.getElementAtPoint(x, y);
-            const pointDesc = this.describeElement(pointEl);
+            const pointEl = document.elementFromPoint(x, y);
 
-            this.log(`${e.type} target=${targetDesc} | point=${x},${y} -> ${pointDesc}`);
+            this.log(`GLOBAL ${e.type} -> ${target} | point=${x},${y} -> ${this.describeElement(pointEl)}`);
         };
 
         const clickHandler = (e) => {
             const x = Math.floor(Number(e.clientX) || 0);
             const y = Math.floor(Number(e.clientY) || 0);
-            const pointEl = this.getElementAtPoint(x, y);
-            const pointDesc = this.describeElement(pointEl);
-            const targetDesc = this.describeElement(e.target);
+            const pointEl = document.elementFromPoint(x, y);
 
-            this.log(`click target=${targetDesc} | point=${x},${y} -> ${pointDesc}`);
+            this.log(`GLOBAL click -> ${this.describeElement(e.target)} | point=${x},${y} -> ${this.describeElement(pointEl)}`);
         };
 
-        window.addEventListener("touchstart", touchHandler, { capture: true, passive: true });
-        window.addEventListener("touchend", touchHandler, { capture: true, passive: true });
-        document.addEventListener("touchstart", touchHandler, { capture: true, passive: true });
-        document.addEventListener("touchend", touchHandler, { capture: true, passive: true });
-
-        window.addEventListener("click", clickHandler, true);
+        document.addEventListener("touchstart", touchHandler, true);
+        document.addEventListener("touchend", touchHandler, true);
         document.addEventListener("click", clickHandler, true);
-    },
-
-    bindStateChecks() {
-        setInterval(() => {
-            const activeScreen = this.safeText(window.CryptoZoo?.gameplay?.activeScreen, "unknown");
-            const loadingEl = document.getElementById("loading-screen");
-            const loadingExists = !!loadingEl;
-
-            let loadingInfo = "loading-screen:missing";
-            if (loadingEl) {
-                const style = window.getComputedStyle(loadingEl);
-                loadingInfo = `loading-screen:{display=${style.display},visibility=${style.visibility},pointer=${style.pointerEvents},opacity=${style.opacity}}`;
-            }
-
-            this.log(`STATE -> screen=${activeScreen} | ${loadingInfo}`);
-            this.log(`MODALS -> ${this.getOpenModalInfo()}`);
-        }, 4000);
     }
 };
 
