@@ -4,30 +4,34 @@ CryptoZoo.init = {
     started: false,
     minLoadingVisibleMs: 300,
     startTimestamp: 0,
+    lifecycleBound: false,
 
-    removeLoadingScreen() {
+    setLoadingProgress(percent) {
+        const safePercent = Math.max(0, Math.min(100, Number(percent) || 0));
+
+        const fill = document.getElementById("loadingBarFill");
+        const text = document.getElementById("loadingPercent");
+
+        if (fill) {
+            fill.style.width = safePercent + "%";
+        }
+
+        if (text) {
+            text.textContent = safePercent + "%";
+        }
+    },
+
+    hideLoadingScreen() {
         const screen = document.getElementById("loading-screen");
         if (!screen) return;
 
-        screen.style.pointerEvents = "none";
-        screen.style.opacity = "0";
-        screen.style.visibility = "hidden";
         screen.style.display = "none";
 
-        const children = screen.querySelectorAll("*");
-        children.forEach((el) => {
-            el.style.pointerEvents = "none";
-            el.style.display = "none";
-            el.style.visibility = "hidden";
-        });
-
-        setTimeout(() => {
-            try {
-                screen.remove();
-            } catch (error) {
-                console.warn("loading remove failed", error);
-            }
-        }, 80);
+        try {
+            screen.remove();
+        } catch (error) {
+            console.warn("loading-screen remove failed:", error);
+        }
     },
 
     async ensureMinimumLoadingTime() {
@@ -51,50 +55,113 @@ CryptoZoo.init = {
         return null;
     },
 
+    handleAppResume() {
+        this.runSafe(async () => {
+            CryptoZoo.telegram?.forceFullscreen?.();
+            CryptoZoo.telegram?.applyViewportFix?.();
+            CryptoZoo.telegram?.applyIdentityToUi?.();
+            CryptoZoo.ui?.render?.();
+
+            setTimeout(() => {
+                CryptoZoo.telegram?.applyViewportFix?.();
+            }, 120);
+
+            setTimeout(() => {
+                CryptoZoo.telegram?.applyViewportFix?.();
+            }, 350);
+
+            setTimeout(() => {
+                CryptoZoo.telegram?.applyViewportFix?.();
+            }, 800);
+        });
+    },
+
+    bindLifecycleEvents() {
+        if (this.lifecycleBound) return;
+        this.lifecycleBound = true;
+
+        const resume = () => {
+            this.handleAppResume();
+        };
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") {
+                resume();
+            }
+        });
+
+        window.addEventListener("focus", resume, { passive: true });
+        window.addEventListener("pageshow", resume, { passive: true });
+        window.addEventListener("resize", resume, { passive: true });
+        window.addEventListener("orientationchange", resume, { passive: true });
+    },
+
     async start() {
         if (this.started) return;
         this.started = true;
         this.startTimestamp = Date.now();
 
+        this.setLoadingProgress(4);
+
         await this.runSafe(async () => {
             CryptoZoo.lang?.init?.();
         });
+
+        this.setLoadingProgress(10);
 
         await this.runSafe(async () => {
             CryptoZoo.uiSettings?.initSettings?.();
         });
 
+        this.setLoadingProgress(18);
+
         await this.runSafe(async () => {
             CryptoZoo.audio?.init?.();
         });
+
+        this.setLoadingProgress(28);
 
         await this.runSafe(async () => {
             CryptoZoo.telegram?.init?.();
         });
 
+        this.setLoadingProgress(44);
+
         await this.runSafe(async () => {
             await CryptoZoo.api?.init?.();
         });
+
+        this.setLoadingProgress(56);
 
         await this.runSafe(async () => {
             CryptoZoo.uiFaq?.close?.();
         });
 
+        this.setLoadingProgress(68);
+
         await this.runSafe(async () => {
             CryptoZoo.gameplay?.init?.();
         });
+
+        this.setLoadingProgress(75);
 
         await this.runSafe(async () => {
             CryptoZoo.depositBind?.init?.();
         });
 
+        this.setLoadingProgress(82);
+
         await this.runSafe(async () => {
             CryptoZoo.depositVerifyUI?.init?.();
         });
 
+        this.setLoadingProgress(88);
+
         await this.runSafe(async () => {
             CryptoZoo.minigames?.init?.();
         });
+
+        this.setLoadingProgress(92);
 
         await this.runSafe(async () => {
             CryptoZoo.ui?.render?.();
@@ -108,41 +175,33 @@ CryptoZoo.init = {
             CryptoZoo.ui?.bindHomeButtons?.();
             CryptoZoo.uiSettings?.bindSettingsModal?.();
             CryptoZoo.uiProfile?.bindProfileModal?.();
+
+            this.bindLifecycleEvents();
         });
+
+        this.setLoadingProgress(100);
 
         await this.ensureMinimumLoadingTime();
 
-        this.removeLoadingScreen();
+        this.hideLoadingScreen();
 
         setTimeout(() => {
-            this.removeLoadingScreen();
-            CryptoZoo.telegram?.applyViewportFix?.();
-        }, 150);
+            this.hideLoadingScreen();
+            this.handleAppResume();
+        }, 100);
 
         setTimeout(() => {
-            this.removeLoadingScreen();
-            CryptoZoo.telegram?.applyViewportFix?.();
-        }, 500);
+            this.hideLoadingScreen();
+            this.handleAppResume();
+        }, 400);
+
+        setTimeout(() => {
+            this.hideLoadingScreen();
+            this.handleAppResume();
+        }, 900);
     }
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
     await CryptoZoo.init.start();
 });
-
-setTimeout(() => {
-    const btn = document.getElementById("tapButton");
-
-    if (!btn) {
-        console.log("❌ tapButton NOT FOUND");
-        return;
-    }
-
-    console.log("✅ tapButton FOUND -> binding TEST");
-
-    btn.addEventListener("click", () => {
-        console.log("🔥 TEST CLICK WORKS");
-
-        alert("CLICK DZIAŁA");
-    });
-}, 2000);
