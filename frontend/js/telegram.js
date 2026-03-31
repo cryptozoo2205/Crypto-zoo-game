@@ -3,7 +3,6 @@ window.CryptoZoo = window.CryptoZoo || {};
 window.CryptoZoo.telegram = {
     initialized: false,
     safeAreaBound: false,
-    fullscreenRequested: false,
 
     init() {
         if (this.initialized) {
@@ -28,14 +27,21 @@ window.CryptoZoo.telegram = {
             this.setupPlayerIdentity();
             this.applyTelegramTheme();
             this.bindTelegramEvents();
-            this.forceFullscreen();
+
+            try {
+                if (typeof tg.expand === "function") {
+                    tg.expand();
+                }
+            } catch (error) {
+                console.warn("expand failed:", error);
+            }
+
             this.applyViewportFix();
             this.applyIdentityToUi();
 
             setTimeout(() => this.applyViewportFix(), 120);
             setTimeout(() => this.applyViewportFix(), 300);
             setTimeout(() => this.applyViewportFix(), 700);
-            setTimeout(() => this.applyViewportFix(), 1200);
         } catch (error) {
             console.error("TELEGRAM INIT ERROR:", error);
             this.applyIdentityToUi();
@@ -126,51 +132,21 @@ window.CryptoZoo.telegram = {
         } catch (error) {
             console.warn("disableVerticalSwipes failed:", error);
         }
-
-        try {
-            if (typeof tg.enableClosingConfirmation === "function") {
-                tg.enableClosingConfirmation();
-            }
-        } catch (error) {
-            console.warn("enableClosingConfirmation failed:", error);
-        }
     },
 
     forceFullscreen() {
         const tg = this.getWebApp();
-        if (!tg) {
-            return;
+        if (!tg) return;
+
+        try {
+            if (typeof tg.expand === "function") {
+                tg.expand();
+            }
+        } catch (error) {
+            console.warn("expand failed:", error);
         }
 
-        const runFullscreen = () => {
-            try {
-                if (typeof tg.expand === "function") {
-                    tg.expand();
-                }
-            } catch (error) {
-                console.warn("expand failed:", error);
-            }
-
-            if (!this.fullscreenRequested) {
-                try {
-                    if (typeof tg.requestFullscreen === "function") {
-                        tg.requestFullscreen();
-                    }
-                } catch (error) {
-                    console.warn("requestFullscreen failed:", error);
-                }
-
-                this.fullscreenRequested = true;
-            }
-
-            this.applyViewportFix();
-        };
-
-        runFullscreen();
-
-        setTimeout(runFullscreen, 120);
-        setTimeout(runFullscreen, 320);
-        setTimeout(runFullscreen, 700);
+        this.applyViewportFix();
     },
 
     bindTelegramEvents() {
@@ -253,12 +229,11 @@ window.CryptoZoo.telegram = {
             Number(tg?.viewportStableHeight) || 0,
             Number(tg?.viewportHeight) || 0,
             window.innerHeight || 0,
-            document.documentElement?.clientHeight || 0,
-            screen?.height || 0
+            document.documentElement?.clientHeight || 0
         ].filter((value) => value > 0);
 
         if (!candidates.length) {
-            return 0;
+            return window.innerHeight || 0;
         }
 
         return Math.max(...candidates);
@@ -271,35 +246,30 @@ window.CryptoZoo.telegram = {
         const game = document.getElementById("game");
         const menu = document.querySelector(".menu");
         const topBar = document.querySelector(".top-bar");
+
         const safe = this.getSafeAreaValues();
         const viewportHeight = this.getViewportHeight();
 
         if (root) {
-            root.style.margin = "0";
-            root.style.padding = "0";
-            root.style.width = "100%";
-            root.style.height = "100%";
-            root.style.minHeight = "100%";
-            root.style.overflow = "hidden";
-            root.style.background = "#0b1220";
             root.style.setProperty("--tg-safe-top", `${safe.top}px`);
             root.style.setProperty("--tg-safe-bottom", `${safe.bottom}px`);
             root.style.setProperty("--tg-safe-left", `${safe.left}px`);
             root.style.setProperty("--tg-safe-right", `${safe.right}px`);
             root.style.setProperty("--tg-viewport-height", `${viewportHeight}px`);
+            root.style.background = "#0b1220";
         }
 
         if (body) {
             body.classList.add("telegram-webapp");
+            body.style.background = "#0b1220";
+            body.style.width = "100%";
+            body.style.minHeight = "100%";
             body.style.margin = "0";
             body.style.padding = "0";
-            body.style.width = "100%";
-            body.style.height = "100%";
-            body.style.minHeight = "100%";
             body.style.overflow = "hidden";
-            body.style.background = "#0b1220";
-            body.style.position = "relative";
+            body.style.position = "";
             body.style.inset = "";
+            body.style.height = "";
         }
 
         if (app) {
@@ -309,7 +279,6 @@ window.CryptoZoo.telegram = {
             app.style.maxHeight = `${viewportHeight}px`;
             app.style.overflow = "hidden";
             app.style.background = "#0b1220";
-            app.style.position = "relative";
         }
 
         if (topBar) {
@@ -327,17 +296,13 @@ window.CryptoZoo.telegram = {
         }
 
         if (game) {
-            game.style.height = `calc(${viewportHeight}px - ${topBar ? topBar.offsetHeight : 0}px - ${menu ? menu.offsetHeight : 0}px)`;
-            game.style.minHeight = `calc(${viewportHeight}px - ${topBar ? topBar.offsetHeight : 0}px - ${menu ? menu.offsetHeight : 0}px)`;
-            game.style.maxHeight = `calc(${viewportHeight}px - ${topBar ? topBar.offsetHeight : 0}px - ${menu ? menu.offsetHeight : 0}px)`;
-            game.style.overflowY = "auto";
-            game.style.overflowX = "hidden";
-            game.style.WebkitOverflowScrolling = "touch";
             game.style.paddingLeft = `${safe.left}px`;
             game.style.paddingRight = `${safe.right}px`;
             game.style.boxSizing = "border-box";
-            game.style.position = "relative";
-            game.style.pointerEvents = "auto";
+            game.style.overflowY = "auto";
+            game.style.overflowX = "hidden";
+            game.style.WebkitOverflowScrolling = "touch";
+            game.style.touchAction = "pan-y";
         }
     },
 
