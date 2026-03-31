@@ -129,3 +129,20 @@ CryptoZoo.init = {
 document.addEventListener("DOMContentLoaded", async () => {
     await CryptoZoo.init.start();
 });
+
+setTimeout(() => {
+    const btn = document.getElementById("tapButton");
+
+    if (!btn) {
+        console.log("❌ tapButton NOT FOUND");
+        return;
+    }
+
+    console.log("✅ tapButton FOUND -> binding TEST");
+
+    btn.addEventListener("click", () => {
+        console.log("🔥 TEST CLICK WORKS");
+
+        alert("CLICK DZIAŁA");
+    });
+}, 2000);
