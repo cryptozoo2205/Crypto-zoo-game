@@ -2,230 +2,111 @@ window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.init = {
     started: false,
-    minLoadingVisibleMs: 1400,
-    startTimestamp: 0,
-    lifecycleBound: false,
 
-    setLoadingProgress(percent) {
-        const safePercent = Math.max(0, Math.min(100, Number(percent) || 0));
+    log(msg) {
+        console.log("[INIT]", msg);
 
-        const fill = document.getElementById("loadingBarFill");
-        const text = document.getElementById("loadingPercent");
-
-        if (fill) {
-            fill.style.width = safePercent + "%";
-        }
-
-        if (text) {
-            text.textContent = safePercent + "%";
+        const el = document.getElementById("debugBox");
+        if (el) {
+            el.innerHTML += `<div>${msg}</div>`;
+            el.scrollTop = el.scrollHeight;
         }
     },
 
-    hideLoadingScreen() {
-        const screen = document.getElementById("loading-screen");
-        if (!screen) return;
+    createDebugOverlay() {
+        if (document.getElementById("debugBox")) return;
 
-        screen.classList.add("loading-hidden");
-        screen.style.opacity = "0";
-        screen.style.pointerEvents = "none";
-        screen.style.visibility = "hidden";
+        const box = document.createElement("div");
+        box.id = "debugBox";
+        box.style.position = "fixed";
+        box.style.top = "0";
+        box.style.left = "0";
+        box.style.right = "0";
+        box.style.maxHeight = "40%";
+        box.style.overflow = "auto";
+        box.style.background = "rgba(0,0,0,0.8)";
+        box.style.color = "#00ff88";
+        box.style.fontSize = "11px";
+        box.style.zIndex = "999999";
+        box.style.padding = "6px";
+        box.style.pointerEvents = "none";
 
-        setTimeout(() => {
-            screen.style.display = "none";
-        }, 350);
+        document.body.appendChild(box);
     },
 
-    async ensureMinimumLoadingTime() {
-        const elapsed = Date.now() - this.startTimestamp;
-        const waitMs = Math.max(0, this.minLoadingVisibleMs - elapsed);
-
-        if (waitMs > 0) {
-            await new Promise((resolve) => setTimeout(resolve, waitMs));
-        }
-    },
-
-    async runSafe(fn) {
-        try {
-            if (typeof fn === "function") {
-                return await fn();
-            }
-        } catch (error) {
-            console.error(error);
-        }
-
-        return null;
-    },
-
-    markTelegramBody() {
-        if (window.Telegram?.WebApp) {
-            document.body.classList.add("telegram-webapp");
-        }
-    },
-
-    forceReleaseBlockingLayers() {
-        this.hideLoadingScreen();
-
-        const hiddenModalIds = [
-            "profileModal",
-            "settingsModal",
-            "dailyRewardModal"
-        ];
-
-        hiddenModalIds.forEach((id) => {
-            const el = document.getElementById(id);
-            if (el && el.classList.contains("hidden")) {
-                el.style.pointerEvents = "none";
-                el.style.visibility = "hidden";
-            }
-        });
-    },
-
-    handleAppResume() {
-        this.runSafe(async () => {
-            this.markTelegramBody();
-            CryptoZoo.telegram?.forceFullscreen?.();
-            CryptoZoo.telegram?.applyViewportFix?.();
-            CryptoZoo.telegram?.applyIdentityToUi?.();
-            this.forceReleaseBlockingLayers();
-            CryptoZoo.ui?.render?.();
-
-            setTimeout(() => {
-                CryptoZoo.telegram?.applyViewportFix?.();
-                this.forceReleaseBlockingLayers();
-            }, 120);
-
-            setTimeout(() => {
-                CryptoZoo.telegram?.applyViewportFix?.();
-                this.forceReleaseBlockingLayers();
-            }, 350);
-
-            setTimeout(() => {
-                CryptoZoo.telegram?.applyViewportFix?.();
-                this.forceReleaseBlockingLayers();
-            }, 800);
-        });
-    },
-
-    bindLifecycleEvents() {
-        if (this.lifecycleBound) return;
-        this.lifecycleBound = true;
-
-        const resume = () => {
-            this.handleAppResume();
+    bindGlobalDebug() {
+        // JS ERROR
+        window.onerror = (msg, src, line, col, err) => {
+            this.log("❌ ERROR: " + msg);
         };
 
-        document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === "visible") {
-                resume();
-            }
+        window.addEventListener("unhandledrejection", (e) => {
+            this.log("❌ PROMISE ERROR");
         });
 
-        window.addEventListener("focus", resume, { passive: true });
-        window.addEventListener("pageshow", resume, { passive: true });
-        window.addEventListener("resize", resume, { passive: true });
-        window.addEventListener("orientationchange", resume, { passive: true });
+        // TOUCH / CLICK DEBUG
+        document.addEventListener("touchstart", (e) => {
+            const t = e.target;
+            this.log(`👆 TOUCH: ${t.tagName}#${t.id}.${t.className}`);
+        }, { passive: true });
+
+        document.addEventListener("click", (e) => {
+            const t = e.target;
+            this.log(`🖱 CLICK: ${t.tagName}#${t.id}.${t.className}`);
+        });
     },
 
     async start() {
         if (this.started) return;
         this.started = true;
-        this.startTimestamp = Date.now();
 
-        this.markTelegramBody();
-        this.setLoadingProgress(4);
+        this.createDebugOverlay();
+        this.bindGlobalDebug();
 
-        await this.runSafe(async () => {
+        this.log("🚀 INIT START");
+
+        try {
             CryptoZoo.lang?.init?.();
-        });
+            this.log("lang ok");
 
-        this.setLoadingProgress(10);
-
-        await this.runSafe(async () => {
             CryptoZoo.uiSettings?.initSettings?.();
-        });
+            this.log("settings ok");
 
-        this.setLoadingProgress(18);
-
-        await this.runSafe(async () => {
             CryptoZoo.audio?.init?.();
-        });
+            this.log("audio ok");
 
-        this.setLoadingProgress(28);
-
-        await this.runSafe(async () => {
             CryptoZoo.telegram?.init?.();
-        });
+            this.log("telegram ok");
 
-        this.setLoadingProgress(44);
-
-        await this.runSafe(async () => {
             await CryptoZoo.api?.init?.();
-        });
+            this.log("api ok");
 
-        this.setLoadingProgress(56);
-
-        await this.runSafe(async () => {
-            CryptoZoo.uiFaq?.close?.();
-        });
-
-        this.setLoadingProgress(68);
-
-        await this.runSafe(async () => {
             CryptoZoo.gameplay?.init?.();
-        });
+            this.log("gameplay ok");
 
-        this.setLoadingProgress(75);
-
-        await this.runSafe(async () => {
             CryptoZoo.depositBind?.init?.();
-        });
+            this.log("deposit ok");
 
-        this.setLoadingProgress(82);
-
-        await this.runSafe(async () => {
             CryptoZoo.depositVerifyUI?.init?.();
-        });
+            this.log("verify ok");
 
-        this.setLoadingProgress(88);
-
-        await this.runSafe(async () => {
             CryptoZoo.minigames?.init?.();
-        });
+            this.log("minigames ok");
 
-        this.setLoadingProgress(92);
-
-        await this.runSafe(async () => {
             CryptoZoo.ui?.render?.();
-        });
-
-        await this.runSafe(async () => {
-            CryptoZoo.telegram?.forceFullscreen?.();
-            CryptoZoo.telegram?.applyIdentityToUi?.();
-            CryptoZoo.telegram?.applyViewportFix?.();
+            this.log("ui render ok");
 
             CryptoZoo.ui?.bindHomeButtons?.();
+            this.log("bind buttons ok");
+
             CryptoZoo.uiSettings?.bindSettingsModal?.();
             CryptoZoo.uiProfile?.bindProfileModal?.();
 
-            this.bindLifecycleEvents();
-        });
-
-        this.setLoadingProgress(100);
-
-        await this.ensureMinimumLoadingTime();
-
-        setTimeout(() => {
-            this.hideLoadingScreen();
-            this.handleAppResume();
-        }, 220);
-
-        setTimeout(() => {
-            this.handleAppResume();
-        }, 600);
-
-        setTimeout(() => {
-            this.handleAppResume();
-        }, 1200);
+            this.log("✅ INIT DONE");
+        } catch (e) {
+            console.error(e);
+            this.log("❌ INIT CRASH");
+        }
     }
 };
 
