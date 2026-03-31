@@ -3,6 +3,7 @@ window.CryptoZoo = window.CryptoZoo || {};
 window.CryptoZoo.telegram = {
     initialized: false,
     safeAreaBound: false,
+    fullscreenRequested: false,
 
     init() {
         if (this.initialized) {
@@ -150,12 +151,16 @@ window.CryptoZoo.telegram = {
                 console.warn("expand failed:", error);
             }
 
-            try {
-                if (typeof tg.requestFullscreen === "function") {
-                    tg.requestFullscreen();
+            if (!this.fullscreenRequested) {
+                try {
+                    if (typeof tg.requestFullscreen === "function") {
+                        tg.requestFullscreen();
+                    }
+                } catch (error) {
+                    console.warn("requestFullscreen failed:", error);
                 }
-            } catch (error) {
-                console.warn("requestFullscreen failed:", error);
+
+                this.fullscreenRequested = true;
             }
 
             this.applyViewportFix();
@@ -163,12 +168,9 @@ window.CryptoZoo.telegram = {
 
         runFullscreen();
 
-        setTimeout(runFullscreen, 60);
-        setTimeout(runFullscreen, 180);
+        setTimeout(runFullscreen, 120);
         setTimeout(runFullscreen, 320);
-        setTimeout(runFullscreen, 550);
-        setTimeout(runFullscreen, 900);
-        setTimeout(runFullscreen, 1400);
+        setTimeout(runFullscreen, 700);
     },
 
     bindTelegramEvents() {
@@ -271,9 +273,6 @@ window.CryptoZoo.telegram = {
         const topBar = document.querySelector(".top-bar");
         const safe = this.getSafeAreaValues();
         const viewportHeight = this.getViewportHeight();
-        const topBarHeight = topBar ? topBar.offsetHeight : 0;
-        const menuHeight = menu ? menu.offsetHeight : 0;
-        const contentHeight = Math.max(0, viewportHeight - topBarHeight - menuHeight);
 
         if (root) {
             root.style.margin = "0";
@@ -295,12 +294,12 @@ window.CryptoZoo.telegram = {
             body.style.margin = "0";
             body.style.padding = "0";
             body.style.width = "100%";
-            body.style.height = `${viewportHeight}px`;
-            body.style.minHeight = `${viewportHeight}px`;
+            body.style.height = "100%";
+            body.style.minHeight = "100%";
             body.style.overflow = "hidden";
             body.style.background = "#0b1220";
-            body.style.position = "fixed";
-            body.style.inset = "0";
+            body.style.position = "relative";
+            body.style.inset = "";
         }
 
         if (app) {
@@ -310,6 +309,7 @@ window.CryptoZoo.telegram = {
             app.style.maxHeight = `${viewportHeight}px`;
             app.style.overflow = "hidden";
             app.style.background = "#0b1220";
+            app.style.position = "relative";
         }
 
         if (topBar) {
@@ -327,15 +327,17 @@ window.CryptoZoo.telegram = {
         }
 
         if (game) {
-            game.style.height = `${contentHeight}px`;
-            game.style.minHeight = `${contentHeight}px`;
-            game.style.maxHeight = `${contentHeight}px`;
+            game.style.height = `calc(${viewportHeight}px - ${topBar ? topBar.offsetHeight : 0}px - ${menu ? menu.offsetHeight : 0}px)`;
+            game.style.minHeight = `calc(${viewportHeight}px - ${topBar ? topBar.offsetHeight : 0}px - ${menu ? menu.offsetHeight : 0}px)`;
+            game.style.maxHeight = `calc(${viewportHeight}px - ${topBar ? topBar.offsetHeight : 0}px - ${menu ? menu.offsetHeight : 0}px)`;
             game.style.overflowY = "auto";
             game.style.overflowX = "hidden";
             game.style.WebkitOverflowScrolling = "touch";
             game.style.paddingLeft = `${safe.left}px`;
             game.style.paddingRight = `${safe.right}px`;
             game.style.boxSizing = "border-box";
+            game.style.position = "relative";
+            game.style.pointerEvents = "auto";
         }
     },
 
