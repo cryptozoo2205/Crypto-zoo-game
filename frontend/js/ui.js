@@ -21,6 +21,16 @@ CryptoZoo.ui = {
         return CryptoZoo.lang?.current || "en";
     },
 
+    isProfileModalOpen() {
+        const modal = document.getElementById("profileModal");
+        return !!(modal && !modal.classList.contains("hidden"));
+    },
+
+    isSettingsModalOpen() {
+        const modal = document.getElementById("settingsModal");
+        return !!(modal && !modal.classList.contains("hidden"));
+    },
+
     getLocalizedAnimalName(type, config) {
         const safeType = String(type || "").trim();
         const lang = this.getCurrentLang();
@@ -965,11 +975,18 @@ CryptoZoo.ui = {
         this.renderOfflineInfo();
         this.renderDailyRewardStatus();
         this.removeGuideCard();
-
-        CryptoZoo.uiProfile?.renderTopBarProfile?.();
-        CryptoZoo.uiProfile?.bindProfileModal?.();
-        CryptoZoo.uiSettings?.bindSettingsModal?.();
         this.bindHomeButtons();
+
+        const topPlayerName = document.getElementById("topPlayerName");
+        const topPlayerStatus = document.getElementById("topPlayerStatus");
+
+        if (topPlayerName && !topPlayerName.textContent.trim()) {
+            CryptoZoo.telegram?.applyIdentityToUi?.();
+        }
+
+        if (topPlayerStatus && !topPlayerStatus.textContent.trim()) {
+            CryptoZoo.telegram?.applyIdentityToUi?.();
+        }
     },
 
     renderTopHiddenStats() {
@@ -1406,12 +1423,20 @@ CryptoZoo.ui = {
         }
     },
 
+    renderOpenModalsOnly() {
+        if (this.isProfileModalOpen()) {
+            CryptoZoo.uiProfile?.refreshProfileModalData?.();
+        }
+
+        if (this.isSettingsModalOpen()) {
+            CryptoZoo.uiSettings?.refreshSettingsModalData?.();
+        }
+    },
+
     render() {
         this.renderTopHiddenStats();
         this.renderHome();
         this.renderCurrentScreen();
-
-        CryptoZoo.uiProfile?.refreshProfileModalData?.();
-        CryptoZoo.uiSettings?.refreshSettingsModalData?.();
+        this.renderOpenModalsOnly();
     }
 };
