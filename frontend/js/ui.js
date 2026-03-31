@@ -961,15 +961,15 @@ CryptoZoo.ui = {
         this.updateText("homeLionLevel", CryptoZoo.formatNumber(lionLevel));
 
         this.renderXpBar();
+        this.renderBoostStatus();
+        this.renderOfflineInfo();
+        this.renderDailyRewardStatus();
+        this.removeGuideCard();
 
         CryptoZoo.uiProfile?.renderTopBarProfile?.();
         CryptoZoo.uiProfile?.bindProfileModal?.();
         CryptoZoo.uiSettings?.bindSettingsModal?.();
         this.bindHomeButtons();
-        this.renderBoostStatus();
-        this.renderOfflineInfo();
-        this.renderDailyRewardStatus();
-        this.removeGuideCard();
     },
 
     renderTopHiddenStats() {
@@ -1383,16 +1383,33 @@ CryptoZoo.ui = {
         CryptoZoo.shopSystem?.bindButtons?.();
     },
 
-    render() {
-        this.renderHome();
-        this.renderTopHiddenStats();
-        this.renderZooList();
-        this.renderExpeditions();
-        this.renderShopItems();
+    renderCurrentScreen() {
+        const activeScreen = CryptoZoo.gameplay?.activeScreen || "game";
 
-        if (CryptoZoo.gameplay?.activeScreen === "ranking") {
+        if (activeScreen === "zoo") {
+            this.renderZooList();
+            return;
+        }
+
+        if (activeScreen === "shop") {
+            this.renderShopItems();
+            return;
+        }
+
+        if (activeScreen === "missions") {
+            this.renderExpeditions();
+            return;
+        }
+
+        if (activeScreen === "ranking") {
             CryptoZoo.uiRanking?.renderRanking?.(false);
         }
+    },
+
+    render() {
+        this.renderTopHiddenStats();
+        this.renderHome();
+        this.renderCurrentScreen();
 
         CryptoZoo.uiProfile?.refreshProfileModalData?.();
         CryptoZoo.uiSettings?.refreshSettingsModalData?.();
