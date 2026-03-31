@@ -15,6 +15,7 @@ CryptoZoo.uiProfile = {
     },
     referralsLoading: false,
     referralSectionOpen: false,
+    lastAvatarUrlApplied: "",
 
     getRewardBalance() {
         return Number((Number(CryptoZoo.state?.rewardBalance) || 0).toFixed(3));
@@ -77,8 +78,14 @@ CryptoZoo.uiProfile = {
         element.style.overflow = "hidden";
     },
 
-    renderAvatarImages() {
+    renderAvatarImages(force = false) {
         const avatarUrl = this.getAvatarUrl();
+
+        if (!force && this.lastAvatarUrlApplied === avatarUrl) {
+            return;
+        }
+
+        this.lastAvatarUrlApplied = avatarUrl;
 
         const topAvatar = document.querySelector(".top-avatar");
         const profileAvatar = document.querySelector("#profileModal .profile-avatar");
@@ -166,14 +173,11 @@ CryptoZoo.uiProfile = {
         });
     },
 
-    renderTopBarProfile() {
+    renderTopBarOnly() {
         const topPlayerName = document.getElementById("topPlayerName");
         const topPlayerStatus = document.getElementById("topPlayerStatus");
-        const profileName = document.getElementById("profileName");
-        const profileSubtitle = document.getElementById("profileSubtitle");
 
         const displayName = this.getProfileDisplayName();
-        const username = this.getPlayerUsername();
 
         if (topPlayerName) {
             topPlayerName.textContent = displayName;
@@ -183,6 +187,15 @@ CryptoZoo.uiProfile = {
             topPlayerStatus.textContent = this.t("online", "● Online");
         }
 
+        this.renderAvatarImages();
+    },
+
+    renderProfileHeaderOnly() {
+        const profileName = document.getElementById("profileName");
+        const profileSubtitle = document.getElementById("profileSubtitle");
+        const displayName = this.getProfileDisplayName();
+        const username = this.getPlayerUsername();
+
         if (profileName) {
             profileName.textContent = displayName;
         }
@@ -190,13 +203,21 @@ CryptoZoo.uiProfile = {
         if (profileSubtitle) {
             profileSubtitle.textContent = username ? `@${username}` : "Player";
         }
+    },
 
-        this.renderAvatarImages();
-        this.renderProfileStats();
-        this.renderBoostStatus();
+    renderTopBarProfile() {
+        this.renderTopBarOnly();
+
+        if (this.modalOpen) {
+            this.renderProfileHeaderOnly();
+            this.renderProfileStats();
+            this.renderBoostStatus();
+        }
     },
 
     renderProfileStats() {
+        if (!this.modalOpen) return;
+
         const animals = CryptoZoo.state?.animals || {};
         const boxes = CryptoZoo.state?.boxes || {};
 
@@ -235,6 +256,8 @@ CryptoZoo.uiProfile = {
     },
 
     renderBoostStatus() {
+        if (!this.modalOpen) return;
+
         const profileBoostStatus = document.getElementById("profileBoostStatus");
         if (!profileBoostStatus) return;
 
@@ -299,6 +322,8 @@ CryptoZoo.uiProfile = {
     },
 
     renderReferralsSection() {
+        if (!this.modalOpen) return;
+
         const countEl = document.getElementById("profileReferralsCount");
         const codeEl = document.getElementById("profileReferralCode");
         const linkEl = document.getElementById("profileReferralLink");
@@ -392,6 +417,12 @@ CryptoZoo.uiProfile = {
     },
 
     refreshProfileModalData() {
+        this.renderTopBarOnly();
+
+        if (!this.modalOpen) {
+            return;
+        }
+
         const balance = this.getRewardBalance();
         const wallet = this.getRewardWallet();
         const pending = this.getWithdrawPending();
@@ -404,10 +435,12 @@ CryptoZoo.uiProfile = {
         if (elWallet) elWallet.textContent = this.format(wallet).toFixed(3);
         if (elPending) elPending.textContent = this.format(pending).toFixed(3);
 
-        this.renderTopBarProfile();
-        this.renderAvatarImages();
+        this.renderProfileHeaderOnly();
+        this.renderProfileStats();
+        this.renderBoostStatus();
         this.renderToggleSections();
         this.renderReferralsSection();
+        this.renderAvatarImages();
     },
 
     toggleReferralSection(forceValue = null) {
@@ -419,6 +452,8 @@ CryptoZoo.uiProfile = {
     },
 
     renderToggleSections() {
+        if (!this.modalOpen) return;
+
         const referralContent = document.getElementById("profileReferralContent");
         const referralBtn = document.getElementById("toggleReferralBtn");
         const referralArrow = document.getElementById("toggleReferralBtnArrow");
@@ -450,7 +485,7 @@ CryptoZoo.uiProfile = {
         modal.classList.remove("hidden");
         this.modalOpen = true;
 
-        this.renderTopBarProfile();
+        this.renderAvatarImages(true);
         this.refreshProfileModalData();
 
         await this.loadReferralsData();
