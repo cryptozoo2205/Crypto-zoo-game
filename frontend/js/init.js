@@ -25,8 +25,10 @@ CryptoZoo.init = {
         const screen = document.getElementById("loading-screen");
         if (!screen) return;
 
+        screen.classList.add("loading-hidden");
         screen.style.opacity = "0";
         screen.style.pointerEvents = "none";
+        screen.style.visibility = "hidden";
 
         setTimeout(() => {
             screen.style.display = "none";
@@ -54,23 +56,52 @@ CryptoZoo.init = {
         return null;
     },
 
+    markTelegramBody() {
+        if (window.Telegram?.WebApp) {
+            document.body.classList.add("telegram-webapp");
+        }
+    },
+
+    forceReleaseBlockingLayers() {
+        this.hideLoadingScreen();
+
+        const hiddenModalIds = [
+            "profileModal",
+            "settingsModal",
+            "dailyRewardModal"
+        ];
+
+        hiddenModalIds.forEach((id) => {
+            const el = document.getElementById(id);
+            if (el && el.classList.contains("hidden")) {
+                el.style.pointerEvents = "none";
+                el.style.visibility = "hidden";
+            }
+        });
+    },
+
     handleAppResume() {
         this.runSafe(async () => {
+            this.markTelegramBody();
             CryptoZoo.telegram?.forceFullscreen?.();
             CryptoZoo.telegram?.applyViewportFix?.();
             CryptoZoo.telegram?.applyIdentityToUi?.();
+            this.forceReleaseBlockingLayers();
             CryptoZoo.ui?.render?.();
 
             setTimeout(() => {
                 CryptoZoo.telegram?.applyViewportFix?.();
+                this.forceReleaseBlockingLayers();
             }, 120);
 
             setTimeout(() => {
                 CryptoZoo.telegram?.applyViewportFix?.();
+                this.forceReleaseBlockingLayers();
             }, 350);
 
             setTimeout(() => {
                 CryptoZoo.telegram?.applyViewportFix?.();
+                this.forceReleaseBlockingLayers();
             }, 800);
         });
     },
@@ -100,6 +131,7 @@ CryptoZoo.init = {
         this.started = true;
         this.startTimestamp = Date.now();
 
+        this.markTelegramBody();
         this.setLoadingProgress(4);
 
         await this.runSafe(async () => {
@@ -144,14 +176,12 @@ CryptoZoo.init = {
 
         this.setLoadingProgress(75);
 
-        // 💰 DEPOSIT (UI)
         await this.runSafe(async () => {
             CryptoZoo.depositBind?.init?.();
         });
 
         this.setLoadingProgress(82);
 
-        // 🔍 VERIFY TON (AUTO CHECK)
         await this.runSafe(async () => {
             CryptoZoo.depositVerifyUI?.init?.();
         });
