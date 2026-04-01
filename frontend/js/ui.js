@@ -327,7 +327,7 @@ CryptoZoo.ui = {
     },
 
     goToBoostShop() {
-        CryptoZoo.navigation?.show?.("shop");
+        CryptoZoo.gameplay?.showScreen?.("shop");
 
         const boostCard = document.getElementById("boostShopCard");
         if (boostCard) {
@@ -779,7 +779,7 @@ CryptoZoo.ui = {
             zooPreviewBtn.dataset.bound = "1";
             zooPreviewBtn.onclick = () => {
                 CryptoZoo.audio?.play?.("click");
-                CryptoZoo.navigation?.show?.("zoo");
+                CryptoZoo.gameplay?.showScreen?.("zoo");
             };
         }
 
@@ -1435,7 +1435,11 @@ CryptoZoo.ui = {
 
     render() {
         this.renderTopHiddenStats();
-        this.renderHome();
+
+        if ((CryptoZoo.gameplay?.activeScreen || "game") === "game") {
+            this.renderHome();
+        }
+
         this.renderCurrentScreen();
         this.renderOpenModalsOnly();
     }
