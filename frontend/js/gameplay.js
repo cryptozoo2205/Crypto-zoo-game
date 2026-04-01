@@ -42,7 +42,7 @@ CryptoZoo.gameplay = {
         this.bindShopButtons();
 
         const lastScreen = sessionStorage.getItem("cryptozoo_last_screen") || "game";
-        this.showScreen(lastScreen);
+        this.showScreen(lastScreen, true);
 
         this.startIncomeTimer();
         this.startExpeditionTimer();
@@ -539,14 +539,20 @@ CryptoZoo.gameplay = {
         return CryptoZoo.navigation?.bind?.();
     },
 
-    showScreen(screenName) {
-        const result = CryptoZoo.navigation?.show?.(screenName);
+    showScreen(screenName, force = false) {
+        const targetName = String(screenName || "game");
 
-        if (typeof screenName === "string" && screenName) {
-            this.activeScreen = screenName;
+        if (this.activeScreen === targetName && !force) {
+            return true;
         }
 
-        this.requestRender();
+        const result = CryptoZoo.navigation?.show?.(targetName);
+
+        if (typeof targetName === "string" && targetName) {
+            this.activeScreen = targetName;
+        }
+
+        this.requestRender(true);
         return result;
     },
 
@@ -759,11 +765,13 @@ CryptoZoo.gameplay = {
         setInterval(() => {
             this.normalizeBoostState();
             this.normalizeOfflineBoostState();
-            CryptoZoo.ui?.renderBoostStatus?.();
-            CryptoZoo.ui?.renderDailyRewardStatus?.();
 
-            if (this.activeScreen === "missions") {
-                CryptoZoo.ui?.renderExpeditions?.();
+            if (this.activeScreen === "game" || this.activeScreen === "shop") {
+                CryptoZoo.ui?.renderBoostStatus?.();
+            }
+
+            if (this.activeScreen === "game") {
+                CryptoZoo.ui?.renderDailyRewardStatus?.();
             }
         }, 1000);
     },
