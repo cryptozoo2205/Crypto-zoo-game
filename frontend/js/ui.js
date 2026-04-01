@@ -7,6 +7,12 @@ CryptoZoo.ui = {
     rankingLastFetchAt: 0,
     rankingCacheTtl: 15000,
 
+    lastRenderedScreen: "",
+    zooRenderKey: "",
+    shopRenderKey: "",
+    missionsRenderKey: "",
+    homeStaticBound: false,
+
     t(key, fallback) {
         const translated = CryptoZoo.lang?.t?.(key);
 
@@ -287,7 +293,7 @@ CryptoZoo.ui = {
 
     updateText(id, value) {
         const el = document.getElementById(id);
-        if (el) {
+        if (el && el.textContent !== String(value)) {
             el.textContent = value;
         }
     },
@@ -407,7 +413,7 @@ CryptoZoo.ui = {
                 ? `${this.t("activeMultiplier", "Aktywny mnożnik")} offline x${CryptoZoo.formatNumber(offlineBoost)}`
                 : `${this.t("standardMultiplier", "Standardowy mnożnik")} offline x1`;
 
-        bar.innerHTML = `
+        const nextHtml = `
             <div style="font-size:13px; font-weight:900; margin-bottom:4px;">💤 ${this.t("offlineEarnings", "Offline Earnings")}</div>
             <div style="color: rgba(255,255,255,0.78); margin-bottom:4px;">
                 ${this.t("offlineLimit", "Limit offline")}: ${totalLabel} • ${boostLabel}
@@ -416,6 +422,10 @@ CryptoZoo.ui = {
                 ${details}
             </div>
         `;
+
+        if (bar.innerHTML !== nextHtml) {
+            bar.innerHTML = nextHtml;
+        }
     },
 
     getDailyRewardDisplayDay() {
@@ -450,7 +460,11 @@ CryptoZoo.ui = {
         const displayDay = this.getDailyRewardDisplayDay();
         const streakLabel = `${this.t("day", "Day")} ${displayDay}`;
 
-        titleEl.textContent = this.t("dailyReward", "Daily Reward");
+        const nextTitle = this.t("dailyReward", "Daily Reward");
+        if (titleEl.textContent !== nextTitle) {
+            titleEl.textContent = nextTitle;
+        }
+
         subtitleEl.style.whiteSpace = "normal";
         subtitleEl.style.wordBreak = "break-word";
         subtitleEl.style.overflowWrap = "anywhere";
@@ -461,23 +475,26 @@ CryptoZoo.ui = {
                 0,
                 Number(CryptoZoo.dailyReward?.getRemainingUnlockSeconds?.()) || 0
             );
-
-            subtitleEl.textContent = `${this.t("unlockIn", "Unlock in")} ${this.formatTimeLeft(unlockSeconds)}`;
-            iconEl.textContent = "🔒";
+            const nextSubtitle = `${this.t("unlockIn", "Unlock in")} ${this.formatTimeLeft(unlockSeconds)}`;
+            if (subtitleEl.textContent !== nextSubtitle) subtitleEl.textContent = nextSubtitle;
+            if (iconEl.textContent !== "🔒") iconEl.textContent = "🔒";
             return;
         }
 
         if (canClaim) {
-            subtitleEl.textContent =
+            const nextSubtitle =
                 rewardGems > 0
                     ? `${streakLabel} • ${this.t("ready", "READY")} • ${CryptoZoo.formatNumber(rewardCoins)} ${this.t("coins", "coins")} + ${CryptoZoo.formatNumber(rewardGems)} ${this.t("gem", "gem")}`
                     : `${streakLabel} • ${this.t("ready", "READY")} • ${CryptoZoo.formatNumber(rewardCoins)} ${this.t("coins", "coins")}`;
-            iconEl.textContent = "🎁";
+
+            if (subtitleEl.textContent !== nextSubtitle) subtitleEl.textContent = nextSubtitle;
+            if (iconEl.textContent !== "🎁") iconEl.textContent = "🎁";
             return;
         }
 
-        subtitleEl.textContent = `${streakLabel} • ${this.t("nextRewardIn", "Next reward in")} ${this.formatTimeLeft(timeLeftSeconds)}`;
-        iconEl.textContent = "⏳";
+        const nextSubtitle = `${streakLabel} • ${this.t("nextRewardIn", "Next reward in")} ${this.formatTimeLeft(timeLeftSeconds)}`;
+        if (subtitleEl.textContent !== nextSubtitle) subtitleEl.textContent = nextSubtitle;
+        if (iconEl.textContent !== "⏳") iconEl.textContent = "⏳";
     },
 
     renderXpBar() {
@@ -520,7 +537,10 @@ CryptoZoo.ui = {
         const text = document.getElementById("homeXpText");
 
         if (fill) {
-            fill.style.width = percent + "%";
+            const width = percent + "%";
+            if (fill.style.width !== width) {
+                fill.style.width = width;
+            }
         }
 
         if (text) {
@@ -528,7 +548,10 @@ CryptoZoo.ui = {
                 ? `${this.t("nextLvl", "Next lvl")}: +${CryptoZoo.formatNumber(rewardCoins)} ${this.t("coins", "coins")} +${CryptoZoo.formatNumber(rewardGems)} ${this.t("gem", "gem")}`
                 : `${this.t("nextLvl", "Next lvl")}: +${CryptoZoo.formatNumber(rewardCoins)} ${this.t("coins", "coins")}`;
 
-            text.textContent = `${CryptoZoo.formatNumber(currentXp)} / ${CryptoZoo.formatNumber(requiredXp)} XP • ${rewardLabel}`;
+            const nextText = `${CryptoZoo.formatNumber(currentXp)} / ${CryptoZoo.formatNumber(requiredXp)} XP • ${rewardLabel}`;
+            if (text.textContent !== nextText) {
+                text.textContent = nextText;
+            }
         }
     },
 
@@ -750,6 +773,9 @@ CryptoZoo.ui = {
     },
 
     bindHomeButtons() {
+        if (this.homeStaticBound) return;
+        this.homeStaticBound = true;
+
         const boostBtn = document.getElementById("homeBoostBtn");
         if (boostBtn && !boostBtn.dataset.bound) {
             boostBtn.dataset.bound = "1";
@@ -874,23 +900,27 @@ CryptoZoo.ui = {
             const timeText = this.formatTimeLeft(left);
             const text = `⚡ ${this.t("active", "Aktywny")} • ${timeText}`;
 
-            if (homeStatus) {
+            if (homeStatus && homeStatus.textContent !== text) {
                 homeStatus.textContent = text;
                 homeStatus.classList.add("boost-active");
             }
 
-            if (shopStatus) {
+            if (shopStatus && shopStatus.textContent !== text) {
                 shopStatus.textContent = text;
             }
 
             if (buyBtn) {
                 buyBtn.disabled = true;
-                buyBtn.textContent = this.t("boostActive", "Boost aktywny");
+                if (buyBtn.textContent !== this.t("boostActive", "Boost aktywny")) {
+                    buyBtn.textContent = this.t("boostActive", "Boost aktywny");
+                }
             }
 
             if (homeBtn) {
                 homeBtn.classList.add("boost-active");
-                homeBtn.textContent = this.t("active", "Aktywny");
+                if (homeBtn.textContent !== this.t("active", "Aktywny")) {
+                    homeBtn.textContent = this.t("active", "Aktywny");
+                }
             }
 
             if (incomeStrip) {
@@ -902,22 +932,28 @@ CryptoZoo.ui = {
             }
         } else {
             if (homeStatus) {
-                homeStatus.textContent = this.t("inactive", "Nieaktywny");
+                if (homeStatus.textContent !== this.t("inactive", "Nieaktywny")) {
+                    homeStatus.textContent = this.t("inactive", "Nieaktywny");
+                }
                 homeStatus.classList.remove("boost-active");
             }
 
-            if (shopStatus) {
+            if (shopStatus && shopStatus.textContent !== this.t("inactive", "Nieaktywny")) {
                 shopStatus.textContent = this.t("inactive", "Nieaktywny");
             }
 
             if (buyBtn) {
                 buyBtn.disabled = false;
-                buyBtn.textContent = this.t("buyX2Boost", "Kup X2 Boost");
+                if (buyBtn.textContent !== this.t("buyX2Boost", "Kup X2 Boost")) {
+                    buyBtn.textContent = this.t("buyX2Boost", "Kup X2 Boost");
+                }
             }
 
             if (homeBtn) {
                 homeBtn.classList.remove("boost-active");
-                homeBtn.textContent = this.t("activate", "Aktywuj");
+                if (homeBtn.textContent !== this.t("activate", "Aktywuj")) {
+                    homeBtn.textContent = this.t("activate", "Aktywuj");
+                }
             }
 
             if (incomeStrip) {
@@ -1008,9 +1044,33 @@ CryptoZoo.ui = {
         this.updateText("zooIncome", CryptoZoo.formatNumber(effectiveZooIncome));
     },
 
+    getZooRenderKey() {
+        const animalsConfig = CryptoZoo.config?.animals || {};
+        const animalsState = CryptoZoo.state?.animals || {};
+        const lang = this.getCurrentLang();
+
+        return JSON.stringify({
+            lang,
+            animals: Object.keys(animalsConfig).map((type) => {
+                const state = animalsState[type] || { count: 0, level: 1 };
+                return {
+                    type,
+                    count: Number(state.count) || 0,
+                    level: Number(state.level) || 1,
+                    buyCost: Number(CryptoZoo.animalsSystem?.getBuyCost?.(type) || animalsConfig[type]?.buyCost || 0),
+                    upgradeCost: Number(CryptoZoo.animalsSystem?.getUpgradeCost?.(type) || 0)
+                };
+            })
+        });
+    },
+
     renderZooList() {
         const zooList = document.getElementById("zooList");
         if (!zooList) return;
+
+        const renderKey = this.getZooRenderKey();
+        if (this.zooRenderKey === renderKey) return;
+        this.zooRenderKey = renderKey;
 
         const animalsConfig = CryptoZoo.config?.animals || {};
         const animalsState = CryptoZoo.state?.animals || {};
@@ -1163,7 +1223,10 @@ CryptoZoo.ui = {
         const timeLeft = Math.max(0, Math.floor((expedition.endTime - now) / 1000));
         const canCollect = timeLeft <= 0;
 
-        timerEl.textContent = this.formatTimeLeft(timeLeft);
+        const nextTimer = this.formatTimeLeft(timeLeft);
+        if (timerEl.textContent !== nextTimer) {
+            timerEl.textContent = nextTimer;
+        }
 
         const timeBoostChargesCount =
             CryptoZoo.expeditions?.getTimeBoostChargesCount?.() ||
@@ -1180,6 +1243,7 @@ CryptoZoo.ui = {
         }
 
         if (currentMode !== nextMode) {
+            this.missionsRenderKey = "";
             this.renderExpeditions();
             return true;
         }
@@ -1187,16 +1251,55 @@ CryptoZoo.ui = {
         if (nextMode === "boost") {
             const btn = document.getElementById("use-expedition-time-boost-btn");
             if (btn) {
-                btn.textContent = `⏩ ${this.t("useTimeReduction", "Użyj skracania czasu")} (${CryptoZoo.formatNumber(timeBoostChargesCount)})`;
+                const nextText = `⏩ ${this.t("useTimeReduction", "Użyj skracania czasu")} (${CryptoZoo.formatNumber(timeBoostChargesCount)})`;
+                if (btn.textContent !== nextText) {
+                    btn.textContent = nextText;
+                }
             }
         }
 
         return true;
     },
 
+    getMissionsRenderKey() {
+        const expedition = CryptoZoo.state?.expedition;
+        const dailyMissions = CryptoZoo.state?.dailyMissions || {};
+        const expeditionStats = CryptoZoo.state?.expeditionStats || {};
+        const lang = this.getCurrentLang();
+
+        if (expedition) {
+            return JSON.stringify({
+                lang,
+                active: true,
+                expeditionId: expedition.id,
+                rewardCoins: expedition.rewardCoins,
+                rewardGems: expedition.rewardGems,
+                rewardRarity: expedition.rewardRarity,
+                selectedAnimals: expedition.selectedAnimals || [],
+                endBucket: Math.floor(Number(expedition.endTime || 0) / 1000),
+                charges: Array.isArray(expeditionStats.timeBoostCharges) ? expeditionStats.timeBoostCharges.length : 0,
+                dailyMissions
+            });
+        }
+
+        return JSON.stringify({
+            lang,
+            active: false,
+            dailyMissions,
+            expeditionStats,
+            expeditions: CryptoZoo.config?.expeditions || [],
+            coins: Number(CryptoZoo.state?.coins || 0),
+            level: Number(CryptoZoo.state?.level || 1)
+        });
+    },
+
     renderExpeditions() {
         const container = document.getElementById("missionsList");
         if (!container) return;
+
+        const renderKey = this.getMissionsRenderKey();
+        if (this.missionsRenderKey === renderKey) return;
+        this.missionsRenderKey = renderKey;
 
         const dailyMissionsHtml = this.renderDailyMissionsSection();
         const expedition = CryptoZoo.state?.expedition;
@@ -1281,12 +1384,14 @@ CryptoZoo.ui = {
 
             if (canCollect) {
                 this.bindClick("collect-expedition-btn", () => {
+                    this.missionsRenderKey = "";
                     CryptoZoo.expeditions?.collect?.();
                 });
             }
 
             if (!canCollect && timeBoostChargesCount > 0) {
                 this.bindClick("use-expedition-time-boost-btn", () => {
+                    this.missionsRenderKey = "";
                     CryptoZoo.expeditions?.useTimeBoostOnActiveExpedition?.();
                 });
             }
@@ -1390,15 +1495,41 @@ CryptoZoo.ui = {
                 CryptoZoo.expeditions?.canAffordStart?.(exp)
             ) {
                 this.bindClick(`start-expedition-${exp.id}`, () => {
+                    this.missionsRenderKey = "";
                     CryptoZoo.expeditions?.start?.(exp.id, []);
                 });
             }
         });
     },
 
+    getShopRenderKey() {
+        const items = CryptoZoo.config?.shopItems || [];
+        const lang = this.getCurrentLang();
+
+        return JSON.stringify({
+            lang,
+            gems: Number(CryptoZoo.state?.gems || 0),
+            coins: Number(CryptoZoo.state?.coins || 0),
+            expeditionStats: CryptoZoo.state?.expeditionStats || {},
+            dailyBoost: CryptoZoo.state?.dailyExpeditionBoost || {},
+            purchases: CryptoZoo.state?.shopPurchases || {},
+            items: items.map((item) => ({
+                id: item.id,
+                gemPrice: item.gemPrice,
+                price: item.price,
+                owned: Number(CryptoZoo.shopSystem?.getOwnedCount?.(item.id) || 0),
+                canAfford: !!CryptoZoo.shopSystem?.canAfford?.(item)
+            }))
+        });
+    },
+
     renderShopItems() {
         const shopList = document.getElementById("shopList");
         if (!shopList) return;
+
+        const renderKey = this.getShopRenderKey();
+        if (this.shopRenderKey === renderKey) return;
+        this.shopRenderKey = renderKey;
 
         const items = CryptoZoo.config?.shopItems || [];
 
@@ -1483,11 +1614,23 @@ CryptoZoo.ui = {
         }
     },
 
+    resetScreenCaches() {
+        this.zooRenderKey = "";
+        this.shopRenderKey = "";
+        this.missionsRenderKey = "";
+    },
+
     render() {
+        const activeScreen = CryptoZoo.gameplay?.activeScreen || "game";
+
         this.renderTopHiddenStats();
 
-        if ((CryptoZoo.gameplay?.activeScreen || "game") === "game") {
+        if (activeScreen === "game") {
             this.renderHome();
+        }
+
+        if (this.lastRenderedScreen !== activeScreen) {
+            this.lastRenderedScreen = activeScreen;
         }
 
         this.renderCurrentScreen();
