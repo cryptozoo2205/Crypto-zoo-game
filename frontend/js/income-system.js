@@ -18,6 +18,17 @@ CryptoZoo.incomeSystem = {
         return Math.min(income, 1e15);
     },
 
+    requestBackgroundSave() {
+        if (typeof CryptoZoo.api?.scheduleSave === "function") {
+            CryptoZoo.api.scheduleSave(0);
+            return;
+        }
+
+        if (typeof CryptoZoo.api?.savePlayer === "function") {
+            CryptoZoo.api.savePlayer();
+        }
+    },
+
     start() {
         if (this.timerStarted) return;
         this.timerStarted = true;
@@ -36,6 +47,7 @@ CryptoZoo.incomeSystem = {
             }
 
             CryptoZoo.state.lastLogin = Date.now();
+            CryptoZoo.state.updatedAt = Date.now();
 
             CryptoZoo.gameplay?.recalculateLevel?.();
 
@@ -58,7 +70,7 @@ CryptoZoo.incomeSystem = {
 
             if (this.saveTick >= 5) {
                 this.saveTick = 0;
-                CryptoZoo.api?.savePlayer?.();
+                this.requestBackgroundSave();
             }
         }, 1000);
     }
