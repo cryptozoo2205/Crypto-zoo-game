@@ -112,6 +112,11 @@ function buildSafePlayerState(oldPlayer, incomingRaw, normalizeTelegramUser) {
     const incomingObj = normalizeObject(incomingRaw);
     const hasIncomingExpeditionField = Object.prototype.hasOwnProperty.call(incomingObj, "expedition");
 
+    const resolvedLastLogin = Math.max(
+        0,
+        Number(incoming.lastLogin || 0) || Number(oldSafe?.lastLogin || 0) || 0
+    );
+
     const merged = {
         ...(oldSafe || {}),
         ...incoming,
@@ -149,10 +154,7 @@ function buildSafePlayerState(oldPlayer, incomingRaw, normalizeTelegramUser) {
             ...normalizeObject(incoming.shopPurchases)
         },
 
-        animals: {
-            ...normalizeObject(oldSafe?.animals),
-            ...normalizeObject(incoming.animals)
-        },
+        animals: normalizeObject(incoming.animals || oldSafe?.animals),
 
         boxes: {
             ...normalizeObject(oldSafe?.boxes),
@@ -214,11 +216,9 @@ function buildSafePlayerState(oldPlayer, incomingRaw, normalizeTelegramUser) {
             Date.now()
         ),
 
-        lastLogin: Math.max(
-            Number(oldSafe?.lastLogin || 0),
-            Number(incoming.lastLogin || 0),
-            Date.now()
-        )
+        // IMPORTANT:
+        // do not force Date.now() here, because it breaks offline earnings
+        lastLogin: resolvedLastLogin
     };
 
     const safe1 = sanitizeRewardState(oldSafe, merged);
