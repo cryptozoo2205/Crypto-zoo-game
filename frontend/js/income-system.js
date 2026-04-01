@@ -2,7 +2,7 @@ window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.incomeSystem = {
     timerStarted: false,
-    saveTick: 0,
+    dirtyTick: 0,
 
     getEffectiveIncome() {
         const baseIncome = Math.max(0, Number(CryptoZoo.state?.zooIncome) || 0);
@@ -16,17 +16,6 @@ CryptoZoo.incomeSystem = {
         if (!Number.isFinite(income) || income < 0) return 0;
 
         return Math.min(income, 1e15);
-    },
-
-    requestBackgroundSave() {
-        if (typeof CryptoZoo.api?.scheduleSave === "function") {
-            CryptoZoo.api.scheduleSave(0);
-            return;
-        }
-
-        if (typeof CryptoZoo.api?.savePlayer === "function") {
-            CryptoZoo.api.savePlayer();
-        }
     },
 
     start() {
@@ -66,11 +55,11 @@ CryptoZoo.incomeSystem = {
                 CryptoZoo.ui?.renderTopHiddenStats?.();
             }
 
-            this.saveTick += 1;
+            this.dirtyTick += 1;
 
-            if (this.saveTick >= 5) {
-                this.saveTick = 0;
-                this.requestBackgroundSave();
+            if (this.dirtyTick >= 10) {
+                this.dirtyTick = 0;
+                CryptoZoo.api?.markDirty?.();
             }
         }, 1000);
     }
