@@ -21,32 +21,41 @@
     <link rel="stylesheet" href="css/menu.css">
     <link rel="stylesheet" href="css/minigames-ui.css">
     <link rel="stylesheet" href="css/responsive.css">
-    <link rel="stylesheet" href="css/telegram-play.css">
 
     <style>
+        :root {
+            --menu-height: 110px;
+        }
+
         html,
         body {
             width: 100%;
+            height: 100%;
             min-height: 100%;
             margin: 0;
             padding: 0;
+            overflow: hidden;
             background: #0b1220;
         }
 
         body.telegram-webapp {
             overscroll-behavior: none;
-            -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
         }
 
         #app {
-            position: relative;
-            z-index: 1;
             width: 100%;
+            height: 100%;
+            min-height: 100%;
+            overflow: hidden;
+            background: #0b1220;
         }
 
         #game {
             width: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
             box-sizing: border-box;
         }
 
@@ -56,6 +65,7 @@
         }
 
         .menu {
+            padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
             box-sizing: border-box;
         }
 
@@ -63,31 +73,6 @@
             position: fixed;
             inset: 0;
             z-index: 9999;
-            pointer-events: auto;
-        }
-
-        #loading-screen.loading-hidden {
-            opacity: 0 !important;
-            visibility: hidden !important;
-            pointer-events: none !important;
-            display: none !important;
-        }
-
-        .profile-modal.hidden {
-            display: none !important;
-            visibility: hidden !important;
-            pointer-events: none !important;
-        }
-
-        .profile-modal.hidden .profile-backdrop,
-        .profile-modal.hidden .profile-card {
-            pointer-events: none !important;
-        }
-
-        .profile-box-hint {
-            margin-top: 6px;
-            font-size: 12px;
-            opacity: 0.78;
         }
     </style>
 </head>
@@ -143,7 +128,7 @@
         <main id="game">
             <section id="screen-game" class="screen">
                 <div class="panel card game-main-card">
-                    <div class="home-stats-panel home-stats-panel-top">
+                    <div class="home-stats-panel">
                         <div class="home-stat-box">
                             <div class="home-stat-title" id="langHomeCoinsTitle">Coins</div>
                             <div class="home-stat-value" id="homeCoins">0</div>
@@ -155,28 +140,29 @@
                         </div>
 
                         <div class="home-stat-box">
+                            <div class="home-stat-title" id="langHomeRewardTitle">Reward</div>
+                            <div class="home-stat-value" id="homeRewardBalance">0</div>
+                        </div>
+
+                        <div class="home-stat-box">
                             <div class="home-stat-title" id="langHomeLevelTitle">Poziom</div>
                             <div class="home-stat-value" id="homeLevel">1</div>
+                            <div class="home-xp-bar-wrap">
+                                <div class="home-xp-bar">
+                                    <div id="homeXpFill" class="home-xp-fill"></div>
+                                </div>
+                                <div id="homeXpText" class="home-xp-text">0 / 100 XP</div>
+                            </div>
                         </div>
 
                         <div class="home-stat-box">
                             <div class="home-stat-title" id="langHomeClickTitle">Za klik</div>
                             <div class="home-stat-value" id="homeCoinsPerClick">1</div>
                         </div>
-                    </div>
 
-                    <div class="home-level-strip">
-                        <div class="home-level-strip-head">
-                            <div class="home-level-strip-left">
-                                <div class="home-level-strip-label">XP</div>
-                                <div class="home-level-strip-value" id="homeXpText">0 / 100 XP</div>
-                            </div>
-                        </div>
-
-                        <div class="home-level-progress">
-                            <div class="home-xp-bar">
-                                <div id="homeXpFill" class="home-xp-fill"></div>
-                            </div>
+                        <div class="home-stat-box">
+                            <div class="home-stat-title" id="langHomeZooPerSecTitle">Zoo / sek</div>
+                            <div class="home-stat-value" id="homeZooIncomeStat">0</div>
                         </div>
                     </div>
 
@@ -190,22 +176,16 @@
                         <div class="home-tap-subtitle" id="langTapSubtitle">Klikaj i rozwijaj swoje zoo</div>
                     </div>
 
-                    <div class="home-income-strip home-income-strip-single">
-                        <div class="home-income-row-card home-income-row-card-compact">
-                            <div class="home-income-row-side">
-                                <div class="home-income-label" id="langIncomeLabel">🐾 Dochód zoo / sek</div>
-                                <div class="home-income-value" id="homeIncomeStripValue">0</div>
-                            </div>
+                    <div class="home-income-strip">
+                        <div class="home-income-left">
+                            <div class="home-income-label" id="langIncomeLabel">🐾 Dochód zoo / sek</div>
+                            <div class="home-income-value" id="homeIncomeStripValue">0</div>
+                        </div>
 
-                            <div class="home-income-row-divider"></div>
-
-                            <div class="home-income-row-side home-income-row-side-boost">
-                                <div class="home-boost-title" id="langBoostTitle">⚡ X2 Boost</div>
-                                <div class="home-boost-row-actions">
-                                    <button id="homeBoostBtn" class="home-boost-button" type="button">Aktywuj</button>
-                                    <div id="homeBoostStatus" class="home-boost-status">Nieaktywny</div>
-                                </div>
-                            </div>
+                        <div class="home-boost-right">
+                            <div class="home-boost-title" id="langBoostTitle">⚡ X2 Boost</div>
+                            <button id="homeBoostBtn" class="home-boost-button" type="button">Aktywuj</button>
+                            <div id="homeBoostStatus" class="home-boost-status">Nieaktywny</div>
                         </div>
                     </div>
 
@@ -293,8 +273,6 @@
                         <span id="level">1</span>
                         <span id="coinsPerClick">1</span>
                         <span id="zooIncome">0</span>
-                        <span id="homeZooIncomeStat">0</span>
-                        <span id="homeRewardBalance">0</span>
                     </div>
                 </div>
             </section>
@@ -573,19 +551,16 @@
                         <div class="profile-box">
                             <div class="profile-box-label">Reward</div>
                             <div class="profile-box-value" id="settingsRewardBalance">0.000</div>
-                            <div class="profile-box-hint" id="settingsRewardBalanceUsd">$0.00</div>
                         </div>
 
                         <div class="profile-box">
                             <div class="profile-box-label">Wallet</div>
                             <div class="profile-box-value" id="settingsRewardWallet">0.000</div>
-                            <div class="profile-box-hint" id="settingsRewardWalletUsd">$0.00</div>
                         </div>
 
                         <div class="profile-box">
                             <div class="profile-box-label">Pending</div>
                             <div class="profile-box-value" id="settingsWithdrawPending">0.000</div>
-                            <div class="profile-box-hint" id="settingsWithdrawPendingUsd">$0.00</div>
                         </div>
                     </div>
 
@@ -593,7 +568,6 @@
                         <div class="profile-boost-left">
                             <div class="profile-boost-label" id="langProfileRewardWalletTitle">Reward Wallet</div>
                             <div class="profile-boost-value" id="langProfileRewardWalletDesc">Przenieś Reward do Wallet lub wyślij request wypłaty</div>
-                            <div class="profile-boost-value" id="settingsWithdrawHint" style="margin-top:6px; opacity:0.8;">Minimum withdraw: --</div>
                         </div>
                     </div>
 
