@@ -782,7 +782,11 @@ CryptoZoo.gameplay = {
 
         setInterval(() => {
             if (this.activeScreen === "missions") {
-                CryptoZoo.ui?.renderExpeditions?.();
+                const updated = CryptoZoo.ui?.updateActiveExpeditionTimerOnly?.();
+
+                if (!updated) {
+                    CryptoZoo.ui?.renderExpeditions?.();
+                }
             }
         }, 1000);
     }
