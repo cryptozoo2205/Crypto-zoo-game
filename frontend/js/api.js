@@ -338,33 +338,6 @@ window.CryptoZoo.api = {
         }
     },
 
-    getProgressScore(state) {
-        const s = this.normalizeState(state);
-
-        const animalsCount = Object.keys(s.animals || {}).length;
-        const boxesCount = Object.keys(s.boxes || {}).length;
-        const purchasesCount = Object.keys(s.shopPurchases || {}).length;
-
-        return (
-            s.coins +
-            s.gems * 1000 +
-            s.rewardBalance * 100 +
-            s.rewardWallet * 100 +
-            s.level * 10000 +
-            s.xp +
-            animalsCount * 5000 +
-            boxesCount * 2500 +
-            purchasesCount * 3000 +
-            (s.depositHistory?.length || 0) * 2000 +
-            (s.deposits?.length || 0) * 2000 +
-            (s.transactions?.length || 0) * 1000 +
-            (s.withdrawHistory?.length || 0) * 1500 +
-            (s.referrals?.length || 0) * 800 +
-            s.offlineBoostHours * 5000 +
-            s.offlineAdsHours * 5000
-        );
-    },
-
     mergeUniqueByKey(primaryArr, secondaryArr) {
         const a = this.normalizeArray(primaryArr);
         const b = this.normalizeArray(secondaryArr);
@@ -401,19 +374,13 @@ window.CryptoZoo.api = {
         const server = this.normalizeState(serverRaw);
         const local = this.normalizeState(localRaw);
 
-        const serverScore = this.getProgressScore(server);
-        const localScore = this.getProgressScore(local);
-
-        const preferred = localScore > serverScore ? local : server;
-        const fallback = localScore > serverScore ? server : local;
-
-        const merged = {
-            ...fallback,
-            ...preferred,
+        return this.normalizeState({
+            ...server,
+            ...local,
 
             telegramUser: {
-                ...fallback.telegramUser,
-                ...preferred.telegramUser
+                ...server.telegramUser,
+                ...local.telegramUser
             },
 
             coins: Math.max(server.coins, local.coins),
@@ -427,7 +394,6 @@ window.CryptoZoo.api = {
 
             coinsPerClick: Math.max(server.coinsPerClick, local.coinsPerClick),
             zooIncome: Math.max(server.zooIncome, local.zooIncome),
-
             expeditionBoost: Math.max(server.expeditionBoost, local.expeditionBoost),
 
             dailyExpeditionBoost: {
@@ -455,57 +421,57 @@ window.CryptoZoo.api = {
                     local.expeditionStats?.timeReductionSeconds || 0
                 ),
                 timeBoostCharges: this.mergeUniqueByKey(
-                    preferred.expeditionStats?.timeBoostCharges,
-                    fallback.expeditionStats?.timeBoostCharges
+                    local.expeditionStats?.timeBoostCharges,
+                    server.expeditionStats?.timeBoostCharges
                 )
             },
 
             shopPurchases: {
-                ...fallback.shopPurchases,
-                ...preferred.shopPurchases
+                ...server.shopPurchases,
+                ...local.shopPurchases
             },
 
             animals: {
-                ...fallback.animals,
-                ...preferred.animals
+                ...server.animals,
+                ...local.animals
             },
 
             boxes: {
-                ...fallback.boxes,
-                ...preferred.boxes
+                ...server.boxes,
+                ...local.boxes
             },
 
             missions: {
-                ...fallback.missions,
-                ...preferred.missions
+                ...server.missions,
+                ...local.missions
             },
 
             dailyMissions: {
-                ...fallback.dailyMissions,
-                ...preferred.dailyMissions
+                ...server.dailyMissions,
+                ...local.dailyMissions
             },
 
             boosts: {
-                ...fallback.boosts,
-                ...preferred.boosts
+                ...server.boosts,
+                ...local.boosts
             },
 
             settings: {
-                ...fallback.settings,
-                ...preferred.settings
+                ...server.settings,
+                ...local.settings
             },
 
             profile: {
-                ...fallback.profile,
-                ...preferred.profile
+                ...server.profile,
+                ...local.profile
             },
 
             stats: {
-                ...fallback.stats,
-                ...preferred.stats
+                ...server.stats,
+                ...local.stats
             },
 
-            expedition: preferred.expedition || fallback.expedition || null,
+            expedition: local.expedition || server.expedition || null,
 
             offlineBaseHours: Math.max(server.offlineBaseHours || 1, local.offlineBaseHours || 1),
             offlineBoostHours: Math.max(server.offlineBoostHours || 0, local.offlineBoostHours || 0),
@@ -515,31 +481,17 @@ window.CryptoZoo.api = {
             offlineBoostActiveUntil: Math.max(server.offlineBoostActiveUntil || 0, local.offlineBoostActiveUntil || 0),
             offlineBoost: Math.max(server.offlineBoost || 1, local.offlineBoost || 1),
 
-            depositHistory: this.mergeUniqueByKey(
-                preferred.depositHistory,
-                fallback.depositHistory
-            ),
-            deposits: this.mergeUniqueByKey(preferred.deposits, fallback.deposits),
-            transactions: this.mergeUniqueByKey(preferred.transactions, fallback.transactions),
-            withdrawHistory: this.mergeUniqueByKey(
-                preferred.withdrawHistory,
-                fallback.withdrawHistory
-            ),
-            payoutHistory: this.mergeUniqueByKey(
-                preferred.payoutHistory,
-                fallback.payoutHistory
-            ),
-            referrals: this.mergeUniqueByKey(preferred.referrals, fallback.referrals),
-            referralHistory: this.mergeUniqueByKey(
-                preferred.referralHistory,
-                fallback.referralHistory
-            ),
+            depositHistory: this.mergeUniqueByKey(local.depositHistory, server.depositHistory),
+            deposits: this.mergeUniqueByKey(local.deposits, server.deposits),
+            transactions: this.mergeUniqueByKey(local.transactions, server.transactions),
+            withdrawHistory: this.mergeUniqueByKey(local.withdrawHistory, server.withdrawHistory),
+            payoutHistory: this.mergeUniqueByKey(local.payoutHistory, server.payoutHistory),
+            referrals: this.mergeUniqueByKey(local.referrals, server.referrals),
+            referralHistory: this.mergeUniqueByKey(local.referralHistory, server.referralHistory),
 
             lastLogin: Math.max(server.lastLogin || 0, local.lastLogin || 0),
-            updatedAt: Math.max(server.updatedAt || 0, local.updatedAt || 0, Date.now())
-        };
-
-        return this.normalizeState(merged);
+            updatedAt: Date.now()
+        });
     },
 
     getSavePayload() {
