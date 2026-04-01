@@ -3,6 +3,8 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.incomeSystem = {
     timerStarted: false,
     dirtyTick: 0,
+    uiTick: 0,
+    lastLevelRecalcAt: 0,
 
     getEffectiveIncome() {
         const baseIncome = Math.max(0, Number(CryptoZoo.state?.zooIncome) || 0);
@@ -13,9 +15,35 @@ CryptoZoo.incomeSystem = {
 
         const income = baseIncome * boostMultiplier;
 
-        if (!Number.isFinite(income) || income < 0) return 0;
+        if (!Number.isFinite(income) || income < 0) {
+            return 0;
+        }
 
         return Math.min(income, 1e15);
+    },
+
+    renderLight(activeScreen) {
+        CryptoZoo.ui?.renderTopHiddenStats?.();
+
+        if (activeScreen === "game") {
+            CryptoZoo.ui?.renderBoostStatus?.();
+            CryptoZoo.ui?.renderDailyRewardStatus?.();
+            CryptoZoo.ui?.renderXpBar?.();
+            CryptoZoo.uiProfile?.renderTopBarOnly?.();
+        } else if (activeScreen === "shop") {
+            CryptoZoo.ui?.renderBoostStatus?.();
+        }
+    },
+
+    maybeRecalculateLevel(now) {
+        const minGapMs = 1200;
+
+        if (now - this.lastLevelRecalcAt < minGapMs) {
+            return;
+        }
+
+        this.lastLevelRecalcAt = now;
+        CryptoZoo.gameplay?.recalculateLevel?.();
     },
 
     start() {
@@ -23,6 +51,8 @@ CryptoZoo.incomeSystem = {
         this.timerStarted = true;
 
         setInterval(() => {
+            const now = Date.now();
+
             CryptoZoo.state = CryptoZoo.state || {};
 
             CryptoZoo.state.playTimeSeconds =
@@ -35,28 +65,20 @@ CryptoZoo.incomeSystem = {
                     Math.max(0, Number(CryptoZoo.state.coins) || 0) + income;
             }
 
-            CryptoZoo.state.lastLogin = Date.now();
-            CryptoZoo.state.updatedAt = Date.now();
+            CryptoZoo.state.lastLogin = now;
+            CryptoZoo.state.updatedAt = now;
 
-            CryptoZoo.gameplay?.recalculateLevel?.();
+            this.maybeRecalculateLevel(now);
 
             const activeScreen = CryptoZoo.gameplay?.activeScreen || "game";
 
-            if (activeScreen === "game") {
-                CryptoZoo.ui?.renderTopHiddenStats?.();
-                CryptoZoo.ui?.renderBoostStatus?.();
-                CryptoZoo.ui?.renderDailyRewardStatus?.();
-                CryptoZoo.ui?.renderXpBar?.();
-                CryptoZoo.uiProfile?.renderTopBarOnly?.();
-            } else if (activeScreen === "shop") {
-                CryptoZoo.ui?.renderTopHiddenStats?.();
-                CryptoZoo.ui?.renderBoostStatus?.();
-            } else {
-                CryptoZoo.ui?.renderTopHiddenStats?.();
+            this.uiTick += 1;
+            if (this.uiTick >= 2) {
+                this.uiTick = 0;
+                this.renderLight(activeScreen);
             }
 
             this.dirtyTick += 1;
-
             if (this.dirtyTick >= 10) {
                 this.dirtyTick = 0;
                 CryptoZoo.api?.markDirty?.();
