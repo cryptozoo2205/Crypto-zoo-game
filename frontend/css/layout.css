@@ -8,16 +8,14 @@
     min-height: 88px;
     border-radius: 22px;
     background:
-        radial-gradient(circle at 20% 30%, rgba(66, 220, 255, 0.12) 0%, rgba(66, 220, 255, 0) 28%),
-        radial-gradient(circle at 72% 20%, rgba(255, 214, 102, 0.10) 0%, rgba(255, 214, 102, 0) 24%),
+        radial-gradient(circle at 20% 30%, rgba(66, 220, 255, 0.08) 0%, rgba(66, 220, 255, 0) 28%),
+        radial-gradient(circle at 72% 20%, rgba(255, 214, 102, 0.06) 0%, rgba(255, 214, 102, 0) 24%),
         linear-gradient(180deg, rgba(20, 31, 56, 0.98) 0%, rgba(10, 17, 32, 0.98) 100%);
     border: 1px solid rgba(255,255,255,0.08);
-    box-shadow:
-        0 12px 22px rgba(0, 0, 0, 0.18),
-        inset 0 1px 0 rgba(255,255,255,0.05);
-    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.16);
     overflow: hidden;
     position: relative;
+    backdrop-filter: none;
 }
 
 .top-bar-shell::before {
@@ -28,8 +26,8 @@
     top: 10px;
     bottom: 10px;
     border-radius: 18px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
-    border: 1px solid rgba(255,255,255,0.04);
+    background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.01) 100%);
+    border: 1px solid rgba(255,255,255,0.03);
     pointer-events: none;
 }
 
@@ -75,13 +73,12 @@
     border-radius: 50%;
     flex: 0 0 auto;
     background:
-        radial-gradient(circle at 35% 30%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.03) 26%, rgba(255,255,255,0) 27%),
+        radial-gradient(circle at 35% 30%, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.03) 26%, rgba(255,255,255,0) 27%),
         linear-gradient(180deg, rgba(49, 72, 110, 0.95) 0%, rgba(30, 46, 72, 0.98) 100%);
     border: 2px solid rgba(255,255,255,0.14);
     box-shadow:
-        0 8px 18px rgba(0,0,0,0.24),
-        0 0 0 4px rgba(88, 219, 255, 0.06),
-        inset 0 1px 0 rgba(255,255,255,0.08);
+        0 6px 12px rgba(0,0,0,0.20),
+        0 0 0 2px rgba(88, 219, 255, 0.04);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -96,7 +93,7 @@
     border-radius: 50%;
     background: linear-gradient(180deg, #6dff8b 0%, #29cb5a 100%);
     border: 2px solid rgba(9, 17, 32, 0.95);
-    box-shadow: 0 0 10px rgba(89, 255, 124, 0.45);
+    box-shadow: 0 0 6px rgba(89, 255, 124, 0.25);
     pointer-events: none;
 }
 
@@ -112,7 +109,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.20);
 }
 
 .top-user-status {
@@ -127,10 +124,10 @@
     color: #8af7a5;
     line-height: 1;
     white-space: nowrap;
-    background: rgba(8, 17, 30, 0.34);
-    border: 1px solid rgba(255,255,255,0.10);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
-    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.22);
+    background: rgba(8, 17, 30, 0.42);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: none;
+    text-shadow: none;
 }
 
 .top-bar-overlay-actions {
@@ -149,14 +146,12 @@
     font-size: 18px;
     font-weight: 900;
     color: #ffffff;
-    background: rgba(10, 18, 35, 0.52);
+    background: rgba(10, 18, 35, 0.85);
     border: 1px solid rgba(255,255,255,0.12);
-    box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.08),
-        0 8px 18px rgba(0, 0, 0, 0.20);
-    backdrop-filter: blur(10px);
-    transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease, opacity 0.16s ease;
-    animation: topIconFloat 2.8s ease-in-out infinite;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.16);
+    backdrop-filter: none;
+    transition: transform 0.12s ease, opacity 0.12s ease, filter 0.12s ease;
+    animation: none;
 }
 
 .top-icon-chip:active {
@@ -164,7 +159,7 @@
 }
 
 .top-icon-chip:hover {
-    filter: brightness(1.06);
+    filter: brightness(1.04);
 }
 
 .top-icon-chip-star {
@@ -231,18 +226,16 @@ main#game {
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 18px;
     padding: 11px 12px;
-    box-shadow:
-        0 14px 24px rgba(0, 0, 0, 0.18),
-        inset 0 1px 0 rgba(255,255,255,0.05);
-    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 14px rgba(0, 0, 0, 0.14);
     overflow: hidden;
+    backdrop-filter: none;
 }
 
 .home-stat-box::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 42%);
+    background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0) 42%);
     pointer-events: none;
 }
 
@@ -271,14 +264,13 @@ main#game {
     padding: 13px 14px 12px;
     border-radius: 20px;
     background:
-        radial-gradient(circle at 16% 18%, rgba(255, 211, 91, 0.14) 0%, rgba(255, 211, 91, 0) 24%),
-        radial-gradient(circle at 88% 22%, rgba(111, 255, 156, 0.09) 0%, rgba(111, 255, 156, 0) 18%),
+        radial-gradient(circle at 16% 18%, rgba(255, 211, 91, 0.10) 0%, rgba(255, 211, 91, 0) 24%),
+        radial-gradient(circle at 88% 22%, rgba(111, 255, 156, 0.06) 0%, rgba(111, 255, 156, 0) 18%),
         linear-gradient(180deg, rgba(28, 36, 58, 0.98) 0%, rgba(14, 21, 37, 0.98) 100%);
-    border: 1px solid rgba(255, 220, 120, 0.14);
+    border: 1px solid rgba(255, 220, 120, 0.12);
     box-shadow:
-        0 12px 22px rgba(0, 0, 0, 0.18),
-        0 0 0 1px rgba(255, 220, 120, 0.04),
-        inset 0 1px 0 rgba(255,255,255,0.04);
+        0 8px 16px rgba(0, 0, 0, 0.16),
+        0 0 0 1px rgba(255, 220, 120, 0.03);
     overflow: hidden;
 }
 
@@ -288,7 +280,7 @@ main#game {
     inset: 0;
     border-radius: 20px;
     pointer-events: none;
-    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 40%);
+    background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0) 40%);
 }
 
 .home-reward-premium-head {
@@ -316,7 +308,7 @@ main#game {
     font-weight: 900;
     color: #1a1a1a;
     background: linear-gradient(180deg, #ffe27a 0%, #ffbf00 100%);
-    box-shadow: 0 6px 12px rgba(255, 191, 0, 0.16);
+    box-shadow: 0 4px 8px rgba(255, 191, 0, 0.12);
 }
 
 .home-reward-premium-value {
@@ -328,8 +320,8 @@ main#game {
     color: #fff4c4;
     line-height: 1;
     text-shadow:
-        0 0 12px rgba(255, 220, 100, 0.10),
-        0 2px 8px rgba(0, 0, 0, 0.20);
+        0 0 8px rgba(255, 220, 100, 0.06),
+        0 2px 6px rgba(0, 0, 0, 0.18);
     word-break: break-word;
     overflow-wrap: anywhere;
 }
@@ -356,9 +348,7 @@ main#game {
         rgba(11, 18, 34, 0.96) 100%
     );
     border: 1px solid rgba(255,255,255,0.08);
-    box-shadow:
-        0 12px 22px rgba(0, 0, 0, 0.16),
-        inset 0 1px 0 rgba(255,255,255,0.04);
+    box-shadow: 0 8px 14px rgba(0, 0, 0, 0.14);
 }
 
 .home-level-strip-head {
@@ -415,7 +405,7 @@ main#game {
     background: rgba(255,255,255,0.08);
     border: 1px solid rgba(255,255,255,0.08);
     box-shadow:
-        inset 0 2px 6px rgba(0,0,0,0.18),
+        inset 0 2px 4px rgba(0,0,0,0.16),
         0 0 0 1px rgba(255,255,255,0.02);
 }
 
@@ -424,7 +414,7 @@ main#game {
     height: 100%;
     border-radius: 999px;
     background: linear-gradient(90deg, #2dd4ff 0%, #66ff99 50%, #ffcf3f 100%);
-    box-shadow: 0 0 14px rgba(100, 255, 170, 0.24);
+    box-shadow: 0 0 8px rgba(100, 255, 170, 0.16);
     transition: width 0.25s ease;
 }
 
@@ -455,8 +445,8 @@ main#game {
     height: 290px;
     border-radius: 50%;
     background:
-        radial-gradient(circle, rgba(58, 210, 255, 0.22) 0%, rgba(58, 210, 255, 0.10) 36%, rgba(58, 210, 255, 0) 70%);
-    filter: blur(10px);
+        radial-gradient(circle, rgba(58, 210, 255, 0.14) 0%, rgba(58, 210, 255, 0.06) 36%, rgba(58, 210, 255, 0) 70%);
+    filter: none;
     pointer-events: none;
 }
 
@@ -471,12 +461,12 @@ main#game {
     touch-action: none;
     -webkit-tap-highlight-color: transparent;
     background:
-        radial-gradient(circle at 30% 28%, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.06) 22%, rgba(255,255,255,0) 24%),
+        radial-gradient(circle at 30% 28%, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.05) 22%, rgba(255,255,255,0) 24%),
         linear-gradient(180deg, rgba(54, 111, 255, 0.96) 0%, rgba(36, 78, 209, 0.98) 100%);
     box-shadow:
-        0 24px 44px rgba(8, 20, 48, 0.34),
-        inset 0 3px 12px rgba(255,255,255,0.16),
-        inset 0 -10px 18px rgba(7, 18, 48, 0.24);
+        0 14px 26px rgba(8, 20, 48, 0.24),
+        inset 0 2px 8px rgba(255,255,255,0.12),
+        inset 0 -6px 12px rgba(7, 18, 48, 0.18);
 }
 
 .tap-button::before {
@@ -539,9 +529,7 @@ main#game {
         rgba(11, 18, 34, 0.96) 100%
     );
     border: 1px solid rgba(255,255,255,0.08);
-    box-shadow:
-        0 10px 18px rgba(0, 0, 0, 0.14),
-        inset 0 1px 0 rgba(255,255,255,0.04);
+    box-shadow: 0 8px 14px rgba(0, 0, 0, 0.12);
 }
 
 .home-income-row-side {
@@ -605,7 +593,7 @@ main#game {
     cursor: pointer;
     color: #1a1a1a;
     background: linear-gradient(180deg, #ffe27a 0%, #ffbf00 100%);
-    box-shadow: 0 5px 10px rgba(255, 191, 0, 0.14);
+    box-shadow: 0 4px 8px rgba(255, 191, 0, 0.12);
     white-space: nowrap;
 }
 
@@ -642,10 +630,8 @@ main#game {
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 22px;
     padding: 14px;
-    box-shadow:
-        0 14px 24px rgba(0, 0, 0, 0.18),
-        inset 0 1px 0 rgba(255,255,255,0.04);
-    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 14px rgba(0, 0, 0, 0.14);
+    backdrop-filter: none;
 }
 
 .home-zoo-preview-head {
@@ -672,7 +658,7 @@ main#game {
     cursor: pointer;
     color: #1a1a1a;
     background: linear-gradient(180deg, #ffe27a 0%, #ffbf00 100%);
-    box-shadow: 0 8px 16px rgba(255, 191, 0, 0.16);
+    box-shadow: 0 4px 8px rgba(255, 191, 0, 0.12);
     flex: 0 0 auto;
 }
 
@@ -684,12 +670,11 @@ main#game {
 
 .home-zoo-preview-card {
     min-width: 0;
-    background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.03) 100%);
+    background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.03) 100%);
     border: 1px solid rgba(255,255,255,0.06);
     border-radius: 18px;
     padding: 10px 8px;
     text-align: center;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
 }
 
 .home-zoo-preview-card img {
@@ -767,9 +752,7 @@ main#game {
         rgba(18, 28, 48, 0.96) 0%,
         rgba(10, 17, 31, 0.95) 100%
     );
-    box-shadow:
-        0 12px 22px rgba(0, 0, 0, 0.18),
-        inset 0 1px 0 rgba(255,255,255,0.04);
+    box-shadow: 0 8px 14px rgba(0, 0, 0, 0.14);
     transition: transform 0.14s ease, box-shadow 0.14s ease, filter 0.14s ease;
 }
 
@@ -791,7 +774,6 @@ main#game {
     justify-content: center;
     font-size: 23px;
     background: rgba(255,255,255,0.06);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
 }
 
 .home-quick-text {
@@ -819,16 +801,15 @@ main#game {
     position: relative;
     border-color: rgba(255, 214, 102, 0.20);
     background:
-        radial-gradient(circle at 12% 18%, rgba(255, 221, 120, 0.14) 0%, rgba(255, 221, 120, 0) 30%),
+        radial-gradient(circle at 12% 18%, rgba(255, 221, 120, 0.10) 0%, rgba(255, 221, 120, 0) 30%),
         linear-gradient(
             180deg,
             rgba(28, 36, 58, 0.98) 0%,
             rgba(14, 21, 37, 0.98) 100%
         );
     box-shadow:
-        0 12px 22px rgba(0, 0, 0, 0.20),
-        0 0 0 1px rgba(255, 214, 102, 0.05),
-        inset 0 1px 0 rgba(255,255,255,0.05);
+        0 8px 14px rgba(0, 0, 0, 0.16),
+        0 0 0 1px rgba(255, 214, 102, 0.04);
 }
 
 #homeDailyBtn::after {
@@ -837,7 +818,7 @@ main#game {
     inset: 0;
     border-radius: 18px;
     pointer-events: none;
-    background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 42%);
+    background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0) 42%);
 }
 
 #homeDailyBtn:active {
@@ -845,10 +826,8 @@ main#game {
 }
 
 #homeDailyBtn .home-quick-icon {
-    background: linear-gradient(180deg, rgba(255, 227, 122, 0.22) 0%, rgba(255, 191, 0, 0.10) 100%);
-    box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.12),
-        0 0 16px rgba(255, 196, 0, 0.10);
+    background: linear-gradient(180deg, rgba(255, 227, 122, 0.18) 0%, rgba(255, 191, 0, 0.08) 100%);
+    box-shadow: none;
 }
 
 #homeDailyBtn .home-quick-title {
@@ -874,8 +853,8 @@ main#game {
 .profile-backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.58);
-    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: none;
 }
 
 .profile-card {
@@ -893,9 +872,7 @@ main#game {
         rgba(10, 16, 30, 0.98) 100%
     );
     border: 1px solid rgba(255,255,255,0.10);
-    box-shadow:
-        0 24px 48px rgba(0, 0, 0, 0.36),
-        inset 0 1px 0 rgba(255,255,255,0.04);
+    box-shadow: 0 16px 30px rgba(0, 0, 0, 0.28);
 }
 
 #settingsModal .profile-card {
@@ -918,8 +895,7 @@ main#game {
     background: linear-gradient(180deg, #31486e 0%, #1e2e48 100%);
     border: 2px solid rgba(255,255,255,0.12);
     box-shadow:
-        0 10px 20px rgba(0,0,0,0.20),
-        inset 0 1px 0 rgba(255,255,255,0.06);
+        0 6px 12px rgba(0,0,0,0.18);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -959,11 +935,10 @@ main#game {
     padding: 12px;
     background: linear-gradient(
         180deg,
-        rgba(255,255,255,0.06) 0%,
+        rgba(255,255,255,0.05) 0%,
         rgba(255,255,255,0.03) 100%
     );
     border: 1px solid rgba(255,255,255,0.06);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
 }
 
 .profile-box-label {
@@ -1028,7 +1003,7 @@ main#game {
     cursor: pointer;
     color: #1a1a1a;
     background: linear-gradient(180deg, #ffe27a 0%, #ffbf00 100%);
-    box-shadow: 0 8px 16px rgba(255, 191, 0, 0.18);
+    box-shadow: 0 4px 8px rgba(255, 191, 0, 0.12);
 }
 
 .profile-close-btn:active {
@@ -1040,27 +1015,6 @@ main#game {
 #closeDailyRewardBtn {
     display: block;
     margin-top: 18px;
-}
-
-@keyframes topIconFloat {
-    0% {
-        transform: translateY(0);
-        box-shadow:
-            inset 0 1px 0 rgba(255,255,255,0.08),
-            0 8px 18px rgba(0, 0, 0, 0.20);
-    }
-    50% {
-        transform: translateY(-2px);
-        box-shadow:
-            inset 0 1px 0 rgba(255,255,255,0.08),
-            0 12px 22px rgba(0, 0, 0, 0.24);
-    }
-    100% {
-        transform: translateY(0);
-        box-shadow:
-            inset 0 1px 0 rgba(255,255,255,0.08),
-            0 8px 18px rgba(0, 0, 0, 0.20);
-    }
 }
 
 @media (max-width: 520px) {
@@ -1603,7 +1557,7 @@ body {
     overflow-x: hidden;
     background:
         linear-gradient(rgba(5, 10, 18, 0.50), rgba(5, 10, 18, 0.72)),
-        url("../assets/backgrounds/background_main.png") center center / cover no-repeat fixed;
+        url("../assets/backgrounds/background_main.png") center center / cover no-repeat;
 }
 
 body::before {
@@ -1613,9 +1567,9 @@ body::before {
     pointer-events: none;
     z-index: 0;
     background:
-        radial-gradient(circle at 50% 20%, rgba(120, 220, 255, 0.16), transparent 28%),
-        radial-gradient(circle at 78% 18%, rgba(255, 235, 140, 0.12), transparent 14%),
-        radial-gradient(circle at 50% 70%, rgba(0, 255, 170, 0.08), transparent 34%);
+        radial-gradient(circle at 50% 20%, rgba(120, 220, 255, 0.10), transparent 28%),
+        radial-gradient(circle at 78% 18%, rgba(255, 235, 140, 0.08), transparent 14%),
+        radial-gradient(circle at 50% 70%, rgba(0, 255, 170, 0.05), transparent 34%);
 }
 
 body.telegram-webapp {
@@ -1662,7 +1616,7 @@ body.telegram-webapp {
     width: 100%;
     display: block;
     border-radius: 26px;
-    box-shadow: 0 22px 48px rgba(0, 0, 0, 0.28);
+    box-shadow: 0 16px 30px rgba(0, 0, 0, 0.22);
 }
 
 .loading-progress-overlay {
@@ -1683,8 +1637,8 @@ body.telegram-webapp {
     overflow: hidden;
     background: rgba(10, 18, 30, 0.40);
     box-shadow:
-        inset 0 2px 8px rgba(0, 0, 0, 0.25),
-        0 0 16px rgba(94, 255, 105, 0.12);
+        inset 0 2px 6px rgba(0, 0, 0, 0.20),
+        0 0 10px rgba(94, 255, 105, 0.08);
 }
 
 .loading-progress-fill {
@@ -1692,7 +1646,7 @@ body.telegram-webapp {
     height: 100%;
     border-radius: 999px;
     background: linear-gradient(90deg, #32d9ff 0%, #43ff7e 45%, #d8ff3c 100%);
-    box-shadow: 0 0 16px rgba(67, 255, 126, 0.34);
+    box-shadow: 0 0 10px rgba(67, 255, 126, 0.22);
     transition: width 0.28s ease;
 }
 
@@ -1703,8 +1657,8 @@ body.telegram-webapp {
     font-weight: 900;
     color: #ffd95f;
     text-shadow:
-        0 3px 10px rgba(0, 0, 0, 0.36),
-        0 0 10px rgba(255, 221, 95, 0.18);
+        0 3px 8px rgba(0, 0, 0, 0.28),
+        0 0 6px rgba(255, 221, 95, 0.12);
 }
 
 #app {
@@ -1755,16 +1709,14 @@ main,
     overflow: hidden;
     background: linear-gradient(
         180deg,
-        rgba(14, 24, 44, 0.58) 0%,
-        rgba(10, 18, 34, 0.72) 100%
+        rgba(14, 24, 44, 0.88) 0%,
+        rgba(10, 18, 34, 0.92) 100%
     );
     border: 1px solid rgba(255, 255, 255, 0.09);
     border-radius: 24px;
     padding: 16px;
-    box-shadow:
-        0 14px 34px rgba(0, 0, 0, 0.18),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(6px);
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.16);
+    backdrop-filter: none;
 }
 
 .panel.card h2 {
