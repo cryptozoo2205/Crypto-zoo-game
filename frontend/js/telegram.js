@@ -3,6 +3,8 @@ window.CryptoZoo = window.CryptoZoo || {};
 window.CryptoZoo.telegram = {
     initialized: false,
     eventsBound: false,
+    refreshTimer: null,
+    lastAppliedIdentityKey: "",
 
     init() {
         if (this.initialized) {
@@ -64,22 +66,40 @@ window.CryptoZoo.telegram = {
         };
     },
 
+    getDisplayNameFromUser(user) {
+        if (!user) {
+            return (
+                localStorage.getItem("telegramUsername") ||
+                localStorage.getItem("telegramDisplayName") ||
+                localStorage.getItem("telegramFirstName") ||
+                "Crypto Zoo"
+            );
+        }
+
+        return (
+            user.username ||
+            [user.first_name, user.last_name].filter(Boolean).join(" ").trim() ||
+            "Gracz"
+        );
+    },
+
     setupPlayerIdentity() {
         const user = this.getTelegramUser();
         if (!user) {
-            return;
+            return null;
         }
 
-        const displayName =
-            user.username ||
-            [user.first_name, user.last_name].filter(Boolean).join(" ").trim() ||
-            "Gracz";
+        const displayName = this.getDisplayNameFromUser(user);
 
-        localStorage.setItem("telegramId", user.id);
-        localStorage.setItem("telegramUsername", user.username);
-        localStorage.setItem("telegramFirstName", user.first_name);
-        localStorage.setItem("telegramDisplayName", displayName);
-        localStorage.setItem("telegramPhotoUrl", user.photo_url || "");
+        try {
+            localStorage.setItem("telegramId", user.id);
+            localStorage.setItem("telegramUsername", user.username);
+            localStorage.setItem("telegramFirstName", user.first_name);
+            localStorage.setItem("telegramDisplayName", displayName);
+            localStorage.setItem("telegramPhotoUrl", user.photo_url || "");
+        } catch (error) {
+            console.warn("telegram localStorage save failed:", error);
+        }
 
         CryptoZoo.state = CryptoZoo.state || {};
         CryptoZoo.state.telegramUser = {
@@ -90,6 +110,8 @@ window.CryptoZoo.telegram = {
             last_name: user.last_name,
             photo_url: user.photo_url
         };
+
+        return user;
     },
 
     applyTelegramTheme() {
@@ -135,8 +157,17 @@ window.CryptoZoo.telegram = {
     },
 
     applyViewportFix() {
-        // celowo puste
-        // nic tutaj nie ruszamy, bo właśnie to najpewniej blokowało kliki w Telegramie
+        /* celowo puste */
+    },
+
+    scheduleRefresh(delay = 80) {
+        clearTimeout(this.refreshTimer);
+
+        this.refreshTimer = setTimeout(() => {
+            this.refreshTimer = null;
+            this.setupPlayerIdentity();
+            this.applyIdentityToUi();
+        }, Math.max(0, Number(delay) || 0));
     },
 
     bindTelegramEvents() {
@@ -148,62 +179,80 @@ window.CryptoZoo.telegram = {
 
         this.eventsBound = true;
 
-        const refresh = () => {
-            this.setupPlayerIdentity();
-            this.applyIdentityToUi();
+        const refreshSoon = () => {
+            this.scheduleRefresh(80);
         };
 
         try {
-            tg.onEvent("viewportChanged", refresh);
+            tg.onEvent("viewportChanged", refreshSoon);
         } catch (error) {
             console.warn("viewportChanged bind failed:", error);
         }
 
         try {
-            tg.onEvent("safeAreaChanged", refresh);
+            tg.onEvent("safeAreaChanged", refreshSoon);
         } catch (error) {
             console.warn("safeAreaChanged bind failed:", error);
         }
 
         try {
-            tg.onEvent("contentSafeAreaChanged", refresh);
+            tg.onEvent("contentSafeAreaChanged", refreshSoon);
         } catch (error) {
             console.warn("contentSafeAreaChanged bind failed:", error);
         }
 
-        window.addEventListener("resize", refresh, { passive: true });
-        window.addEventListener("orientationchange", refresh, { passive: true });
+        let resizeTimer = null;
+
+        window.addEventListener("resize", () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                this.scheduleRefresh(60);
+            }, 160);
+        }, { passive: true });
+
+        window.addEventListener("orientationchange", () => {
+            this.scheduleRefresh(220);
+        }, { passive: true });
     },
 
     applyIdentityToUi() {
         const tg = this.getWebApp();
         const user = this.getTelegramUser();
 
-        const displayName =
-            (user && (user.username || user.first_name)) ||
-            localStorage.getItem("telegramUsername") ||
-            localStorage.getItem("telegramDisplayName") ||
-            localStorage.getItem("telegramFirstName") ||
-            "Crypto Zoo";
+        const displayName = this.getDisplayNameFromUser(user);
+        const statusText =
+            tg && user && user.id
+                ? "● Telegram Online"
+                : tg
+                    ? "● Telegram WebApp"
+                    : "● Local Mode";
+
+        const photoUrl =
+            (user && user.photo_url) ||
+            localStorage.getItem("telegramPhotoUrl") ||
+            "";
+
+        const identityKey = `${displayName}|${statusText}|${photoUrl}`;
+        if (identityKey === this.lastAppliedIdentityKey) {
+            return;
+        }
+
+        this.lastAppliedIdentityKey = identityKey;
 
         const topUserName = document.getElementById("topPlayerName");
         const topUserStatus = document.getElementById("topPlayerStatus");
 
-        if (topUserName) {
+        if (topUserName && topUserName.textContent !== displayName) {
             topUserName.textContent = displayName;
         }
 
-        if (topUserStatus) {
-            if (tg && user && user.id) {
-                topUserStatus.textContent = "● Telegram Online";
-            } else if (tg) {
-                topUserStatus.textContent = "● Telegram WebApp";
-            } else {
-                topUserStatus.textContent = "● Local Mode";
-            }
+        if (topUserStatus && topUserStatus.textContent !== statusText) {
+            topUserStatus.textContent = statusText;
         }
 
         CryptoZoo.uiProfile?.renderAvatarImages?.();
-        CryptoZoo.uiProfile?.refreshProfileModalData?.();
+        if (CryptoZoo.ui?.isProfileModalOpen?.()) {
+            CryptoZoo.uiProfile?.refreshProfileModalData?.();
+        }
     }
 };
