@@ -16,6 +16,7 @@ window.CryptoZoo.api = {
     requestTimeoutMs: 8000,
     minSaveIntervalMs: 30000,
     saveDebounceMs: 4000,
+    saveFailCooldownMs: 15000,
 
     async init() {
         if (this.initialized) {
@@ -788,12 +789,20 @@ window.CryptoZoo.api = {
                     this.writeLocalState(CryptoZoo.state);
                 } else {
                     CryptoZoo.state = this.normalizeState(CryptoZoo.state || payload);
+                    this.writeLocalState(CryptoZoo.state);
                 }
 
                 this.lastSavedSnapshot = nextSnapshot;
                 this.pendingDirty = false;
             } catch (error) {
                 console.warn("SAVE FAIL → local only", error);
+
+                CryptoZoo.state = this.normalizeState(CryptoZoo.state || payload);
+                this.writeLocalState(CryptoZoo.state);
+
+                this.lastSavedSnapshot = nextSnapshot;
+                this.pendingDirty = false;
+                this.lastSaveStartedAt = Date.now() + this.saveFailCooldownMs;
             }
 
             return CryptoZoo.state;
