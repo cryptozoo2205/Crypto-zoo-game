@@ -4,8 +4,14 @@ window.CryptoZoo.api = {
     testResetMode: false,
     initialized: false,
     initPromise: null,
+
     saveInProgress: false,
+    saveQueued: false,
+    saveTimer: null,
+    lastSaveStartedAt: 0,
+
     requestTimeoutMs: 8000,
+    minSaveIntervalMs: 5000,
 
     async init() {
         if (this.initialized) {
@@ -637,12 +643,35 @@ window.CryptoZoo.api = {
         return CryptoZoo.state;
     },
 
-    async savePlayer() {
+    scheduleSave(delayMs = 0) {
+        clearTimeout(this.saveTimer);
+
+        this.saveTimer = setTimeout(() => {
+            this.saveTimer = null;
+            this.flushSave().catch((error) => {
+                console.warn("flushSave failed", error);
+            });
+        }, Math.max(0, Number(delayMs) || 0));
+    },
+
+    async flushSave() {
         if (this.saveInProgress) {
-            return this.getSavePayload();
+            this.saveQueued = true;
+            return CryptoZoo.state;
+        }
+
+        const now = Date.now();
+        const elapsed = now - this.lastSaveStartedAt;
+
+        if (elapsed < this.minSaveIntervalMs) {
+            this.saveQueued = true;
+            this.scheduleSave(this.minSaveIntervalMs - elapsed);
+            return CryptoZoo.state;
         }
 
         this.saveInProgress = true;
+        this.saveQueued = false;
+        this.lastSaveStartedAt = Date.now();
 
         try {
             const payload = this.getSavePayload();
@@ -670,7 +699,35 @@ window.CryptoZoo.api = {
             return CryptoZoo.state;
         } finally {
             this.saveInProgress = false;
+
+            if (this.saveQueued) {
+                this.saveQueued = false;
+                this.scheduleSave(this.minSaveIntervalMs);
+            }
         }
+    },
+
+    async savePlayer() {
+        const payload = this.getSavePayload();
+
+        CryptoZoo.state = this.mergeStates(payload, CryptoZoo.state || {});
+        this.writeLocalState(CryptoZoo.state);
+
+        if (this.saveInProgress) {
+            this.saveQueued = true;
+            return CryptoZoo.state;
+        }
+
+        const now = Date.now();
+        const elapsed = now - this.lastSaveStartedAt;
+
+        if (elapsed < this.minSaveIntervalMs) {
+            this.saveQueued = true;
+            this.scheduleSave(this.minSaveIntervalMs - elapsed);
+            return CryptoZoo.state;
+        }
+
+        return this.flushSave();
     },
 
     async syncPendingDeposits(forceReload = false) {
