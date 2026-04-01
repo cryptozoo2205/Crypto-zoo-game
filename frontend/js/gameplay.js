@@ -24,10 +24,12 @@ CryptoZoo.gameplay = {
     tapSaveQueued: false,
 
     renderTimer: null,
-    renderDelayMs: 80,
+    renderDelayMs: 140,
     renderQueued: false,
     lastRenderAt: 0,
-    minRenderGapMs: 80,
+    minRenderGapMs: 140,
+
+    enableTapEffects: false,
 
     init() {
         this.ensureState();
@@ -49,8 +51,6 @@ CryptoZoo.gameplay = {
         this.startBoostTimer();
 
         CryptoZoo.dailyReward?.startTimer?.();
-
-        this.requestRender(true);
     },
 
     ensureState() {
@@ -220,17 +220,14 @@ CryptoZoo.gameplay = {
             return;
         }
 
+        this.renderQueued = true;
+
         if (this.renderTimer) {
-            this.renderQueued = true;
             return;
         }
 
-        const waitMs = Math.max(
-            this.renderDelayMs,
-            this.minRenderGapMs - (now - this.lastRenderAt)
-        );
-
-        this.renderQueued = true;
+        const sinceLast = now - this.lastRenderAt;
+        const waitMs = Math.max(this.renderDelayMs, this.minRenderGapMs - sinceLast, 0);
 
         this.renderTimer = setTimeout(() => {
             this.renderTimer = null;
@@ -242,7 +239,7 @@ CryptoZoo.gameplay = {
             this.renderQueued = false;
             this.lastRenderAt = Date.now();
             CryptoZoo.ui?.render?.();
-        }, Math.max(0, waitMs));
+        }, waitMs);
     },
 
     getOfflineBaseHours() {
@@ -401,7 +398,7 @@ CryptoZoo.gameplay = {
             if (this.activeScreen !== "game") return false;
             if (Date.now() < this.suppressClickUntil) return false;
 
-            this.suppressClickUntil = Date.now() + 90;
+            this.suppressClickUntil = Date.now() + 120;
             this.handleTap(amount);
             return true;
         };
@@ -511,9 +508,12 @@ CryptoZoo.gameplay = {
         CryptoZoo.dailyMissions?.recordTap?.(safeAmount);
 
         CryptoZoo.audio?.play?.("tap");
-        CryptoZoo.ui?.animateCoin?.(safeAmount);
-        this.requestRender();
 
+        if (this.enableTapEffects) {
+            CryptoZoo.ui?.animateCoin?.(safeAmount);
+        }
+
+        this.requestRender();
         this.scheduleTapSave();
     },
 
@@ -552,7 +552,6 @@ CryptoZoo.gameplay = {
             this.activeScreen = targetName;
         }
 
-        this.requestRender(true);
         return result;
     },
 
