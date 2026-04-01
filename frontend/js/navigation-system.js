@@ -13,8 +13,12 @@ CryptoZoo.navigation = {
                 event.stopPropagation();
 
                 const screenName = button.getAttribute("data-nav");
-                this.show(screenName);
-                CryptoZoo.gameplay?.requestRender?.();
+
+                if (CryptoZoo.gameplay?.showScreen) {
+                    CryptoZoo.gameplay.showScreen(screenName);
+                } else {
+                    this.show(screenName);
+                }
             };
         });
 
