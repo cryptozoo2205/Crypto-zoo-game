@@ -5,6 +5,7 @@ window.CryptoZoo.telegram = {
     eventsBound: false,
     refreshTimer: null,
     lastAppliedIdentityKey: "",
+    lastRefreshAt: 0,
 
     init() {
         if (this.initialized) {
@@ -97,11 +98,13 @@ window.CryptoZoo.telegram = {
             localStorage.setItem("telegramFirstName", user.first_name);
             localStorage.setItem("telegramDisplayName", displayName);
             localStorage.setItem("telegramPhotoUrl", user.photo_url || "");
+            localStorage.setItem("playerId", user.id);
         } catch (error) {
             console.warn("telegram localStorage save failed:", error);
         }
 
         CryptoZoo.state = CryptoZoo.state || {};
+
         CryptoZoo.state.telegramUser = {
             ...(CryptoZoo.state.telegramUser || {}),
             id: user.id,
@@ -110,6 +113,9 @@ window.CryptoZoo.telegram = {
             last_name: user.last_name,
             photo_url: user.photo_url
         };
+
+        CryptoZoo.state.playerId = user.id;
+        CryptoZoo.state.telegramId = user.id;
 
         return user;
     },
@@ -180,6 +186,13 @@ window.CryptoZoo.telegram = {
         this.eventsBound = true;
 
         const refreshSoon = () => {
+            const now = Date.now();
+
+            if (now - this.lastRefreshAt < 1000) {
+                return;
+            }
+
+            this.lastRefreshAt = now;
             this.scheduleRefresh(80);
         };
 
@@ -206,11 +219,25 @@ window.CryptoZoo.telegram = {
         window.addEventListener("resize", () => {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(() => {
+                const now = Date.now();
+
+                if (now - this.lastRefreshAt < 1000) {
+                    return;
+                }
+
+                this.lastRefreshAt = now;
                 this.scheduleRefresh(60);
             }, 160);
         }, { passive: true });
 
         window.addEventListener("orientationchange", () => {
+            const now = Date.now();
+
+            if (now - this.lastRefreshAt < 1000) {
+                return;
+            }
+
+            this.lastRefreshAt = now;
             this.scheduleRefresh(220);
         }, { passive: true });
     },
@@ -251,6 +278,7 @@ window.CryptoZoo.telegram = {
         }
 
         CryptoZoo.uiProfile?.renderAvatarImages?.();
+
         if (CryptoZoo.ui?.isProfileModalOpen?.()) {
             CryptoZoo.uiProfile?.refreshProfileModalData?.();
         }
