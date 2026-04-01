@@ -20,7 +20,6 @@ window.CryptoZoo.api = {
             try {
                 await this.loadPlayer();
 
-                // nie blokujemy startu gry przez dodatkowy forceReload
                 this.syncPendingDeposits(false).catch((error) => {
                     console.warn("Background deposit sync failed:", error);
                 });
@@ -32,7 +31,6 @@ window.CryptoZoo.api = {
                     localState || CryptoZoo.state || this.getDefaultState()
                 );
                 CryptoZoo.state.telegramUser = this.getTelegramUser();
-                CryptoZoo.state.lastLogin = Date.now();
                 CryptoZoo.state.updatedAt = Date.now();
 
                 this.writeLocalState(CryptoZoo.state);
@@ -537,7 +535,7 @@ window.CryptoZoo.api = {
                 fallback.referralHistory
             ),
 
-            lastLogin: Math.max(server.lastLogin || 0, local.lastLogin || 0, Date.now()),
+            lastLogin: Math.max(server.lastLogin || 0, local.lastLogin || 0),
             updatedAt: Math.max(server.updatedAt || 0, local.updatedAt || 0, Date.now())
         };
 
@@ -682,8 +680,6 @@ window.CryptoZoo.api = {
         }
 
         CryptoZoo.state.telegramUser = this.getTelegramUser();
-        CryptoZoo.state.lastLogin = Date.now();
-        CryptoZoo.state.updatedAt = Date.now();
 
         this.writeLocalState(CryptoZoo.state);
         return CryptoZoo.state;
