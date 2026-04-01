@@ -24,12 +24,12 @@ CryptoZoo.gameplay = {
     tapSaveQueued: false,
 
     renderTimer: null,
-    renderDelayMs: 140,
+    renderDelayMs: 120,
     renderQueued: false,
     lastRenderAt: 0,
-    minRenderGapMs: 140,
+    minRenderGapMs: 120,
 
-    enableTapEffects: false,
+    enableTapEffects: true,
 
     init() {
         this.ensureState();
@@ -398,7 +398,7 @@ CryptoZoo.gameplay = {
             if (this.activeScreen !== "game") return false;
             if (Date.now() < this.suppressClickUntil) return false;
 
-            this.suppressClickUntil = Date.now() + 120;
+            this.suppressClickUntil = Date.now() + 90;
             this.handleTap(amount);
             return true;
         };
