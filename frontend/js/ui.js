@@ -1151,6 +1151,49 @@ CryptoZoo.ui = {
         });
     },
 
+    updateActiveExpeditionTimerOnly() {
+        const expedition = CryptoZoo.state?.expedition;
+        if (!expedition) return false;
+
+        const timerEl = document.getElementById("activeExpeditionTimeLeft");
+        const actionWrap = document.getElementById("activeExpeditionActionWrap");
+        if (!timerEl || !actionWrap) return false;
+
+        const now = Date.now();
+        const timeLeft = Math.max(0, Math.floor((expedition.endTime - now) / 1000));
+        const canCollect = timeLeft <= 0;
+
+        timerEl.textContent = this.formatTimeLeft(timeLeft);
+
+        const timeBoostChargesCount =
+            CryptoZoo.expeditions?.getTimeBoostChargesCount?.() ||
+            CryptoZoo.state?.expeditionStats?.timeBoostCharges?.length ||
+            0;
+
+        const currentMode = actionWrap.dataset.mode || "";
+
+        let nextMode = "progress";
+        if (canCollect) {
+            nextMode = "collect";
+        } else if (timeBoostChargesCount > 0) {
+            nextMode = "boost";
+        }
+
+        if (currentMode !== nextMode) {
+            this.renderExpeditions();
+            return true;
+        }
+
+        if (nextMode === "boost") {
+            const btn = document.getElementById("use-expedition-time-boost-btn");
+            if (btn) {
+                btn.textContent = `⏩ ${this.t("useTimeReduction", "Użyj skracania czasu")} (${CryptoZoo.formatNumber(timeBoostChargesCount)})`;
+            }
+        }
+
+        return true;
+    },
+
     renderExpeditions() {
         const container = document.getElementById("missionsList");
         if (!container) return;
@@ -1185,11 +1228,34 @@ CryptoZoo.ui = {
 
             const selectedAnimalsLabel = this.getSelectedAnimalsLabel(expedition.selectedAnimals);
 
+            let actionMode = "progress";
+            let actionHtml = `
+                <button id="collect-expedition-btn" type="button" disabled>
+                    ${this.t("expeditionInProgress", "Trwa ekspedycja")}
+                </button>
+            `;
+
+            if (canCollect) {
+                actionMode = "collect";
+                actionHtml = `
+                    <button id="collect-expedition-btn" type="button">
+                        ${this.t("collectReward", "Odbierz nagrodę")}
+                    </button>
+                `;
+            } else if (timeBoostChargesCount > 0) {
+                actionMode = "boost";
+                actionHtml = `
+                    <button id="use-expedition-time-boost-btn" type="button">
+                        ⏩ ${this.t("useTimeReduction", "Użyj skracania czasu")} (${CryptoZoo.formatNumber(timeBoostChargesCount)})
+                    </button>
+                `;
+            }
+
             container.innerHTML = `
                 ${dailyMissionsHtml}
                 <div class="expedition-card">
                     <h3>${this.t("activeExpedition", "Aktywna ekspedycja")}: ${expeditionName}</h3>
-                    <div>${this.t("timeLeft", "Pozostało")}: ${this.formatTimeLeft(timeLeft)}</div>
+                    <div>${this.t("timeLeft", "Pozostało")}: <span id="activeExpeditionTimeLeft">${this.formatTimeLeft(timeLeft)}</span></div>
                     ${
                         selectedAnimalsLabel
                             ? `<div>${this.t("selectedAnimals", "Wybrane zwierzęta")}: ${selectedAnimalsLabel}</div>`
@@ -1205,25 +1271,9 @@ CryptoZoo.ui = {
                         ${this.t("rewardWallet", "Reward Wallet")}:
                         ${rewardBalanceAmount.toFixed(3)} ${this.t("rewardWord", "reward")}
                     </div>
-                    ${
-                        canCollect
-                            ? `
-                                <button id="collect-expedition-btn" type="button">
-                                    ${this.t("collectReward", "Odbierz nagrodę")}
-                                </button>
-                            `
-                            : timeBoostChargesCount > 0
-                                ? `
-                                    <button id="use-expedition-time-boost-btn" type="button">
-                                        ⏩ ${this.t("useTimeReduction", "Użyj skracania czasu")} (${CryptoZoo.formatNumber(timeBoostChargesCount)})
-                                    </button>
-                                `
-                                : `
-                                    <button id="collect-expedition-btn" type="button" disabled>
-                                        ${this.t("expeditionInProgress", "Trwa ekspedycja")}
-                                    </button>
-                                `
-                    }
+                    <div id="activeExpeditionActionWrap" data-mode="${actionMode}">
+                        ${actionHtml}
+                    </div>
                 </div>
             `;
 
