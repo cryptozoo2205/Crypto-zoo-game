@@ -9,12 +9,16 @@ window.CryptoZoo.api = {
     saveQueued: false,
     saveTimer: null,
     lastSaveStartedAt: 0,
+    lastSavedSnapshot: "",
+    pendingDirty: false,
 
     requestTimeoutMs: 8000,
-    minSaveIntervalMs: 5000,
+    minSaveIntervalMs: 30000,
+    saveDebounceMs: 4000,
 
     async init() {
         if (this.initialized) {
+            this.bindLifecycleSave();
             return CryptoZoo.state;
         }
 
@@ -42,6 +46,7 @@ window.CryptoZoo.api = {
                 this.writeLocalState(CryptoZoo.state);
             }
 
+            this.bindLifecycleSave();
             this.initialized = true;
             return CryptoZoo.state;
         })();
@@ -51,6 +56,25 @@ window.CryptoZoo.api = {
         } finally {
             this.initPromise = null;
         }
+    },
+
+    bindLifecycleSave() {
+        if (this.lifecycleBound) return;
+        this.lifecycleBound = true;
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "hidden") {
+                this.flushSave(true).catch((error) => {
+                    console.warn("flushSave on hidden failed", error);
+                });
+            }
+        });
+
+        window.addEventListener("beforeunload", () => {
+            this.flushSave(true).catch((error) => {
+                console.warn("flushSave beforeunload failed", error);
+            });
+        });
     },
 
     getApiBase() {
@@ -63,7 +87,7 @@ window.CryptoZoo.api = {
             window.CryptoZoo?.config?.apiBase ||
             window.CryptoZoo?.config?.API_BASE ||
             window.CryptoZoo?.config?.backendUrl ||
-            window.CryptoZoo?.config?.serverUrl ||
+            window.CryptoZOO?.config?.serverUrl ||
             window.CRYPTOZOO_API_BASE ||
             "";
 
@@ -560,6 +584,48 @@ window.CryptoZoo.api = {
         };
     },
 
+    getSaveFingerprintFromPayload(payload) {
+        return JSON.stringify({
+            telegramId: payload.telegramId,
+            coins: payload.coins,
+            gems: payload.gems,
+            rewardBalance: payload.rewardBalance,
+            rewardWallet: payload.rewardWallet,
+            withdrawPending: payload.withdrawPending,
+            level: payload.level,
+            xp: payload.xp,
+            coinsPerClick: payload.coinsPerClick,
+            zooIncome: payload.zooIncome,
+            expeditionBoost: payload.expeditionBoost,
+            dailyExpeditionBoost: payload.dailyExpeditionBoost,
+            expeditionStats: payload.expeditionStats,
+            shopPurchases: payload.shopPurchases,
+            animals: payload.animals,
+            boxes: payload.boxes,
+            expedition: payload.expedition,
+            offlineBaseHours: payload.offlineBaseHours,
+            offlineBoostHours: payload.offlineBoostHours,
+            offlineAdsHours: payload.offlineAdsHours,
+            offlineMaxSeconds: payload.offlineMaxSeconds,
+            offlineBoostMultiplier: payload.offlineBoostMultiplier,
+            offlineBoostActiveUntil: payload.offlineBoostActiveUntil,
+            offlineBoost: payload.offlineBoost,
+            depositHistory: payload.depositHistory,
+            deposits: payload.deposits,
+            transactions: payload.transactions,
+            withdrawHistory: payload.withdrawHistory,
+            payoutHistory: payload.payoutHistory,
+            referrals: payload.referrals,
+            referralHistory: payload.referralHistory,
+            missions: payload.missions,
+            dailyMissions: payload.dailyMissions,
+            boosts: payload.boosts,
+            settings: payload.settings,
+            profile: payload.profile,
+            stats: payload.stats
+        });
+    },
+
     async request(path, options = {}) {
         const controller = new AbortController();
         const timeoutMs = Math.max(1000, Number(options.timeoutMs) || this.requestTimeoutMs);
@@ -640,7 +706,24 @@ window.CryptoZoo.api = {
         CryptoZoo.state.telegramUser = this.getTelegramUser();
 
         this.writeLocalState(CryptoZoo.state);
+
+        try {
+            const payload = this.getSavePayload();
+            this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
+            this.pendingDirty = false;
+        } catch (error) {
+            console.warn("Snapshot init failed:", error);
+        }
+
         return CryptoZoo.state;
+    },
+
+    markDirty() {
+        CryptoZoo.state = this.normalizeState(CryptoZoo.state || {});
+        CryptoZoo.state.updatedAt = Date.now();
+        this.writeLocalState(CryptoZoo.state);
+        this.pendingDirty = true;
+        this.scheduleSave(this.saveDebounceMs);
     },
 
     scheduleSave(delayMs = 0) {
@@ -648,13 +731,23 @@ window.CryptoZoo.api = {
 
         this.saveTimer = setTimeout(() => {
             this.saveTimer = null;
-            this.flushSave().catch((error) => {
+            this.flushSave(false).catch((error) => {
                 console.warn("flushSave failed", error);
             });
         }, Math.max(0, Number(delayMs) || 0));
     },
 
-    async flushSave() {
+    async flushSave(force = false) {
+        const payload = this.getSavePayload();
+        const nextSnapshot = this.getSaveFingerprintFromPayload(payload);
+
+        CryptoZoo.state = this.mergeStates(payload, CryptoZoo.state || {});
+        this.writeLocalState(CryptoZoo.state);
+
+        if (!force && !this.pendingDirty && this.lastSavedSnapshot === nextSnapshot) {
+            return CryptoZoo.state;
+        }
+
         if (this.saveInProgress) {
             this.saveQueued = true;
             return CryptoZoo.state;
@@ -663,7 +756,7 @@ window.CryptoZoo.api = {
         const now = Date.now();
         const elapsed = now - this.lastSaveStartedAt;
 
-        if (elapsed < this.minSaveIntervalMs) {
+        if (!force && elapsed < this.minSaveIntervalMs) {
             this.saveQueued = true;
             this.scheduleSave(this.minSaveIntervalMs - elapsed);
             return CryptoZoo.state;
@@ -674,11 +767,6 @@ window.CryptoZoo.api = {
         this.lastSaveStartedAt = Date.now();
 
         try {
-            const payload = this.getSavePayload();
-
-            CryptoZoo.state = this.mergeStates(payload, CryptoZoo.state || {});
-            this.writeLocalState(CryptoZoo.state);
-
             try {
                 const response = await this.request("/player/save", {
                     method: "POST",
@@ -692,6 +780,9 @@ window.CryptoZoo.api = {
                     CryptoZoo.state = this.mergeStates(safeResponse, CryptoZoo.state);
                     this.writeLocalState(CryptoZoo.state);
                 }
+
+                this.lastSavedSnapshot = nextSnapshot;
+                this.pendingDirty = false;
             } catch (error) {
                 console.warn("SAVE FAIL → local only", error);
             }
@@ -708,26 +799,8 @@ window.CryptoZoo.api = {
     },
 
     async savePlayer() {
-        const payload = this.getSavePayload();
-
-        CryptoZoo.state = this.mergeStates(payload, CryptoZoo.state || {});
-        this.writeLocalState(CryptoZoo.state);
-
-        if (this.saveInProgress) {
-            this.saveQueued = true;
-            return CryptoZoo.state;
-        }
-
-        const now = Date.now();
-        const elapsed = now - this.lastSaveStartedAt;
-
-        if (elapsed < this.minSaveIntervalMs) {
-            this.saveQueued = true;
-            this.scheduleSave(this.minSaveIntervalMs - elapsed);
-            return CryptoZoo.state;
-        }
-
-        return this.flushSave();
+        this.markDirty();
+        return CryptoZoo.state;
     },
 
     async syncPendingDeposits(forceReload = false) {
@@ -746,6 +819,10 @@ window.CryptoZoo.api = {
                 if (playerPart && typeof playerPart === "object") {
                     CryptoZoo.state = this.mergeStates(playerPart, CryptoZoo.state || {});
                     this.writeLocalState(CryptoZoo.state);
+
+                    const payload = this.getSavePayload();
+                    this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
+                    this.pendingDirty = false;
                 }
             }
 
