@@ -152,6 +152,21 @@ CryptoZoo.offline = {
         return Math.max(0, Math.floor((boostedUntil - safeFrom) / 1000));
     },
 
+    showOfflineToast(message) {
+        const tryShow = () => {
+            const loadingScreen = document.getElementById("loading-screen");
+
+            if (loadingScreen && loadingScreen.style.display !== "none") {
+                setTimeout(tryShow, 300);
+                return;
+            }
+
+            CryptoZoo.ui?.showToast?.(message);
+        };
+
+        setTimeout(tryShow, 700);
+    },
+
     applyEarnings() {
         CryptoZoo.state = CryptoZoo.state || {};
 
@@ -194,11 +209,9 @@ CryptoZoo.offline = {
 
         this.normalizeState();
 
-        if (offlineCoins <= 0) {
-            return;
+        if (offlineCoins > 0) {
+            CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + offlineCoins;
         }
-
-        CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + offlineCoins;
 
         const timeLabel = this.formatDuration(cappedSeconds);
         const capLabel = wasCapped ? ` • limit ${this.formatDuration(maxOfflineSeconds)}` : "";
@@ -206,10 +219,11 @@ CryptoZoo.offline = {
             ? ` • x${CryptoZoo.formatNumber(storedMultiplier)} offline przez ${this.formatDuration(boostedSeconds)}`
             : "";
 
-        CryptoZoo.ui?.showToast?.(
-            `Offline: ${timeLabel} • +${CryptoZoo.formatNumber(offlineCoins)} coins${capLabel}${boostLabel}`
-        );
+        const toastMessage = offlineCoins > 0
+            ? `Offline: ${timeLabel} • +${CryptoZoo.formatNumber(offlineCoins)} coins${capLabel}${boostLabel}`
+            : `Offline: ${timeLabel} • +0 coins${capLabel}`;
 
+        this.showOfflineToast(toastMessage);
         CryptoZoo.api?.savePlayer?.();
     }
 };
