@@ -14,6 +14,7 @@ CryptoZoo.navigation = {
 
                 const screenName = button.getAttribute("data-nav");
                 this.show(screenName);
+                CryptoZoo.gameplay?.requestRender?.();
             };
         });
 
@@ -50,22 +51,6 @@ CryptoZoo.navigation = {
         }
 
         sessionStorage.setItem("cryptozoo_last_screen", targetName);
-
-        CryptoZoo.ui?.renderTopHiddenStats?.();
-
-        if (targetName === "game") {
-            CryptoZoo.ui?.renderHome?.();
-        } else if (targetName === "zoo") {
-            CryptoZoo.ui?.renderZooList?.();
-        } else if (targetName === "shop") {
-            CryptoZoo.ui?.renderShopItems?.();
-            CryptoZoo.gameplay?.bindBoostShopButton?.();
-            CryptoZoo.ui?.renderBoostStatus?.();
-        } else if (targetName === "missions") {
-            CryptoZoo.ui?.renderExpeditions?.();
-        } else if (targetName === "ranking") {
-            CryptoZoo.uiRanking?.renderRanking?.(false);
-        }
 
         return true;
     }
