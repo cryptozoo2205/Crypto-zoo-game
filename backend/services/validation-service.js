@@ -53,7 +53,11 @@ function sanitizeRewardState(oldPlayer, newPlayer) {
 
     const oldSafe = normalizePlayer(oldPlayer);
 
-    safePlayer.withdrawPending = oldSafe.withdrawPending;
+    safePlayer.withdrawPending = Math.max(
+        0,
+        Number(oldSafe.withdrawPending || 0),
+        Number(safePlayer.withdrawPending || 0)
+    );
 
     return safePlayer;
 }
@@ -63,6 +67,7 @@ function validateProgress(oldPlayer, newPlayer) {
         newPlayer.coins = clamp(Number(newPlayer.coins || 0), 0, LIMITS.MAX_COINS);
         newPlayer.gems = clamp(Number(newPlayer.gems || 0), 0, LIMITS.MAX_GEMS);
         newPlayer.level = clamp(Number(newPlayer.level || 1), 1, LIMITS.MAX_LEVEL);
+        newPlayer.xp = clamp(Number(newPlayer.xp || 0), 0, LIMITS.MAX_XP);
         return newPlayer;
     }
 
@@ -71,6 +76,7 @@ function validateProgress(oldPlayer, newPlayer) {
     const coinsDiff = Number(newPlayer.coins || 0) - Number(oldSafe.coins || 0);
     const gemsDiff = Number(newPlayer.gems || 0) - Number(oldSafe.gems || 0);
     const levelDiff = Number(newPlayer.level || 1) - Number(oldSafe.level || 1);
+    const xpDiff = Number(newPlayer.xp || 0) - Number(oldSafe.xp || 0);
 
     const maxCoinsGain = Math.max(
         Number(LIMITS.MAX_COINS_GAIN_PER_SAVE) || 0,
@@ -87,6 +93,11 @@ function validateProgress(oldPlayer, newPlayer) {
         100
     );
 
+    const maxXpGain = Math.max(
+        Number(LIMITS.MAX_XP_GAIN_PER_SAVE) || 0,
+        1000000000
+    );
+
     if (coinsDiff > maxCoinsGain) {
         newPlayer.coins = oldSafe.coins;
     }
@@ -99,9 +110,14 @@ function validateProgress(oldPlayer, newPlayer) {
         newPlayer.level = oldSafe.level;
     }
 
+    if (xpDiff > maxXpGain) {
+        newPlayer.xp = oldSafe.xp;
+    }
+
     newPlayer.coins = clamp(Number(newPlayer.coins || 0), 0, LIMITS.MAX_COINS);
     newPlayer.gems = clamp(Number(newPlayer.gems || 0), 0, LIMITS.MAX_GEMS);
     newPlayer.level = clamp(Number(newPlayer.level || 1), 1, LIMITS.MAX_LEVEL);
+    newPlayer.xp = clamp(Number(newPlayer.xp || 0), 0, LIMITS.MAX_XP);
 
     return newPlayer;
 }
@@ -135,14 +151,76 @@ function buildSafePlayerState(oldPlayer, incomingRaw, normalizeTelegramUser) {
                   ...normalizeObject(incoming.telegramUser)
               },
 
+        // NEVER ROLLBACK CORE PROGRESS
+        coins: Math.max(
+            Number(oldSafe?.coins || 0),
+            Number(incoming.coins || 0)
+        ),
+        gems: Math.max(
+            Number(oldSafe?.gems || 0),
+            Number(incoming.gems || 0)
+        ),
+        rewardBalance: Math.max(
+            Number(oldSafe?.rewardBalance || 0),
+            Number(incoming.rewardBalance || 0)
+        ),
+        rewardWallet: Math.max(
+            Number(oldSafe?.rewardWallet || 0),
+            Number(incoming.rewardWallet || 0)
+        ),
+        withdrawPending: Math.max(
+            Number(oldSafe?.withdrawPending || 0),
+            Number(incoming.withdrawPending || 0)
+        ),
+        level: Math.max(
+            Number(oldSafe?.level || 1),
+            Number(incoming.level || 1)
+        ),
+        xp: Math.max(
+            Number(oldSafe?.xp || 0),
+            Number(incoming.xp || 0)
+        ),
+        coinsPerClick: Math.max(
+            Number(oldSafe?.coinsPerClick || 1),
+            Number(incoming.coinsPerClick || 1)
+        ),
+        upgradeCost: Math.max(
+            Number(oldSafe?.upgradeCost || 0),
+            Number(incoming.upgradeCost || 0)
+        ),
+        zooIncome: Math.max(
+            Number(oldSafe?.zooIncome || 0),
+            Number(incoming.zooIncome || 0)
+        ),
+        expeditionBoost: Math.max(
+            Number(oldSafe?.expeditionBoost || 0),
+            Number(incoming.expeditionBoost || 0)
+        ),
+
         dailyExpeditionBoost: {
-            ...normalizeObject(oldSafe?.dailyExpeditionBoost),
-            ...normalizeObject(incoming.dailyExpeditionBoost)
+            activeUntil: Math.max(
+                Number(oldSafe?.dailyExpeditionBoost?.activeUntil || 0),
+                Number(incoming.dailyExpeditionBoost?.activeUntil || 0)
+            ),
+            lastPurchaseAt: Math.max(
+                Number(oldSafe?.dailyExpeditionBoost?.lastPurchaseAt || 0),
+                Number(incoming.dailyExpeditionBoost?.lastPurchaseAt || 0)
+            )
         },
 
         expeditionStats: {
-            ...normalizeObject(oldSafe?.expeditionStats),
-            ...normalizeObject(incoming.expeditionStats),
+            rareChanceBonus: Math.max(
+                Number(oldSafe?.expeditionStats?.rareChanceBonus || 0),
+                Number(incoming.expeditionStats?.rareChanceBonus || 0)
+            ),
+            epicChanceBonus: Math.max(
+                Number(oldSafe?.expeditionStats?.epicChanceBonus || 0),
+                Number(incoming.expeditionStats?.epicChanceBonus || 0)
+            ),
+            timeReductionSeconds: Math.max(
+                Number(oldSafe?.expeditionStats?.timeReductionSeconds || 0),
+                Number(incoming.expeditionStats?.timeReductionSeconds || 0)
+            ),
             timeBoostCharges: uniqueMergeArrays(
                 incoming.expeditionStats?.timeBoostCharges,
                 oldSafe?.expeditionStats?.timeBoostCharges
@@ -154,11 +232,28 @@ function buildSafePlayerState(oldPlayer, incomingRaw, normalizeTelegramUser) {
             ...normalizeObject(incoming.shopPurchases)
         },
 
-        animals: normalizeObject(incoming.animals || oldSafe?.animals),
+        animals: {
+            ...normalizeObject(oldSafe?.animals),
+            ...normalizeObject(incoming.animals)
+        },
 
         boxes: {
-            ...normalizeObject(oldSafe?.boxes),
-            ...normalizeObject(incoming.boxes)
+            common: Math.max(
+                Number(oldSafe?.boxes?.common || 0),
+                Number(incoming.boxes?.common || 0)
+            ),
+            rare: Math.max(
+                Number(oldSafe?.boxes?.rare || 0),
+                Number(incoming.boxes?.rare || 0)
+            ),
+            epic: Math.max(
+                Number(oldSafe?.boxes?.epic || 0),
+                Number(incoming.boxes?.epic || 0)
+            ),
+            legendary: Math.max(
+                Number(oldSafe?.boxes?.legendary || 0),
+                Number(incoming.boxes?.legendary || 0)
+            )
         },
 
         missions: {
@@ -195,6 +290,35 @@ function buildSafePlayerState(oldPlayer, incomingRaw, normalizeTelegramUser) {
             ? (incomingObj.expedition ?? null)
             : (oldSafe?.expedition ?? null),
 
+        offlineBaseHours: Math.max(
+            Number(oldSafe?.offlineBaseHours || 1),
+            Number(incoming.offlineBaseHours || 1)
+        ),
+        offlineBoostHours: Math.max(
+            Number(oldSafe?.offlineBoostHours || 0),
+            Number(incoming.offlineBoostHours || 0)
+        ),
+        offlineAdsHours: Math.max(
+            Number(oldSafe?.offlineAdsHours || 0),
+            Number(incoming.offlineAdsHours || 0)
+        ),
+        offlineMaxSeconds: Math.max(
+            Number(oldSafe?.offlineMaxSeconds || 3600),
+            Number(incoming.offlineMaxSeconds || 3600)
+        ),
+        offlineBoostMultiplier: Math.max(
+            Number(oldSafe?.offlineBoostMultiplier || 1),
+            Number(incoming.offlineBoostMultiplier || 1)
+        ),
+        offlineBoostActiveUntil: Math.max(
+            Number(oldSafe?.offlineBoostActiveUntil || 0),
+            Number(incoming.offlineBoostActiveUntil || 0)
+        ),
+        offlineBoost: Math.max(
+            Number(oldSafe?.offlineBoost || 1),
+            Number(incoming.offlineBoost || 1)
+        ),
+
         depositHistory: uniqueMergeArrays(
             incoming.depositHistory || incoming.depositsHistory || incoming.paymentHistory,
             oldSafe?.depositHistory || oldSafe?.depositsHistory || oldSafe?.paymentHistory
@@ -216,8 +340,6 @@ function buildSafePlayerState(oldPlayer, incomingRaw, normalizeTelegramUser) {
             Date.now()
         ),
 
-        // IMPORTANT:
-        // do not force Date.now() here, because it breaks offline earnings
         lastLogin: resolvedLastLogin
     };
 
