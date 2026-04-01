@@ -49,21 +49,20 @@ if (fs.existsSync(FRONTEND_DIR)) {
     app.use(express.static(FRONTEND_DIR));
 }
 
-app.use((req, res, next) => {
+app.use((req, res) => {
     if (req.path.startsWith("/api/")) {
-        return next();
-    }
-
-    if (req.path === "/healthz") {
-        return next();
+        return res.status(404).json({ error: "API route not found" });
     }
 
     if (fs.existsSync(INDEX_PATH)) {
         return res.sendFile(INDEX_PATH);
     }
 
-    return res.status(200).send("Backend działa, ale frontend nie został znaleziony.");
+    return res.status(404).send("Not found");
 });
+
+
+
 
 ensureDb();
 
