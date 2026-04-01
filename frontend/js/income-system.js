@@ -39,17 +39,17 @@ CryptoZoo.incomeSystem = {
 
             CryptoZoo.gameplay?.recalculateLevel?.();
 
-            if (CryptoZoo.gameplay?.activeScreen === "game") {
-                CryptoZoo.ui?.renderHome?.();
-                CryptoZoo.ui?.renderTopHiddenStats?.();
-            } else if (CryptoZoo.gameplay?.activeScreen === "zoo") {
-                CryptoZoo.ui?.renderTopHiddenStats?.();
-            } else if (CryptoZoo.gameplay?.activeScreen === "shop") {
+            const activeScreen = CryptoZoo.gameplay?.activeScreen || "game";
+
+            if (activeScreen === "game") {
                 CryptoZoo.ui?.renderTopHiddenStats?.();
                 CryptoZoo.ui?.renderBoostStatus?.();
-            } else if (CryptoZoo.gameplay?.activeScreen === "missions") {
+                CryptoZoo.ui?.renderDailyRewardStatus?.();
+                CryptoZoo.ui?.renderXpBar?.();
+                CryptoZoo.uiProfile?.renderTopBarOnly?.();
+            } else if (activeScreen === "shop") {
                 CryptoZoo.ui?.renderTopHiddenStats?.();
-                CryptoZoo.ui?.renderExpeditions?.();
+                CryptoZoo.ui?.renderBoostStatus?.();
             } else {
                 CryptoZoo.ui?.renderTopHiddenStats?.();
             }
