@@ -7,7 +7,8 @@ const {
     createDeposit,
     getPlayerDeposits,
     buildDepositPaymentData,
-    applyDepositExpeditionBoost
+    applyDepositExpeditionBoost,
+    getExpeditionBoostActiveUntil
 } = require("../services/deposit-service");
 const {
     verifySingleDepositById,
@@ -304,6 +305,8 @@ router.post("/api/deposit/confirm", (req, res) => {
             player.expeditionBoost,
             deposit.amount
         );
+
+        player.expeditionBoostActiveUntil = getExpeditionBoostActiveUntil();
 
         deposit.approvedAt = Date.now();
 
