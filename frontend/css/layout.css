@@ -1,10 +1,10 @@
 :root {
     --app-max-width: 560px;
-    --app-side-padding: 12px;
-    --screen-gap: 8px;
+    --app-side-padding: 10px;
+    --screen-gap: 6px;
 
-    --menu-height: 74px;
-    --menu-gap: 8px;
+    --menu-height: 64px;
+    --menu-gap: 4px;
     --menu-safe-bottom: max(env(safe-area-inset-bottom, 0px), var(--tg-safe-bottom, 0px));
 
     --safe-top: env(safe-area-inset-top, 0px);
@@ -12,7 +12,7 @@
     --safe-left: env(safe-area-inset-left, 0px);
 
     --app-height: 100dvh;
-    --content-bottom-space: calc(var(--menu-height) + var(--menu-safe-bottom) + 10px);
+    --content-bottom-space: calc(var(--menu-height) + var(--menu-safe-bottom) + 4px);
 }
 
 * {
@@ -151,7 +151,7 @@ body.telegram-webapp {
     min-height: var(--app-height);
     margin: 0 auto;
     padding:
-        max(10px, var(--safe-top))
+        max(8px, var(--safe-top))
         max(var(--app-side-padding), var(--safe-right))
         var(--content-bottom-space)
         max(var(--app-side-padding), var(--safe-left));
@@ -181,6 +181,7 @@ section,
 .container,
 .content {
     padding-bottom: 0;
+    min-height: 0;
 }
 
 .screen {
@@ -209,6 +210,8 @@ section,
     min-width: 0;
     padding-bottom: 0;
     box-sizing: border-box;
+    min-height: 0 !important;
+    height: auto !important;
 }
 
 .panel.card {
@@ -222,7 +225,7 @@ section,
     );
     border: 1px solid rgba(255, 255, 255, 0.09);
     border-radius: 24px;
-    padding: 16px;
+    padding: 14px;
     box-shadow:
         0 14px 34px rgba(0, 0, 0, 0.18),
         inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -230,7 +233,7 @@ section,
 }
 
 .panel.card h2 {
-    margin-bottom: 14px;
+    margin-bottom: 12px;
     text-align: center;
     font-size: 24px;
     font-weight: 900;
@@ -259,23 +262,23 @@ img {
 
 .menu {
     position: fixed;
-    left: 8px;
-    right: 8px;
-    bottom: calc(4px + var(--menu-safe-bottom));
+    left: 6px;
+    right: 6px;
+    bottom: calc(2px + var(--menu-safe-bottom));
     z-index: 1000;
 
     display: grid;
     grid-template-columns: repeat(6, 1fr);
-    gap: 6px;
+    gap: 4px;
 
-    padding: 6px;
+    padding: 4px;
     min-height: var(--menu-height);
 
     background: linear-gradient(180deg, rgba(10, 18, 34, 0.98) 0%, rgba(6, 11, 24, 0.99) 100%);
     border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 18px;
+    border-radius: 16px;
 
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
 }
@@ -283,7 +286,7 @@ img {
 .menu-btn {
     position: relative;
     min-width: 0;
-    height: 56px;
+    height: 48px;
     padding: 0;
 
     display: flex;
@@ -291,7 +294,7 @@ img {
     justify-content: center;
 
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 14px;
+    border-radius: 12px;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.015) 100%);
     cursor: pointer;
 
@@ -322,8 +325,8 @@ img {
 }
 
 .menu-icon {
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
     object-fit: contain;
     display: block;
     image-rendering: auto;
@@ -356,13 +359,13 @@ img {
 
 .top-bar {
     width: 100%;
-    margin: 0 0 8px;
+    margin: 0 0 6px;
 }
 
 .top-bar-shell {
     width: 100%;
-    min-height: 88px;
-    border-radius: 22px;
+    min-height: 84px;
+    border-radius: 20px;
     background:
         radial-gradient(circle at 20% 30%, rgba(66, 220, 255, 0.12) 0%, rgba(66, 220, 255, 0) 28%),
         radial-gradient(circle at 72% 20%, rgba(255, 214, 102, 0.10) 0%, rgba(255, 214, 102, 0) 24%),
@@ -379,11 +382,11 @@ img {
 .top-bar-shell::before {
     content: "";
     position: absolute;
-    left: 14px;
-    right: 14px;
-    top: 10px;
-    bottom: 10px;
-    border-radius: 18px;
+    left: 12px;
+    right: 12px;
+    top: 9px;
+    bottom: 9px;
+    border-radius: 16px;
     background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
     border: 1px solid rgba(255,255,255,0.04);
     pointer-events: none;
@@ -393,26 +396,26 @@ img {
     position: relative;
     z-index: 1;
     width: 100%;
-    min-height: 88px;
-    padding: 10px 12px;
+    min-height: 84px;
+    padding: 9px 11px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 10px;
 }
 
 .top-bar-left {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     min-width: 0;
     flex: 1 1 auto;
 }
 
 .top-profile-trigger {
     position: relative;
-    width: 56px;
-    height: 56px;
+    width: 52px;
+    height: 52px;
     flex: 0 0 auto;
     border: none;
     background: transparent;
@@ -426,8 +429,8 @@ img {
 }
 
 .top-avatar {
-    width: 56px;
-    height: 56px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
     flex: 0 0 auto;
     background:
@@ -444,8 +447,8 @@ img {
     position: absolute;
     right: 2px;
     bottom: 2px;
-    width: 13px;
-    height: 13px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
     background: linear-gradient(180deg, #6dff8b 0%, #29cb5a 100%);
     border: 2px solid rgba(9, 17, 32, 0.95);
@@ -458,7 +461,7 @@ img {
 }
 
 .top-user-name {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 900;
     color: #ffffff;
     line-height: 1.05;
@@ -472,10 +475,10 @@ img {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin-top: 6px;
-    padding: 4px 10px;
+    margin-top: 5px;
+    padding: 4px 9px;
     border-radius: 999px;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     color: #8af7a5;
     line-height: 1;
@@ -489,17 +492,17 @@ img {
 .top-bar-overlay-actions {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     flex: 0 0 auto;
 }
 
 .top-icon-chip {
-    width: 42px;
-    height: 42px;
+    width: 38px;
+    height: 38px;
     border: none;
     border-radius: 50%;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 900;
     color: #ffffff;
     background: rgba(10, 18, 35, 0.52);
@@ -537,21 +540,21 @@ img {
 .game-main-card {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
 .home-stats-panel {
     width: 100%;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 9px;
-    margin: 0 0 12px;
+    gap: 8px;
+    margin: 0 0 10px;
 }
 
 .home-stat-box {
     position: relative;
     min-width: 0;
-    min-height: 78px;
+    min-height: 72px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -561,8 +564,8 @@ img {
         rgba(13, 20, 37, 0.94) 100%
     );
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 18px;
-    padding: 11px 12px;
+    border-radius: 16px;
+    padding: 10px 11px;
     box-shadow:
         0 14px 24px rgba(0, 0, 0, 0.18),
         inset 0 1px 0 rgba(255,255,255,0.05);
@@ -585,13 +588,13 @@ img {
 .home-stat-title {
     font-size: 10px;
     color: rgba(255,255,255,0.68);
-    margin-bottom: 6px;
+    margin-bottom: 5px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .home-stat-value {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 900;
     color: #ffffff;
     line-height: 1.05;
@@ -602,18 +605,18 @@ img {
 .tap-area {
     position: relative;
     width: 100%;
-    min-height: 300px;
+    min-height: 280px;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: visible;
-    padding: 10px 0 16px;
+    padding: 8px 0 12px;
 }
 
 .tap-glow {
     position: absolute;
-    width: 290px;
-    height: 290px;
+    width: 270px;
+    height: 270px;
     border-radius: 50%;
     background:
         radial-gradient(circle, rgba(58, 210, 255, 0.22) 0%, rgba(58, 210, 255, 0.10) 36%, rgba(58, 210, 255, 0) 70%);
@@ -624,8 +627,8 @@ img {
 .tap-button {
     position: relative;
     z-index: 1;
-    width: 210px;
-    height: 210px;
+    width: 196px;
+    height: 196px;
     border: none;
     border-radius: 50%;
     cursor: pointer;
@@ -643,10 +646,10 @@ img {
 .tap-button::before {
     content: "";
     position: absolute;
-    top: -36px;
-    right: -36px;
-    bottom: -36px;
-    left: -36px;
+    top: -30px;
+    right: -30px;
+    bottom: -30px;
+    left: -30px;
     border-radius: 50%;
     background: transparent;
 }
@@ -661,7 +664,7 @@ img {
 }
 
 .home-tap-title {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 900;
     color: #ffffff;
     letter-spacing: 0.6px;
@@ -669,7 +672,7 @@ img {
 
 .home-tap-subtitle {
     margin-top: 6px;
-    font-size: 13px;
+    font-size: 12px;
     color: rgba(255,255,255,0.74);
 }
 
@@ -677,7 +680,7 @@ img {
     width: 100%;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 10px;
+    gap: 8px;
     align-items: stretch;
     margin-top: 2px;
 }
@@ -685,8 +688,8 @@ img {
 .home-income-left,
 .home-boost-right {
     min-width: 0;
-    border-radius: 18px;
-    padding: 12px 14px;
+    border-radius: 16px;
+    padding: 11px 12px;
     background: linear-gradient(
         180deg,
         rgba(20, 29, 49, 0.92) 0%,
@@ -708,8 +711,8 @@ img {
 }
 
 .home-income-value {
-    margin-top: 6px;
-    font-size: 24px;
+    margin-top: 5px;
+    font-size: 22px;
     font-weight: 900;
     color: #ffffff;
     line-height: 1.05;
@@ -717,7 +720,7 @@ img {
 }
 
 .home-boost-right {
-    min-width: 138px;
+    min-width: 132px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -726,9 +729,9 @@ img {
 .home-boost-button {
     margin-top: 8px;
     border: none;
-    border-radius: 14px;
-    padding: 10px 12px;
-    font-size: 13px;
+    border-radius: 12px;
+    padding: 9px 11px;
+    font-size: 12px;
     font-weight: 900;
     cursor: pointer;
     color: #1a1a1a;
@@ -741,8 +744,8 @@ img {
 }
 
 .home-boost-status {
-    margin-top: 8px;
-    font-size: 12px;
+    margin-top: 7px;
+    font-size: 11px;
     font-weight: 700;
     color: rgba(255,255,255,0.78);
     line-height: 1.3;
@@ -750,16 +753,16 @@ img {
 
 .home-zoo-preview {
     width: 100%;
-    margin-top: 10px;
-    margin-bottom: 10px;
+    margin-top: 8px;
+    margin-bottom: 8px;
     background: linear-gradient(
         180deg,
         rgba(20, 29, 49, 0.92) 0%,
         rgba(11, 18, 34, 0.94) 100%
     );
     border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 22px;
-    padding: 14px;
+    border-radius: 20px;
+    padding: 12px;
     box-shadow:
         0 14px 24px rgba(0, 0, 0, 0.18),
         inset 0 1px 0 rgba(255,255,255,0.04);
@@ -770,13 +773,13 @@ img {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 12px;
+    gap: 8px;
+    margin-bottom: 10px;
     min-width: 0;
 }
 
 .home-zoo-preview-title {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 900;
     color: #ffffff;
     min-width: 0;
@@ -784,8 +787,8 @@ img {
 
 .home-zoo-preview-button {
     border: none;
-    border-radius: 14px;
-    padding: 9px 13px;
+    border-radius: 12px;
+    padding: 8px 12px;
     font-weight: 800;
     cursor: pointer;
     color: #1a1a1a;
@@ -797,51 +800,51 @@ img {
 .home-zoo-preview-list {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 10px;
+    gap: 8px;
 }
 
 .home-zoo-preview-card {
     min-width: 0;
     background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.03) 100%);
     border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 18px;
-    padding: 10px 8px;
+    border-radius: 16px;
+    padding: 9px 7px;
     text-align: center;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
 }
 
 .home-zoo-preview-card img {
-    width: 52px;
-    height: 52px;
+    width: 48px;
+    height: 48px;
     object-fit: contain;
-    margin: 0 auto 8px;
+    margin: 0 auto 7px;
 }
 
 .home-zoo-preview-name {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 900;
     color: #ffffff;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
 }
 
 .home-zoo-preview-meta {
-    font-size: 11px;
+    font-size: 10px;
     color: rgba(255,255,255,0.78);
     line-height: 1.35;
-    margin-bottom: 8px;
+    margin-bottom: 7px;
     word-break: break-word;
 }
 
 .home-zoo-preview-actions {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 5px;
 }
 
 .home-zoo-preview-actions button {
     border: none;
-    border-radius: 11px;
-    padding: 8px 5px;
+    border-radius: 10px;
+    padding: 7px 5px;
     font-size: 10px;
     font-weight: 800;
     cursor: pointer;
@@ -863,19 +866,19 @@ img {
     margin-top: 0;
     display: grid;
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 8px;
 }
 
 .home-quick-card {
     width: 100%;
     min-width: 0;
     border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 18px;
-    padding: 13px;
+    border-radius: 16px;
+    padding: 12px;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     text-align: left;
     color: #ffffff;
     background: linear-gradient(
@@ -898,14 +901,14 @@ img {
 }
 
 .home-quick-icon {
-    width: 46px;
-    height: 46px;
-    border-radius: 14px;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
     flex: 0 0 auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 23px;
+    font-size: 21px;
     background: rgba(255,255,255,0.06);
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
 }
@@ -916,15 +919,15 @@ img {
 }
 
 .home-quick-title {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 900;
     color: #ffffff;
     line-height: 1.1;
 }
 
 .home-quick-subtitle {
-    margin-top: 4px;
-    font-size: 11px;
+    margin-top: 3px;
+    font-size: 10px;
     color: rgba(255,255,255,0.72);
     line-height: 1.3;
     word-break: break-word;
@@ -951,7 +954,7 @@ img {
     content: "";
     position: absolute;
     inset: 0;
-    border-radius: 18px;
+    border-radius: 16px;
     pointer-events: none;
     background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 42%);
 }
@@ -1176,16 +1179,28 @@ img {
     }
 }
 
-/* ===== ZOO / LIST SPACING FIX ===== */
+/* ===== MOCNY FIX ZOO / SHOP / LIST ===== */
+
+#screen-zoo,
+#screen-shop,
+#screen-missions,
+#screen-minigames,
+#screen-ranking {
+    min-height: 0 !important;
+    height: auto !important;
+}
 
 #screen-zoo .panel.card,
 #screen-shop .panel.card,
 #screen-missions .panel.card,
 #screen-minigames .panel.card,
 #screen-ranking .panel.card {
-    min-height: auto;
-    height: auto;
-    padding-bottom: 12px;
+    min-height: unset !important;
+    height: fit-content !important;
+    flex: 0 0 auto !important;
+    align-self: flex-start !important;
+    padding-bottom: 6px !important;
+    margin-bottom: 0 !important;
 }
 
 #zooList,
@@ -1193,9 +1208,11 @@ img {
 .animal-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    margin-bottom: 0;
-    padding-bottom: 0;
+    gap: 10px;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
 }
 
 #zooList > *:last-child,
@@ -1204,42 +1221,50 @@ img {
     margin-bottom: 0 !important;
 }
 
+#screen-zoo .panel.card::after,
+#screen-shop .panel.card::after,
+#screen-missions .panel.card::after,
+#screen-minigames .panel.card::after,
+#screen-ranking .panel.card::after {
+    content: none !important;
+}
+
 /* ===== RESPONSIVE ===== */
 
 @media (max-width: 560px) {
     :root {
         --app-side-padding: 8px;
-        --screen-gap: 8px;
-        --menu-height: 72px;
-        --menu-gap: 6px;
-        --content-bottom-space: calc(var(--menu-height) + var(--menu-safe-bottom) + 8px);
+        --screen-gap: 6px;
+        --menu-height: 60px;
+        --menu-gap: 4px;
+        --content-bottom-space: calc(var(--menu-height) + var(--menu-safe-bottom) + 3px);
     }
 
     .menu {
-        left: 8px;
-        right: 8px;
-        bottom: calc(4px + var(--menu-safe-bottom));
-        gap: 6px;
-        padding: 6px;
-        border-radius: 18px;
+        left: 5px;
+        right: 5px;
+        bottom: calc(2px + var(--menu-safe-bottom));
+        gap: 4px;
+        padding: 4px;
+        border-radius: 15px;
     }
 
     .menu-btn {
-        height: 54px;
-        border-radius: 14px;
+        height: 46px;
+        border-radius: 11px;
     }
 
     .menu-icon {
-        width: 38px;
-        height: 38px;
+        width: 32px;
+        height: 32px;
     }
 
     .top-bar {
-        margin-bottom: 8px;
+        margin-bottom: 6px;
     }
 
     .top-bar-shell {
-        min-height: 78px;
+        min-height: 76px;
         border-radius: 18px;
     }
 
@@ -1252,28 +1277,28 @@ img {
     }
 
     .top-bar-main {
-        min-height: 78px;
+        min-height: 76px;
         padding: 8px 10px;
-        gap: 10px;
+        gap: 8px;
     }
 
     .top-bar-left {
-        gap: 10px;
+        gap: 8px;
     }
 
     .top-profile-trigger {
-        width: 48px;
-        height: 48px;
+        width: 46px;
+        height: 46px;
     }
 
     .top-avatar {
-        width: 48px;
-        height: 48px;
+        width: 46px;
+        height: 46px;
     }
 
     .top-profile-ring {
-        width: 12px;
-        height: 12px;
+        width: 11px;
+        height: 11px;
         right: 1px;
         bottom: 1px;
     }
@@ -1283,31 +1308,31 @@ img {
     }
 
     .top-user-status {
-        font-size: 10px;
-        margin-top: 5px;
-        padding: 3px 8px;
+        font-size: 9px;
+        margin-top: 4px;
+        padding: 3px 7px;
     }
 
     .top-bar-overlay-actions {
-        gap: 6px;
+        gap: 5px;
     }
 
     .top-icon-chip {
-        width: 36px;
-        height: 36px;
-        font-size: 16px;
+        width: 34px;
+        height: 34px;
+        font-size: 15px;
     }
 
     .home-stats-panel {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
-        margin-bottom: 8px;
+        gap: 7px;
+        margin-bottom: 7px;
     }
 
     .home-stat-box {
-        min-height: 70px;
-        padding: 10px;
-        border-radius: 16px;
+        min-height: 66px;
+        padding: 9px;
+        border-radius: 14px;
     }
 
     .home-stat-title {
@@ -1315,37 +1340,37 @@ img {
     }
 
     .home-stat-value {
-        font-size: 17px;
+        font-size: 16px;
     }
 
     .tap-area {
-        min-height: 260px;
-        padding: 8px 0 14px;
+        min-height: 244px;
+        padding: 8px 0 12px;
     }
 
     .tap-glow {
-        width: 245px;
-        height: 245px;
+        width: 235px;
+        height: 235px;
     }
 
     .tap-button {
-        width: 182px;
-        height: 182px;
+        width: 176px;
+        height: 176px;
     }
 
     .tap-button::before {
-        top: -30px;
-        right: -30px;
-        bottom: -30px;
-        left: -30px;
+        top: -26px;
+        right: -26px;
+        bottom: -26px;
+        left: -26px;
     }
 
     .home-tap-title {
-        font-size: 18px;
+        font-size: 17px;
     }
 
     .home-tap-subtitle {
-        font-size: 12px;
+        font-size: 11px;
     }
 
     .home-income-strip {
@@ -1353,7 +1378,7 @@ img {
     }
 
     .home-income-value {
-        font-size: 20px;
+        font-size: 19px;
     }
 
     .home-boost-right {
@@ -1361,25 +1386,25 @@ img {
     }
 
     .home-zoo-preview {
-        margin-top: 8px;
-        margin-bottom: 8px;
-        padding: 11px;
+        margin-top: 6px;
+        margin-bottom: 6px;
+        padding: 10px;
         border-radius: 18px;
     }
 
     .home-zoo-preview-head {
         flex-wrap: wrap;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
     }
 
     .home-zoo-preview-title {
-        font-size: 15px;
+        font-size: 14px;
     }
 
     .home-zoo-preview-button {
         width: 100%;
-        padding: 8px 11px;
-        font-size: 12px;
+        padding: 8px 10px;
+        font-size: 11px;
     }
 
     .home-zoo-preview-list {
@@ -1389,13 +1414,13 @@ img {
 
     .home-zoo-preview-card {
         padding: 8px 6px;
-        border-radius: 16px;
+        border-radius: 14px;
     }
 
     .home-zoo-preview-card img {
-        width: 42px;
-        height: 42px;
-        margin-bottom: 6px;
+        width: 40px;
+        height: 40px;
+        margin-bottom: 5px;
     }
 
     .home-zoo-preview-name {
@@ -1403,43 +1428,43 @@ img {
     }
 
     .home-zoo-preview-meta {
-        font-size: 10px;
-        margin-bottom: 6px;
+        font-size: 9px;
+        margin-bottom: 5px;
     }
 
     .home-zoo-preview-actions button {
         padding: 6px 4px;
-        font-size: 9px;
-        border-radius: 9px;
+        font-size: 8px;
+        border-radius: 8px;
     }
 
     .home-quick-panel {
-        gap: 8px;
+        gap: 7px;
     }
 
     .home-quick-card {
-        padding: 11px;
-        border-radius: 16px;
-        gap: 10px;
+        padding: 10px;
+        border-radius: 14px;
+        gap: 9px;
     }
 
     .home-quick-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
-        border-radius: 12px;
+        width: 38px;
+        height: 38px;
+        font-size: 18px;
+        border-radius: 11px;
     }
 
     .home-quick-title {
-        font-size: 13px;
+        font-size: 12px;
     }
 
     .home-quick-subtitle {
-        font-size: 10px;
+        font-size: 9px;
     }
 
     #homeDailyBtn::after {
-        border-radius: 16px;
+        border-radius: 14px;
     }
 
     .profile-card {
@@ -1501,50 +1526,49 @@ img {
     }
 
     .panel.card {
-        border-radius: 20px;
-        padding: 14px;
+        border-radius: 18px;
+        padding: 12px;
     }
 
     .panel.card h2 {
-        font-size: 22px;
+        font-size: 21px;
     }
 }
 
 @media (max-width: 400px) {
     :root {
-        --menu-height: 68px;
-        --menu-gap: 5px;
-        --content-bottom-space: calc(var(--menu-height) + var(--menu-safe-bottom) + 7px);
+        --menu-height: 56px;
+        --content-bottom-space: calc(var(--menu-height) + var(--menu-safe-bottom) + 2px);
     }
 
     .menu {
-        left: 7px;
-        right: 7px;
-        bottom: calc(3px + var(--menu-safe-bottom));
-        gap: 5px;
-        padding: 5px;
-        border-radius: 17px;
+        left: 4px;
+        right: 4px;
+        bottom: calc(1px + var(--menu-safe-bottom));
+        gap: 4px;
+        padding: 4px;
+        border-radius: 14px;
     }
 
     .menu-btn {
-        height: 50px;
-        border-radius: 13px;
+        height: 42px;
+        border-radius: 10px;
     }
 
     .menu-icon {
-        width: 36px;
-        height: 36px;
+        width: 30px;
+        height: 30px;
     }
 }
 
 @media (max-width: 380px) {
     :root {
         --app-side-padding: 6px;
-        --content-bottom-space: calc(var(--menu-height) + var(--menu-safe-bottom) + 6px);
+        --content-bottom-space: calc(var(--menu-height) + var(--menu-safe-bottom) + 2px);
     }
 
     .top-bar-shell {
-        min-height: 72px;
+        min-height: 70px;
         border-radius: 16px;
     }
 
@@ -1557,7 +1581,7 @@ img {
     }
 
     .top-bar-main {
-        min-height: 72px;
+        min-height: 70px;
         padding: 8px;
         gap: 8px;
     }
@@ -1567,32 +1591,32 @@ img {
     }
 
     .top-profile-trigger {
-        width: 42px;
-        height: 42px;
+        width: 40px;
+        height: 40px;
     }
 
     .top-avatar {
-        width: 42px;
-        height: 42px;
+        width: 40px;
+        height: 40px;
     }
 
     .top-user-name {
-        font-size: 16px;
+        font-size: 15px;
     }
 
     .top-user-status {
-        font-size: 9px;
-        padding: 3px 7px;
+        font-size: 8px;
+        padding: 3px 6px;
     }
 
     .top-bar-overlay-actions {
-        gap: 5px;
+        gap: 4px;
     }
 
     .top-icon-chip {
-        width: 34px;
-        height: 34px;
-        font-size: 15px;
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
     }
 
     .home-stats-panel {
@@ -1600,25 +1624,25 @@ img {
     }
 
     .tap-area {
-        min-height: 232px;
-        padding: 8px 0 12px;
+        min-height: 224px;
+        padding: 7px 0 10px;
     }
 
     .tap-glow {
-        width: 215px;
-        height: 215px;
+        width: 205px;
+        height: 205px;
     }
 
     .tap-button {
-        width: 166px;
-        height: 166px;
+        width: 160px;
+        height: 160px;
     }
 
     .tap-button::before {
-        top: -26px;
-        right: -26px;
-        bottom: -26px;
-        left: -26px;
+        top: -24px;
+        right: -24px;
+        bottom: -24px;
+        left: -24px;
     }
 
     .home-zoo-preview-list {
@@ -1626,7 +1650,7 @@ img {
     }
 
     .home-zoo-preview-card {
-        padding: 10px;
+        padding: 9px;
     }
 
     .profile-card {
@@ -1662,11 +1686,11 @@ img {
     }
 
     .panel.card {
-        padding: 12px;
-        border-radius: 18px;
+        padding: 10px;
+        border-radius: 16px;
     }
 
     .panel.card h2 {
-        font-size: 20px;
+        font-size: 19px;
     }
 }
