@@ -425,28 +425,27 @@ CryptoZoo.uiSettings = {
             return false;
         }
 
-        CryptoZoo.state = CryptoZoo.state || {};
-
-        CryptoZoo.state.rewardBalance = 0;
-        CryptoZoo.state.rewardWallet = Number(
-            (this.getRewardWallet() + rewardBalance).toFixed(3)
-        );
-        CryptoZoo.state.lastLogin = Date.now();
-
         try {
-            await CryptoZoo.api?.savePlayer?.();
+            const response = await CryptoZoo.api.transferRewardToWallet();
+            const transferredAmount = Number(
+                response?.transferredAmount || rewardBalance
+            );
+
+            CryptoZoo.ui?.showToast?.(
+                `${this.t("transferredToWallet", "Przeniesiono do wallet")}: ${transferredAmount.toFixed(3)}`
+            );
+
+            this.refreshSettingsModalData();
+            CryptoZoo.ui?.render?.();
+
+            return true;
         } catch (error) {
-            console.error("Transfer reward->wallet save failed:", error);
+            console.error("Transfer reward->wallet failed:", error);
+            CryptoZoo.ui?.showToast?.(
+                error?.message || this.t("transferError", "Błąd transferu")
+            );
+            return false;
         }
-
-        CryptoZoo.ui?.showToast?.(
-            `${this.t("transferredToWallet", "Przeniesiono do wallet")}: ${rewardBalance.toFixed(3)}`
-        );
-
-        this.refreshSettingsModalData();
-        CryptoZoo.ui?.render?.();
-
-        return true;
     },
 
     async requestWithdraw() {
