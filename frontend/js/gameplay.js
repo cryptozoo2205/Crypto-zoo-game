@@ -12,6 +12,7 @@ CryptoZoo.gameplay = {
     baseOfflineHours: 1,
     maxOfflineHoursWithoutAds: 4,
     maxOfflineBoostHoursFromShop: 3,
+    maxOfflineAdsHours: 12,
 
     dailyRewardCooldownMs: 24 * 60 * 60 * 1000,
     dailyRewardMaxStreak: 7,
@@ -95,6 +96,7 @@ CryptoZoo.gameplay = {
             coinsPerClick: 1,
             zooIncome: 0,
             expeditionBoost: 0,
+            expeditionBoostActiveUntil: 0,
             offlineMaxSeconds: this.maxOfflineSeconds,
             offlineBoostMultiplier: 1,
             offlineBoostActiveUntil: 0,
@@ -147,6 +149,10 @@ CryptoZoo.gameplay = {
         );
         CryptoZoo.state.zooIncome = Math.max(0, Number(CryptoZoo.state.zooIncome) || 0);
         CryptoZoo.state.expeditionBoost = Math.max(0, Number(CryptoZoo.state.expeditionBoost) || 0);
+        CryptoZoo.state.expeditionBoostActiveUntil = Math.max(
+            0,
+            Number(CryptoZoo.state.expeditionBoostActiveUntil) || 0
+        );
 
         CryptoZoo.state.offlineBaseHours = Math.max(
             1,
@@ -163,7 +169,10 @@ CryptoZoo.gameplay = {
 
         CryptoZoo.state.offlineAdsHours = Math.max(
             0,
-            Math.floor(Number(CryptoZoo.state.offlineAdsHours) || 0)
+            Math.min(
+                this.getMaxOfflineAdsHours(),
+                Math.floor(Number(CryptoZoo.state.offlineAdsHours) || 0)
+            )
         );
 
         CryptoZoo.state.offlineMaxSeconds = this.getOfflineMaxSeconds();
@@ -204,6 +213,7 @@ CryptoZoo.gameplay = {
 
         CryptoZoo.expeditions?.ensureExpeditionStats?.();
         CryptoZoo.expeditions?.ensureActiveExpeditionShape?.();
+        CryptoZoo.offlineAds?.ensureState?.();
 
         this.normalizeBoostState();
         this.normalizeOfflineBoostState();
@@ -257,8 +267,21 @@ CryptoZoo.gameplay = {
         );
     },
 
+    getMaxOfflineAdsHours() {
+        return Math.max(
+            0,
+            Number(CryptoZoo.offlineAds?.getMaxHours?.() || this.maxOfflineAdsHours)
+        );
+    },
+
     getOfflineAdsHours() {
-        return Math.max(0, Math.floor(Number(CryptoZoo.state?.offlineAdsHours) || 0));
+        return Math.max(
+            0,
+            Math.min(
+                this.getMaxOfflineAdsHours(),
+                Math.floor(Number(CryptoZoo.state?.offlineAdsHours) || 0)
+            )
+        );
     },
 
     getOfflineHoursWithoutAds() {
@@ -293,6 +316,21 @@ CryptoZoo.gameplay = {
         CryptoZoo.state.offlineBoostHours = next;
         CryptoZoo.state.offlineMaxSeconds = this.getOfflineMaxSeconds();
         return true;
+    },
+
+    addOfflineAdHours(hours = 2) {
+        const added = CryptoZoo.offlineAds?.addHours?.(hours);
+
+        if (!added) {
+            return false;
+        }
+
+        CryptoZoo.state.offlineMaxSeconds = this.getOfflineMaxSeconds();
+        return true;
+    },
+
+    grantOfflineAdReward() {
+        return CryptoZoo.offlineAds?.grantAdReward?.() || false;
     },
 
     normalizeBoostTimestamp(value) {
@@ -792,6 +830,7 @@ CryptoZoo.gameplay = {
         this.normalizeOfflineBoostState();
         CryptoZoo.expeditions?.ensureExpeditionStats?.();
         CryptoZoo.expeditions?.ensureActiveExpeditionShape?.();
+        CryptoZoo.offlineAds?.ensureState?.();
     },
 
     persistAndRender() {
@@ -883,6 +922,7 @@ window.CryptoZooDebug = {
             <button id="dbgGems">💎 +1000</button>
             <button id="dbgCoins">🪙 +1M</button>
             <button id="dbgLvl">🚀 +1 LVL</button>
+            <button id="dbgOfflineAd">📺 +2h OFFLINE AD</button>
             <button id="dbgSave">💾 SAVE</button>
             <button id="dbgReset">❌ RESET</button>
         `;
@@ -902,6 +942,10 @@ window.CryptoZooDebug = {
         document.getElementById("dbgLvl").onclick = () => {
             CryptoZoo.state.level += 1;
             this.render();
+        };
+
+        document.getElementById("dbgOfflineAd").onclick = () => {
+            CryptoZoo.gameplay?.grantOfflineAdReward?.();
         };
 
         document.getElementById("dbgSave").onclick = () => {
