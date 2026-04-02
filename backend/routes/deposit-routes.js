@@ -18,6 +18,9 @@ const { requireAdmin } = require("../services/withdraw-service");
 
 const router = express.Router();
 
+const MAX_ACTIVE_PENDING_DEPOSITS_PER_PLAYER = 1;
+const DEPOSIT_CREATE_COOLDOWN_MS = 2 * 60 * 1000;
+
 function ensurePlayerCollections(player) {
     player.depositHistory = Array.isArray(player.depositHistory)
         ? player.depositHistory
@@ -45,6 +48,41 @@ function hasItemByKey(list, key, value) {
     if (!safeValue) return false;
 
     return safeList.some((item) => String(item?.[key] || "") === safeValue);
+}
+
+function normalizeDepositStatus(value) {
+    const safe = safeString(value, "").toLowerCase();
+
+    if (["approved", "rejected", "expired", "paid", "created", "pending"].includes(safe)) {
+        return safe;
+    }
+
+    return "created";
+}
+
+function isDepositPendingLike(deposit) {
+    const status = normalizeDepositStatus(deposit?.status);
+    return status === "created" || status === "pending";
+}
+
+function getActivePendingDepositsForPlayer(db, telegramId) {
+    const deposits = Array.isArray(db?.deposits) ? db.deposits : [];
+
+    return deposits.filter(
+        (deposit) =>
+            String(deposit?.telegramId || "") === String(telegramId || "") &&
+            isDepositPendingLike(deposit)
+    );
+}
+
+function getLatestDepositCreateForPlayer(db, telegramId) {
+    const deposits = Array.isArray(db?.deposits) ? db.deposits : [];
+
+    const filtered = deposits
+        .filter((deposit) => String(deposit?.telegramId || "") === String(telegramId || ""))
+        .sort((a, b) => Number(b?.createdAt || 0) - Number(a?.createdAt || 0));
+
+    return filtered[0] || null;
 }
 
 function buildPlayerDepositHistoryEntry(deposit, txHash = "") {
@@ -142,6 +180,29 @@ router.post("/api/deposit/create", (req, res) => {
 
     if (amount <= 0) {
         return res.status(400).json({ error: "Invalid deposit amount" });
+    }
+
+    const activePendingDeposits = getActivePendingDepositsForPlayer(db, telegramId);
+    if (activePendingDeposits.length >= MAX_ACTIVE_PENDING_DEPOSITS_PER_PLAYER) {
+        return res.status(400).json({
+            error: "You already have an active pending deposit"
+        });
+    }
+
+    const latestDeposit = getLatestDepositCreateForPlayer(db, telegramId);
+    if (
+        latestDeposit &&
+        Date.now() - Number(latestDeposit.createdAt || 0) < DEPOSIT_CREATE_COOLDOWN_MS
+    ) {
+        const waitMs = Math.max(
+            0,
+            DEPOSIT_CREATE_COOLDOWN_MS - (Date.now() - Number(latestDeposit.createdAt || 0))
+        );
+
+        return res.status(400).json({
+            error: "Deposit create cooldown active",
+            waitMs
+        });
     }
 
     const deposit = createDeposit({
