@@ -358,7 +358,7 @@ CryptoZoo.config = {
             desc: "Skraca czas jednej aktywnej ekspedycji o 10 minut",
             descPl: "Skraca czas jednej aktywnej ekspedycji o 10 minut",
             descEn: "Reduces one active expedition by 10 minutes",
-            gemPrice: 2,
+            gemPrice: 3,
             effect: "expeditionTime",
             timeReductionSeconds: 600
         },
@@ -370,9 +370,33 @@ CryptoZoo.config = {
             desc: "Skraca czas jednej aktywnej ekspedycji o 30 minut",
             descPl: "Skraca czas jednej aktywnej ekspedycji o 30 minut",
             descEn: "Reduces one active expedition by 30 minutes",
-            gemPrice: 5,
+            gemPrice: 7,
             effect: "expeditionTime",
             timeReductionSeconds: 1800
+        },
+        {
+            id: "expeditionTime3",
+            name: "Rapid Expedition",
+            namePl: "Szybka Ekspedycja+",
+            nameEn: "Rapid Expedition",
+            desc: "Skraca czas jednej aktywnej ekspedycji o 1 godzinę",
+            descPl: "Skraca czas jednej aktywnej ekspedycji o 1 godzinę",
+            descEn: "Reduces one active expedition by 1 hour",
+            gemPrice: 12,
+            effect: "expeditionTime",
+            timeReductionSeconds: 3600
+        },
+        {
+            id: "expeditionTime4",
+            name: "Mega Expedition",
+            namePl: "Mega Ekspedycja",
+            nameEn: "Mega Expedition",
+            desc: "Skraca czas jednej aktywnej ekspedycji o 4 godziny",
+            descPl: "Skraca czas jednej aktywnej ekspedycji o 4 godziny",
+            descEn: "Reduces one active expedition by 4 hours",
+            gemPrice: 40,
+            effect: "expeditionTime",
+            timeReductionSeconds: 14400
         },
 
         {
@@ -383,7 +407,7 @@ CryptoZoo.config = {
             desc: "x2 offline income przez 10 minut",
             descPl: "x2 offline income przez 10 minut",
             descEn: "x2 offline income for 10 minutes",
-            gemPrice: 2,
+            gemPrice: 3,
             type: "offline",
             offlineMultiplier: 2,
             offlineDurationSeconds: 600
@@ -396,7 +420,7 @@ CryptoZoo.config = {
             desc: "x2 offline income przez 1 godzinę",
             descPl: "x2 offline income przez 1 godzinę",
             descEn: "x2 offline income for 1 hour",
-            gemPrice: 5,
+            gemPrice: 7,
             type: "offline",
             offlineMultiplier: 2,
             offlineDurationSeconds: 3600
