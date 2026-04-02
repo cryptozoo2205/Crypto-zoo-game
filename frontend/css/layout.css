@@ -12,7 +12,7 @@
     --safe-left: env(safe-area-inset-left, 0px);
 
     --app-height: 100dvh;
-    --content-bottom-space: calc(var(--menu-height) + var(--menu-safe-bottom) + 4px);
+    --content-bottom-space: calc(var(--menu-height) + var(--menu-safe-bottom) + 1px);
 }
 
 * {
@@ -264,7 +264,7 @@ img {
     position: fixed;
     left: 6px;
     right: 6px;
-    bottom: calc(2px + var(--menu-safe-bottom));
+    bottom: calc(0px + var(--menu-safe-bottom));
     z-index: 1000;
 
     display: grid;
@@ -1237,13 +1237,13 @@ img {
         --screen-gap: 6px;
         --menu-height: 60px;
         --menu-gap: 4px;
-        --content-bottom-space: calc(var(--menu-height) + var(--menu-safe-bottom) + 3px);
+        --content-bottom-space: calc(var(--menu-height) + var(--menu-safe-bottom) + 1px);
     }
 
     .menu {
         left: 5px;
         right: 5px;
-        bottom: calc(2px + var(--menu-safe-bottom));
+        bottom: calc(0px + var(--menu-safe-bottom));
         gap: 4px;
         padding: 4px;
         border-radius: 15px;
@@ -1538,13 +1538,13 @@ img {
 @media (max-width: 400px) {
     :root {
         --menu-height: 56px;
-        --content-bottom-space: calc(var(--menu-height) + var(--menu-safe-bottom) + 2px);
+        --content-bottom-space: calc(var(--menu-height) + var(--menu-safe-bottom) + 1px);
     }
 
     .menu {
         left: 4px;
         right: 4px;
-        bottom: calc(1px + var(--menu-safe-bottom));
+        bottom: calc(0px + var(--menu-safe-bottom));
         gap: 4px;
         padding: 4px;
         border-radius: 14px;
@@ -1564,7 +1564,7 @@ img {
 @media (max-width: 380px) {
     :root {
         --app-side-padding: 6px;
-        --content-bottom-space: calc(var(--menu-height) + var(--menu-safe-bottom) + 2px);
+        --content-bottom-space: calc(var(--menu-height) + var(--menu-safe-bottom) + 1px);
     }
 
     .top-bar-shell {
