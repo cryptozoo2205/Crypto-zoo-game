@@ -25,7 +25,10 @@ const withdrawRoutes = require("./routes/withdraw-routes");
 const depositRoutes = require("./routes/deposit-routes");
 const depositVerifierRoutes = require("./routes/deposit-verifier-routes");
 
-// 🔥 API ROUTING (NAJWAŻNIEJSZE)
+// 🔥 NOWE (EXPEDITION)
+const expeditionRoutes = require("./routes/expedition-routes");
+
+// 🔥 API ROUTING
 app.use("/api/health", healthRoutes);
 app.use("/api/player", playerRoutes);
 app.use("/api/ranking", rankingRoutes);
@@ -34,13 +37,16 @@ app.use("/api/withdraw", withdrawRoutes);
 app.use("/api/deposit", depositRoutes);
 app.use("/api/deposit-verifier", depositVerifierRoutes);
 
+// 🔥 DODANE EXPEDITION
+app.use("/api/expedition", expeditionRoutes);
+
 // 🖼️ STATIC FILES (frontend + assets)
 if (fs.existsSync(FRONTEND_DIR)) {
     console.log("Frontend found:", FRONTEND_DIR);
 
     app.use(express.static(FRONTEND_DIR));
 
-    // 🔥 FIX assets (TO CIĘ RATUJE)
+    // 🔥 FIX assets
     app.use("/assets", express.static(path.join(FRONTEND_DIR, "assets")));
 } else {
     console.warn("Frontend NOT found:", FRONTEND_DIR);
@@ -48,14 +54,12 @@ if (fs.existsSync(FRONTEND_DIR)) {
 
 // 🧠 FALLBACK (SPA + API guard)
 app.use((req, res) => {
-    // API nie istnieje → 404 JSON
     if (req.path.startsWith("/api/")) {
         return res.status(404).json({
             error: "API route not found"
         });
     }
 
-    // Frontend fallback (Telegram WebApp)
     if (fs.existsSync(INDEX_PATH)) {
         return res.sendFile(INDEX_PATH);
     }
