@@ -9,6 +9,7 @@
     <meta name="theme-color" content="#0b1220">
     <title>Crypto Zoo</title>
 
+    <script src='//libtl.com/sdk.js' data-zone='10822070' data-sdk='show_10822070'></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <link rel="stylesheet" href="css/base.css">
@@ -73,6 +74,71 @@
             position: fixed;
             inset: 0;
             z-index: 9999;
+        }
+
+        .home-offline-strip {
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 18px;
+            border-radius: 22px;
+            background: linear-gradient(180deg, rgba(15, 28, 74, 0.96) 0%, rgba(7, 17, 49, 0.96) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+        }
+
+        .home-offline-left {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .home-offline-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 6px;
+        }
+
+        .home-offline-main {
+            font-size: 14px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.92);
+            line-height: 1.4;
+        }
+
+        .home-offline-sub {
+            margin-top: 6px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.68);
+            line-height: 1.4;
+        }
+
+        .home-offline-right {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .home-offline-ad-btn {
+            min-width: 124px;
+            min-height: 48px;
+            padding: 0 16px;
+            border: none;
+            border-radius: 16px;
+            background: linear-gradient(180deg, #ffd94d 0%, #f0b90b 100%);
+            color: #1f1f1f;
+            font-size: 15px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 10px 24px rgba(240, 185, 11, 0.22);
+        }
+
+        .home-offline-ad-btn:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+            box-shadow: none;
         }
     </style>
 </head>
@@ -186,6 +252,29 @@
                             <div class="home-boost-title" id="langBoostTitle">⚡ X2 Boost</div>
                             <button id="homeBoostBtn" class="home-boost-button" type="button">Aktywuj</button>
                             <div id="homeBoostStatus" class="home-boost-status">Nieaktywny</div>
+                        </div>
+                    </div>
+
+                    <div class="home-offline-strip">
+                        <div class="home-offline-left">
+                            <div class="home-offline-title">💤 Zarobki offline</div>
+                            <div class="home-offline-main" id="homeOfflineMainText">
+                                Limit offline: 1h • Standardowy mnożnik offline x1
+                            </div>
+                            <div class="home-offline-sub" id="homeOfflineSubText">
+                                Limit bazowy: 1h • Shop: +0h • Ads: +0h
+                            </div>
+                        </div>
+
+                        <div class="home-offline-right">
+                            <button
+                                id="watchOfflineAdBtn"
+                                class="home-offline-ad-btn"
+                                type="button"
+                                onclick="CryptoZoo.ads && CryptoZoo.ads.showRewardedAd ? CryptoZoo.ads.showRewardedAd() : null"
+                            >
+                                📺 +2h
+                            </button>
                         </div>
                     </div>
 
@@ -684,8 +773,7 @@
     <script src="./js/shop.js"></script>
     <script src="./js/minigames.js"></script>
     <script src="./js/offline-ads-system.js"></script>
-<script src="./js/ads-provider.js"></script>
-<script src="./js/telegram-ads-ui.js"></script>
+    <script src="./js/ads-provider.js"></script>
     <script src="./js/gameplay.js"></script>
     <script src="./js/lang.js"></script>
     <script src="./js/deposit-verify-ui.js"></script>
