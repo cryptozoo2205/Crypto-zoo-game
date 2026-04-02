@@ -337,87 +337,6 @@ CryptoZoo.ui = {
         }
     },
 
-    ensureOfflineInfoBar() {
-        const incomeStrip = document.querySelector(".home-income-strip");
-        if (!incomeStrip) return null;
-
-        let bar = document.getElementById("homeOfflineInfoBar");
-
-        if (!bar) {
-            bar = document.createElement("div");
-            bar.id = "homeOfflineInfoBar";
-            bar.style.width = "100%";
-            bar.style.marginTop = "10px";
-            bar.style.marginBottom = "10px";
-            bar.style.padding = "10px 12px";
-            bar.style.borderRadius = "16px";
-            bar.style.background = "linear-gradient(180deg, rgba(18, 28, 48, 0.96) 0%, rgba(10, 17, 31, 0.95) 100%)";
-            bar.style.border = "1px solid rgba(255,255,255,0.08)";
-            bar.style.boxShadow = "0 12px 22px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255,255,255,0.04)";
-            bar.style.color = "#ffffff";
-            bar.style.fontSize = "12px";
-            bar.style.fontWeight = "700";
-            bar.style.lineHeight = "1.4";
-
-            incomeStrip.insertAdjacentElement("afterend", bar);
-        }
-
-        return bar;
-    },
-
-    removeGuideCard() {
-        const oldCard = document.getElementById("homeGuideCard");
-        if (oldCard) {
-            oldCard.remove();
-        }
-    },
-
-    renderOfflineInfo() {
-        const bar = this.ensureOfflineInfoBar();
-        if (!bar) return;
-
-        const totalHours = Math.max(
-            1,
-            Number(CryptoZoo.gameplay?.getOfflineHoursTotal?.() || 1)
-        );
-        const baseHours = Math.max(
-            1,
-            Number(CryptoZoo.gameplay?.getOfflineBaseHours?.() || 1)
-        );
-        const boostHours = Math.max(
-            0,
-            Number(CryptoZoo.gameplay?.getOfflineBoostHours?.() || 0)
-        );
-        const adsHours = Math.max(
-            0,
-            Number(CryptoZoo.gameplay?.getOfflineAdsHours?.() || 0)
-        );
-
-        const totalLabel = `${CryptoZoo.formatNumber(totalHours)}h`;
-        const details = [
-            `${this.t("baseLimit", "Limit bazowy")}: ${CryptoZoo.formatNumber(baseHours)}h`,
-            `Shop: +${CryptoZoo.formatNumber(boostHours)}h`,
-            `Ads: +${CryptoZoo.formatNumber(adsHours)}h`
-        ].join(" • ");
-
-        const offlineBoost = Math.max(1, Number(CryptoZoo.state?.offlineBoost) || 1);
-
-        const boostLabel =
-            offlineBoost > 1
-                ? `${this.t("activeMultiplier", "Aktywny mnożnik")} offline x${CryptoZoo.formatNumber(offlineBoost)}`
-                : `${this.t("standardMultiplier", "Standardowy mnożnik")} offline x1`;
-
-        bar.innerHTML = `
-            <div style="font-size:13px; font-weight:900; margin-bottom:4px;">💤 ${this.t("offlineEarnings", "Offline Earnings")}</div>
-            <div style="color: rgba(255,255,255,0.78); margin-bottom:4px;">
-                ${this.t("offlineLimit", "Limit offline")}: ${totalLabel} • ${boostLabel}
-            </div>
-            <div style="color: rgba(255,255,255,0.58); font-size:11px;">
-                ${details}
-            </div>
-        `;
-    },
-
     getDailyRewardDisplayDay() {
         const dailyReward = CryptoZoo.dailyReward;
         if (!dailyReward) return 1;
@@ -977,9 +896,7 @@ CryptoZoo.ui = {
         CryptoZoo.uiSettings?.bindSettingsModal?.();
         this.bindHomeButtons();
         this.renderBoostStatus();
-        this.renderOfflineInfo();
         this.renderDailyRewardStatus();
-        this.removeGuideCard();
     },
 
     renderTopHiddenStats() {
