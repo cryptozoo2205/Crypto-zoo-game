@@ -1,36 +1,38 @@
 :root {
-    --menu-height: 84px;
-    --menu-gap: 12px;
+    --menu-height: 74px;
+    --menu-gap: 8px;
     --menu-safe-bottom: max(env(safe-area-inset-bottom, 0px), var(--tg-safe-bottom, 0px));
 }
 
+/* ===== MENU ===== */
 .menu {
     position: fixed;
     left: 10px;
     right: 10px;
-    bottom: calc(8px + var(--menu-safe-bottom));
+    bottom: calc(4px + var(--menu-safe-bottom));
     z-index: 1000;
 
     display: grid;
     grid-template-columns: repeat(6, 1fr);
-    gap: 8px;
+    gap: 6px;
 
-    padding: 8px;
+    padding: 6px;
     min-height: var(--menu-height);
 
     background: linear-gradient(180deg, rgba(10, 18, 34, 0.98) 0%, rgba(6, 11, 24, 0.99) 100%);
     border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 22px;
+    border-radius: 18px;
 
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.24);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
 }
 
+/* ===== BUTTON ===== */
 .menu-btn {
     position: relative;
     min-width: 0;
-    height: 66px;
+    height: 56px;
     padding: 0;
 
     display: flex;
@@ -38,7 +40,7 @@
     justify-content: center;
 
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 18px;
+    border-radius: 14px;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.015) 100%);
     cursor: pointer;
 
@@ -47,6 +49,7 @@
         border-color 0.12s ease,
         background 0.12s ease,
         opacity 0.12s ease;
+
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -68,19 +71,21 @@
     border-color: rgba(255, 255, 255, 0.08);
 }
 
+/* ===== ICON ===== */
 .menu-icon {
-    width: 46px;
-    height: 46px;
+    width: 40px;
+    height: 40px;
     object-fit: contain;
     display: block;
-    image-rendering: auto;
-    filter: none;
+
     transition:
         transform 0.12s ease,
         opacity 0.12s ease;
+
     opacity: 0.96;
 }
 
+/* ===== ACTIVE ===== */
 .menu-btn.active-nav {
     border-color: rgba(255, 213, 79, 0.18);
     background:
@@ -92,59 +97,76 @@
 .menu-btn.active-nav .menu-icon {
     opacity: 1;
     transform: scale(1.04);
-    filter: none;
 }
 
-.menu-btn:not(.active-nav) .menu-icon {
-    transform: scale(1);
-}
-
+/* ===== RESPONSIVE ===== */
 @media (max-width: 560px) {
     :root {
-        --menu-height: 82px;
+        --menu-height: 72px;
     }
 
     .menu {
         left: 8px;
         right: 8px;
-        bottom: calc(8px + var(--menu-safe-bottom));
-        gap: 7px;
-        padding: 7px;
-        border-radius: 20px;
+        bottom: calc(4px + var(--menu-safe-bottom));
+        gap: 6px;
+        padding: 6px;
+        border-radius: 18px;
     }
 
     .menu-btn {
-        height: 64px;
-        border-radius: 17px;
+        height: 54px;
+        border-radius: 14px;
     }
 
     .menu-icon {
-        width: 44px;
-        height: 44px;
+        width: 38px;
+        height: 38px;
     }
 }
 
 @media (max-width: 400px) {
     :root {
-        --menu-height: 78px;
+        --menu-height: 68px;
     }
 
     .menu {
         left: 7px;
         right: 7px;
-        bottom: calc(7px + var(--menu-safe-bottom));
-        gap: 6px;
-        padding: 6px;
-        border-radius: 19px;
+        bottom: calc(3px + var(--menu-safe-bottom));
+        gap: 5px;
+        padding: 5px;
+        border-radius: 17px;
     }
 
     .menu-btn {
-        height: 60px;
-        border-radius: 16px;
+        height: 50px;
+        border-radius: 13px;
     }
 
     .menu-icon {
-        width: 42px;
-        height: 42px;
+        width: 36px;
+        height: 36px;
     }
+}
+
+/* ===== KLUCZOWE: USUNIĘCIE PUSTEJ PRZESTRZENI ===== */
+
+/* Dostosuj do swojego kontenera (WAŻNE!) */
+.screen,
+.tab-content,
+.zoo-screen,
+.main-content,
+.app-content {
+    padding-bottom: calc(var(--menu-height) + var(--menu-safe-bottom) + 6px) !important;
+}
+
+/* Lista zwierząt bliżej siebie */
+.animal-list,
+.zoo-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 0;
+    padding-bottom: 0;
 }
