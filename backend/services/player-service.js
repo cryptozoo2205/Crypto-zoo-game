@@ -78,7 +78,6 @@ function getDefaultPlayer(telegramId = "local-player", username = "Gracz") {
         upgradeCost: 50,
         zooIncome: 0,
         expeditionBoost: 0,
-        expeditionBoostActiveUntil: 0,
 
         dailyExpeditionBoost: {
             activeUntil: 0,
@@ -88,6 +87,7 @@ function getDefaultPlayer(telegramId = "local-player", username = "Gracz") {
         offlineBaseHours: 1,
         offlineBoostHours: 0,
         offlineAdsHours: 0,
+        offlineAdsResetAt: now,
         offlineMaxSeconds: 1 * 60 * 60,
         offlineBoostMultiplier: 1,
         offlineBoostActiveUntil: 0,
@@ -208,6 +208,11 @@ function normalizePlayer(input) {
         Math.floor(normalizeNumber(safeInput.offlineAdsHours, base.offlineAdsHours))
     );
 
+    const offlineAdsResetAt = Math.max(
+        0,
+        normalizeNumber(safeInput.offlineAdsResetAt, base.offlineAdsResetAt || now)
+    );
+
     const computedOfflineMaxSeconds = (offlineBaseHours + offlineBoostHours + offlineAdsHours) * 60 * 60;
 
     return {
@@ -259,10 +264,6 @@ function normalizePlayer(input) {
         upgradeCost: Math.max(0, normalizeNumber(safeInput.upgradeCost, base.upgradeCost)),
         zooIncome: Math.max(0, normalizeNumber(safeInput.zooIncome, base.zooIncome)),
         expeditionBoost: Math.max(0, normalizeNumber(safeInput.expeditionBoost, base.expeditionBoost)),
-        expeditionBoostActiveUntil: Math.max(
-            0,
-            normalizeNumber(safeInput.expeditionBoostActiveUntil, base.expeditionBoostActiveUntil)
-        ),
 
         dailyExpeditionBoost: {
             activeUntil: Math.max(
@@ -278,6 +279,7 @@ function normalizePlayer(input) {
         offlineBaseHours,
         offlineBoostHours,
         offlineAdsHours,
+        offlineAdsResetAt,
         offlineMaxSeconds: Math.max(
             computedOfflineMaxSeconds,
             normalizeNumber(safeInput.offlineMaxSeconds, computedOfflineMaxSeconds)
