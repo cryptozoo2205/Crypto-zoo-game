@@ -13,23 +13,54 @@ CryptoZoo.htmlLoader = {
             }
 
             mount.innerHTML = html;
-            this.removeDuplicateOfflinePanels();
+            this.cleanupDuplicateOfflineUi();
         } catch (e) {
             console.error("HTML load error:", path, e);
         }
     },
 
-    removeDuplicateOfflinePanels() {
-        const panels = Array.from(document.querySelectorAll(".home-offline-strip"));
+    cleanupDuplicateOfflineUi() {
+        const offlinePanels = Array.from(document.querySelectorAll(".home-offline-strip"));
+        if (offlinePanels.length > 1) {
+            for (let i = 0; i < offlinePanels.length - 1; i += 1) {
+                try {
+                    offlinePanels[i].remove();
+                } catch (error) {
+                    console.warn("Failed to remove duplicate offline panel:", error);
+                }
+            }
+        }
 
-        if (panels.length <= 1) return;
+        const offlineMainTexts = Array.from(document.querySelectorAll("#homeOfflineMainText"));
+        if (offlineMainTexts.length > 1) {
+            for (let i = 0; i < offlineMainTexts.length - 1; i += 1) {
+                try {
+                    offlineMainTexts[i].remove();
+                } catch (error) {
+                    console.warn("Failed to remove duplicate offline main text:", error);
+                }
+            }
+        }
 
-        // Zostaw ostatni panel (ten z partiala), usuń resztę
-        for (let i = 0; i < panels.length - 1; i += 1) {
-            try {
-                panels[i].remove();
-            } catch (error) {
-                console.warn("Duplicate offline panel remove failed:", error);
+        const offlineSubTexts = Array.from(document.querySelectorAll("#homeOfflineSubText"));
+        if (offlineSubTexts.length > 1) {
+            for (let i = 0; i < offlineSubTexts.length - 1; i += 1) {
+                try {
+                    offlineSubTexts[i].remove();
+                } catch (error) {
+                    console.warn("Failed to remove duplicate offline sub text:", error);
+                }
+            }
+        }
+
+        const adButtons = Array.from(document.querySelectorAll("#watchOfflineAdBtn"));
+        if (adButtons.length > 1) {
+            for (let i = 0; i < adButtons.length - 1; i += 1) {
+                try {
+                    adButtons[i].remove();
+                } catch (error) {
+                    console.warn("Failed to remove duplicate ad button:", error);
+                }
             }
         }
     },
@@ -37,13 +68,16 @@ CryptoZoo.htmlLoader = {
     async init() {
         await this.load("game", "./partials/home.html");
 
-        // dodatkowy cleanup po chwili, gdyby coś jeszcze dorysował inny skrypt
         setTimeout(() => {
-            this.removeDuplicateOfflinePanels();
-        }, 150);
+            this.cleanupDuplicateOfflineUi();
+        }, 100);
 
         setTimeout(() => {
-            this.removeDuplicateOfflinePanels();
-        }, 500);
+            this.cleanupDuplicateOfflineUi();
+        }, 300);
+
+        setTimeout(() => {
+            this.cleanupDuplicateOfflineUi();
+        }, 700);
     }
 };
