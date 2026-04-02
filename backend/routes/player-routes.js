@@ -22,6 +22,82 @@ const {
 
 const router = express.Router();
 
+const OFFLINE_ADS_MAX_HOURS = 12;
+const OFFLINE_ADS_HOURS_PER_AD = 2;
+const OFFLINE_ADS_RESET_INTERVAL_MS = 24 * 60 * 60 * 1000;
+
+function normalizeInt(value, fallback = 0) {
+    return Math.max(0, Math.floor(Number(value) || fallback || 0));
+}
+
+function applyOfflineAdsServerGuard(oldPlayer, safePlayer) {
+    const now = Date.now();
+
+    const oldOfflineBaseHours = Math.max(
+        1,
+        normalizeInt(oldPlayer?.offlineBaseHours, 1)
+    );
+
+    const oldOfflineBoostHours = Math.max(
+        0,
+        normalizeInt(oldPlayer?.offlineBoostHours, 0)
+    );
+
+    let serverResetAt = Math.max(
+        0,
+        Number(oldPlayer?.offlineAdsResetAt) || 0
+    );
+
+    if (!serverResetAt) {
+        serverResetAt = Math.max(
+            0,
+            Number(oldPlayer?.createdAt) || now
+        );
+    }
+
+    let serverHours = Math.max(
+        0,
+        Math.min(OFFLINE_ADS_MAX_HOURS, normalizeInt(oldPlayer?.offlineAdsHours, 0))
+    );
+
+    if (now - serverResetAt >= OFFLINE_ADS_RESET_INTERVAL_MS) {
+        serverHours = 0;
+        serverResetAt = now;
+    }
+
+    const requestedHours = Math.max(
+        0,
+        Math.min(OFFLINE_ADS_MAX_HOURS, normalizeInt(safePlayer?.offlineAdsHours, 0))
+    );
+
+    const maxAllowedThisSave = Math.min(
+        OFFLINE_ADS_MAX_HOURS,
+        serverHours + OFFLINE_ADS_HOURS_PER_AD
+    );
+
+    const finalOfflineAdsHours = Math.max(
+        0,
+        Math.min(requestedHours, maxAllowedThisSave)
+    );
+
+    const finalOfflineBaseHours = Math.max(
+        1,
+        normalizeInt(safePlayer?.offlineBaseHours, oldOfflineBaseHours)
+    );
+
+    const finalOfflineBoostHours = Math.max(
+        0,
+        normalizeInt(safePlayer?.offlineBoostHours, oldOfflineBoostHours)
+    );
+
+    safePlayer.offlineAdsHours = finalOfflineAdsHours;
+    safePlayer.offlineAdsResetAt = serverResetAt;
+    safePlayer.offlineMaxSeconds =
+        (finalOfflineBaseHours + finalOfflineBoostHours + finalOfflineAdsHours) * 60 * 60;
+
+    return safePlayer;
+}
+
 router.get("/api/player/:telegramId", (req, res) => {
     const db = readDb();
     const telegramId = safeString(req.params.telegramId, "local-player");
@@ -66,7 +142,7 @@ router.post("/api/player/save", (req, res) => {
         ? normalizePlayer(db.players[telegramId])
         : getDefaultPlayer(telegramId, username);
 
-    const safePlayer = buildSafePlayerState(
+    let safePlayer = buildSafePlayerState(
         oldPlayer,
         {
             ...req.body,
@@ -81,6 +157,8 @@ router.post("/api/player/save", (req, res) => {
         },
         normalizeTelegramUser
     );
+
+    safePlayer = applyOfflineAdsServerGuard(oldPlayer, safePlayer);
 
     db.players[telegramId] = safePlayer;
 
