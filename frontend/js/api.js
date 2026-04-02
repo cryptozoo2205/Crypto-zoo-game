@@ -416,9 +416,10 @@ window.CryptoZoo.api = {
 
             coins: Math.max(server.coins, local.coins),
             gems: Math.max(server.gems, local.gems),
-            rewardBalance: Math.max(server.rewardBalance, local.rewardBalance),
-            rewardWallet: Math.max(server.rewardWallet, local.rewardWallet),
-            withdrawPending: Math.max(server.withdrawPending, local.withdrawPending),
+
+            rewardBalance: server.rewardBalance,
+            rewardWallet: server.rewardWallet,
+            withdrawPending: server.withdrawPending,
 
             level: Math.max(server.level, local.level),
             xp: Math.max(server.xp, local.xp),
@@ -817,6 +818,75 @@ window.CryptoZoo.api = {
     async savePlayer() {
         this.markDirty();
         return CryptoZoo.state;
+    },
+
+    async transferRewardToWallet() {
+        const response = await this.request("/reward/transfer", {
+            method: "POST",
+            body: JSON.stringify({
+                telegramId: this.getPlayerId(),
+                username: this.getUsername()
+            }),
+            timeoutMs: 4000
+        });
+
+        const player = this.unwrapPlayerResponse(response);
+
+        if (player && typeof player === "object") {
+            CryptoZoo.state = this.mergeStates(player, CryptoZoo.state || {});
+            this.writeLocalState(CryptoZoo.state);
+
+            const payload = this.getSavePayload();
+            this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
+            this.pendingDirty = false;
+        }
+
+        return response;
+    },
+
+    async createWithdrawRequest(amount) {
+        const safeAmount = Number(amount) || 0;
+
+        const response = await this.request("/withdraw/request", {
+            method: "POST",
+            body: JSON.stringify({
+                telegramId: this.getPlayerId(),
+                username: this.getUsername(),
+                amount: safeAmount
+            }),
+            timeoutMs: 5000
+        });
+
+        const player = this.unwrapPlayerResponse(response);
+
+        if (player && typeof player === "object") {
+            CryptoZoo.state = this.mergeStates(player, CryptoZoo.state || {});
+            this.writeLocalState(CryptoZoo.state);
+
+            const payload = this.getSavePayload();
+            this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
+            this.pendingDirty = false;
+        }
+
+        return response;
+    },
+
+    async loadWithdrawHistory() {
+        const response = await this.request(`/withdraw/${this.getPlayerId()}`, {
+            method: "GET",
+            timeoutMs: 4000
+        });
+
+        return Array.isArray(response?.requests) ? response.requests : [];
+    },
+
+    async loadDepositsHistory() {
+        const response = await this.request(`/deposit/${this.getPlayerId()}`, {
+            method: "GET",
+            timeoutMs: 4000
+        });
+
+        return Array.isArray(response?.deposits) ? response.deposits : [];
     },
 
     async syncPendingDeposits(forceReload = false) {
