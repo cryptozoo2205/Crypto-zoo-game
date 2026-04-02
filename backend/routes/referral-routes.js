@@ -3,12 +3,16 @@ const express = require("express");
 const { readDb, writeDb } = require("../db/db");
 const { REFERRAL_REWARDS } = require("../config/game-config");
 const { safeString, normalizeNumber } = require("../utils/helpers");
-const { getPlayerOrCreate, normalizePlayer, normalizeReferrals } = require("../services/player-service");
+const {
+    getPlayerOrCreate,
+    normalizePlayer,
+    normalizeReferrals
+} = require("../services/player-service");
 const { syncReferralLinkState } = require("../services/referral-service");
 
 const router = express.Router();
 
-router.get("/api/referrals/:telegramId", (req, res) => {
+router.get("/referrals/:telegramId", (req, res) => {
     const db = readDb();
     const telegramId = safeString(req.params.telegramId, "");
 
