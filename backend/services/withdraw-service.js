@@ -30,6 +30,12 @@ function getNow() {
     return Date.now();
 }
 
+function logSuspiciousWithdraw(message, payload = {}) {
+    try {
+        console.warn("[withdraw-guard]", message, payload);
+    } catch (_) {}
+}
+
 function getPlayerCreatedAtMs(player) {
     const createdAt =
         Number(player?.createdAt) ||
@@ -173,6 +179,13 @@ function validateWithdrawRequest(db, player, amount) {
         };
     }
 
+    if (safeAmount > normalizeRewardNumber(LIMITS?.MAX_WITHDRAW, 100000)) {
+        return {
+            ok: false,
+            error: "Withdraw amount too high"
+        };
+    }
+
     const level = getPlayerLevel(player);
     if (level < MIN_WITHDRAW_LEVEL) {
         return {
@@ -244,7 +257,7 @@ function applyCreateWithdrawToPlayer(player, amount) {
     const currentWithdrawPending = getPlayerWithdrawPending(player);
 
     player.rewardWallet = normalizeRewardNumber(
-        currentRewardWallet - safeAmount,
+        Math.max(0, currentRewardWallet - safeAmount),
         0
     );
 
@@ -258,49 +271,101 @@ function applyCreateWithdrawToPlayer(player, amount) {
     return player;
 }
 
-function applyPaidWithdrawToPlayer(player, withdrawRequest) {
-    const grossAmount = normalizeRewardNumber(
+function getWithdrawGrossAmount(withdrawRequest) {
+    return normalizeRewardNumber(
         withdrawRequest?.grossRewardAmount ??
-        withdrawRequest?.rewardAmount ??
-        withdrawRequest?.amount,
+            withdrawRequest?.rewardAmount ??
+            withdrawRequest?.amount,
         0
     );
+}
 
-    const currentWithdrawPending = getPlayerWithdrawPending(player);
+function validateWithdrawProcessing(player, withdrawRequest) {
+    if (!player || !withdrawRequest) {
+        return {
+            ok: false,
+            error: "Missing player or withdraw request"
+        };
+    }
+
+    const status = safeString(withdrawRequest?.status, "pending").toLowerCase();
+    if (status !== "pending") {
+        return {
+            ok: false,
+            error: "Withdraw request already processed"
+        };
+    }
+
+    const grossAmount = getWithdrawGrossAmount(withdrawRequest);
+    const pendingAmount = getPlayerWithdrawPending(player);
+
+    if (grossAmount <= 0) {
+        logSuspiciousWithdraw("invalid_gross_amount", {
+            withdrawId: withdrawRequest?.id,
+            grossAmount
+        });
+
+        return {
+            ok: false,
+            error: "Invalid withdraw gross amount"
+        };
+    }
+
+    if (pendingAmount < grossAmount) {
+        logSuspiciousWithdraw("pending_less_than_gross", {
+            withdrawId: withdrawRequest?.id,
+            telegramId: player?.telegramId,
+            pendingAmount,
+            grossAmount
+        });
+
+        return {
+            ok: false,
+            error: "Player pending balance mismatch"
+        };
+    }
+
+    return {
+        ok: true,
+        grossAmount,
+        pendingAmount
+    };
+}
+
+function applyPaidWithdrawToPlayer(player, withdrawRequest) {
+    const validation = validateWithdrawProcessing(player, withdrawRequest);
+    if (!validation.ok) {
+        return null;
+    }
 
     player.withdrawPending = normalizeRewardNumber(
-        Math.max(0, currentWithdrawPending - grossAmount),
+        Math.max(0, validation.pendingAmount - validation.grossAmount),
         0
     );
 
     player.updatedAt = getNow();
-
     return player;
 }
 
 function applyRejectedWithdrawToPlayer(player, withdrawRequest) {
-    const grossAmount = normalizeRewardNumber(
-        withdrawRequest?.grossRewardAmount ??
-        withdrawRequest?.rewardAmount ??
-        withdrawRequest?.amount,
-        0
-    );
+    const validation = validateWithdrawProcessing(player, withdrawRequest);
+    if (!validation.ok) {
+        return null;
+    }
 
-    const currentWithdrawPending = getPlayerWithdrawPending(player);
     const currentRewardWallet = getPlayerRewardWallet(player);
 
     player.withdrawPending = normalizeRewardNumber(
-        Math.max(0, currentWithdrawPending - grossAmount),
+        Math.max(0, validation.pendingAmount - validation.grossAmount),
         0
     );
 
     player.rewardWallet = normalizeRewardNumber(
-        currentRewardWallet + grossAmount,
+        currentRewardWallet + validation.grossAmount,
         0
     );
 
     player.updatedAt = getNow();
-
     return player;
 }
 
@@ -309,9 +374,20 @@ function markWithdrawAsPaid(withdrawRequest, note = "", payoutTxHash = "") {
         return null;
     }
 
+    const currentStatus = safeString(withdrawRequest.status, "pending").toLowerCase();
+    if (currentStatus !== "pending") {
+        logSuspiciousWithdraw("mark_paid_non_pending", {
+            withdrawId: withdrawRequest?.id,
+            status: currentStatus
+        });
+        return null;
+    }
+
     withdrawRequest.status = "paid";
     withdrawRequest.note = safeString(note || "");
-    withdrawRequest.payoutTxHash = safeString(payoutTxHash || withdrawRequest.payoutTxHash || "");
+    withdrawRequest.payoutTxHash = safeString(
+        payoutTxHash || withdrawRequest.payoutTxHash || ""
+    );
     withdrawRequest.payoutError = "";
     withdrawRequest.updatedAt = getNow();
     withdrawRequest.processedAt = getNow();
@@ -321,6 +397,15 @@ function markWithdrawAsPaid(withdrawRequest, note = "", payoutTxHash = "") {
 
 function markWithdrawAsRejected(withdrawRequest, note = "") {
     if (!withdrawRequest || typeof withdrawRequest !== "object") {
+        return null;
+    }
+
+    const currentStatus = safeString(withdrawRequest.status, "pending").toLowerCase();
+    if (currentStatus !== "pending") {
+        logSuspiciousWithdraw("mark_rejected_non_pending", {
+            withdrawId: withdrawRequest?.id,
+            status: currentStatus
+        });
         return null;
     }
 
@@ -373,8 +458,10 @@ module.exports = {
     getWithdrawUsdAmount,
     getWithdrawFeeAmount,
     getWithdrawNetAmount,
+    getWithdrawGrossAmount,
 
     validateWithdrawRequest,
+    validateWithdrawProcessing,
     applyCreateWithdrawToPlayer,
     applyPaidWithdrawToPlayer,
     applyRejectedWithdrawToPlayer,
