@@ -45,6 +45,7 @@ CryptoZoo.gameplay = {
 
         const lastScreen = sessionStorage.getItem("cryptozoo_last_screen") || "game";
         this.showScreen(lastScreen, true);
+        this.requestRender(true);
 
         this.startIncomeTimer();
         this.startExpeditionTimer();
@@ -546,11 +547,15 @@ CryptoZoo.gameplay = {
             return true;
         }
 
+        this.activeScreen = targetName;
+
+        if (typeof sessionStorage !== "undefined") {
+            sessionStorage.setItem("cryptozoo_last_screen", targetName);
+        }
+
         const result = CryptoZoo.navigation?.show?.(targetName);
 
-        if (typeof targetName === "string" && targetName) {
-            this.activeScreen = targetName;
-        }
+        this.requestRender(true);
 
         return result;
     },
