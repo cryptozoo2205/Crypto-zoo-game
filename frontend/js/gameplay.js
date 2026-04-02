@@ -16,7 +16,7 @@ CryptoZoo.gameplay = {
     dailyRewardCooldownMs: 24 * 60 * 60 * 1000,
     dailyRewardMaxStreak: 7,
     tapTouchIds: null,
-    tapAreaPadding: 55,
+    tapAreaPadding: 28,
 
     tapSaveTimer: null,
     tapSaveDelayMs: 1200,
@@ -377,6 +377,31 @@ CryptoZoo.gameplay = {
         return false;
     },
 
+    isPointInsideTapZone(clientX, clientY, tapButton) {
+        if (!tapButton) return false;
+
+        const rect = tapButton.getBoundingClientRect();
+        if (!rect || rect.width <= 0 || rect.height <= 0) return false;
+
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        const baseRadius = Math.min(rect.width, rect.height) / 2;
+        const extraPadding = Math.max(0, Number(this.tapAreaPadding) || 0);
+        const hitRadius = baseRadius + extraPadding;
+
+        const dx = clientX - centerX;
+        const dy = clientY - centerY;
+
+        return (dx * dx + dy * dy) <= (hitRadius * hitRadius);
+    },
+
+    getValidTapTouches(touches, tapButton) {
+        return Array.from(touches || []).filter((touch) => {
+            return this.isPointInsideTapZone(touch.clientX, touch.clientY, tapButton);
+        });
+    },
+
     bindTap() {
         const tapButton = document.getElementById("tapButton");
         const tapArea = document.querySelector(".tap-area");
@@ -407,6 +432,18 @@ CryptoZoo.gameplay = {
         tapButton.onclick = (e) => {
             e.preventDefault();
             e.stopPropagation();
+
+            const pointX = typeof e.clientX === "number" ? e.clientX : null;
+            const pointY = typeof e.clientY === "number" ? e.clientY : null;
+
+            if (
+                pointX !== null &&
+                pointY !== null &&
+                !this.isPointInsideTapZone(pointX, pointY, tapButton)
+            ) {
+                return;
+            }
+
             triggerTap(1);
         };
 
@@ -415,18 +452,20 @@ CryptoZoo.gameplay = {
             e.stopPropagation();
 
             if (this.isInteractiveBlocked(e.target)) return;
+            if (!this.isPointInsideTapZone(e.clientX, e.clientY, tapButton)) return;
+
             triggerTap(1);
         };
 
         tapArea.addEventListener("touchstart", (e) => {
             if (this.isInteractiveBlocked(e.target)) return;
 
-            const changedTouches = Array.from(e.changedTouches || []);
-            if (!changedTouches.length) return;
+            const validTouches = this.getValidTapTouches(e.changedTouches, tapButton);
+            if (!validTouches.length) return;
 
             let newTapCount = 0;
 
-            changedTouches.forEach((touch) => {
+            validTouches.forEach((touch) => {
                 const touchId = String(touch.identifier);
 
                 if (this.tapTouchIds.has(touchId)) return;
