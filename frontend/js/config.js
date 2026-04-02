@@ -265,7 +265,7 @@ CryptoZoo.config = {
             desc: "+2 coins do każdego kliknięcia",
             descPl: "+2 coins do każdego kliknięcia",
             descEn: "+2 coins to every click",
-            price: 1800,
+            price: 2200,
             priceScale: 1.24,
             type: "click",
             clickValueBonus: 2
@@ -305,7 +305,7 @@ CryptoZoo.config = {
             desc: "+1 level do wszystkich posiadanych zwierząt",
             descPl: "+1 level do wszystkich posiadanych zwierząt",
             descEn: "+1 level to all owned animals",
-            price: 12000,
+            price: 18000,
             priceScale: 1.27,
             type: "income",
             incomeBonus: 1
@@ -318,7 +318,7 @@ CryptoZoo.config = {
             desc: "+2 level do wszystkich posiadanych zwierząt",
             descPl: "+2 level do wszystkich posiadanych zwierząt",
             descEn: "+2 levels to all owned animals",
-            price: 65000,
+            price: 90000,
             priceScale: 1.30,
             type: "income",
             incomeBonus: 2
@@ -331,7 +331,7 @@ CryptoZoo.config = {
             desc: "+4 level do wszystkich posiadanych zwierząt",
             descPl: "+4 level do wszystkich posiadanych zwierząt",
             descEn: "+4 levels to all owned animals",
-            price: 260000,
+            price: 340000,
             priceScale: 1.33,
             type: "income",
             incomeBonus: 4
