@@ -1,5 +1,7 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
+await CryptoZoo.htmlLoader.init();
+
 CryptoZoo.init = {
     started: false,
     minLoadingVisibleMs: 180,
