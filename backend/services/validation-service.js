@@ -1,5 +1,5 @@
 const { LIMITS } = require("../config/game-config");
-const { clamp } = require("../utils/helpers");
+const { clamp, normalizeRewardNumber } = require("../utils/helpers");
 const { normalizePlayer } = require("./player-service");
 
 function normalizeObject(value) {
@@ -44,19 +44,182 @@ function uniqueMergeArrays(primary, fallback) {
     return result;
 }
 
+function getMaxOwnedPerAnimal() {
+    return Math.max(1, Number(LIMITS?.MAX_OWNED_PER_ANIMAL) || Number(LIMITS?.maxOwnedPerAnimal) || 50);
+}
+
+function getMaxLevelPerAnimal() {
+    return Math.max(1, Number(LIMITS?.MAX_LEVEL_PER_ANIMAL) || Number(LIMITS?.maxLevelPerAnimal) || 100);
+}
+
+function getMaxCoinsGainPerSave() {
+    return Math.max(0, Number(LIMITS?.MAX_COINS_GAIN_PER_SAVE) || 5000000000);
+}
+
+function getMaxGemsGainPerSave() {
+    return Math.max(0, Number(LIMITS?.MAX_GEMS_GAIN_PER_SAVE) || 500);
+}
+
+function getMaxLevelGainPerSave() {
+    return Math.max(0, Number(LIMITS?.MAX_LEVEL_GAIN_PER_SAVE) || 5);
+}
+
+function getMaxXpGainPerSave() {
+    return Math.max(0, Number(LIMITS?.MAX_XP_GAIN_PER_SAVE) || 1000000);
+}
+
+function getMaxRewardBalanceGainPerSave() {
+    return Math.max(0, Number(LIMITS?.MAX_REWARD_BALANCE_GAIN_PER_SAVE) || 10);
+}
+
+function getMaxRewardWalletGainPerSave() {
+    return Math.max(0, Number(LIMITS?.MAX_REWARD_WALLET_GAIN_PER_SAVE) || 10);
+}
+
+function getMaxRewardTotalGainPerSave() {
+    return Math.max(0, Number(LIMITS?.MAX_REWARD_TOTAL_GAIN_PER_SAVE) || 10);
+}
+
+function getMaxZooIncome() {
+    return Math.max(0, Number(LIMITS?.MAX_ZOO_INCOME) || 1000000000000);
+}
+
+function getSafeAnimalState(value) {
+    const obj = normalizeObject(value);
+    const maxOwned = getMaxOwnedPerAnimal();
+    const maxLevel = getMaxLevelPerAnimal();
+
+    return {
+        count: clamp(Math.floor(Number(obj.count) || 0), 0, maxOwned),
+        level: clamp(Math.floor(Number(obj.level) || 1), 1, maxLevel)
+    };
+}
+
+function mergeAnimalsSecure(oldAnimals, incomingAnimals) {
+    const oldSafe = normalizeObject(oldAnimals);
+    const incomingSafe = normalizeObject(incomingAnimals);
+    const result = {};
+
+    const allKeys = new Set([
+        ...Object.keys(oldSafe),
+        ...Object.keys(incomingSafe)
+    ]);
+
+    allKeys.forEach((key) => {
+        const oldAnimal = getSafeAnimalState(oldSafe[key]);
+        const incomingAnimal = getSafeAnimalState(incomingSafe[key]);
+
+        result[key] = {
+            count: Math.max(oldAnimal.count, incomingAnimal.count),
+            level: Math.max(oldAnimal.level, incomingAnimal.level)
+        };
+    });
+
+    return result;
+}
+
+function computeZooIncomeFromAnimals(player) {
+    const animalsConfig = normalizeObject(player?.animals);
+    const configAnimals = normalizeObject(global.window?.CryptoZoo?.config?.animals);
+
+    if (!Object.keys(configAnimals).length) {
+        return Math.max(0, Number(player?.zooIncome) || 0);
+    }
+
+    let total = 0;
+    const maxOwned = getMaxOwnedPerAnimal();
+    const maxLevel = getMaxLevelPerAnimal();
+
+    Object.keys(configAnimals).forEach((type) => {
+        const animalState = normalizeObject(animalsConfig[type]);
+        const count = clamp(Math.floor(Number(animalState.count) || 0), 0, maxOwned);
+        const level = clamp(Math.floor(Number(animalState.level) || 1), 1, maxLevel);
+        const baseIncome = Math.max(0, Number(configAnimals[type]?.baseIncome) || 0);
+
+        total += count * level * baseIncome;
+    });
+
+    return clamp(Math.floor(total), 0, getMaxZooIncome());
+}
+
 function sanitizeRewardState(oldPlayer, newPlayer) {
     const safePlayer = normalizePlayer(newPlayer);
 
     if (!oldPlayer) {
+        safePlayer.rewardBalance = clamp(
+            normalizeRewardNumber(safePlayer.rewardBalance, 0),
+            0,
+            Number(LIMITS?.MAX_REWARD_BALANCE) || 100000
+        );
+
+        safePlayer.rewardWallet = clamp(
+            normalizeRewardNumber(safePlayer.rewardWallet, 0),
+            0,
+            Number(LIMITS?.MAX_REWARD_WALLET) || 100000
+        );
+
+        safePlayer.withdrawPending = clamp(
+            normalizeRewardNumber(safePlayer.withdrawPending, 0),
+            0,
+            Number(LIMITS?.MAX_WITHDRAW_PENDING) || 100000
+        );
+
         return safePlayer;
     }
 
     const oldSafe = normalizePlayer(oldPlayer);
 
+    const oldRewardBalance = normalizeRewardNumber(oldSafe.rewardBalance, 0);
+    const oldRewardWallet = normalizeRewardNumber(oldSafe.rewardWallet, 0);
+    const oldWithdrawPending = normalizeRewardNumber(oldSafe.withdrawPending, 0);
+
+    const incomingRewardBalance = normalizeRewardNumber(safePlayer.rewardBalance, oldRewardBalance);
+    const incomingRewardWallet = normalizeRewardNumber(safePlayer.rewardWallet, oldRewardWallet);
+    const incomingWithdrawPending = normalizeRewardNumber(safePlayer.withdrawPending, oldWithdrawPending);
+
+    const rewardBalanceGain = incomingRewardBalance - oldRewardBalance;
+    const rewardWalletGain = incomingRewardWallet - oldRewardWallet;
+    const rewardTotalGain =
+        (incomingRewardBalance + incomingRewardWallet + incomingWithdrawPending) -
+        (oldRewardBalance + oldRewardWallet + oldWithdrawPending);
+
+    safePlayer.rewardBalance =
+        rewardBalanceGain > getMaxRewardBalanceGainPerSave()
+            ? oldRewardBalance
+            : incomingRewardBalance;
+
+    safePlayer.rewardWallet =
+        rewardWalletGain > getMaxRewardWalletGainPerSave()
+            ? oldRewardWallet
+            : incomingRewardWallet;
+
     safePlayer.withdrawPending = Math.max(
+        oldWithdrawPending,
+        incomingWithdrawPending
+    );
+
+    if (rewardTotalGain > getMaxRewardTotalGainPerSave()) {
+        safePlayer.rewardBalance = oldRewardBalance;
+        safePlayer.rewardWallet = oldRewardWallet;
+        safePlayer.withdrawPending = oldWithdrawPending;
+    }
+
+    safePlayer.rewardBalance = clamp(
+        normalizeRewardNumber(safePlayer.rewardBalance, 0),
         0,
-        Number(oldSafe.withdrawPending || 0),
-        Number(safePlayer.withdrawPending || 0)
+        Number(LIMITS?.MAX_REWARD_BALANCE) || 100000
+    );
+
+    safePlayer.rewardWallet = clamp(
+        normalizeRewardNumber(safePlayer.rewardWallet, 0),
+        0,
+        Number(LIMITS?.MAX_REWARD_WALLET) || 100000
+    );
+
+    safePlayer.withdrawPending = clamp(
+        normalizeRewardNumber(safePlayer.withdrawPending, 0),
+        0,
+        Number(LIMITS?.MAX_WITHDRAW_PENDING) || 100000
     );
 
     return safePlayer;
@@ -78,39 +241,19 @@ function validateProgress(oldPlayer, newPlayer) {
     const levelDiff = Number(newPlayer.level || 1) - Number(oldSafe.level || 1);
     const xpDiff = Number(newPlayer.xp || 0) - Number(oldSafe.xp || 0);
 
-    const maxCoinsGain = Math.max(
-        Number(LIMITS.MAX_COINS_GAIN_PER_SAVE) || 0,
-        1000000000
-    );
-
-    const maxGemsGain = Math.max(
-        Number(LIMITS.MAX_GEMS_GAIN_PER_SAVE) || 0,
-        10000
-    );
-
-    const maxLevelGain = Math.max(
-        Number(LIMITS.MAX_LEVEL_GAIN_PER_SAVE) || 0,
-        100
-    );
-
-    const maxXpGain = Math.max(
-        Number(LIMITS.MAX_XP_GAIN_PER_SAVE) || 0,
-        1000000000
-    );
-
-    if (coinsDiff > maxCoinsGain) {
+    if (coinsDiff > getMaxCoinsGainPerSave()) {
         newPlayer.coins = oldSafe.coins;
     }
 
-    if (gemsDiff > maxGemsGain) {
+    if (gemsDiff > getMaxGemsGainPerSave()) {
         newPlayer.gems = oldSafe.gems;
     }
 
-    if (levelDiff > maxLevelGain) {
+    if (levelDiff > getMaxLevelGainPerSave()) {
         newPlayer.level = oldSafe.level;
     }
 
-    if (xpDiff > maxXpGain) {
+    if (xpDiff > getMaxXpGainPerSave()) {
         newPlayer.xp = oldSafe.xp;
     }
 
@@ -122,11 +265,46 @@ function validateProgress(oldPlayer, newPlayer) {
     return newPlayer;
 }
 
+function sanitizeExpeditionState(oldPlayer, merged, incomingRaw) {
+    const incomingObj = normalizeObject(incomingRaw);
+    const hasIncomingExpeditionField = Object.prototype.hasOwnProperty.call(incomingObj, "expedition");
+
+    if (!oldPlayer) {
+        merged.expedition = hasIncomingExpeditionField ? (incomingObj.expedition ?? null) : null;
+        return merged;
+    }
+
+    const oldSafe = normalizePlayer(oldPlayer);
+    const oldExpedition = oldSafe?.expedition || null;
+    const incomingExpedition = hasIncomingExpeditionField ? (incomingObj.expedition ?? null) : undefined;
+
+    if (incomingExpedition === null) {
+        merged.expedition = oldExpedition;
+        return merged;
+    }
+
+    if (incomingExpedition && !oldExpedition) {
+        merged.expedition = oldExpedition;
+        return merged;
+    }
+
+    if (incomingExpedition && oldExpedition) {
+        const sameId =
+            String(incomingExpedition?.id || "") === String(oldExpedition?.id || "");
+        const sameStart =
+            Number(incomingExpedition?.startTime || 0) === Number(oldExpedition?.startTime || 0);
+
+        merged.expedition = sameId && sameStart ? oldExpedition : oldExpedition;
+        return merged;
+    }
+
+    merged.expedition = oldExpedition;
+    return merged;
+}
+
 function buildSafePlayerState(oldPlayer, incomingRaw, normalizeTelegramUser) {
     const oldSafe = oldPlayer ? normalizePlayer(oldPlayer) : null;
     const incoming = normalizePlayer(incomingRaw);
-    const incomingObj = normalizeObject(incomingRaw);
-    const hasIncomingExpeditionField = Object.prototype.hasOwnProperty.call(incomingObj, "expedition");
 
     const resolvedLastLogin = Math.max(
         0,
@@ -151,7 +329,6 @@ function buildSafePlayerState(oldPlayer, incomingRaw, normalizeTelegramUser) {
                   ...normalizeObject(incoming.telegramUser)
               },
 
-        // NEVER ROLLBACK CORE PROGRESS
         coins: Math.max(
             Number(oldSafe?.coins || 0),
             Number(incoming.coins || 0)
@@ -232,10 +409,10 @@ function buildSafePlayerState(oldPlayer, incomingRaw, normalizeTelegramUser) {
             ...normalizeObject(incoming.shopPurchases)
         },
 
-        animals: {
-            ...normalizeObject(oldSafe?.animals),
-            ...normalizeObject(incoming.animals)
-        },
+        animals: mergeAnimalsSecure(
+            oldSafe?.animals,
+            incoming.animals
+        ),
 
         boxes: {
             common: Math.max(
@@ -285,10 +462,6 @@ function buildSafePlayerState(oldPlayer, incomingRaw, normalizeTelegramUser) {
             ...normalizeObject(oldSafe?.stats),
             ...normalizeObject(incoming.stats)
         },
-
-        expedition: hasIncomingExpeditionField
-            ? (incomingObj.expedition ?? null)
-            : (oldSafe?.expedition ?? null),
 
         offlineBaseHours: Math.max(
             Number(oldSafe?.offlineBaseHours || 1),
@@ -342,6 +515,10 @@ function buildSafePlayerState(oldPlayer, incomingRaw, normalizeTelegramUser) {
 
         lastLogin: resolvedLastLogin
     };
+
+    sanitizeExpeditionState(oldSafe, merged, incomingRaw);
+
+    merged.zooIncome = computeZooIncomeFromAnimals(merged);
 
     const safe1 = sanitizeRewardState(oldSafe, merged);
     const safe2 = validateProgress(oldSafe, safe1);
