@@ -1,7 +1,12 @@
 const { readDb, writeDb } = require("../db/db");
-const { normalizeRewardNumber, safeString } = require("../utils/helpers");
+const { normalizeRewardNumber, safeString, clamp } = require("../utils/helpers");
 const { getPlayerOrCreate, normalizePlayer } = require("./player-service");
-const { TON_RECEIVER_WALLET } = require("./deposit-service");
+const {
+    TON_RECEIVER_WALLET,
+    applyDepositExpeditionBoost,
+    getExpeditionBoostActiveUntil
+} = require("./deposit-service");
+const { LIMITS } = require("../config/game-config");
 
 const TONCENTER_BASE_URL = "https://toncenter.com/api/v2";
 
@@ -297,7 +302,11 @@ function attachApprovedDepositToPlayer(player, deposit, txHash) {
         player.deposits.unshift(historyEntry);
     }
 
-    if (!hasItemByKey(player.transactions, "txHash", transactionEntry.txHash)) {
+    if (transactionEntry.txHash) {
+        if (!hasItemByKey(player.transactions, "txHash", transactionEntry.txHash)) {
+            player.transactions.unshift(transactionEntry);
+        }
+    } else if (!hasItemByKey(player.transactions, "depositId", transactionEntry.depositId)) {
         player.transactions.unshift(transactionEntry);
     }
 
@@ -353,18 +362,20 @@ function approveDepositInDb(db, deposit, tx) {
     safeDeposit.approvedAt = Date.now();
 
     const gemsToAdd = Math.max(0, Number(safeDeposit.gemsAmount) || 0);
-    const expeditionBoostToAdd = Math.max(
+
+    player.gems = clamp(
+        Math.max(0, Number(player.gems || 0) + gemsToAdd),
         0,
-        Number(safeDeposit.expeditionBoostAmount) || 0
+        Number(LIMITS?.MAX_GEMS) || 1e6
     );
 
-    player.gems = Math.max(0, Number(player.gems || 0) + gemsToAdd);
-    player.expeditionBoost = Number(
-        (
-            Math.max(0, Number(player.expeditionBoost) || 0) +
-            expeditionBoostToAdd
-        ).toFixed(4)
+    player.expeditionBoost = applyDepositExpeditionBoost(
+        Number(player.expeditionBoost) || 0,
+        Number(safeDeposit.amount) || 0
     );
+
+    player.expeditionBoostActiveUntil = getExpeditionBoostActiveUntil();
+    player.updatedAt = Date.now();
 
     attachApprovedDepositToPlayer(player, safeDeposit, txHash);
 
