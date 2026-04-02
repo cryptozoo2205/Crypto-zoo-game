@@ -1,123 +1,192 @@
-<div class="panel card game-main-card">
-    <div class="home-stats-panel">
-        <div class="home-stat-box">
-            <div class="home-stat-title" id="langHomeCoinsTitle">Coins</div>
-            <div class="home-stat-value" id="homeCoins">0</div>
-        </div>
+<section id="screen-game" class="screen">
+    <div class="panel card game-main-card">
+        <div class="home-stats-panel">
+            <div class="home-stat-box">
+                <div class="home-stat-title" id="langHomeCoinsTitle">Coins</div>
+                <div class="home-stat-value" id="homeCoins">0</div>
+            </div>
 
-        <div class="home-stat-box">
-            <div class="home-stat-title" id="langHomeGemsTitle">Gems</div>
-            <div class="home-stat-value" id="homeGems">0</div>
-        </div>
+            <div class="home-stat-box">
+                <div class="home-stat-title" id="langHomeGemsTitle">Gems</div>
+                <div class="home-stat-value" id="homeGems">0</div>
+            </div>
 
-        <div class="home-stat-box">
-            <div class="home-stat-title" id="langHomeRewardTitle">Reward</div>
-            <div class="home-stat-value" id="homeRewardBalance">0</div>
-        </div>
+            <div class="home-stat-box">
+                <div class="home-stat-title" id="langHomeRewardTitle">Reward</div>
+                <div class="home-stat-value" id="homeRewardBalance">0</div>
+            </div>
 
-        <div class="home-stat-box">
-            <div class="home-stat-title" id="langHomeLevelTitle">Poziom</div>
-            <div class="home-stat-value" id="homeLevel">1</div>
-            <div class="home-xp-bar-wrap">
-                <div class="home-xp-bar">
-                    <div id="homeXpFill" class="home-xp-fill"></div>
+            <div class="home-stat-box">
+                <div class="home-stat-title" id="langHomeLevelTitle">Poziom</div>
+                <div class="home-stat-value" id="homeLevel">1</div>
+                <div class="home-xp-bar-wrap">
+                    <div class="home-xp-bar">
+                        <div id="homeXpFill" class="home-xp-fill"></div>
+                    </div>
+                    <div id="homeXpText" class="home-xp-text">0 / 100 XP</div>
                 </div>
-                <div id="homeXpText" class="home-xp-text">0 / 100 XP</div>
+            </div>
+
+            <div class="home-stat-box">
+                <div class="home-stat-title" id="langHomeClickTitle">Za klik</div>
+                <div class="home-stat-value" id="homeCoinsPerClick">1</div>
+            </div>
+
+            <div class="home-stat-box">
+                <div class="home-stat-title" id="langHomeZooPerSecTitle">Zoo / sek</div>
+                <div class="home-stat-value" id="homeZooIncomeStat">0</div>
             </div>
         </div>
 
-        <div class="home-stat-box">
-            <div class="home-stat-title" id="langHomeClickTitle">Za klik</div>
-            <div class="home-stat-value" id="homeCoinsPerClick">1</div>
+        <div class="tap-area">
+            <div class="tap-glow"></div>
+            <button id="tapButton" class="tap-button" type="button" aria-label="Tap"></button>
         </div>
 
-        <div class="home-stat-box">
-            <div class="home-stat-title" id="langHomeZooPerSecTitle">Zoo / sek</div>
-            <div class="home-stat-value" id="homeZooIncomeStat">0</div>
-        </div>
-    </div>
-
-    <div class="tap-area">
-        <div class="tap-glow"></div>
-        <button id="tapButton" class="tap-button" type="button" aria-label="Tap"></button>
-    </div>
-
-    <div class="home-tap-caption">
-        <div class="home-tap-title" id="langTapTitle">UZYSKAJ MONETY</div>
-        <div class="home-tap-subtitle" id="langTapSubtitle">Klikaj i rozwijaj swoje zoo</div>
-    </div>
-
-    <div class="home-income-strip">
-        <div class="home-income-left">
-            <div class="home-income-label" id="langIncomeLabel">🐾 Dochód zoo / sek</div>
-            <div class="home-income-value" id="homeIncomeStripValue">0</div>
+        <div class="home-tap-caption">
+            <div class="home-tap-title" id="langTapTitle">UZYSKAJ MONETY</div>
+            <div class="home-tap-subtitle" id="langTapSubtitle">Klikaj i rozwijaj swoje zoo</div>
         </div>
 
-        <div class="home-boost-right">
-            <div class="home-boost-title" id="langBoostTitle">⚡ X2 Boost</div>
-            <button id="homeBoostBtn" class="home-boost-button" type="button">Aktywuj</button>
-            <div id="homeBoostStatus" class="home-boost-status">Nieaktywny</div>
-        </div>
-    </div>
-
-    <div class="home-offline-strip" id="homeOfflinePanel">
-        <div class="home-offline-left">
-            <div class="home-offline-title">💤 Zarobki offline</div>
-            <div class="home-offline-main" id="homeOfflineMainText">
-                Limit offline: 1h • Standardowy mnożnik offline x1
+        <div class="home-income-strip">
+            <div class="home-income-left">
+                <div class="home-income-label" id="langIncomeLabel">🐾 Dochód zoo / sek</div>
+                <div class="home-income-value" id="homeIncomeStripValue">0</div>
             </div>
-            <div class="home-offline-sub" id="homeOfflineSubText">
-                Limit bazowy: 1h • Shop: +0h • Ads: +0h
+
+            <div class="home-boost-right">
+                <div class="home-boost-title" id="langBoostTitle">⚡ X2 Boost</div>
+                <button id="homeBoostBtn" class="home-boost-button" type="button">Aktywuj</button>
+                <div id="homeBoostStatus" class="home-boost-status">Nieaktywny</div>
             </div>
         </div>
 
-        <div class="home-offline-right">
-            <button
-                id="watchOfflineAdBtn"
-                class="home-offline-ad-btn"
-                type="button"
-                onclick="CryptoZoo.ads && CryptoZoo.ads.showRewardedAd ? CryptoZoo.ads.showRewardedAd() : null"
-            >
-                📺 +2h
+        <div class="home-offline-strip">
+            <div class="home-offline-left">
+                <div class="home-offline-title">💤 Zarobki offline</div>
+                <div class="home-offline-main" id="homeOfflineMainText">
+                    Limit offline: 1h • Standardowy mnożnik offline x1
+                </div>
+                <div class="home-offline-sub" id="homeOfflineSubText">
+                    Limit bazowy: 1h • Shop: +0h • Ads: +0h
+                </div>
+            </div>
+
+            <div class="home-offline-right">
+                <button
+                    id="watchOfflineAdBtn"
+                    class="home-offline-ad-btn"
+                    type="button"
+                    onclick="CryptoZoo.ads && CryptoZoo.ads.showRewardedAd ? CryptoZoo.ads.showRewardedAd() : null"
+                >
+                    📺 +2h
+                </button>
+            </div>
+        </div>
+
+        <div class="home-quick-panel">
+            <button id="homeDailyBtn" class="home-quick-card" type="button" aria-label="Otwórz Daily Reward">
+                <div class="home-quick-icon">🎁</div>
+                <div class="home-quick-text">
+                    <div class="home-quick-title">Daily Reward</div>
+                    <div class="home-quick-subtitle">
+                        <span id="homeDailyStatusText">Gotowe do dopracowania</span><br>
+                        <span id="homeDailyTimerText">Countdown pojawi się tutaj</span>
+                    </div>
+                </div>
+            </button>
+
+            <button id="homeEventsBtn" class="home-quick-card" type="button">
+                <div class="home-quick-icon">⭐</div>
+                <div class="home-quick-text">
+                    <div class="home-quick-title" id="langEventsTitle">Events</div>
+                    <div class="home-quick-subtitle" id="langEventsSubtitle">Nowe eventy wkrótce</div>
+                </div>
+            </button>
+
+            <button id="homeBoostInfoBtn" class="home-quick-card" type="button">
+                <div class="home-quick-icon">⚡</div>
+                <div class="home-quick-text">
+                    <div class="home-quick-title" id="langBoostCenterTitle">Boost Center</div>
+                    <div class="home-quick-subtitle" id="langBoostCenterSubtitle">Kup lub aktywuj X2</div>
+                </div>
             </button>
         </div>
-    </div>
 
-    <div class="home-quick-panel">
-        <button id="homeDailyBtn" class="home-quick-card" type="button" aria-label="Otwórz Daily Reward">
-            <div class="home-quick-icon">🎁</div>
-            <div class="home-quick-text">
-                <div class="home-quick-title">Daily Reward</div>
-                <div class="home-quick-subtitle">
-                    <span id="homeDailyStatusText">Gotowe do dopracowania</span><br>
-                    <span id="homeDailyTimerText">Countdown pojawi się tutaj</span>
+        <div style="display:none;">
+            <span id="coins">0</span>
+            <span id="gems">0</span>
+            <span id="rewardBalance">0</span>
+            <span id="level">1</span>
+            <span id="coinsPerClick">1</span>
+            <span id="zooIncome">0</span>
+        </div>
+    </div>
+</section>
+
+<section id="screen-zoo" class="screen hidden">
+    <div class="panel card">
+        <h2 id="langScreenZooTitle">🐾 Zoo</h2>
+        <div id="zooList"></div>
+    </div>
+</section>
+
+<section id="screen-shop" class="screen hidden">
+    <div class="panel card">
+        <h2 id="langScreenShopTitle">🛒 Shop</h2>
+
+        <div class="shop-item boost-shop-card" id="boostShopCard">
+            <h3 id="langBoostShopCardTitle">⚡ X2 Boost</h3>
+            <div id="langBoostShopCardDesc">Podwaja klik i dochód zoo przez 10 minut.</div>
+            <div style="margin-top:6px;" id="langBoostShopCardCostWrap">Koszt: <strong>1 gem</strong></div>
+            <div id="boostShopStatus" style="margin-top:6px;">Nieaktywny</div>
+            <button id="buyBoostBtn" type="button" style="margin-top:10px;">Kup X2 Boost</button>
+        </div>
+
+        <div id="shopList"></div>
+    </div>
+</section>
+
+<section id="screen-missions" class="screen hidden">
+    <div class="panel card">
+        <h2 id="langScreenExpeditionsTitle">🌍 Expeditions</h2>
+        <div id="missionsList"></div>
+    </div>
+</section>
+
+<section id="screen-minigames" class="screen hidden">
+    <div class="panel card minigames-card">
+        <div class="minigames-header">
+            <div class="minigames-title" id="langMiniGamesTitle">🎮 Mini Games</div>
+            <div class="minigames-subtitle" id="langMiniGamesSubtitle">
+                Zagraj w memory i odbierz nagrody
+            </div>
+        </div>
+
+        <div id="minigamesWrap">
+            <div id="memoryGame" class="minigame-box">
+                <div class="minigame-box-header">
+                    <div class="minigame-name" id="langMemoryName">Memory Animals</div>
+                    <div class="minigame-desc" id="langMemoryDesc">
+                        Znajdź wszystkie pary i odbierz nagrody
+                    </div>
+                </div>
+
+                <div id="memoryBoard" class="memory-grid"></div>
+
+                <button id="startMemoryBtn" type="button">Start Memory</button>
+
+                <div id="memoryStatus" class="minigame-status">
+                    Find all pairs
                 </div>
             </div>
-        </button>
-
-        <button id="homeEventsBtn" class="home-quick-card" type="button">
-            <div class="home-quick-icon">⭐</div>
-            <div class="home-quick-text">
-                <div class="home-quick-title" id="langEventsTitle">Events</div>
-                <div class="home-quick-subtitle" id="langEventsSubtitle">Nowe eventy wkrótce</div>
-            </div>
-        </button>
-
-        <button id="homeBoostInfoBtn" class="home-quick-card" type="button">
-            <div class="home-quick-icon">⚡</div>
-            <div class="home-quick-text">
-                <div class="home-quick-title" id="langBoostCenterTitle">Boost Center</div>
-                <div class="home-quick-subtitle" id="langBoostCenterSubtitle">Kup lub aktywuj X2</div>
-            </div>
-        </button>
+        </div>
     </div>
+</section>
 
-    <div style="display:none;">
-        <span id="coins">0</span>
-        <span id="gems">0</span>
-        <span id="rewardBalance">0</span>
-        <span id="level">1</span>
-        <span id="coinsPerClick">1</span>
-        <span id="zooIncome">0</span>
+<section id="screen-ranking" class="screen hidden">
+    <div class="panel card">
+        <h2 id="langScreenRankingTitle">🏆 Ranking</h2>
+        <ul id="rankingList"></ul>
     </div>
-</div>
+</section>
