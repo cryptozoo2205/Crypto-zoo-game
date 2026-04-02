@@ -22,26 +22,7 @@ function normalizeRewardRarity(rarity) {
     return "common";
 }
 
-function getRareChanceBonus(player) {
-    return Math.max(0, Number(player?.expeditionStats?.rareChanceBonus) || 0);
-}
-
-function getEpicChanceBonus(player) {
-    return Math.max(0, Number(player?.expeditionStats?.epicChanceBonus) || 0);
-}
-
-function getTimeBoostCharges(player) {
-    const list = Array.isArray(player?.expeditionStats?.timeBoostCharges)
-        ? player.expeditionStats.timeBoostCharges
-        : [];
-
-    return list
-        .map((value) => Math.max(0, Number(value) || 0))
-        .filter((value) => value > 0)
-        .sort((a, b) => a - b);
-}
-
-function setTimeBoostCharges(player, charges) {
+function ensureExpeditionStats(player) {
     player.expeditionStats = player.expeditionStats || {
         rareChanceBonus: 0,
         epicChanceBonus: 0,
@@ -49,6 +30,60 @@ function setTimeBoostCharges(player, charges) {
         timeBoostCharges: []
     };
 
+    player.expeditionStats.rareChanceBonus = Math.max(
+        0,
+        Number(player.expeditionStats.rareChanceBonus) || 0
+    );
+
+    player.expeditionStats.epicChanceBonus = Math.max(
+        0,
+        Number(player.expeditionStats.epicChanceBonus) || 0
+    );
+
+    if (!Array.isArray(player.expeditionStats.timeBoostCharges)) {
+        player.expeditionStats.timeBoostCharges = [];
+    }
+
+    player.expeditionStats.timeBoostCharges = player.expeditionStats.timeBoostCharges
+        .map((value) => Math.max(0, Number(value) || 0))
+        .filter((value) => value > 0)
+        .sort((a, b) => a - b);
+
+    player.expeditionBoost = Math.max(0, Number(player.expeditionBoost) || 0);
+    player.expeditionBoostActiveUntil = Math.max(
+        0,
+        Number(player.expeditionBoostActiveUntil) || 0
+    );
+
+    if (
+        player.expeditionBoostActiveUntil > 0 &&
+        player.expeditionBoostActiveUntil <= Date.now()
+    ) {
+        player.expeditionBoost = 0;
+        player.expeditionBoostActiveUntil = 0;
+    }
+}
+
+function getRareChanceBonus(player) {
+    ensureExpeditionStats(player);
+    return Math.max(0, Number(player?.expeditionStats?.rareChanceBonus) || 0);
+}
+
+function getEpicChanceBonus(player) {
+    ensureExpeditionStats(player);
+    return Math.max(0, Number(player?.expeditionStats?.epicChanceBonus) || 0);
+}
+
+function getTimeBoostCharges(player) {
+    ensureExpeditionStats(player);
+
+    return Array.isArray(player?.expeditionStats?.timeBoostCharges)
+        ? player.expeditionStats.timeBoostCharges
+        : [];
+}
+
+function setTimeBoostCharges(player, charges) {
+    ensureExpeditionStats(player);
     player.expeditionStats.timeBoostCharges = Array.isArray(charges) ? charges : [];
 }
 
@@ -71,30 +106,24 @@ function getEffectiveGemChance(expedition, rewardRarity = "common") {
     return Math.min(0.16, chance);
 }
 
-function getExpeditionBoostMultiplier(player) {
-    const activeUntil = Math.max(0, Number(player?.expeditionBoostActiveUntil) || 0);
-    const boost = Math.max(0, Number(player?.expeditionBoost) || 0);
+function getDepositExpeditionBoostMultiplier(player) {
+    ensureExpeditionStats(player);
 
-    if (activeUntil <= Date.now()) {
+    if ((Number(player?.expeditionBoostActiveUntil) || 0) <= Date.now()) {
         return 1;
     }
 
+    const boost = Math.max(0, Number(player?.expeditionBoost) || 0);
     return 1 + boost;
 }
 
 function getDailyExpeditionBoostMultiplier(player) {
     const activeUntil = Math.max(0, Number(player?.dailyExpeditionBoost?.activeUntil) || 0);
-    const now = Date.now();
-
-    if (activeUntil > now) {
-        return 1.25;
-    }
-
-    return 1;
+    return activeUntil > Date.now() ? 1.25 : 1;
 }
 
 function getTotalExpeditionRewardMultiplier(player) {
-    return getExpeditionBoostMultiplier(player) * getDailyExpeditionBoostMultiplier(player);
+    return getDepositExpeditionBoostMultiplier(player) * getDailyExpeditionBoostMultiplier(player);
 }
 
 function rollRewardRarity(player, expedition) {
@@ -172,7 +201,29 @@ function getRewardBalanceAmount(player, expeditionState) {
     return Number(reward.toFixed(3));
 }
 
-function buildActiveExpedition(player, expedition) {
+function normalizeSelectedAnimals(selectedAnimals) {
+    if (!Array.isArray(selectedAnimals)) {
+        return [];
+    }
+
+    return selectedAnimals
+        .map((entry) => {
+            if (typeof entry === "string") {
+                return {
+                    type: String(entry),
+                    count: 1
+                };
+            }
+
+            return {
+                type: String(entry?.type || ""),
+                count: Math.max(1, Math.floor(Number(entry?.count) || 1))
+            };
+        })
+        .filter((entry) => entry.type);
+}
+
+function buildActiveExpedition(player, expedition, selectedAnimals = []) {
     const now = Date.now();
     const baseDuration = Math.max(
         60,
@@ -198,7 +249,7 @@ function buildActiveExpedition(player, expedition) {
         rewardCoins,
         rewardGems,
         startCostCoins,
-        selectedAnimals: [],
+        selectedAnimals: normalizeSelectedAnimals(selectedAnimals),
         claimed: false,
         collectedAt: 0
     };
@@ -209,8 +260,7 @@ function hasActiveExpedition(player) {
 }
 
 function getActiveExpedition(player) {
-    if (!hasActiveExpedition(player)) return null;
-    return player.expedition;
+    return hasActiveExpedition(player) ? player.expedition : null;
 }
 
 function canCollect(player) {
@@ -255,12 +305,13 @@ function consumeBestTimeBoostCharge(player, remainingSeconds) {
     return bestApplied;
 }
 
-router.post("/api/expedition/start", (req, res) => {
+router.post("/start", (req, res) => {
     const db = readDb();
 
     const telegramId = safeString(req.body?.telegramId, "");
     const username = safeString(req.body?.username, "Gracz");
     const expeditionId = safeString(req.body?.expeditionId, "");
+    const selectedAnimals = req.body?.selectedAnimals;
 
     if (!telegramId) {
         return res.status(400).json({ error: "Missing telegramId" });
@@ -296,7 +347,7 @@ router.post("/api/expedition/start", (req, res) => {
     }
 
     player.coins = clamp(currentCoins - startCostCoins, 0, LIMITS.MAX_COINS);
-    player.expedition = buildActiveExpedition(player, expedition);
+    player.expedition = buildActiveExpedition(player, expedition, selectedAnimals);
     player.updatedAt = Date.now();
 
     db.players[telegramId] = normalizePlayer(player);
@@ -309,7 +360,7 @@ router.post("/api/expedition/start", (req, res) => {
     });
 });
 
-router.post("/api/expedition/time-boost", (req, res) => {
+router.post("/time-boost", (req, res) => {
     const db = readDb();
 
     const telegramId = safeString(req.body?.telegramId, "");
@@ -373,7 +424,7 @@ router.post("/api/expedition/time-boost", (req, res) => {
     });
 });
 
-router.post("/api/expedition/collect", (req, res) => {
+router.post("/collect", (req, res) => {
     const db = readDb();
 
     const telegramId = safeString(req.body?.telegramId, "");
@@ -430,7 +481,7 @@ router.post("/api/expedition/collect", (req, res) => {
     });
 });
 
-router.get("/api/expedition/:telegramId", (req, res) => {
+router.get("/:telegramId", (req, res) => {
     const db = readDb();
     const telegramId = safeString(req.params.telegramId, "");
 
