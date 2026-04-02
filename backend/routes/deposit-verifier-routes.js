@@ -12,7 +12,7 @@ const router = express.Router();
    VERIFY SINGLE DEPOSIT
 ========================= */
 
-router.post("/api/deposit/verify", async (req, res) => {
+router.post("/verify", async (req, res) => {
     try {
         const depositId = safeString(req.body?.depositId, "");
 
@@ -22,12 +22,14 @@ router.post("/api/deposit/verify", async (req, res) => {
 
         const result = await verifySingleDepositById(depositId);
 
-        // 🔥 FIX: nie wywalaj błędu → zwróć normalny response
         if (!result.ok) {
             return res.json({
                 ok: true,
                 matched: false,
-                message: result.error || "Deposit not matched yet"
+                message: result.error || "Deposit not matched yet",
+                duplicateTxHash: !!result.duplicateTxHash,
+                deposit: result.deposit || null,
+                player: result.player || null
             });
         }
 
@@ -41,10 +43,10 @@ router.post("/api/deposit/verify", async (req, res) => {
 });
 
 /* =========================
-   VERIFY PLAYER PENDING DEPOSITS (AUTO VERIFY)
+   VERIFY PLAYER PENDING DEPOSITS
 ========================= */
 
-router.post("/api/deposit/verify-player", async (req, res) => {
+router.post("/verify-player", async (req, res) => {
     try {
         const telegramId = safeString(req.body?.telegramId, "");
 
