@@ -416,7 +416,6 @@ window.CryptoZoo.api = {
 
             coins: Math.max(server.coins, local.coins),
             gems: Math.max(server.gems, local.gems),
-
             rewardBalance: server.rewardBalance,
             rewardWallet: server.rewardWallet,
             withdrawPending: server.withdrawPending,
@@ -503,7 +502,7 @@ window.CryptoZoo.api = {
                 ...local.stats
             },
 
-            expedition: local.expedition || server.expedition || null,
+            expedition: server.expedition || null,
 
             offlineBaseHours: Math.max(server.offlineBaseHours || 1, local.offlineBaseHours || 1),
             offlineBoostHours: Math.max(server.offlineBoostHours || 0, local.offlineBoostHours || 0),
@@ -689,9 +688,6 @@ window.CryptoZoo.api = {
         let serverRaw = null;
 
         try {
-            console.log("LOAD PLAYER ID:", this.getPlayerId());
-            console.log("API BASE:", this.getApiBase());
-
             serverRaw = await this.request(`/player/${this.getPlayerId()}`, {
                 timeoutMs: 4000
             });
@@ -709,7 +705,6 @@ window.CryptoZoo.api = {
         }
 
         CryptoZoo.state.telegramUser = this.getTelegramUser();
-
         this.writeLocalState(CryptoZoo.state);
 
         try {
@@ -887,6 +882,100 @@ window.CryptoZoo.api = {
         });
 
         return Array.isArray(response?.deposits) ? response.deposits : [];
+    },
+
+    async expeditionStart(expeditionId, selectedAnimals = []) {
+        const response = await this.request("/expedition/start", {
+            method: "POST",
+            body: JSON.stringify({
+                telegramId: this.getPlayerId(),
+                username: this.getUsername(),
+                expeditionId,
+                selectedAnimals
+            }),
+            timeoutMs: 5000
+        });
+
+        const player = this.unwrapPlayerResponse(response);
+
+        if (player && typeof player === "object") {
+            CryptoZoo.state = this.mergeStates(player, CryptoZoo.state || {});
+            this.writeLocalState(CryptoZoo.state);
+
+            const payload = this.getSavePayload();
+            this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
+            this.pendingDirty = false;
+        }
+
+        return response;
+    },
+
+    async expeditionCollect() {
+        const response = await this.request("/expedition/collect", {
+            method: "POST",
+            body: JSON.stringify({
+                telegramId: this.getPlayerId(),
+                username: this.getUsername()
+            }),
+            timeoutMs: 5000
+        });
+
+        const player = this.unwrapPlayerResponse(response);
+
+        if (player && typeof player === "object") {
+            CryptoZoo.state = this.mergeStates(player, CryptoZoo.state || {});
+            this.writeLocalState(CryptoZoo.state);
+
+            const payload = this.getSavePayload();
+            this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
+            this.pendingDirty = false;
+        }
+
+        return response;
+    },
+
+    async expeditionUseTimeBoost() {
+        const response = await this.request("/expedition/time-boost", {
+            method: "POST",
+            body: JSON.stringify({
+                telegramId: this.getPlayerId(),
+                username: this.getUsername()
+            }),
+            timeoutMs: 5000
+        });
+
+        const player = this.unwrapPlayerResponse(response);
+
+        if (player && typeof player === "object") {
+            CryptoZoo.state = this.mergeStates(player, CryptoZoo.state || {});
+            this.writeLocalState(CryptoZoo.state);
+
+            const payload = this.getSavePayload();
+            this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
+            this.pendingDirty = false;
+        }
+
+        return response;
+    },
+
+    async loadExpeditionState() {
+        const response = await this.request(`/expedition/${this.getPlayerId()}`, {
+            method: "GET",
+            timeoutMs: 4000
+        });
+
+        const player = this.unwrapPlayerResponse(response);
+
+        if (player && typeof player === "object") {
+            CryptoZoo.state = this.mergeStates(player, CryptoZoo.state || {});
+            this.writeLocalState(CryptoZoo.state);
+
+            const payload = this.getSavePayload();
+            this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
+            this.pendingDirty = false;
+        }
+
+        return response;
     },
 
     async syncPendingDeposits(forceReload = false) {
