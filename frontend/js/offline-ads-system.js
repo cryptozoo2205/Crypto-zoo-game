@@ -14,7 +14,7 @@ CryptoZoo.offlineAds = {
 
         CryptoZoo.state.offlineAdsHours = Math.max(
             0,
-            Number(CryptoZoo.state.offlineAdsHours) || 0
+            Math.min(this.MAX_HOURS, Number(CryptoZoo.state.offlineAdsHours) || 0)
         );
 
         CryptoZoo.state.offlineAdsResetAt = Math.max(
@@ -51,7 +51,10 @@ CryptoZoo.offlineAds = {
 
     getCurrentHours() {
         this.ensureState();
-        return Math.max(0, Number(CryptoZoo.state?.offlineAdsHours) || 0);
+        return Math.max(
+            0,
+            Math.min(this.MAX_HOURS, Number(CryptoZoo.state?.offlineAdsHours) || 0)
+        );
     },
 
     getMaxHours() {
@@ -89,7 +92,11 @@ CryptoZoo.offlineAds = {
         const remaining = this.getRemainingHours();
         const added = Math.min(this.HOURS_PER_AD, remaining);
 
-        CryptoZoo.state.offlineAdsHours = current + added;
+        CryptoZoo.state.offlineAdsHours = Math.max(
+            0,
+            Math.min(this.MAX_HOURS, current + added)
+        );
+
         CryptoZoo.api?.savePlayer?.();
         CryptoZoo.ui?.showToast?.(`+${added}h offline`);
 
