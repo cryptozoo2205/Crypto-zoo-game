@@ -1,6 +1,7 @@
 const { normalizeRewardNumber, safeString } = require("../utils/helpers");
 
 const TON_RECEIVER_WALLET = "UQBTjBORP2cXRNE_hakpG-2DZlBn0uUWME8tKhi7HCcynER5";
+const MAX_EXPEDITION_BOOST = 1.0;
 
 function getDepositGemsAmount(amount) {
     const safeAmount = normalizeRewardNumber(amount, 0);
@@ -22,6 +23,26 @@ function getDepositExpeditionBoostAmount(amount) {
     if (safeAmount >= 1) return 0.05;
 
     return 0;
+}
+
+function clampExpeditionBoost(value) {
+    const safeValue = normalizeRewardNumber(value, 0);
+    return Math.max(0, Math.min(MAX_EXPEDITION_BOOST, safeValue));
+}
+
+function applyDepositExpeditionBoost(currentBoost, depositAmount) {
+    const safeCurrentBoost = clampExpeditionBoost(currentBoost);
+    const addAmount = getDepositExpeditionBoostAmount(depositAmount);
+
+    return clampExpeditionBoost(safeCurrentBoost + addAmount);
+}
+
+function getRemainingExpeditionBoostCapacity(currentBoost) {
+    const safeCurrentBoost = clampExpeditionBoost(currentBoost);
+    return normalizeRewardNumber(
+        Math.max(0, MAX_EXPEDITION_BOOST - safeCurrentBoost),
+        0
+    );
 }
 
 function createDeposit({
@@ -91,8 +112,12 @@ function getPlayerDeposits(db, telegramId) {
 
 module.exports = {
     TON_RECEIVER_WALLET,
+    MAX_EXPEDITION_BOOST,
     getDepositGemsAmount,
     getDepositExpeditionBoostAmount,
+    clampExpeditionBoost,
+    applyDepositExpeditionBoost,
+    getRemainingExpeditionBoostCapacity,
     createDeposit,
     buildDepositPaymentData,
     getPlayerDeposits
