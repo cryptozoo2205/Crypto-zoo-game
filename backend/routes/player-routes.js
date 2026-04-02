@@ -25,9 +25,14 @@ const router = express.Router();
 const OFFLINE_ADS_MAX_HOURS = 12;
 const OFFLINE_ADS_HOURS_PER_AD = 2;
 const OFFLINE_ADS_RESET_INTERVAL_MS = 24 * 60 * 60 * 1000;
+const MAX_EXPEDITION_BOOST = 1.0;
 
 function normalizeInt(value, fallback = 0) {
     return Math.max(0, Math.floor(Number(value) || fallback || 0));
+}
+
+function normalizeBoost(value, fallback = 0) {
+    return Math.max(0, Math.min(MAX_EXPEDITION_BOOST, Number(value) || fallback || 0));
 }
 
 function applyOfflineAdsServerGuard(oldPlayer, safePlayer) {
@@ -98,6 +103,16 @@ function applyOfflineAdsServerGuard(oldPlayer, safePlayer) {
     return safePlayer;
 }
 
+function applyExpeditionBoostServerGuard(oldPlayer, safePlayer) {
+    const trustedServerBoost = normalizeBoost(oldPlayer?.expeditionBoost, 0);
+
+    // expeditionBoost ma pochodzić tylko z backendu (np. confirm deposit),
+    // więc save z frontu nigdy go nie zwiększa ani nie zmniejsza
+    safePlayer.expeditionBoost = trustedServerBoost;
+
+    return safePlayer;
+}
+
 router.get("/api/player/:telegramId", (req, res) => {
     const db = readDb();
     const telegramId = safeString(req.params.telegramId, "local-player");
@@ -159,6 +174,7 @@ router.post("/api/player/save", (req, res) => {
     );
 
     safePlayer = applyOfflineAdsServerGuard(oldPlayer, safePlayer);
+    safePlayer = applyExpeditionBoostServerGuard(oldPlayer, safePlayer);
 
     db.players[telegramId] = safePlayer;
 
