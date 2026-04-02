@@ -29,7 +29,6 @@ const LIMITS = {
 
     MAX_REFERRALS_STORED: 500,
 
-    // 🔒 IMPORTANT
     MAX_OWNED_PER_ANIMAL: 50,
     MAX_LEVEL_PER_ANIMAL: 100,
     MAX_ZOO_INCOME: 1e12
@@ -48,33 +47,131 @@ const REFERRAL_REWARDS = {
     ACTIVATED_REFERRER_GEMS: 0
 };
 
-const EXPEDITIONS_CONFIG = {
-    forest: { id: "forest", startCostCoins: 50 },
-    river: { id: "river", startCostCoins: 250 },
-    volcano: { id: "volcano", startCostCoins: 750 },
-    canyon: { id: "canyon", startCostCoins: 2000 },
-    glacier: { id: "glacier", startCostCoins: 5000 },
-    jungle: { id: "jungle", startCostCoins: 12000 },
-    temple: { id: "temple", startCostCoins: 28000 },
-    oasis: { id: "oasis", startCostCoins: 60000 },
-    kingdom: { id: "kingdom", startCostCoins: 125000 }
-};
-
-// 🔥 KLUCZ DO ANTI-CHEAT
 const ANIMALS_CONFIG = {
     monkey: { baseIncome: 1 },
     panda: { baseIncome: 5 },
     lion: { baseIncome: 14 },
-    tiger: { baseIncome: 32 },
-    elephant: { baseIncome: 75 },
-    giraffe: { baseIncome: 160 },
-    zebra: { baseIncome: 320 },
-    hippo: { baseIncome: 650 },
-    penguin: { baseIncome: 1200 },
-    bear: { baseIncome: 2500 },
-    crocodile: { baseIncome: 5000 },
-    kangaroo: { baseIncome: 9500 },
-    wolf: { baseIncome: 18000 }
+    tiger: { baseIncome: 36 },
+    elephant: { baseIncome: 90 },
+    giraffe: { baseIncome: 220 },
+    zebra: { baseIncome: 520 },
+    hippo: { baseIncome: 1200 },
+    penguin: { baseIncome: 2700 },
+    bear: { baseIncome: 6000 },
+    crocodile: { baseIncome: 13200 },
+    kangaroo: { baseIncome: 29000 },
+    wolf: { baseIncome: 64000 }
+};
+
+const EXPEDITIONS_CONFIG = {
+    forest: {
+        id: "forest",
+        name: "Magic Forest",
+        duration: 300,
+        baseDuration: 300,
+        baseCoins: 80,
+        startCostCoins: 50,
+        gemChance: 0.01,
+        rareChance: 0.12,
+        epicChance: 0.01,
+        unlockLevel: 1
+    },
+    river: {
+        id: "river",
+        name: "Crystal River",
+        duration: 900,
+        baseDuration: 900,
+        baseCoins: 320,
+        startCostCoins: 250,
+        gemChance: 0.015,
+        rareChance: 0.13,
+        epicChance: 0.015,
+        unlockLevel: 3
+    },
+    volcano: {
+        id: "volcano",
+        name: "Golden Volcano",
+        duration: 1800,
+        baseDuration: 1800,
+        baseCoins: 900,
+        startCostCoins: 750,
+        gemChance: 0.02,
+        rareChance: 0.14,
+        epicChance: 0.02,
+        unlockLevel: 5
+    },
+    canyon: {
+        id: "canyon",
+        name: "Sunstone Canyon",
+        duration: 3600,
+        baseDuration: 3600,
+        baseCoins: 2400,
+        startCostCoins: 2000,
+        gemChance: 0.025,
+        rareChance: 0.15,
+        epicChance: 0.025,
+        unlockLevel: 7
+    },
+    glacier: {
+        id: "glacier",
+        name: "Frozen Glacier",
+        duration: 7200,
+        baseDuration: 7200,
+        baseCoins: 5800,
+        startCostCoins: 5000,
+        gemChance: 0.03,
+        rareChance: 0.16,
+        epicChance: 0.03,
+        unlockLevel: 10
+    },
+    jungle: {
+        id: "jungle",
+        name: "Emerald Jungle",
+        duration: 14400,
+        baseDuration: 14400,
+        baseCoins: 13800,
+        startCostCoins: 12000,
+        gemChance: 0.04,
+        rareChance: 0.17,
+        epicChance: 0.04,
+        unlockLevel: 14
+    },
+    temple: {
+        id: "temple",
+        name: "Ancient Temple",
+        duration: 28800,
+        baseDuration: 28800,
+        baseCoins: 32000,
+        startCostCoins: 28000,
+        gemChance: 0.05,
+        rareChance: 0.18,
+        epicChance: 0.05,
+        unlockLevel: 18
+    },
+    oasis: {
+        id: "oasis",
+        name: "Royal Oasis",
+        duration: 43200,
+        baseDuration: 43200,
+        baseCoins: 68000,
+        startCostCoins: 60000,
+        gemChance: 0.06,
+        rareChance: 0.19,
+        epicChance: 0.06,
+        unlockLevel: 22
+    },
+    kingdom: {
+        id: "kingdom",
+        name: "Lost Beast Kingdom",
+        duration: 86400,
+        baseDuration: 86400,
+        baseCoins: 145000,
+        startCostCoins: 125000,
+        gemChance: 0.07,
+        rareChance: 0.20,
+        epicChance: 0.07,
+        unlockLevel: 28
+    }
 };
 
 const ADMIN_SECRET = String(process.env.ADMIN_SECRET || "");
@@ -82,7 +179,7 @@ const ADMIN_SECRET = String(process.env.ADMIN_SECRET || "");
 module.exports = {
     LIMITS,
     REFERRAL_REWARDS,
-    EXPEDITIONS_CONFIG,
     ANIMALS_CONFIG,
+    EXPEDITIONS_CONFIG,
     ADMIN_SECRET
 };
