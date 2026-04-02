@@ -1,7 +1,5 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
-await CryptoZoo.htmlLoader.init();
-
 CryptoZoo.init = {
     started: false,
     minLoadingVisibleMs: 180,
@@ -147,6 +145,7 @@ CryptoZoo.init = {
                 CryptoZoo.uiSettings?.bindSettingsModal?.();
                 CryptoZoo.uiProfile?.bindProfileModal?.();
                 CryptoZoo.ui?.bindHomeButtons?.();
+                CryptoZoo.ads?.updateOfflineUi?.();
             });
         }, 260);
 
@@ -159,6 +158,12 @@ CryptoZoo.init = {
         if (this.started) return;
         this.started = true;
         this.startTimestamp = Date.now();
+
+        this.setLoadingProgress(2);
+
+        await this.runSafe(async () => {
+            await CryptoZoo.htmlLoader?.init?.();
+        });
 
         this.setLoadingProgress(5);
 
@@ -209,6 +214,7 @@ CryptoZoo.init = {
 
         await this.runSafe(async () => {
             CryptoZoo.gameplay?.requestRender?.(true);
+            CryptoZoo.ads?.updateOfflineUi?.();
         });
 
         this.setLoadingProgress(100);
