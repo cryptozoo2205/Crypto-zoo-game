@@ -76,6 +76,24 @@ CryptoZoo.expeditions = {
             .map((value) => Math.max(0, Number(value) || 0))
             .filter((value) => value > 0)
             .sort((a, b) => a - b);
+
+        CryptoZoo.state.expeditionBoost = Math.max(
+            0,
+            Number(CryptoZoo.state.expeditionBoost) || 0
+        );
+
+        CryptoZoo.state.expeditionBoostActiveUntil = Math.max(
+            0,
+            Number(CryptoZoo.state.expeditionBoostActiveUntil) || 0
+        );
+
+        if (
+            CryptoZoo.state.expeditionBoostActiveUntil > 0 &&
+            CryptoZoo.state.expeditionBoostActiveUntil <= Date.now()
+        ) {
+            CryptoZoo.state.expeditionBoost = 0;
+            CryptoZoo.state.expeditionBoostActiveUntil = 0;
+        }
     },
 
     normalizeSelectedAnimals(selectedAnimals) {
@@ -289,7 +307,18 @@ CryptoZoo.expeditions = {
         return this.ensureActiveExpeditionShape();
     },
 
+    isDepositExpeditionBoostActive() {
+        this.ensureExpeditionStats();
+        return (Number(CryptoZoo.state?.expeditionBoostActiveUntil) || 0) > Date.now();
+    },
+
     getExpeditionBoostMultiplier() {
+        this.ensureExpeditionStats();
+
+        if (!this.isDepositExpeditionBoostActive()) {
+            return 1;
+        }
+
         const boostLevel = Math.max(0, Number(CryptoZoo.state?.expeditionBoost) || 0);
         return 1 + boostLevel;
     },
