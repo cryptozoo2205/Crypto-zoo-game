@@ -24,8 +24,7 @@ const referralRoutes = require("./routes/referral-routes");
 const withdrawRoutes = require("./routes/withdraw-routes");
 const depositRoutes = require("./routes/deposit-routes");
 const depositVerifierRoutes = require("./routes/deposit-verifier-routes");
-
-// 🔥 NOWE (EXPEDITION)
+const rewardRoutes = require("./routes/reward-routes");
 const expeditionRoutes = require("./routes/expedition-routes");
 
 // 🔥 API ROUTING
@@ -36,8 +35,7 @@ app.use("/api/referral", referralRoutes);
 app.use("/api/withdraw", withdrawRoutes);
 app.use("/api/deposit", depositRoutes);
 app.use("/api/deposit-verifier", depositVerifierRoutes);
-
-// 🔥 DODANE EXPEDITION
+app.use("/api/reward", rewardRoutes);
 app.use("/api/expedition", expeditionRoutes);
 
 // 🖼️ STATIC FILES (frontend + assets)
@@ -45,8 +43,6 @@ if (fs.existsSync(FRONTEND_DIR)) {
     console.log("Frontend found:", FRONTEND_DIR);
 
     app.use(express.static(FRONTEND_DIR));
-
-    // 🔥 FIX assets
     app.use("/assets", express.static(path.join(FRONTEND_DIR, "assets")));
 } else {
     console.warn("Frontend NOT found:", FRONTEND_DIR);
