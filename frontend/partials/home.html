@@ -60,8 +60,7 @@
         </div>
     </div>
 
-    <!-- ✅ TYLKO JEDEN BLOK OFFLINE -->
-    <div class="home-offline-strip">
+    <div class="home-offline-strip" id="homeOfflinePanel">
         <div class="home-offline-left">
             <div class="home-offline-title">💤 Zarobki offline</div>
             <div class="home-offline-main" id="homeOfflineMainText">
@@ -77,60 +76,48 @@
                 id="watchOfflineAdBtn"
                 class="home-offline-ad-btn"
                 type="button"
-                onclick="CryptoZoo.ads.showRewardedAd()"
+                onclick="CryptoZoo.ads && CryptoZoo.ads.showRewardedAd ? CryptoZoo.ads.showRewardedAd() : null"
             >
                 📺 +2h
             </button>
         </div>
     </div>
 
-    <div class="home-zoo-preview">
-        <div class="home-zoo-preview-head">
-            <div class="home-zoo-preview-title" id="langYourZooTitle">🐾 Twoje Zoo</div>
-            <button id="homeZooPreviewBtn" class="home-zoo-preview-button" type="button">Zobacz więcej</button>
-        </div>
-
-        <div class="home-zoo-preview-list">
-            <div class="home-zoo-preview-card">
-                <img src="assets/animals/monkey.png" alt="Monkey">
-                <div class="home-zoo-preview-name" id="homeMonkeyName">Monkey</div>
-                <div class="home-zoo-preview-meta">
-                    Ilość: <span id="homeMonkeyCount">0</span><br>
-                    Lvl: <span id="homeMonkeyLevel">1</span>
-                </div>
-            </div>
-
-            <div class="home-zoo-preview-card">
-                <img src="assets/animals/panda.png" alt="Panda">
-                <div class="home-zoo-preview-name" id="homePandaName">Panda</div>
-                <div class="home-zoo-preview-meta">
-                    Ilość: <span id="homePandaCount">0</span><br>
-                    Lvl: <span id="homePandaLevel">1</span>
-                </div>
-            </div>
-
-            <div class="home-zoo-preview-card">
-                <img src="assets/animals/lion.png" alt="Lion">
-                <div class="home-zoo-preview-name" id="homeLionName">Lion</div>
-                <div class="home-zoo-preview-meta">
-                    Ilość: <span id="homeLionCount">0</span><br>
-                    Lvl: <span id="homeLionLevel">1</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="home-quick-panel">
-        <button id="homeDailyBtn" class="home-quick-card" type="button">
-            🎁 Daily Reward
+        <button id="homeDailyBtn" class="home-quick-card" type="button" aria-label="Otwórz Daily Reward">
+            <div class="home-quick-icon">🎁</div>
+            <div class="home-quick-text">
+                <div class="home-quick-title">Daily Reward</div>
+                <div class="home-quick-subtitle">
+                    <span id="homeDailyStatusText">Gotowe do dopracowania</span><br>
+                    <span id="homeDailyTimerText">Countdown pojawi się tutaj</span>
+                </div>
+            </div>
         </button>
 
         <button id="homeEventsBtn" class="home-quick-card" type="button">
-            ⭐ Events
+            <div class="home-quick-icon">⭐</div>
+            <div class="home-quick-text">
+                <div class="home-quick-title" id="langEventsTitle">Events</div>
+                <div class="home-quick-subtitle" id="langEventsSubtitle">Nowe eventy wkrótce</div>
+            </div>
         </button>
 
         <button id="homeBoostInfoBtn" class="home-quick-card" type="button">
-            ⚡ Boost Center
+            <div class="home-quick-icon">⚡</div>
+            <div class="home-quick-text">
+                <div class="home-quick-title" id="langBoostCenterTitle">Boost Center</div>
+                <div class="home-quick-subtitle" id="langBoostCenterSubtitle">Kup lub aktywuj X2</div>
+            </div>
         </button>
+    </div>
+
+    <div style="display:none;">
+        <span id="coins">0</span>
+        <span id="gems">0</span>
+        <span id="rewardBalance">0</span>
+        <span id="level">1</span>
+        <span id="coinsPerClick">1</span>
+        <span id="zooIncome">0</span>
     </div>
 </div>
