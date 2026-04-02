@@ -6,7 +6,8 @@ const { getPlayerOrCreate, normalizePlayer } = require("../services/player-servi
 const {
     createDeposit,
     getPlayerDeposits,
-    buildDepositPaymentData
+    buildDepositPaymentData,
+    applyDepositExpeditionBoost
 } = require("../services/deposit-service");
 const {
     verifySingleDepositById,
@@ -293,21 +294,15 @@ router.post("/api/deposit/confirm", (req, res) => {
 
     if (status === "approved") {
         const gemsToAdd = Math.max(0, Number(deposit.gemsAmount) || 0);
-        const expeditionBoostToAdd = Math.max(
-            0,
-            Number(deposit.expeditionBoostAmount) || 0
-        );
 
         player.gems = Math.max(
             0,
             Number(player.gems || 0) + gemsToAdd
         );
 
-        player.expeditionBoost = Number(
-            (
-                Math.max(0, Number(player.expeditionBoost) || 0) +
-                expeditionBoostToAdd
-            ).toFixed(4)
+        player.expeditionBoost = applyDepositExpeditionBoost(
+            player.expeditionBoost,
+            deposit.amount
         );
 
         deposit.approvedAt = Date.now();
