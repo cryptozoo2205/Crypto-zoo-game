@@ -2,10 +2,14 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    >
     <meta name="theme-color" content="#0b1220">
     <title>Crypto Zoo</title>
 
+    <script src="//libtl.com/sdk.js" data-zone="10822070" data-sdk="show_10822070"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <link rel="stylesheet" href="css/base.css">
@@ -18,8 +22,147 @@
     <link rel="stylesheet" href="css/menu.css">
     <link rel="stylesheet" href="css/minigames-ui.css">
     <link rel="stylesheet" href="css/responsive.css">
+
+    <style>
+        :root {
+            --menu-height: 110px;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            min-height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #0b1220;
+        }
+
+        body.telegram-webapp {
+            overscroll-behavior: none;
+            touch-action: manipulation;
+        }
+
+        #app {
+            width: 100%;
+            height: 100%;
+            min-height: 100%;
+            overflow: hidden;
+            background: #0b1220;
+        }
+
+        #game {
+            width: 100%;
+            height: calc(100% - var(--menu-height));
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            box-sizing: border-box;
+        }
+
+        .top-bar {
+            padding-top: env(safe-area-inset-top, 0px);
+            box-sizing: border-box;
+        }
+
+        .menu {
+            padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
+            box-sizing: border-box;
+        }
+
+        #loading-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+        }
+
+        .home-offline-strip {
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 18px;
+            border-radius: 22px;
+            background: linear-gradient(180deg, rgba(15, 28, 74, 0.96) 0%, rgba(7, 17, 49, 0.96) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+        }
+
+        .home-offline-left {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .home-offline-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 6px;
+        }
+
+        .home-offline-main {
+            font-size: 14px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.92);
+            line-height: 1.4;
+        }
+
+        .home-offline-sub {
+            margin-top: 6px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.68);
+            line-height: 1.4;
+        }
+
+        .home-offline-right {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .home-offline-ad-btn {
+            min-width: 124px;
+            min-height: 48px;
+            padding: 0 16px;
+            border: none;
+            border-radius: 16px;
+            background: linear-gradient(180deg, #ffd94d 0%, #f0b90b 100%);
+            color: #1f1f1f;
+            font-size: 15px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 10px 24px rgba(240, 185, 11, 0.22);
+        }
+
+        .home-offline-ad-btn:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+    </style>
 </head>
 <body>
+    <div id="loading-screen">
+        <div class="loading-visual">
+            <div class="loading-image-wrap">
+                <img
+                    src="assets/loading/loading_main.png"
+                    alt=""
+                    class="loading-image"
+                    onerror="this.style.display='none';"
+                >
+                <div class="loading-progress-overlay">
+                    <div class="loading-progress-bar">
+                        <div class="loading-progress-fill" id="loadingBarFill"></div>
+                    </div>
+                    <div class="loading-progress-text" id="loadingPercent">0%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="app">
         <header class="top-bar">
             <div class="top-bar-shell">
@@ -79,20 +222,30 @@
     <script src="./js/lang.js"></script>
 
     <script src="./js/ui.js"></script>
+    <script src="./js/ui-home.js"></script>
     <script src="./js/ui-profile.js"></script>
     <script src="./js/ui-settings.js"></script>
     <script src="./js/ui-ranking.js"></script>
     <script src="./js/ui-faq.js"></script>
+    <script src="./js/ui-effects.js"></script>
+    <script src="./js/ui-updates.js"></script>
+    <script src="./js/ui-roadmap.js"></script>
+    <script src="./js/ui-deposit.js"></script>
 
     <script src="./js/navigation-system.js"></script>
-    <script src="./js/daily-missions-system.js"></script>
-    <script src="./js/boost-system.js"></script>
-    <script src="./js/daily-reward-system.js"></script>
     <script src="./js/animal-system.js"></script>
+    <script src="./js/boost-system.js"></script>
+    <script src="./js/daily-missions-system.js"></script>
+    <script src="./js/daily-reward-system.js"></script>
+    <script src="./js/daily.js"></script>
     <script src="./js/expedition-system.js"></script>
     <script src="./js/income-system.js"></script>
     <script src="./js/offline-system.js"></script>
+    <script src="./js/offline-ads-system.js"></script>
+    <script src="./js/progression-system.js"></script>
+    <script src="./js/reward-wallet-system.js"></script>
     <script src="./js/shop-purchase-system.js"></script>
+    <script src="./js/tap-system.js"></script>
     <script src="./js/gameplay.js"></script>
 
     <script src="./js/api.js"></script>
@@ -100,15 +253,17 @@
     <script src="./js/deposit-ui-bind.js"></script>
     <script src="./js/deposit-verify-ui.js"></script>
 
-    <script src="./js/telegram.js"></script>
-    <script src="./js/audio.js"></script>
-    <script src="./js/shop.js"></script>
-    <script src="./js/minigames.js"></script>
-    <script src="./js/offline-ads-system.js"></script>
     <script src="./js/ads-provider.js"></script>
-    <script src="./js/ui-roadmap.js"></script>
+    <script src="./js/audio.js"></script>
+    <script src="./js/debug-touch.js"></script>
     <script src="./js/html-loader.js"></script>
+    <script src="./js/minigames.js"></script>
+    <script src="./js/offline-ads-ui.js"></script>
     <script src="./js/offline-panel-fix.js"></script>
+    <script src="./js/shop.js"></script>
+    <script src="./js/telegram-ads-ui.js"></script>
+    <script src="./js/telegram.js"></script>
+
     <script src="./js/init.js"></script>
 </body>
 </html>
