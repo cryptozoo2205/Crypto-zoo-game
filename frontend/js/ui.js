@@ -6,7 +6,7 @@ CryptoZoo.ui = {
     rankingLoading: false,
     rankingLastFetchAt: 0,
     rankingCacheTtl: 15000,
-    offlineAdsTimer: null,
+    offlineInfoTimer: null,
 
     t(key, fallback) {
         const translated = CryptoZoo.lang?.t?.(key);
@@ -340,20 +340,25 @@ CryptoZoo.ui = {
         }
     },
 
-    ensureOfflineAdsInfoBar() {
+    ensureOfflineInfoBar() {
         const homeQuickPanel = document.querySelector(".home-quick-panel");
         const homeStatsPanel = document.querySelector(".home-stats-panel");
         const anchor = homeQuickPanel || homeStatsPanel;
         if (!anchor || !anchor.parentNode) return null;
 
-        let bar = document.getElementById("homeOfflineAdsInfoBar");
+        const oldAdsBar = document.getElementById("homeOfflineAdsInfoBar");
+        if (oldAdsBar) {
+            oldAdsBar.remove();
+        }
+
+        let bar = document.getElementById("homeOfflineInfoBar");
 
         if (!bar) {
             bar = document.createElement("div");
-            bar.id = "homeOfflineAdsInfoBar";
+            bar.id = "homeOfflineInfoBar";
             bar.style.width = "100%";
             bar.style.marginTop = "10px";
-            bar.style.marginBottom = "2px";
+            bar.style.marginBottom = "10px";
             bar.style.padding = "10px 12px";
             bar.style.borderRadius = "16px";
             bar.style.background = "linear-gradient(180deg, rgba(18, 28, 48, 0.96) 0%, rgba(10, 17, 31, 0.95) 100%)";
@@ -370,63 +375,82 @@ CryptoZoo.ui = {
         return bar;
     },
 
-    renderOfflineAdsStatus() {
-        const bar = this.ensureOfflineAdsInfoBar();
+    renderOfflineInfo() {
+        const bar = this.ensureOfflineInfoBar();
         if (!bar) return;
 
-        const currentHours = Math.max(
-            0,
-            Number(CryptoZoo.offlineAds?.getCurrentHours?.() || 0)
+        const totalHours = Math.max(
+            1,
+            Number(CryptoZoo.gameplay?.getOfflineHoursTotal?.() || 1)
         );
-        const maxHours = Math.max(
+        const baseHours = Math.max(
+            1,
+            Number(CryptoZoo.gameplay?.getOfflineBaseHours?.() || 1)
+        );
+        const boostHours = Math.max(
+            0,
+            Number(CryptoZoo.gameplay?.getOfflineBoostHours?.() || 0)
+        );
+        const adsHours = Math.max(
+            0,
+            Number(CryptoZoo.gameplay?.getOfflineAdsHours?.() || 0)
+        );
+
+        const offlineBoost = Math.max(1, Number(CryptoZoo.state?.offlineBoost) || 1);
+
+        const adsMaxHours = Math.max(
             0,
             Number(CryptoZoo.offlineAds?.getMaxHours?.() || 12)
         );
-        const remainingHours = Math.max(
+        const adsRemainingHours = Math.max(
             0,
             Number(CryptoZoo.offlineAds?.getRemainingHours?.() || 0)
         );
-        const resetSeconds = Math.max(
+        const adsResetSeconds = Math.max(
             0,
             Number(CryptoZoo.offlineAds?.getSecondsUntilReset?.() || 0)
         );
         const canWatchAd = !!CryptoZoo.offlineAds?.canWatchAd?.();
-        const hoursPerAd = Math.max(
-            1,
-            Number(CryptoZoo.offlineAds?.HOURS_PER_AD || 2)
-        );
 
-        const statusText = canWatchAd
+        const adsStatus = canWatchAd
             ? this.t("adsAvailable", "Reklamy dostępne")
             : this.t("adsLimitReached", "Limit osiągnięty");
 
-        const statusColor = canWatchAd ? "#8af7a5" : "#ffd86b";
+        const adsStatusColor = canWatchAd ? "#8af7a5" : "#ffd86b";
 
         bar.innerHTML = `
+            <div style="font-size:13px; font-weight:900; margin-bottom:4px;">💤 ${this.t("offlineEarnings", "Zarobki offline")}</div>
+            <div style="color: rgba(255,255,255,0.78); margin-bottom:4px;">
+                ${this.t("offlineLimit", "Limit offline")}: ${CryptoZoo.formatNumber(totalHours)}h • ${this.t("standardMultiplier", "Standardowy mnożnik")} offline x${CryptoZoo.formatNumber(offlineBoost)}
+            </div>
+            <div style="color: rgba(255,255,255,0.58); font-size:11px; margin-bottom:8px;">
+                ${this.t("baseLimit", "Limit bazowy")}: ${CryptoZoo.formatNumber(baseHours)}h • Shop: +${CryptoZoo.formatNumber(boostHours)}h • Ads: +${CryptoZoo.formatNumber(adsHours)}h
+            </div>
+            <div style="height:1px; background:rgba(255,255,255,0.08); margin:8px 0;"></div>
             <div style="font-size:13px; font-weight:900; margin-bottom:4px;">📺 ${this.t("offlineAds", "Offline Ads")}</div>
-            <div style="color:${statusColor}; margin-bottom:4px;">
-                ${statusText} • ${CryptoZoo.formatNumber(currentHours)}/${CryptoZoo.formatNumber(maxHours)}h
+            <div style="color:${adsStatusColor}; margin-bottom:4px;">
+                ${adsStatus} • ${CryptoZoo.formatNumber(adsHours)}/${CryptoZoo.formatNumber(adsMaxHours)}h
             </div>
-            <div style="color:rgba(255,255,255,0.78); margin-bottom:4px;">
-                +${CryptoZoo.formatNumber(hoursPerAd)}h ${this.t("perAd", "za reklamę")} • ${this.t("remaining", "Pozostało")}: ${CryptoZoo.formatNumber(remainingHours)}h
+            <div style="color: rgba(255,255,255,0.78); margin-bottom:4px;">
+                ${this.t("remaining", "Pozostało")}: ${CryptoZoo.formatNumber(adsRemainingHours)}h
             </div>
-            <div style="color:rgba(255,255,255,0.58); font-size:11px;">
-                ${this.t("resetIn", "Reset za")}: ${this.formatTimeLeft(resetSeconds)}
+            <div style="color: rgba(255,255,255,0.58); font-size:11px;">
+                ${this.t("resetIn", "Reset za")}: ${this.formatTimeLeft(adsResetSeconds)}
             </div>
         `;
     },
 
-    ensureOfflineAdsTimerRunning() {
-        if (this.offlineAdsTimer) return;
+    ensureOfflineInfoTimerRunning() {
+        if (this.offlineInfoTimer) return;
 
-        this.offlineAdsTimer = setInterval(() => {
+        this.offlineInfoTimer = setInterval(() => {
             const activeScreen = CryptoZoo.gameplay?.activeScreen || "game";
             if (activeScreen !== "game") return;
 
-            const bar = document.getElementById("homeOfflineAdsInfoBar");
+            const bar = document.getElementById("homeOfflineInfoBar");
             if (!bar) return;
 
-            this.renderOfflineAdsStatus();
+            this.renderOfflineInfo();
         }, 1000);
     },
 
@@ -990,8 +1014,8 @@ CryptoZoo.ui = {
         this.bindHomeButtons();
         this.renderBoostStatus();
         this.renderDailyRewardStatus();
-        this.renderOfflineAdsStatus();
-        this.ensureOfflineAdsTimerRunning();
+        this.renderOfflineInfo();
+        this.ensureOfflineInfoTimerRunning();
     },
 
     renderTopHiddenStats() {
