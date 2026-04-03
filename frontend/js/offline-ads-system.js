@@ -3,10 +3,23 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.offlineAds = {
     MAX_HOURS: 12,
     HOURS_PER_AD: 2,
-    RESET_INTERVAL_MS: 24 * 60 * 60 * 1000,
+    RESET_INTERVAL_MS: 12 * 60 * 60 * 1000,
 
     getNow() {
         return Date.now();
+    },
+
+    formatTimeLeft(totalSeconds) {
+        const safe = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+        const hours = Math.floor(safe / 3600);
+        const minutes = Math.floor((safe % 3600) / 60);
+        const seconds = safe % 60;
+
+        return [
+            String(hours).padStart(2, "0"),
+            String(minutes).padStart(2, "0"),
+            String(seconds).padStart(2, "0")
+        ].join(":");
     },
 
     ensureState() {
@@ -75,16 +88,40 @@ CryptoZoo.offlineAds = {
         return Math.max(0, Math.ceil((nextResetAt - now) / 1000));
     },
 
+    getFormattedTimeUntilReset() {
+        return this.formatTimeLeft(this.getSecondsUntilReset());
+    },
+
+    getNextResetAt() {
+        this.ensureState();
+        const lastResetAt = Math.max(0, Number(CryptoZoo.state?.offlineAdsResetAt) || 0);
+        return lastResetAt + this.RESET_INTERVAL_MS;
+    },
+
     canWatchAd() {
         this.ensureState();
         return this.getCurrentHours() < this.MAX_HOURS;
+    },
+
+    getStatusText() {
+        const current = this.getCurrentHours();
+        const max = this.getMaxHours();
+        const remaining = this.getRemainingHours();
+        const resetText = this.getFormattedTimeUntilReset();
+
+        if (this.canWatchAd()) {
+            return `Offline Ads: ${current}/${max}h • Zostało: ${remaining}h • Reset za: ${resetText}`;
+        }
+
+        return `Offline Ads: ${current}/${max}h • Limit osiągnięty • Reset za: ${resetText}`;
     },
 
     grantAdReward() {
         this.ensureState();
 
         if (!this.canWatchAd()) {
-            CryptoZoo.ui?.showToast?.("Osiągnięto dzienny limit reklam (12h)");
+            const resetText = this.getFormattedTimeUntilReset();
+            CryptoZoo.ui?.showToast?.(`Osiągnięto limit reklam (12h) • Reset za ${resetText}`);
             return false;
         }
 
@@ -98,7 +135,9 @@ CryptoZoo.offlineAds = {
         );
 
         CryptoZoo.api?.savePlayer?.();
-        CryptoZoo.ui?.showToast?.(`+${added}h offline`);
+
+        const resetText = this.getFormattedTimeUntilReset();
+        CryptoZoo.ui?.showToast?.(`+${added}h offline • Reset za ${resetText}`);
 
         return true;
     }
