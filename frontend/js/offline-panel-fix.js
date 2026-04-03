@@ -25,11 +25,24 @@ CryptoZoo.offlinePanelFix = {
         });
     },
 
+    refreshOfflineButton() {
+        try {
+            CryptoZoo.offlineAdsUI?.updateButton?.();
+        } catch (error) {
+            console.warn("Failed to refresh offline ads button:", error);
+        }
+    },
+
+    runFix() {
+        this.removeDuplicates();
+        this.refreshOfflineButton();
+    },
+
     startObserver() {
         if (this.observer) return;
 
         this.observer = new MutationObserver(() => {
-            this.removeDuplicates();
+            this.runFix();
         });
 
         this.observer.observe(document.body, {
@@ -39,11 +52,12 @@ CryptoZoo.offlinePanelFix = {
     },
 
     init() {
-        this.removeDuplicates();
+        this.runFix();
 
-        setTimeout(() => this.removeDuplicates(), 100);
-        setTimeout(() => this.removeDuplicates(), 300);
-        setTimeout(() => this.removeDuplicates(), 700);
+        setTimeout(() => this.runFix(), 100);
+        setTimeout(() => this.runFix(), 300);
+        setTimeout(() => this.runFix(), 700);
+        setTimeout(() => this.runFix(), 1200);
 
         this.startObserver();
     }
