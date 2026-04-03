@@ -27,24 +27,37 @@ CryptoZoo.offlineAdsUI = {
         return 2;
     },
 
+    findOfflinePanel() {
+        return (
+            document.querySelector("#game .home-offline-strip") ||
+            document.querySelector(".home-offline-strip") ||
+            null
+        );
+    },
+
     findOfflineButton() {
-        const direct = document.querySelector(".home-offline-ad-btn");
+        const panel = this.findOfflinePanel();
+        if (!panel) return null;
+
+        const direct = panel.querySelector(".home-offline-ad-btn");
         if (direct) return direct;
 
-        const insideStrip = document.querySelector(".home-offline-strip .home-offline-ad-btn");
-        if (insideStrip) return insideStrip;
+        const buttons = Array.from(panel.querySelectorAll("button"));
 
-        const buttons = Array.from(document.querySelectorAll("button"));
-
-        const exactOffline = buttons.find((btn) => {
+        const exact = buttons.find((btn) => {
             const text = String(btn.textContent || "").trim().toUpperCase();
             return text === "MAX" || text === "📺 MAX";
         });
-        if (exactOffline) return exactOffline;
+        if (exact) return exact;
 
         const fallback = buttons.find((btn) => {
             const text = String(btn.textContent || "").trim();
-            return text.includes("MAX") || text.includes("📺") || text.includes("+1h") || text.includes("+2h");
+            return (
+                text.includes("MAX") ||
+                text.includes("📺") ||
+                text.includes("+1h") ||
+                text.includes("+2h")
+            );
         });
 
         return fallback || null;
@@ -60,6 +73,14 @@ CryptoZoo.offlineAdsUI = {
             Number(CryptoZoo.offlineAds?.getSecondsUntilReset?.() || 0)
         );
         const rewardHours = this.getRewardHours();
+
+        btn.classList.add("home-offline-ad-btn");
+        btn.style.whiteSpace = "nowrap";
+        btn.style.display = "inline-flex";
+        btn.style.alignItems = "center";
+        btn.style.justifyContent = "center";
+        btn.style.textAlign = "center";
+        btn.style.fontWeight = "900";
 
         if (canWatchAd) {
             btn.textContent = `📺 +${CryptoZoo.formatNumber ? CryptoZoo.formatNumber(rewardHours) : rewardHours}h`;
@@ -100,3 +121,7 @@ CryptoZoo.offlineAdsUI = {
         }, 1000);
     }
 };
+
+document.addEventListener("DOMContentLoaded", () => {
+    CryptoZoo.offlineAdsUI.start();
+});
