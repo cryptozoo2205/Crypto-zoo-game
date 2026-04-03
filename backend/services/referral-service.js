@@ -18,6 +18,51 @@ function getReferrerId(player) {
     return safeString(player?.referredBy, "");
 }
 
+function getReferralRewardNumber(key, fallback = 0) {
+    return Math.max(0, Number(REFERRAL_REWARDS?.[key]) || fallback || 0);
+}
+
+function getMaxRewardBalance() {
+    return Math.max(0, Number(LIMITS?.MAX_REWARD_BALANCE) || 100000);
+}
+
+function addCoins(player, amount) {
+    player.coins = clamp(
+        Number(player?.coins || 0) + Math.max(0, Number(amount) || 0),
+        0,
+        Number(LIMITS?.MAX_COINS) || 1e15
+    );
+}
+
+function addGems(player, amount) {
+    player.gems = clamp(
+        Number(player?.gems || 0) + Math.max(0, Number(amount) || 0),
+        0,
+        Number(LIMITS?.MAX_GEMS) || 1e6
+    );
+}
+
+function addRewardBalance(player, amount) {
+    const current = Math.max(0, Number(player?.rewardBalance) || 0);
+    const next = current + Math.max(0, Number(amount) || 0);
+
+    player.rewardBalance = Number(
+        clamp(next, 0, getMaxRewardBalance()).toFixed(3)
+    );
+}
+
+function applyRewardBundle(player, options = {}) {
+    if (!player || typeof player !== "object") {
+        return player;
+    }
+
+    addCoins(player, options.coins);
+    addGems(player, options.gems);
+    addRewardBalance(player, options.rewardBalance);
+
+    return player;
+}
+
 function ensureReferralCode(player) {
     const playerId = getPlayerId(player);
     const safeCode = safeString(player?.referralCode, "");
@@ -80,7 +125,7 @@ function ensureReferralRecordOnReferrer(referrer, player) {
             if (!id) return false;
             return arr.findIndex((item) => safeString(item?.telegramId, "") === id) === index;
         })
-        .slice(0, LIMITS.MAX_REFERRALS_STORED);
+        .slice(0, Number(LIMITS?.MAX_REFERRALS_STORED) || 500);
 
     referrer.referralsCount = referrer.referrals.length;
     return referrer;
@@ -198,17 +243,11 @@ function applyReferralWelcomeBonusIfPossible(db, player) {
         return false;
     }
 
-    safePlayer.coins = clamp(
-        Number(safePlayer.coins || 0) + Number(REFERRAL_REWARDS.VISIT_NEW_PLAYER_COINS || 0),
-        0,
-        LIMITS.MAX_COINS
-    );
-
-    safePlayer.gems = clamp(
-        Number(safePlayer.gems || 0) + Number(REFERRAL_REWARDS.VISIT_NEW_PLAYER_GEMS || 0),
-        0,
-        LIMITS.MAX_GEMS
-    );
+    applyRewardBundle(safePlayer, {
+        coins: getReferralRewardNumber("VISIT_NEW_PLAYER_COINS", 0),
+        gems: getReferralRewardNumber("VISIT_NEW_PLAYER_GEMS", 0),
+        rewardBalance: getReferralRewardNumber("VISIT_NEW_PLAYER_REWARD", 0)
+    });
 
     safePlayer.referralWelcomeBonusClaimed = true;
 
@@ -245,7 +284,7 @@ function applyReferralActivationRewardsIfPossible(db, player) {
 
     const meetsActivationLevel =
         Math.max(1, normalizeNumber(safePlayer.level, 1)) >=
-        Math.max(1, normalizeNumber(REFERRAL_REWARDS.ACTIVATE_AT_LEVEL, 3));
+        Math.max(1, normalizeNumber(REFERRAL_REWARDS?.ACTIVATE_AT_LEVEL, 3));
 
     if (meetsActivationLevel && !safePlayer.referralActivated) {
         safePlayer.referralActivated = true;
@@ -253,29 +292,17 @@ function applyReferralActivationRewardsIfPossible(db, player) {
     }
 
     if (meetsActivationLevel && !safePlayer.referralActivationBonusClaimed) {
-        safePlayer.coins = clamp(
-            Number(safePlayer.coins || 0) + Number(REFERRAL_REWARDS.ACTIVATED_NEW_PLAYER_COINS || 0),
-            0,
-            LIMITS.MAX_COINS
-        );
+        applyRewardBundle(safePlayer, {
+            coins: getReferralRewardNumber("ACTIVATED_NEW_PLAYER_COINS", 0),
+            gems: getReferralRewardNumber("ACTIVATED_NEW_PLAYER_GEMS", 0),
+            rewardBalance: getReferralRewardNumber("ACTIVATED_NEW_PLAYER_REWARD", 0)
+        });
 
-        safePlayer.gems = clamp(
-            Number(safePlayer.gems || 0) + Number(REFERRAL_REWARDS.ACTIVATED_NEW_PLAYER_GEMS || 0),
-            0,
-            LIMITS.MAX_GEMS
-        );
-
-        referrer.coins = clamp(
-            Number(referrer.coins || 0) + Number(REFERRAL_REWARDS.ACTIVATED_REFERRER_COINS || 0),
-            0,
-            LIMITS.MAX_COINS
-        );
-
-        referrer.gems = clamp(
-            Number(referrer.gems || 0) + Number(REFERRAL_REWARDS.ACTIVATED_REFERRER_GEMS || 0),
-            0,
-            LIMITS.MAX_GEMS
-        );
+        applyRewardBundle(referrer, {
+            coins: getReferralRewardNumber("ACTIVATED_REFERRER_COINS", 0),
+            gems: getReferralRewardNumber("ACTIVATED_REFERRER_GEMS", 0),
+            rewardBalance: getReferralRewardNumber("ACTIVATED_REFERRER_REWARD", 0)
+        });
 
         safePlayer.referralActivated = true;
         safePlayer.referralActivationBonusClaimed = true;
