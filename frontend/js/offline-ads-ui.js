@@ -5,27 +5,8 @@ CryptoZoo.offlineAdsUI = {
     observer: null,
 
     getRewardHours() {
-        const candidates = [
-            CryptoZoo.offlineAds?.getRewardHours?.(),
-            CryptoZoo.offlineAds?.getHoursPerAd?.(),
-            CryptoZoo.offlineAds?.rewardHours,
-            CryptoZoo.offlineAds?.hoursPerAd,
-            CryptoZoo.offlineAds?.AD_REWARD_HOURS,
-            CryptoZoo.offlineAds?.REWARD_HOURS,
-            CryptoZoo.config?.offlineAdsRewardHours,
-            CryptoZoo.config?.offlineAdsHoursPerAd,
-            CryptoZoo.config?.offlineAdRewardHours,
-            2
-        ];
-
-        for (const value of candidates) {
-            const num = Number(value);
-            if (Number.isFinite(num) && num > 0) {
-                return num;
-            }
-        }
-
-        return 2;
+        const value = Number(CryptoZoo.offlineAds?.HOURS_PER_AD);
+        return Number.isFinite(value) && value > 0 ? value : 2;
     },
 
     getButton() {
