@@ -373,28 +373,13 @@ CryptoZoo.ui = {
             1,
             Number(CryptoZoo.gameplay?.getOfflineHoursTotal?.() || 1)
         );
-        const baseHours = Math.max(
-            1,
-            Number(CryptoZoo.gameplay?.getOfflineBaseHours?.() || 1)
-        );
-        const boostHours = Math.max(
-            0,
-            Number(CryptoZoo.gameplay?.getOfflineBoostHours?.() || 0)
-        );
         const adsHours = Math.max(
             0,
             Number(CryptoZoo.gameplay?.getOfflineAdsHours?.() || 0)
         );
-
-        const offlineBoost = Math.max(1, Number(CryptoZoo.state?.offlineBoost) || 1);
-
         const adsMaxHours = Math.max(
             0,
             Number(CryptoZoo.offlineAds?.getMaxHours?.() || 12)
-        );
-        const adsRemainingHours = Math.max(
-            0,
-            Number(CryptoZoo.offlineAds?.getRemainingHours?.() || 0)
         );
         const adsResetSeconds = Math.max(
             0,
@@ -406,25 +391,23 @@ CryptoZoo.ui = {
             ? this.t("adsAvailable", "Reklamy dostępne")
             : this.t("adsLimitReached", "Limit osiągnięty");
 
-        const adsStatusColor = canWatchAd ? "#8af7a5" : "#ffd86b";
+        bar.style.overflow = "visible";
+        bar.style.height = "auto";
+        bar.style.minHeight = "unset";
+        bar.style.display = "flex";
+        bar.style.flexDirection = "column";
+        bar.style.justifyContent = "center";
+        bar.style.gap = "4px";
 
         bar.innerHTML = `
-            <div style="font-size:13px; font-weight:900; margin-bottom:4px;">💤 ${this.t("offlineEarnings", "Zarobki offline")}</div>
-            <div style="color: rgba(255,255,255,0.78); margin-bottom:4px;">
-                ${this.t("offlineLimit", "Limit offline")}: ${CryptoZoo.formatNumber(totalHours)}h • ${this.t("standardMultiplier", "Standardowy mnożnik")} offline x${CryptoZoo.formatNumber(offlineBoost)}
+            <div style="font-size:12px; font-weight:900; line-height:1.2;">💤 ${this.t("offlineEarnings", "Zarobki offline")}</div>
+            <div style="font-size:11px; line-height:1.2; color:rgba(255,255,255,0.88);">
+                ${this.t("offlineLimit", "Limit offline")}: ${CryptoZoo.formatNumber(totalHours)}h
             </div>
-            <div style="color: rgba(255,255,255,0.58); font-size:11px; margin-bottom:8px;">
-                ${this.t("baseLimit", "Limit bazowy")}: ${CryptoZoo.formatNumber(baseHours)}h • Shop: +${CryptoZoo.formatNumber(boostHours)}h • Ads: +${CryptoZoo.formatNumber(adsHours)}h
-            </div>
-            <div style="height:1px; background:rgba(255,255,255,0.08); margin:8px 0;"></div>
-            <div style="font-size:13px; font-weight:900; margin-bottom:4px;">📺 ${this.t("offlineAds", "Offline Ads")}</div>
-            <div style="color:${adsStatusColor}; margin-bottom:4px;">
+            <div style="font-size:11px; line-height:1.2; color:${canWatchAd ? "#8af7a5" : "#ffd86b"};">
                 ${adsStatus} • ${CryptoZoo.formatNumber(adsHours)}/${CryptoZoo.formatNumber(adsMaxHours)}h
             </div>
-            <div style="color: rgba(255,255,255,0.78); margin-bottom:4px;">
-                ${this.t("remaining", "Pozostało")}: ${CryptoZoo.formatNumber(adsRemainingHours)}h
-            </div>
-            <div style="color: rgba(255,255,255,0.58); font-size:11px;">
+            <div style="font-size:11px; line-height:1.2; color:rgba(255,255,255,0.72);">
                 ${this.t("resetIn", "Reset za")}: ${this.formatTimeLeft(adsResetSeconds)}
             </div>
         `;
