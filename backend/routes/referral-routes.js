@@ -35,13 +35,19 @@ router.get("/referrals/:telegramId", (req, res) => {
         referralCode: safeString(safePlayer.referralCode, telegramId),
         referralLinkCode: `ref_${safeString(safePlayer.referralCode, telegramId)}`,
         referralRewards: {
-            activateAtLevel: REFERRAL_REWARDS.ACTIVATE_AT_LEVEL,
-            visitNewPlayerCoins: REFERRAL_REWARDS.VISIT_NEW_PLAYER_COINS,
-            visitNewPlayerGems: REFERRAL_REWARDS.VISIT_NEW_PLAYER_GEMS,
-            activatedNewPlayerCoins: REFERRAL_REWARDS.ACTIVATED_NEW_PLAYER_COINS,
-            activatedNewPlayerGems: REFERRAL_REWARDS.ACTIVATED_NEW_PLAYER_GEMS,
-            activatedReferrerCoins: REFERRAL_REWARDS.ACTIVATED_REFERRER_COINS,
-            activatedReferrerGems: REFERRAL_REWARDS.ACTIVATED_REFERRER_GEMS
+            activateAtLevel: Math.max(1, Number(REFERRAL_REWARDS?.ACTIVATE_AT_LEVEL) || 3),
+
+            visitNewPlayerCoins: Math.max(0, Number(REFERRAL_REWARDS?.VISIT_NEW_PLAYER_COINS) || 0),
+            visitNewPlayerGems: Math.max(0, Number(REFERRAL_REWARDS?.VISIT_NEW_PLAYER_GEMS) || 0),
+            visitNewPlayerReward: Math.max(0, Number(REFERRAL_REWARDS?.VISIT_NEW_PLAYER_REWARD) || 0),
+
+            activatedNewPlayerCoins: Math.max(0, Number(REFERRAL_REWARDS?.ACTIVATED_NEW_PLAYER_COINS) || 0),
+            activatedNewPlayerGems: Math.max(0, Number(REFERRAL_REWARDS?.ACTIVATED_NEW_PLAYER_GEMS) || 0),
+            activatedNewPlayerReward: Math.max(0, Number(REFERRAL_REWARDS?.ACTIVATED_NEW_PLAYER_REWARD) || 0),
+
+            activatedReferrerCoins: Math.max(0, Number(REFERRAL_REWARDS?.ACTIVATED_REFERRER_COINS) || 0),
+            activatedReferrerGems: Math.max(0, Number(REFERRAL_REWARDS?.ACTIVATED_REFERRER_GEMS) || 0),
+            activatedReferrerReward: Math.max(0, Number(REFERRAL_REWARDS?.ACTIVATED_REFERRER_REWARD) || 0)
         },
         referrals: normalizeReferrals(safePlayer.referrals)
     });
