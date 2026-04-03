@@ -3,6 +3,8 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.minigames = {
     memoryCooldownSeconds: 15 * 60,
     memoryFailCooldownSeconds: 5 * 60,
+    tapChallengeCooldownSeconds: 45 * 60,
+    tapChallengeDurationSeconds: 5,
     cooldownTimerStarted: false,
 
     memoryCards: [],
@@ -21,6 +23,16 @@ CryptoZoo.minigames = {
     memoryDifficulty: "medium",
     memoryMoveLimit: 0,
     memoryCurrentConfig: null,
+
+    tapChallengeSessionActive: false,
+    tapChallengeLocked: false,
+    tapChallengeStartedAt: 0,
+    tapChallengeEndsAt: 0,
+    tapChallengeClicks: 0,
+    tapChallengeAcceptedEvents: [],
+    tapChallengeLastTapAt: 0,
+    tapChallengeTimerInterval: null,
+    tapChallengeResult: null,
 
     memoryDifficultyStorageKey: "cryptozoo_memory_difficulty",
 
@@ -60,7 +72,24 @@ CryptoZoo.minigames = {
                 noMovesLeft: "No moves left",
                 memoryFailed: "Memory failed",
                 gemWon: "Gem won",
-                wheelRemoved: "Wheel removed"
+                wheelRemoved: "Wheel removed",
+
+                tapChallengeTitle: "Tap Challenge",
+                tapChallengeSubtitle: "Tap as fast as you can in 5 seconds",
+                startTapChallenge: "Start Tap Challenge",
+                tapChallengeCooldown: "Tap Challenge CD",
+                tapChallengeReadyIn: "Tap Challenge ready in",
+                tapChallengeTapNow: "TAP NOW!",
+                tapChallengeResultTitle: "Result",
+                tapChallengeClaim: "Claim reward",
+                tapChallengeTryAgain: "Play later",
+                taps: "Taps",
+                target: "Target",
+                reward: "Reward",
+                active: "Active",
+                finished: "Finished",
+                challengeRunning: "Challenge in progress",
+                antiClickLimited: "Too fast taps ignored"
             },
             pl: {
                 startMemory: "Start Memory",
@@ -90,7 +119,24 @@ CryptoZoo.minigames = {
                 noMovesLeft: "Brak ruchów",
                 memoryFailed: "Memory przegrane",
                 gemWon: "Wygrany gem",
-                wheelRemoved: "Koło usunięte"
+                wheelRemoved: "Koło usunięte",
+
+                tapChallengeTitle: "Tap Challenge",
+                tapChallengeSubtitle: "Klikaj jak najszybciej przez 5 sekund",
+                startTapChallenge: "Start Tap Challenge",
+                tapChallengeCooldown: "Tap Challenge CD",
+                tapChallengeReadyIn: "Tap Challenge gotowe za",
+                tapChallengeTapNow: "KLIKAJ!",
+                tapChallengeResultTitle: "Wynik",
+                tapChallengeClaim: "Odbierz nagrodę",
+                tapChallengeTryAgain: "Zagraj później",
+                taps: "Tapy",
+                target: "Cel",
+                reward: "Nagroda",
+                active: "Aktywny",
+                finished: "Koniec",
+                challengeRunning: "Challenge trwa",
+                antiClickLimited: "Za szybkie tapy pominięte"
             }
         };
 
@@ -102,8 +148,10 @@ CryptoZoo.minigames = {
         this.loadMemoryDifficulty();
         this.ensureMemoryBoardClass();
         this.hideWheelGame();
+        this.ensureTapChallengeCard();
         this.bindButtons();
         this.renderMemoryDifficultyBar();
+        this.renderTapChallenge();
         this.startCooldownTimer();
         this.renderCooldowns();
     },
@@ -115,6 +163,11 @@ CryptoZoo.minigames = {
         CryptoZoo.state.minigames.memoryCooldownUntil = Math.max(
             0,
             Number(CryptoZoo.state.minigames.memoryCooldownUntil) || 0
+        );
+
+        CryptoZoo.state.minigames.tapChallengeCooldownUntil = Math.max(
+            0,
+            Number(CryptoZoo.state.minigames.tapChallengeCooldownUntil) || 0
         );
 
         CryptoZoo.state.minigames.extraWheelSpins = 0;
@@ -143,6 +196,95 @@ CryptoZoo.minigames = {
         if (board) {
             board.classList.add("memory-grid-pro");
         }
+    },
+
+    ensureTapChallengeCard() {
+        const wrap = document.getElementById("minigamesWrap");
+        if (!wrap) return;
+
+        let card = document.getElementById("tapChallengeGame");
+        if (card) return;
+
+        card = document.createElement("div");
+        card.id = "tapChallengeGame";
+        card.className = "minigame-box";
+        card.style.marginTop = "14px";
+
+        card.innerHTML = `
+            <div class="minigame-box-header">
+                <div class="minigame-name" id="tapChallengeTitle">${this.lt("tapChallengeTitle", "Tap Challenge")}</div>
+                <div class="minigame-desc" id="tapChallengeDesc">${this.lt("tapChallengeSubtitle", "Tap as fast as you can in 5 seconds")}</div>
+            </div>
+
+            <div
+                id="tapChallengeHud"
+                style="
+                    display:grid;
+                    grid-template-columns:repeat(3, minmax(0, 1fr));
+                    gap:10px;
+                    margin-top:12px;
+                    margin-bottom:12px;
+                "
+            >
+                <div style="padding:10px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); text-align:center;">
+                    <div style="font-size:11px; color:rgba(255,255,255,0.65);">${this.lt("time", "Time")}</div>
+                    <div id="tapChallengeTimeText" style="font-size:18px; font-weight:900;">05.0</div>
+                </div>
+                <div style="padding:10px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); text-align:center;">
+                    <div style="font-size:11px; color:rgba(255,255,255,0.65);">${this.lt("taps", "Taps")}</div>
+                    <div id="tapChallengeTapsText" style="font-size:18px; font-weight:900;">0</div>
+                </div>
+                <div style="padding:10px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); text-align:center;">
+                    <div style="font-size:11px; color:rgba(255,255,255,0.65);">${this.lt("target", "Target")}</div>
+                    <div id="tapChallengeTargetText" style="font-size:18px; font-weight:900;">120+</div>
+                </div>
+            </div>
+
+            <button
+                id="tapChallengeTapBtn"
+                type="button"
+                style="
+                    width:100%;
+                    min-height:132px;
+                    border:none;
+                    border-radius:24px;
+                    background:linear-gradient(180deg, rgba(255, 211, 73, 0.95) 0%, rgba(240, 185, 11, 0.95) 100%);
+                    color:#1c1c1c;
+                    font-size:26px;
+                    font-weight:900;
+                    box-shadow:0 16px 36px rgba(240, 185, 11, 0.20);
+                    margin-top:4px;
+                "
+            >${this.lt("startTapChallenge", "Start Tap Challenge")}</button>
+
+            <div
+                id="tapChallengeStatus"
+                class="minigame-status"
+                style="margin-top:12px;"
+            >${this.lt("tapChallengeSubtitle", "Tap as fast as you can in 5 seconds")}</div>
+
+            <div
+                id="tapChallengeResultBox"
+                style="
+                    display:none;
+                    margin-top:12px;
+                    padding:12px;
+                    border-radius:16px;
+                    background:rgba(255,255,255,0.04);
+                    border:1px solid rgba(255,255,255,0.08);
+                "
+            >
+                <div style="font-size:16px; font-weight:900; margin-bottom:8px;">${this.lt("tapChallengeResultTitle", "Result")}</div>
+                <div id="tapChallengeResultText" style="font-size:13px; line-height:1.5;"></div>
+                <button
+                    id="tapChallengeClaimBtn"
+                    type="button"
+                    style="margin-top:12px; width:100%;"
+                >${this.lt("tapChallengeClaim", "Claim reward")}</button>
+            </div>
+        `;
+
+        wrap.appendChild(card);
     },
 
     loadMemoryDifficulty() {
@@ -294,6 +436,33 @@ CryptoZoo.minigames = {
             Date.now() + duration * 1000;
     },
 
+    getTapChallengeCooldownLeft() {
+        this.ensureState();
+
+        return Math.max(
+            0,
+            Math.ceil(
+                ((Number(CryptoZoo.state.minigames.tapChallengeCooldownUntil) || 0) - Date.now()) / 1000
+            )
+        );
+    },
+
+    isTapChallengeReady() {
+        return this.getTapChallengeCooldownLeft() <= 0;
+    },
+
+    startTapChallengeCooldown(customSeconds = null) {
+        this.ensureState();
+
+        const duration = Math.max(
+            1,
+            Number(customSeconds) || this.tapChallengeCooldownSeconds
+        );
+
+        CryptoZoo.state.minigames.tapChallengeCooldownUntil =
+            Date.now() + duration * 1000;
+    },
+
     formatCooldown(seconds) {
         return CryptoZoo.ui?.formatTimeLeft?.(seconds) || "00:00:00";
     },
@@ -330,6 +499,8 @@ CryptoZoo.minigames = {
                 memoryStatus.textContent = this.lt("findAllPairs", "Find all pairs");
             }
         }
+
+        this.renderTapChallenge();
     },
 
     createMemoryDeck(pairCount) {
@@ -357,6 +528,11 @@ CryptoZoo.minigames = {
         this.memoryTimerInterval = null;
         this.memoryPreviewTimeout = null;
         this.memoryResolveTimeout = null;
+    },
+
+    clearTapChallengeTimers() {
+        clearInterval(this.tapChallengeTimerInterval);
+        this.tapChallengeTimerInterval = null;
     },
 
     getMemoryElapsedSeconds() {
@@ -710,6 +886,306 @@ CryptoZoo.minigames = {
         }
     },
 
+    // ================= TAP CHALLENGE =================
+
+    getTapChallengeTarget() {
+        return 120;
+    },
+
+    getTapChallengeMaxTapsPerSecond() {
+        return 16;
+    },
+
+    getTapChallengeMaxBurst() {
+        return 3;
+    },
+
+    getTapChallengeMinIntervalMs() {
+        return 18;
+    },
+
+    pruneTapChallengeHistory(now = Date.now()) {
+        this.tapChallengeAcceptedEvents = (this.tapChallengeAcceptedEvents || []).filter((entry) => {
+            return entry && Number(entry.time || 0) >= now - 1000;
+        });
+    },
+
+    getTapChallengeAcceptedInLastSecond(now = Date.now()) {
+        this.pruneTapChallengeHistory(now);
+
+        return this.tapChallengeAcceptedEvents.reduce((sum, entry) => {
+            return sum + Math.max(0, Number(entry?.amount) || 0);
+        }, 0);
+    },
+
+    getTapChallengeAllowedAmount(requestedAmount = 1) {
+        const now = Date.now();
+        let safeRequestedAmount = Math.max(1, Math.floor(Number(requestedAmount) || 1));
+
+        safeRequestedAmount = Math.min(safeRequestedAmount, this.getTapChallengeMaxBurst());
+
+        const timeSinceLast = this.tapChallengeLastTapAt > 0
+            ? now - this.tapChallengeLastTapAt
+            : 999999;
+
+        if (safeRequestedAmount === 1 && timeSinceLast > 0 && timeSinceLast < this.getTapChallengeMinIntervalMs()) {
+            return 0;
+        }
+
+        const used = this.getTapChallengeAcceptedInLastSecond(now);
+        const remaining = Math.max(0, this.getTapChallengeMaxTapsPerSecond() - used);
+
+        if (remaining <= 0) {
+            return 0;
+        }
+
+        const allowed = Math.max(0, Math.min(safeRequestedAmount, remaining));
+
+        if (allowed > 0) {
+            this.tapChallengeAcceptedEvents.push({
+                time: now,
+                amount: allowed
+            });
+            this.tapChallengeLastTapAt = now;
+        }
+
+        return allowed;
+    },
+
+    renderTapChallenge() {
+        const btn = document.getElementById("tapChallengeTapBtn");
+        const status = document.getElementById("tapChallengeStatus");
+        const timeText = document.getElementById("tapChallengeTimeText");
+        const tapsText = document.getElementById("tapChallengeTapsText");
+        const targetText = document.getElementById("tapChallengeTargetText");
+        const resultBox = document.getElementById("tapChallengeResultBox");
+        const resultText = document.getElementById("tapChallengeResultText");
+        const claimBtn = document.getElementById("tapChallengeClaimBtn");
+
+        if (targetText) {
+            targetText.textContent = `${this.getTapChallengeTarget()}+`;
+        }
+
+        if (tapsText) {
+            tapsText.textContent = CryptoZoo.formatNumber(this.tapChallengeClicks);
+        }
+
+        if (timeText) {
+            if (this.tapChallengeSessionActive) {
+                const leftMs = Math.max(0, this.tapChallengeEndsAt - Date.now());
+                timeText.textContent = (leftMs / 1000).toFixed(1);
+            } else {
+                timeText.textContent = `${this.tapChallengeDurationSeconds.toFixed(1)}`;
+            }
+        }
+
+        if (resultBox) {
+            resultBox.style.display = this.tapChallengeResult ? "block" : "none";
+        }
+
+        if (resultText && this.tapChallengeResult) {
+            const result = this.tapChallengeResult;
+            const lines = [
+                `${this.lt("taps", "Taps")}: ${CryptoZoo.formatNumber(result.taps)}`,
+                `${this.lt("reward", "Reward")}: +${CryptoZoo.formatNumber(result.coins)} coins${result.gems > 0 ? ` • +${CryptoZoo.formatNumber(result.gems)} gem` : ""}`
+            ];
+
+            if (result.gradeText) {
+                lines.unshift(result.gradeText);
+            }
+
+            resultText.innerHTML = lines.map((line) => `<div>${line}</div>`).join("");
+        }
+
+        if (claimBtn) {
+            claimBtn.disabled = !this.tapChallengeResult;
+            claimBtn.style.opacity = this.tapChallengeResult ? "1" : "0.65";
+        }
+
+        if (!btn || !status) return;
+
+        const cooldownLeft = this.getTapChallengeCooldownLeft();
+
+        if (this.tapChallengeSessionActive) {
+            btn.disabled = false;
+            btn.textContent = this.lt("tapChallengeTapNow", "TAP NOW!");
+            btn.style.opacity = "1";
+            btn.style.cursor = "pointer";
+            status.textContent = `${this.lt("challengeRunning", "Challenge in progress")} • ${this.lt("taps", "Taps")}: ${CryptoZoo.formatNumber(this.tapChallengeClicks)}`;
+            return;
+        }
+
+        if (this.tapChallengeResult) {
+            btn.disabled = true;
+            btn.textContent = this.lt("finished", "Finished");
+            btn.style.opacity = "0.72";
+            btn.style.cursor = "not-allowed";
+            status.textContent = this.lt("tapChallengeResultTitle", "Result");
+            return;
+        }
+
+        if (cooldownLeft > 0) {
+            btn.disabled = true;
+            btn.textContent = `${this.lt("tapChallengeCooldown", "Tap Challenge CD")} ${this.formatCooldown(cooldownLeft)}`;
+            btn.style.opacity = "0.72";
+            btn.style.cursor = "not-allowed";
+            status.textContent = `${this.lt("tapChallengeReadyIn", "Tap Challenge ready in")} ${this.formatCooldown(cooldownLeft)}`;
+            return;
+        }
+
+        btn.disabled = false;
+        btn.textContent = this.lt("startTapChallenge", "Start Tap Challenge");
+        btn.style.opacity = "1";
+        btn.style.cursor = "pointer";
+        status.textContent = this.lt("tapChallengeSubtitle", "Tap as fast as you can in 5 seconds");
+    },
+
+    startTapChallenge() {
+        if (!this.isMiniGamesVisible()) return;
+        if (!this.isTapChallengeReady()) {
+            CryptoZoo.ui?.showToast?.(`${this.lt("tapChallengeReadyIn", "Tap Challenge ready in")} ${this.formatCooldown(this.getTapChallengeCooldownLeft())}`);
+            return;
+        }
+
+        this.clearTapChallengeTimers();
+        this.tapChallengeSessionActive = true;
+        this.tapChallengeLocked = false;
+        this.tapChallengeStartedAt = Date.now();
+        this.tapChallengeEndsAt = this.tapChallengeStartedAt + this.tapChallengeDurationSeconds * 1000;
+        this.tapChallengeClicks = 0;
+        this.tapChallengeAcceptedEvents = [];
+        this.tapChallengeLastTapAt = 0;
+        this.tapChallengeResult = null;
+
+        this.renderTapChallenge();
+
+        this.tapChallengeTimerInterval = setInterval(() => {
+            if (!this.tapChallengeSessionActive) {
+                this.clearTapChallengeTimers();
+                return;
+            }
+
+            if (Date.now() >= this.tapChallengeEndsAt) {
+                this.finishTapChallenge();
+                return;
+            }
+
+            this.renderTapChallenge();
+        }, 80);
+    },
+
+    registerTapChallengePress(requestedAmount = 1) {
+        if (!this.tapChallengeSessionActive) {
+            this.startTapChallenge();
+            return;
+        }
+
+        if (this.tapChallengeLocked) return;
+
+        const allowed = this.getTapChallengeAllowedAmount(requestedAmount);
+
+        if (allowed <= 0) {
+            return;
+        }
+
+        this.tapChallengeClicks = Math.min(220, this.tapChallengeClicks + allowed);
+
+        CryptoZoo.audio?.play?.("tap");
+        this.renderTapChallenge();
+    },
+
+    getTapChallengeReward(clicks) {
+        const safeClicks = Math.max(0, Math.min(220, Math.floor(Number(clicks) || 0)));
+        const effectiveCoinsPerClick = Math.max(
+            1,
+            Number(CryptoZoo.gameplay?.getEffectiveCoinsPerClick?.() || CryptoZoo.state?.coinsPerClick || 1)
+        );
+
+        let coins = safeClicks * effectiveCoinsPerClick * 3;
+
+        if (safeClicks >= 80) {
+            coins += 1200;
+        }
+
+        if (safeClicks >= 120) {
+            coins += 2400;
+        }
+
+        if (safeClicks >= 160) {
+            coins += 4200;
+        }
+
+        coins = Math.min(60000, Math.max(0, Math.floor(coins)));
+
+        let gems = 0;
+        if (safeClicks >= 100 && Math.random() < 0.05) gems = 1;
+        if (safeClicks >= 140 && Math.random() < 0.08) gems = 1;
+        if (safeClicks >= 180 && Math.random() < 0.12) gems = 2;
+
+        let gradeText = "";
+        if (safeClicks >= 180) {
+            gradeText = "🔥 Master";
+        } else if (safeClicks >= 140) {
+            gradeText = "⚡ Great";
+        } else if (safeClicks >= 100) {
+            gradeText = "✅ Good";
+        } else {
+            gradeText = "🎯 Nice try";
+        }
+
+        return {
+            taps: safeClicks,
+            coins,
+            gems,
+            gradeText
+        };
+    },
+
+    finishTapChallenge() {
+        if (!this.tapChallengeSessionActive) return;
+
+        this.tapChallengeSessionActive = false;
+        this.tapChallengeLocked = true;
+        this.clearTapChallengeTimers();
+        this.startTapChallengeCooldown(this.tapChallengeCooldownSeconds);
+        this.tapChallengeResult = this.getTapChallengeReward(this.tapChallengeClicks);
+
+        this.renderTapChallenge();
+    },
+
+    claimTapChallengeReward() {
+        if (!this.tapChallengeResult) return false;
+
+        CryptoZoo.state = CryptoZoo.state || {};
+
+        const result = this.tapChallengeResult;
+        CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + Math.max(0, Number(result.coins) || 0);
+        CryptoZoo.state.gems = (Number(CryptoZoo.state.gems) || 0) + Math.max(0, Number(result.gems) || 0);
+        CryptoZoo.state.lastLogin = Date.now();
+
+        const toastParts = [
+            `+${CryptoZoo.formatNumber(result.coins)} coins`
+        ];
+
+        if (result.gems > 0) {
+            toastParts.push(`+${CryptoZoo.formatNumber(result.gems)} gem`);
+        }
+
+        CryptoZoo.audio?.play?.("win");
+        CryptoZoo.ui?.showToast?.(`🎮 ${this.lt("tapChallengeTitle", "Tap Challenge")}: ${toastParts.join(" • ")}`);
+
+        this.tapChallengeResult = null;
+        this.tapChallengeClicks = 0;
+        this.tapChallengeAcceptedEvents = [];
+        this.tapChallengeLastTapAt = 0;
+
+        this.renderTapChallenge();
+        CryptoZoo.ui?.render?.();
+        CryptoZoo.api?.savePlayer?.();
+
+        return true;
+    },
+
     bindButtons() {
         const memoryBtn = document.getElementById("startMemoryBtn");
 
@@ -723,6 +1199,38 @@ CryptoZoo.minigames = {
                 }
 
                 this.startMemory();
+            };
+        }
+
+        const tapBtn = document.getElementById("tapChallengeTapBtn");
+        if (tapBtn && !tapBtn.dataset.bound) {
+            tapBtn.dataset.bound = "1";
+
+            tapBtn.onclick = (e) => {
+                e.preventDefault();
+                this.registerTapChallengePress(1);
+            };
+
+            tapBtn.addEventListener("touchstart", (e) => {
+                const amount = Math.max(
+                    1,
+                    Math.min(
+                        this.getTapChallengeMaxBurst(),
+                        Array.from(e.changedTouches || []).length || 1
+                    )
+                );
+
+                e.preventDefault();
+                this.registerTapChallengePress(amount);
+            }, { passive: false });
+        }
+
+        const claimBtn = document.getElementById("tapChallengeClaimBtn");
+        if (claimBtn && !claimBtn.dataset.bound) {
+            claimBtn.dataset.bound = "1";
+            claimBtn.onclick = () => {
+                CryptoZoo.audio?.play?.("click");
+                this.claimTapChallengeReward();
             };
         }
 
@@ -744,8 +1252,17 @@ CryptoZoo.minigames = {
 
         setInterval(() => {
             this.renderCooldowns();
+
             if (this.memorySessionActive) {
                 this.renderMemoryHud();
+            }
+
+            if (this.tapChallengeSessionActive) {
+                if (Date.now() >= this.tapChallengeEndsAt) {
+                    this.finishTapChallenge();
+                } else {
+                    this.renderTapChallenge();
+                }
             }
         }, 1000);
     }
