@@ -1,78 +1,222 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.uiRoadmap = {
+    initAttempts: 0,
+    maxInitAttempts: 40,
+
     init() {
-        this.createButton();
         this.createModal();
+        this.tryMountButton();
     },
 
-    createButton() {
-        // znajdź kontener z przyciskami (settings/events)
-        const topBar = document.querySelector(".top-bar-actions");
-        if (!topBar) return;
+    tryMountButton() {
+        if (document.getElementById("roadmap-btn")) {
+            return;
+        }
 
-        // unikaj duplikacji
-        if (document.getElementById("roadmap-btn")) return;
+        const actionContainer = this.findActionContainer();
+
+        if (actionContainer) {
+            this.createButton(actionContainer);
+            return;
+        }
+
+        this.initAttempts += 1;
+
+        if (this.initAttempts < this.maxInitAttempts) {
+            setTimeout(() => this.tryMountButton(), 250);
+        }
+    },
+
+    findActionContainer() {
+        const selectors = [
+            ".top-bar-actions",
+            ".top-actions",
+            ".header-actions",
+            ".game-header-actions",
+            ".topbar-actions",
+            ".top-bar-right",
+            ".header-right"
+        ];
+
+        for (const selector of selectors) {
+            const el = document.querySelector(selector);
+            if (el) {
+                return el;
+            }
+        }
+
+        const settingsBtn =
+            document.querySelector("#settings-btn") ||
+            document.querySelector(".settings-btn") ||
+            document.querySelector("[data-action='settings']") ||
+            this.findButtonByText("⚙️") ||
+            this.findButtonByText("⚙");
+
+        if (settingsBtn && settingsBtn.parentElement) {
+            return settingsBtn.parentElement;
+        }
+
+        const topBar =
+            document.querySelector(".top-bar") ||
+            document.querySelector(".topbar") ||
+            document.querySelector(".game-header") ||
+            document.querySelector(".header");
+
+        if (topBar) {
+            let fallbackContainer = document.getElementById("roadmap-top-actions");
+            if (!fallbackContainer) {
+                fallbackContainer = document.createElement("div");
+                fallbackContainer.id = "roadmap-top-actions";
+                fallbackContainer.style.display = "flex";
+                fallbackContainer.style.alignItems = "center";
+                fallbackContainer.style.gap = "8px";
+                fallbackContainer.style.marginLeft = "auto";
+                topBar.appendChild(fallbackContainer);
+            }
+            return fallbackContainer;
+        }
+
+        return null;
+    },
+
+    findButtonByText(text) {
+        const buttons = Array.from(document.querySelectorAll("button"));
+        return buttons.find((btn) => (btn.textContent || "").trim() === text) || null;
+    },
+
+    createButton(container) {
+        if (!container || document.getElementById("roadmap-btn")) {
+            return;
+        }
 
         const btn = document.createElement("button");
         btn.id = "roadmap-btn";
-        btn.className = "top-btn";
+        btn.type = "button";
+        btn.className = "top-btn roadmap-btn";
+        btn.setAttribute("aria-label", "Wkrótce");
         btn.innerHTML = "🚀";
 
-        btn.onclick = () => {
-            this.open();
-        };
+        btn.style.width = "42px";
+        btn.style.height = "42px";
+        btn.style.borderRadius = "50%";
+        btn.style.border = "none";
+        btn.style.cursor = "pointer";
+        btn.style.display = "flex";
+        btn.style.alignItems = "center";
+        btn.style.justifyContent = "center";
+        btn.style.fontSize = "18px";
+        btn.style.flexShrink = "0";
 
-        topBar.appendChild(btn);
+        if (!btn.style.background) {
+            btn.style.background = "rgba(255,255,255,0.12)";
+        }
+        if (!btn.style.color) {
+            btn.style.color = "#ffffff";
+        }
+
+        btn.addEventListener("click", () => this.open());
+
+        container.appendChild(btn);
     },
 
     createModal() {
-        if (document.getElementById("roadmap-modal")) return;
+        if (document.getElementById("roadmap-modal")) {
+            return;
+        }
 
         const modal = document.createElement("div");
         modal.id = "roadmap-modal";
-        modal.className = "modal hidden";
+        modal.style.position = "fixed";
+        modal.style.inset = "0";
+        modal.style.background = "rgba(0,0,0,0.65)";
+        modal.style.display = "none";
+        modal.style.alignItems = "center";
+        modal.style.justifyContent = "center";
+        modal.style.padding = "16px";
+        modal.style.zIndex = "9999";
 
         modal.innerHTML = `
-            <div class="modal-content">
-                <div class="modal-header">
-                    <span>🚀 Wkrótce w Crypto Zoo</span>
-                    <button id="roadmap-close">✖</button>
+            <div id="roadmap-modal-card" style="
+                width: 100%;
+                max-width: 420px;
+                max-height: 85vh;
+                overflow-y: auto;
+                background: #111827;
+                color: #ffffff;
+                border-radius: 18px;
+                padding: 18px;
+                box-sizing: border-box;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+            ">
+                <div style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 12px;
+                    margin-bottom: 14px;
+                ">
+                    <div style="font-size: 20px; font-weight: 700;">🚀 Wkrótce</div>
+                    <button id="roadmap-close-btn" type="button" style="
+                        width: 36px;
+                        height: 36px;
+                        border: none;
+                        border-radius: 50%;
+                        background: rgba(255,255,255,0.12);
+                        color: #ffffff;
+                        font-size: 18px;
+                        cursor: pointer;
+                    ">✕</button>
                 </div>
 
-                <div class="modal-body roadmap-content">
-                    <h3>🎉 Eventy i bonusy</h3>
-                    <p>Weekendowe eventy i limitowane nagrody.</p>
+                <div style="display: grid; gap: 14px; font-size: 14px; line-height: 1.45;">
+                    <div>
+                        <div style="font-weight: 700; margin-bottom: 4px;">🎉 Eventy i bonusy</div>
+                        <div>Weekendowe eventy, specjalne bonusy i limitowane nagrody za aktywność.</div>
+                    </div>
 
-                    <h3>🎯 Nowe sposoby zarabiania</h3>
-                    <p>Więcej rewardów, gemów i bonusów.</p>
+                    <div>
+                        <div style="font-weight: 700; margin-bottom: 4px;">🎯 Nowe sposoby zarabiania</div>
+                        <div>Więcej okazji do zdobywania rewardów, gemów i dodatkowych bonusów.</div>
+                    </div>
 
-                    <h3>📦 Skrzynki</h3>
-                    <p>Losowe nagrody, rzadkie dropy i boosty.</p>
+                    <div>
+                        <div style="font-weight: 700; margin-bottom: 4px;">📦 Skrzynki i nagrody</div>
+                        <div>Skrzynki z losowymi nagrodami, rzadkimi dropami i specjalnymi bonusami.</div>
+                    </div>
 
-                    <h3>🏆 Ranking graczy</h3>
-                    <p>Rywalizacja i nagrody dla najlepszych.</p>
+                    <div>
+                        <div style="font-weight: 700; margin-bottom: 4px;">🏆 Ranking graczy</div>
+                        <div>Rywalizacja z innymi graczami, tabela najlepszych wyników i nagrody za top miejsca.</div>
+                    </div>
 
-                    <h3>👥 System poleceń</h3>
-                    <p>Bonusy za zapraszanie znajomych.</p>
+                    <div>
+                        <div style="font-weight: 700; margin-bottom: 4px;">👥 System poleceń</div>
+                        <div>Zapraszaj znajomych i odbieraj bonusy za rozwój swojej społeczności.</div>
+                    </div>
 
-                    <h3>⚡ Boosty</h3>
-                    <p>Nowe ulepszenia przyspieszające progres.</p>
+                    <div>
+                        <div style="font-weight: 700; margin-bottom: 4px;">⚡ Boosty i ulepszenia</div>
+                        <div>Nowe boosty, lepsze bonusy i dodatkowe ulepszenia przyspieszające progres.</div>
+                    </div>
 
-                    <h3>🎮 Więcej zawartości</h3>
-                    <p>Nowe funkcje i regularne aktualizacje.</p>
+                    <div>
+                        <div style="font-weight: 700; margin-bottom: 4px;">🎮 Więcej zawartości</div>
+                        <div>Nowe funkcje, więcej aktywności i regularne aktualizacje rozwijające Crypto Zoo.</div>
+                    </div>
                 </div>
             </div>
         `;
 
         document.body.appendChild(modal);
 
-        document.getElementById("roadmap-close").onclick = () => {
-            this.close();
-        };
+        const closeBtn = document.getElementById("roadmap-close-btn");
+        if (closeBtn) {
+            closeBtn.addEventListener("click", () => this.close());
+        }
 
         modal.addEventListener("click", (e) => {
-            if (e.target.id === "roadmap-modal") {
+            if (e.target === modal) {
                 this.close();
             }
         });
@@ -80,18 +224,19 @@ CryptoZoo.uiRoadmap = {
 
     open() {
         const modal = document.getElementById("roadmap-modal");
-        if (modal) modal.classList.remove("hidden");
+        if (modal) {
+            modal.style.display = "flex";
+        }
     },
 
     close() {
         const modal = document.getElementById("roadmap-modal");
-        if (modal) modal.classList.add("hidden");
+        if (modal) {
+            modal.style.display = "none";
+        }
     }
 };
 
-// auto init po załadowaniu
 document.addEventListener("DOMContentLoaded", () => {
-    if (CryptoZoo.uiRoadmap) {
-        CryptoZoo.uiRoadmap.init();
-    }
+    CryptoZoo.uiRoadmap.init();
 });
