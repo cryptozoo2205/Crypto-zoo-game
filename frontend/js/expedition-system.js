@@ -21,6 +21,37 @@ CryptoZoo.expeditions = {
         return fallback || key;
     },
 
+    getBackendOfflineMessage() {
+        const isPl = (CryptoZoo.lang?.current || "en") === "pl";
+        return isPl
+            ? "Backend ekspedycji offline — pełne działanie wróci po podpięciu VPS"
+            : "Expedition backend offline — full functionality will return after VPS setup";
+    },
+
+    isBackendOfflineError(error) {
+        const message = String(error?.message || "").toLowerCase();
+
+        return (
+            message.includes("failed to fetch") ||
+            message.includes("networkerror") ||
+            message.includes("load failed") ||
+            message.includes("request timeout") ||
+            message.includes("http 404") ||
+            message.includes("api route not found")
+        );
+    },
+
+    showExpeditionError(error, fallbackMessage) {
+        console.error("Expedition error:", error);
+
+        if (this.isBackendOfflineError(error)) {
+            CryptoZoo.ui?.showToast?.(this.getBackendOfflineMessage());
+            return;
+        }
+
+        CryptoZoo.ui?.showToast?.(error?.message || fallbackMessage);
+    },
+
     getExpeditionDisplayName(expeditionConfig) {
         if (!expeditionConfig) {
             return "Expedition";
@@ -441,8 +472,7 @@ CryptoZoo.expeditions = {
 
             return false;
         } catch (error) {
-            console.error("Expedition start failed:", error);
-            CryptoZoo.ui?.showToast?.(error?.message || "Błąd startu ekspedycji");
+            this.showExpeditionError(error, "Błąd startu ekspedycji");
             return false;
         }
     },
@@ -472,25 +502,29 @@ CryptoZoo.expeditions = {
             return false;
         }
 
-        if (this.getTimeBoostChargesCount() <= 0) {
+        const reductionSeconds = this.peekBestTimeBoostCharge(expedition.baseDuration || expedition.duration || 60);
+
+        if (reductionSeconds <= 0) {
             CryptoZoo.ui?.showToast?.("Brak dostępnego boosta czasu");
             return false;
         }
 
         try {
-            const response = await CryptoZoo.api.expeditionUseTimeBoost();
-            const reductionSeconds = Math.max(0, Number(response?.reductionSeconds) || 0);
+            const response = await CryptoZoo.api.expeditionUseTimeReduction(reductionSeconds);
+            const usedReductionSeconds = Math.max(
+                0,
+                Number(response?.reductionSeconds) || reductionSeconds
+            );
 
             CryptoZoo.audio?.play?.("click");
             CryptoZoo.ui?.render?.();
             CryptoZoo.ui?.showToast?.(
-                `⏩ Skrócono o ${CryptoZoo.ui?.formatDurationLabel?.(reductionSeconds) || `${reductionSeconds}s`}`
+                `⏩ Skrócono o ${CryptoZoo.ui?.formatDurationLabel?.(usedReductionSeconds) || `${usedReductionSeconds}s`}`
             );
 
             return true;
         } catch (error) {
-            console.error("Expedition time boost failed:", error);
-            CryptoZoo.ui?.showToast?.(error?.message || "Błąd skrócenia ekspedycji");
+            this.showExpeditionError(error, "Błąd skrócenia ekspedycji");
             return false;
         }
     },
@@ -541,8 +575,7 @@ CryptoZoo.expeditions = {
             CryptoZoo.ui?.showToast?.(`🎁 Expedition complete • ${rewardText}`);
             return true;
         } catch (error) {
-            console.error("Expedition collect failed:", error);
-            CryptoZoo.ui?.showToast?.(error?.message || "Błąd odbioru nagrody");
+            this.showExpeditionError(error, "Błąd odbioru nagrody");
             return false;
         } finally {
             setTimeout(() => {
