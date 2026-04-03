@@ -152,6 +152,21 @@ CryptoZoo.uiProfile = {
         return fallback || key;
     },
 
+    getLocalFallbackReferralRewards() {
+        return {
+            activateAtLevel: 3,
+            visitNewPlayerCoins: 200,
+            visitNewPlayerGems: 0,
+            visitNewPlayerReward: 0,
+            activatedNewPlayerCoins: 800,
+            activatedNewPlayerGems: 1,
+            activatedNewPlayerReward: 0,
+            activatedReferrerCoins: 1200,
+            activatedReferrerGems: 1,
+            activatedReferrerReward: 0
+        };
+    },
+
     buildReferralLink() {
         const data = this.referralsData || {};
         const backendLink = String(data.referralLink || "").trim();
@@ -311,6 +326,7 @@ CryptoZoo.uiProfile = {
 
     async loadReferralsData() {
         const telegramId = this.getPlayerId();
+        const fallbackRewards = this.getLocalFallbackReferralRewards();
 
         if (!telegramId) {
             this.referralsData = {
@@ -319,7 +335,7 @@ CryptoZoo.uiProfile = {
                 referralCode: "",
                 referralLinkCode: "",
                 referralLink: "",
-                referralRewards: null,
+                referralRewards: fallbackRewards,
                 referrals: []
             };
             this.renderReferralsSection();
@@ -340,7 +356,7 @@ CryptoZoo.uiProfile = {
                 referralCode: String(result?.referralCode || telegramId),
                 referralLinkCode: String(result?.referralLinkCode || `ref_${telegramId}`),
                 referralLink: String(result?.referralLink || ""),
-                referralRewards: result?.referralRewards || null,
+                referralRewards: result?.referralRewards || fallbackRewards,
                 referrals: Array.isArray(result?.referrals) ? result.referrals : []
             };
         } catch (e) {
@@ -350,7 +366,7 @@ CryptoZoo.uiProfile = {
                 referralCode: telegramId,
                 referralLinkCode: `ref_${telegramId}`,
                 referralLink: "",
-                referralRewards: null,
+                referralRewards: fallbackRewards,
                 referrals: []
             };
         }
@@ -390,41 +406,37 @@ CryptoZoo.uiProfile = {
         codeEl.textContent = referralCode || "-";
         linkEl.textContent = referralLink || `ref_${fallbackPlayerId || ""}` || "-";
 
-        const r = data.referralRewards || {};
+        const r = data.referralRewards || this.getLocalFallbackReferralRewards();
         const isPl = (CryptoZoo.lang?.current || "en") === "pl";
 
         let rewardsText = "";
 
-        if (r && Object.keys(r).length > 0) {
-            if (isPl) {
-                rewardsText =
-                    `Nowy gracz: +${r.visitNewPlayerCoins || 0} coins\n` +
-                    (Number(r.visitNewPlayerGems || 0) > 0 ? `+${r.visitNewPlayerGems || 0} gems\n` : "") +
-                    (Number(r.visitNewPlayerReward || 0) > 0 ? `+${Number(r.visitNewPlayerReward || 0).toFixed(3)} reward\n` : "") +
-                    `\nPoziom ${r.activateAtLevel || 3}: +${r.activatedNewPlayerCoins || 0} coins\n` +
-                    (Number(r.activatedNewPlayerGems || 0) > 0 ? `+${r.activatedNewPlayerGems || 0} gems\n` : "") +
-                    (Number(r.activatedNewPlayerReward || 0) > 0 ? `+${Number(r.activatedNewPlayerReward || 0).toFixed(3)} reward\n` : "") +
-                    `\nPolecający:\n` +
-                    `Poziom ${r.activateAtLevel || 3} zaproszonego: +${r.activatedReferrerCoins || 0} coins\n` +
-                    (Number(r.activatedReferrerGems || 0) > 0 ? `+${r.activatedReferrerGems || 0} gems\n` : "") +
-                    (Number(r.activatedReferrerReward || 0) > 0 ? `+${Number(r.activatedReferrerReward || 0).toFixed(3)} reward\n` : "") +
-                    `\nNagrody aktywują się po osiągnięciu poziomu ${r.activateAtLevel || 3}`;
-            } else {
-                rewardsText =
-                    `New player: +${r.visitNewPlayerCoins || 0} coins\n` +
-                    (Number(r.visitNewPlayerGems || 0) > 0 ? `+${r.visitNewPlayerGems || 0} gems\n` : "") +
-                    (Number(r.visitNewPlayerReward || 0) > 0 ? `+${Number(r.visitNewPlayerReward || 0).toFixed(3)} reward\n` : "") +
-                    `\nLevel ${r.activateAtLevel || 3}: +${r.activatedNewPlayerCoins || 0} coins\n` +
-                    (Number(r.activatedNewPlayerGems || 0) > 0 ? `+${r.activatedNewPlayerGems || 0} gems\n` : "") +
-                    (Number(r.activatedNewPlayerReward || 0) > 0 ? `+${Number(r.activatedNewPlayerReward || 0).toFixed(3)} reward\n` : "") +
-                    `\nReferrer:\n` +
-                    `Referred player level ${r.activateAtLevel || 3}: +${r.activatedReferrerCoins || 0} coins\n` +
-                    (Number(r.activatedReferrerGems || 0) > 0 ? `+${r.activatedReferrerGems || 0} gems\n` : "") +
-                    (Number(r.activatedReferrerReward || 0) > 0 ? `+${Number(r.activatedReferrerReward || 0).toFixed(3)} reward\n` : "") +
-                    `\nRewards unlock when the referred player reaches level ${r.activateAtLevel || 3}`;
-            }
+        if (isPl) {
+            rewardsText =
+                `Nowy gracz: +${r.visitNewPlayerCoins || 0} coins\n` +
+                (Number(r.visitNewPlayerGems || 0) > 0 ? `+${r.visitNewPlayerGems || 0} gems\n` : "") +
+                (Number(r.visitNewPlayerReward || 0) > 0 ? `+${Number(r.visitNewPlayerReward || 0).toFixed(3)} reward\n` : "") +
+                `\nPoziom ${r.activateAtLevel || 3}: +${r.activatedNewPlayerCoins || 0} coins` +
+                (Number(r.activatedNewPlayerGems || 0) > 0 ? ` +${r.activatedNewPlayerGems || 0} gem` : "") +
+                (Number(r.activatedNewPlayerReward || 0) > 0 ? ` +${Number(r.activatedNewPlayerReward || 0).toFixed(3)} reward` : "") +
+                `\n\nPolecający:\n` +
+                `Poziom ${r.activateAtLevel || 3} zaproszonego: +${r.activatedReferrerCoins || 0} coins` +
+                (Number(r.activatedReferrerGems || 0) > 0 ? ` +${r.activatedReferrerGems || 0} gem` : "") +
+                (Number(r.activatedReferrerReward || 0) > 0 ? ` +${Number(r.activatedReferrerReward || 0).toFixed(3)} reward` : "") +
+                `\n\nNagrody aktywują się po osiągnięciu poziomu ${r.activateAtLevel || 3}`;
         } else {
-            rewardsText = this.t("profileReferralRewards", "Brak danych o nagrodach");
+            rewardsText =
+                `New player: +${r.visitNewPlayerCoins || 0} coins\n` +
+                (Number(r.visitNewPlayerGems || 0) > 0 ? `+${r.visitNewPlayerGems || 0} gems\n` : "") +
+                (Number(r.visitNewPlayerReward || 0) > 0 ? `+${Number(r.visitNewPlayerReward || 0).toFixed(3)} reward\n` : "") +
+                `\nLevel ${r.activateAtLevel || 3}: +${r.activatedNewPlayerCoins || 0} coins` +
+                (Number(r.activatedNewPlayerGems || 0) > 0 ? ` +${r.activatedNewPlayerGems || 0} gem` : "") +
+                (Number(r.activatedNewPlayerReward || 0) > 0 ? ` +${Number(r.activatedNewPlayerReward || 0).toFixed(3)} reward` : "") +
+                `\n\nReferrer:\n` +
+                `Referred player level ${r.activateAtLevel || 3}: +${r.activatedReferrerCoins || 0} coins` +
+                (Number(r.activatedReferrerGems || 0) > 0 ? ` +${r.activatedReferrerGems || 0} gem` : "") +
+                (Number(r.activatedReferrerReward || 0) > 0 ? ` +${Number(r.activatedReferrerReward || 0).toFixed(3)} reward` : "") +
+                `\n\nRewards unlock when the referred player reaches level ${r.activateAtLevel || 3}`;
         }
 
         rewardsEl.style.whiteSpace = "pre-line";
