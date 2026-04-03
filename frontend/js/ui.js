@@ -6,6 +6,7 @@ CryptoZoo.ui = {
     rankingLoading: false,
     rankingLastFetchAt: 0,
     rankingCacheTtl: 15000,
+    offlineAdsTimer: null,
 
     t(key, fallback) {
         const translated = CryptoZoo.lang?.t?.(key);
@@ -79,6 +80,8 @@ CryptoZoo.ui = {
             expedition2: "shopExpedition2",
             expeditionTime1: "shopExpeditionTime1",
             expeditionTime2: "shopExpeditionTime2",
+            expeditionTime3: "shopExpeditionTime3",
+            expeditionTime4: "shopExpeditionTime4",
             offline1: "shopOffline1",
             offline2: "shopOffline2"
         };
@@ -335,6 +338,96 @@ CryptoZoo.ui = {
                 boostCard.scrollIntoView({ behavior: "smooth", block: "center" });
             }, 150);
         }
+    },
+
+    ensureOfflineAdsInfoBar() {
+        const homeQuickPanel = document.querySelector(".home-quick-panel");
+        const homeStatsPanel = document.querySelector(".home-stats-panel");
+        const anchor = homeQuickPanel || homeStatsPanel;
+        if (!anchor || !anchor.parentNode) return null;
+
+        let bar = document.getElementById("homeOfflineAdsInfoBar");
+
+        if (!bar) {
+            bar = document.createElement("div");
+            bar.id = "homeOfflineAdsInfoBar";
+            bar.style.width = "100%";
+            bar.style.marginTop = "10px";
+            bar.style.marginBottom = "2px";
+            bar.style.padding = "10px 12px";
+            bar.style.borderRadius = "16px";
+            bar.style.background = "linear-gradient(180deg, rgba(18, 28, 48, 0.96) 0%, rgba(10, 17, 31, 0.95) 100%)";
+            bar.style.border = "1px solid rgba(255,255,255,0.08)";
+            bar.style.boxShadow = "0 12px 22px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255,255,255,0.04)";
+            bar.style.color = "#ffffff";
+            bar.style.fontSize = "12px";
+            bar.style.fontWeight = "700";
+            bar.style.lineHeight = "1.4";
+
+            anchor.insertAdjacentElement("beforebegin", bar);
+        }
+
+        return bar;
+    },
+
+    renderOfflineAdsStatus() {
+        const bar = this.ensureOfflineAdsInfoBar();
+        if (!bar) return;
+
+        const currentHours = Math.max(
+            0,
+            Number(CryptoZoo.offlineAds?.getCurrentHours?.() || 0)
+        );
+        const maxHours = Math.max(
+            0,
+            Number(CryptoZoo.offlineAds?.getMaxHours?.() || 12)
+        );
+        const remainingHours = Math.max(
+            0,
+            Number(CryptoZoo.offlineAds?.getRemainingHours?.() || 0)
+        );
+        const resetSeconds = Math.max(
+            0,
+            Number(CryptoZoo.offlineAds?.getSecondsUntilReset?.() || 0)
+        );
+        const canWatchAd = !!CryptoZoo.offlineAds?.canWatchAd?.();
+        const hoursPerAd = Math.max(
+            1,
+            Number(CryptoZoo.offlineAds?.HOURS_PER_AD || 2)
+        );
+
+        const statusText = canWatchAd
+            ? this.t("adsAvailable", "Reklamy dostępne")
+            : this.t("adsLimitReached", "Limit osiągnięty");
+
+        const statusColor = canWatchAd ? "#8af7a5" : "#ffd86b";
+
+        bar.innerHTML = `
+            <div style="font-size:13px; font-weight:900; margin-bottom:4px;">📺 ${this.t("offlineAds", "Offline Ads")}</div>
+            <div style="color:${statusColor}; margin-bottom:4px;">
+                ${statusText} • ${CryptoZoo.formatNumber(currentHours)}/${CryptoZoo.formatNumber(maxHours)}h
+            </div>
+            <div style="color:rgba(255,255,255,0.78); margin-bottom:4px;">
+                +${CryptoZoo.formatNumber(hoursPerAd)}h ${this.t("perAd", "za reklamę")} • ${this.t("remaining", "Pozostało")}: ${CryptoZoo.formatNumber(remainingHours)}h
+            </div>
+            <div style="color:rgba(255,255,255,0.58); font-size:11px;">
+                ${this.t("resetIn", "Reset za")}: ${this.formatTimeLeft(resetSeconds)}
+            </div>
+        `;
+    },
+
+    ensureOfflineAdsTimerRunning() {
+        if (this.offlineAdsTimer) return;
+
+        this.offlineAdsTimer = setInterval(() => {
+            const activeScreen = CryptoZoo.gameplay?.activeScreen || "game";
+            if (activeScreen !== "game") return;
+
+            const bar = document.getElementById("homeOfflineAdsInfoBar");
+            if (!bar) return;
+
+            this.renderOfflineAdsStatus();
+        }, 1000);
     },
 
     getDailyRewardDisplayDay() {
@@ -897,6 +990,8 @@ CryptoZoo.ui = {
         this.bindHomeButtons();
         this.renderBoostStatus();
         this.renderDailyRewardStatus();
+        this.renderOfflineAdsStatus();
+        this.ensureOfflineAdsTimerRunning();
     },
 
     renderTopHiddenStats() {
