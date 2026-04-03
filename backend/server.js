@@ -16,7 +16,7 @@ const INDEX_PATH = path.join(FRONTEND_DIR, "index.html");
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 
-// 📦 ROUTES (Twoje pliki)
+// 📦 ROUTES
 const healthRoutes = require("./routes/health-routes");
 const playerRoutes = require("./routes/player-routes");
 const rankingRoutes = require("./routes/ranking-routes");
@@ -31,14 +31,14 @@ const expeditionRoutes = require("./routes/expedition-routes");
 app.use("/api/health", healthRoutes);
 app.use("/api/player", playerRoutes);
 app.use("/api/ranking", rankingRoutes);
-app.use("/api/referral", referralRoutes);
+app.use("/api", referralRoutes);
 app.use("/api/withdraw", withdrawRoutes);
 app.use("/api/deposit", depositRoutes);
 app.use("/api/deposit-verifier", depositVerifierRoutes);
 app.use("/api/reward", rewardRoutes);
 app.use("/api/expedition", expeditionRoutes);
 
-// 🖼️ STATIC FILES (frontend + assets)
+// 🖼️ STATIC FILES
 if (fs.existsSync(FRONTEND_DIR)) {
     console.log("Frontend found:", FRONTEND_DIR);
 
@@ -48,7 +48,7 @@ if (fs.existsSync(FRONTEND_DIR)) {
     console.warn("Frontend NOT found:", FRONTEND_DIR);
 }
 
-// 🧠 FALLBACK (SPA + API guard)
+// 🧠 FALLBACK
 app.use((req, res) => {
     if (req.path.startsWith("/api/")) {
         return res.status(404).json({
