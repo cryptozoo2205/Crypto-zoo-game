@@ -340,44 +340,34 @@ CryptoZoo.ui = {
         }
     },
 
-    ensureOfflineInfoBar() {
-        const homeQuickPanel = document.querySelector(".home-quick-panel");
-        const homeStatsPanel = document.querySelector(".home-stats-panel");
-        const anchor = homeQuickPanel || homeStatsPanel;
-        if (!anchor || !anchor.parentNode) return null;
+    getOfflineInfoBar() {
+        const selectors = [
+            "#homeOfflineInfoBar",
+            "#homeOfflineBox",
+            "#offlineInfoBar",
+            "#offlineBox",
+            "[data-role='offline-info-box']",
+            "[data-offline-box='1']",
+            ".home-offline-info-box",
+            ".offline-info-box"
+        ];
 
-        const oldAdsBar = document.getElementById("homeOfflineAdsInfoBar");
-        if (oldAdsBar) {
-            oldAdsBar.remove();
+        for (const selector of selectors) {
+            const el = document.querySelector(selector);
+            if (el) return el;
         }
 
-        let bar = document.getElementById("homeOfflineInfoBar");
-
-        if (!bar) {
-            bar = document.createElement("div");
-            bar.id = "homeOfflineInfoBar";
-            bar.style.width = "100%";
-            bar.style.marginTop = "10px";
-            bar.style.marginBottom = "10px";
-            bar.style.padding = "10px 12px";
-            bar.style.borderRadius = "16px";
-            bar.style.background = "linear-gradient(180deg, rgba(18, 28, 48, 0.96) 0%, rgba(10, 17, 31, 0.95) 100%)";
-            bar.style.border = "1px solid rgba(255,255,255,0.08)";
-            bar.style.boxShadow = "0 12px 22px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255,255,255,0.04)";
-            bar.style.color = "#ffffff";
-            bar.style.fontSize = "12px";
-            bar.style.fontWeight = "700";
-            bar.style.lineHeight = "1.4";
-
-            anchor.insertAdjacentElement("beforebegin", bar);
-        }
-
-        return bar;
+        return null;
     },
 
     renderOfflineInfo() {
-        const bar = this.ensureOfflineInfoBar();
+        const bar = this.getOfflineInfoBar();
         if (!bar) return;
+
+        const oldAdsBar = document.getElementById("homeOfflineAdsInfoBar");
+        if (oldAdsBar && oldAdsBar !== bar) {
+            oldAdsBar.remove();
+        }
 
         const totalHours = Math.max(
             1,
@@ -447,7 +437,7 @@ CryptoZoo.ui = {
             const activeScreen = CryptoZoo.gameplay?.activeScreen || "game";
             if (activeScreen !== "game") return;
 
-            const bar = document.getElementById("homeOfflineInfoBar");
+            const bar = this.getOfflineInfoBar();
             if (!bar) return;
 
             this.renderOfflineInfo();
