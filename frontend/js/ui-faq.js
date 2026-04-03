@@ -70,11 +70,7 @@ CryptoZoo.uiFaq = {
                     q: "💾 Czy gra zapisuje postęp?",
                     a: "Tak, postęp zapisuje się automatycznie. W trybie testowym bez backendu niektóre elementy mogą działać tymczasowo lub lokalnie."
                 },
-                {
-                    id: "lost-progress",
-                    q: "⚠️ Co jeśli stracę progres?",
-                    a: "Najczęstsze przyczyny to tryb testowy, brak backendu albo testowe lokalne dane. Przed publikacją gra będzie działać na pełnym backendzie."
-                },
+                
                 {
                     id: "withdraw",
                     q: "💸 Jak wypłacić reward?",
@@ -139,11 +135,7 @@ CryptoZoo.uiFaq = {
                 q: "💾 Does the game save progress?",
                 a: "Yes, progress is saved automatically. In test mode without backend, some parts may work temporarily or locally."
             },
-            {
-                id: "lost-progress",
-                q: "⚠️ What if I lose progress?",
-                a: "The most common reasons are test mode, missing backend, or temporary local data. Before publication the game will run on the full backend."
-            },
+            
             {
                 id: "withdraw",
                 q: "💸 How do I withdraw reward?",
