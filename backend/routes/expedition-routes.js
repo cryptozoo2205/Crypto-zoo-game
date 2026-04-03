@@ -306,196 +306,234 @@ function consumeBestTimeBoostCharge(player, remainingSeconds) {
 }
 
 router.post("/start", (req, res) => {
-    const db = readDb();
+    try {
+        const db = readDb();
 
-    const telegramId = safeString(req.body?.telegramId, "");
-    const username = safeString(req.body?.username, "Gracz");
-    const expeditionId = safeString(req.body?.expeditionId, "");
-    const selectedAnimals = req.body?.selectedAnimals;
+        const telegramId = safeString(req.body?.telegramId, "");
+        const username = safeString(req.body?.username, "Gracz");
+        const expeditionId = safeString(req.body?.expeditionId, "");
+        const selectedAnimals = req.body?.selectedAnimals;
 
-    if (!telegramId) {
-        return res.status(400).json({ error: "Missing telegramId" });
+        if (!telegramId) {
+            return res.status(400).json({ error: "Missing telegramId" });
+        }
+
+        if (!expeditionId) {
+            return res.status(400).json({ error: "Missing expeditionId" });
+        }
+
+        const expedition = getExpeditionById(expeditionId);
+        if (!expedition) {
+            return res.status(404).json({ error: "Expedition not found" });
+        }
+
+        const player = getPlayerOrCreate(db, telegramId, username);
+
+        if (hasActiveExpedition(player)) {
+            return res.status(400).json({ error: "Active expedition already exists" });
+        }
+
+        const requiredLevel = Math.max(1, Number(expedition.unlockLevel) || 1);
+        const playerLevel = Math.max(1, Number(player.level) || 1);
+
+        if (playerLevel < requiredLevel) {
+            return res.status(400).json({ error: `Required level: ${requiredLevel}` });
+        }
+
+        const startCostCoins = Math.max(0, Math.floor(Number(expedition.startCostCoins) || 0));
+        const currentCoins = Math.max(0, Number(player.coins) || 0);
+
+        if (currentCoins < startCostCoins) {
+            return res.status(400).json({ error: "Not enough coins" });
+        }
+
+        player.coins = clamp(currentCoins - startCostCoins, 0, LIMITS.MAX_COINS);
+        player.expedition = buildActiveExpedition(player, expedition, selectedAnimals);
+        player.updatedAt = Date.now();
+
+        db.players[telegramId] = normalizePlayer(player);
+        writeDb(db);
+
+        return res.json({
+            ok: true,
+            expedition: db.players[telegramId].expedition,
+            player: db.players[telegramId]
+        });
+    } catch (error) {
+        console.error("POST /api/expedition/start failed:", error);
+        return res.status(500).json({
+            error: "Expedition start failed",
+            details: error?.message || "Unknown server error"
+        });
     }
-
-    if (!expeditionId) {
-        return res.status(400).json({ error: "Missing expeditionId" });
-    }
-
-    const expedition = getExpeditionById(expeditionId);
-    if (!expedition) {
-        return res.status(404).json({ error: "Expedition not found" });
-    }
-
-    const player = getPlayerOrCreate(db, telegramId, username);
-
-    if (hasActiveExpedition(player)) {
-        return res.status(400).json({ error: "Active expedition already exists" });
-    }
-
-    const requiredLevel = Math.max(1, Number(expedition.unlockLevel) || 1);
-    const playerLevel = Math.max(1, Number(player.level) || 1);
-
-    if (playerLevel < requiredLevel) {
-        return res.status(400).json({ error: `Required level: ${requiredLevel}` });
-    }
-
-    const startCostCoins = Math.max(0, Math.floor(Number(expedition.startCostCoins) || 0));
-    const currentCoins = Math.max(0, Number(player.coins) || 0);
-
-    if (currentCoins < startCostCoins) {
-        return res.status(400).json({ error: "Not enough coins" });
-    }
-
-    player.coins = clamp(currentCoins - startCostCoins, 0, LIMITS.MAX_COINS);
-    player.expedition = buildActiveExpedition(player, expedition, selectedAnimals);
-    player.updatedAt = Date.now();
-
-    db.players[telegramId] = normalizePlayer(player);
-    writeDb(db);
-
-    return res.json({
-        ok: true,
-        expedition: db.players[telegramId].expedition,
-        player: db.players[telegramId]
-    });
 });
 
 router.post("/time-boost", (req, res) => {
-    const db = readDb();
+    try {
+        const db = readDb();
 
-    const telegramId = safeString(req.body?.telegramId, "");
-    const username = safeString(req.body?.username, "Gracz");
+        const telegramId = safeString(req.body?.telegramId, "");
+        const username = safeString(req.body?.username, "Gracz");
 
-    if (!telegramId) {
-        return res.status(400).json({ error: "Missing telegramId" });
+        if (!telegramId) {
+            return res.status(400).json({ error: "Missing telegramId" });
+        }
+
+        const player = getPlayerOrCreate(db, telegramId, username);
+        const expedition = getActiveExpedition(player);
+
+        if (!expedition) {
+            return res.status(400).json({ error: "No active expedition" });
+        }
+
+        if (expedition.claimed) {
+            return res.status(400).json({ error: "Expedition already claimed" });
+        }
+
+        const remainingSeconds = Math.max(
+            0,
+            Math.floor((Number(expedition.endTime) - Date.now()) / 1000)
+        );
+
+        if (remainingSeconds <= 0) {
+            return res.status(400).json({ error: "Expedition already ready" });
+        }
+
+        const reductionSeconds = consumeBestTimeBoostCharge(player, remainingSeconds);
+
+        if (reductionSeconds <= 0) {
+            return res.status(400).json({ error: "No valid time boost available" });
+        }
+
+        expedition.endTime = Math.max(
+            Date.now(),
+            Number(expedition.endTime) - reductionSeconds * 1000
+        );
+
+        expedition.duration = Math.max(
+            60,
+            Math.floor((Number(expedition.endTime) - Number(expedition.startTime)) / 1000)
+        );
+
+        expedition.timeReductionUsed = Math.max(
+            0,
+            Number(expedition.timeReductionUsed) || 0
+        ) + reductionSeconds;
+
+        player.updatedAt = Date.now();
+
+        db.players[telegramId] = normalizePlayer(player);
+        writeDb(db);
+
+        return res.json({
+            ok: true,
+            reductionSeconds,
+            expedition: db.players[telegramId].expedition,
+            player: db.players[telegramId]
+        });
+    } catch (error) {
+        console.error("POST /api/expedition/time-boost failed:", error);
+        return res.status(500).json({
+            error: "Expedition time boost failed",
+            details: error?.message || "Unknown server error"
+        });
     }
-
-    const player = getPlayerOrCreate(db, telegramId, username);
-    const expedition = getActiveExpedition(player);
-
-    if (!expedition) {
-        return res.status(400).json({ error: "No active expedition" });
-    }
-
-    if (expedition.claimed) {
-        return res.status(400).json({ error: "Expedition already claimed" });
-    }
-
-    const remainingSeconds = Math.max(
-        0,
-        Math.floor((Number(expedition.endTime) - Date.now()) / 1000)
-    );
-
-    if (remainingSeconds <= 0) {
-        return res.status(400).json({ error: "Expedition already ready" });
-    }
-
-    const reductionSeconds = consumeBestTimeBoostCharge(player, remainingSeconds);
-
-    if (reductionSeconds <= 0) {
-        return res.status(400).json({ error: "No valid time boost available" });
-    }
-
-    expedition.endTime = Math.max(
-        Date.now(),
-        Number(expedition.endTime) - reductionSeconds * 1000
-    );
-
-    expedition.duration = Math.max(
-        60,
-        Math.floor((Number(expedition.endTime) - Number(expedition.startTime)) / 1000)
-    );
-
-    expedition.timeReductionUsed = Math.max(
-        0,
-        Number(expedition.timeReductionUsed) || 0
-    ) + reductionSeconds;
-
-    player.updatedAt = Date.now();
-
-    db.players[telegramId] = normalizePlayer(player);
-    writeDb(db);
-
-    return res.json({
-        ok: true,
-        reductionSeconds,
-        expedition: db.players[telegramId].expedition,
-        player: db.players[telegramId]
-    });
 });
 
 router.post("/collect", (req, res) => {
-    const db = readDb();
+    try {
+        const db = readDb();
 
-    const telegramId = safeString(req.body?.telegramId, "");
-    const username = safeString(req.body?.username, "Gracz");
+        const telegramId = safeString(req.body?.telegramId, "");
+        const username = safeString(req.body?.username, "Gracz");
 
-    if (!telegramId) {
-        return res.status(400).json({ error: "Missing telegramId" });
+        console.log("POST /api/expedition/collect", {
+            telegramId,
+            username,
+            body: req.body
+        });
+
+        if (!telegramId) {
+            return res.status(400).json({ error: "Missing telegramId" });
+        }
+
+        const player = getPlayerOrCreate(db, telegramId, username);
+        const expedition = getActiveExpedition(player);
+
+        if (!expedition) {
+            return res.status(400).json({ error: "No active expedition" });
+        }
+
+        if (expedition.claimed || Number(expedition.collectedAt) > 0) {
+            return res.status(400).json({ error: "Expedition already collected" });
+        }
+
+        if (!canCollect(player)) {
+            return res.status(400).json({ error: "Expedition still in progress" });
+        }
+
+        expedition.claimed = true;
+        expedition.collectedAt = Date.now();
+
+        const coins = Math.max(0, Number(expedition.rewardCoins) || 0);
+        const gems = Math.max(0, Number(expedition.rewardGems) || 0);
+        const rewardBalance = Math.max(0, getRewardBalanceAmount(player, expedition));
+
+        player.coins = clamp((Number(player.coins) || 0) + coins, 0, LIMITS.MAX_COINS);
+        player.gems = clamp((Number(player.gems) || 0) + gems, 0, LIMITS.MAX_GEMS);
+        player.rewardBalance = clamp(
+            normalizeRewardNumber((Number(player.rewardBalance) || 0) + rewardBalance, 0),
+            0,
+            LIMITS.MAX_REWARD_BALANCE
+        );
+
+        player.expedition = null;
+        player.updatedAt = Date.now();
+
+        db.players[telegramId] = normalizePlayer(player);
+        writeDb(db);
+
+        return res.json({
+            ok: true,
+            rewards: {
+                coins,
+                gems,
+                rewardBalance
+            },
+            player: db.players[telegramId]
+        });
+    } catch (error) {
+        console.error("POST /api/expedition/collect failed:", error);
+        return res.status(500).json({
+            error: "Expedition collect failed",
+            details: error?.message || "Unknown server error"
+        });
     }
-
-    const player = getPlayerOrCreate(db, telegramId, username);
-    const expedition = getActiveExpedition(player);
-
-    if (!expedition) {
-        return res.status(400).json({ error: "No active expedition" });
-    }
-
-    if (expedition.claimed || Number(expedition.collectedAt) > 0) {
-        return res.status(400).json({ error: "Expedition already collected" });
-    }
-
-    if (!canCollect(player)) {
-        return res.status(400).json({ error: "Expedition still in progress" });
-    }
-
-    expedition.claimed = true;
-    expedition.collectedAt = Date.now();
-
-    const coins = Math.max(0, Number(expedition.rewardCoins) || 0);
-    const gems = Math.max(0, Number(expedition.rewardGems) || 0);
-    const rewardBalance = Math.max(0, getRewardBalanceAmount(player, expedition));
-
-    player.coins = clamp((Number(player.coins) || 0) + coins, 0, LIMITS.MAX_COINS);
-    player.gems = clamp((Number(player.gems) || 0) + gems, 0, LIMITS.MAX_GEMS);
-    player.rewardBalance = clamp(
-        normalizeRewardNumber((Number(player.rewardBalance) || 0) + rewardBalance, 0),
-        0,
-        LIMITS.MAX_REWARD_BALANCE
-    );
-
-    player.expedition = null;
-    player.updatedAt = Date.now();
-
-    db.players[telegramId] = normalizePlayer(player);
-    writeDb(db);
-
-    return res.json({
-        ok: true,
-        rewards: {
-            coins,
-            gems,
-            rewardBalance
-        },
-        player: db.players[telegramId]
-    });
 });
 
 router.get("/:telegramId", (req, res) => {
-    const db = readDb();
-    const telegramId = safeString(req.params.telegramId, "");
+    try {
+        const db = readDb();
+        const telegramId = safeString(req.params.telegramId, "");
 
-    if (!telegramId) {
-        return res.status(400).json({ error: "Missing telegramId" });
+        if (!telegramId) {
+            return res.status(400).json({ error: "Missing telegramId" });
+        }
+
+        const player = getPlayerOrCreate(db, telegramId, "Gracz");
+
+        return res.json({
+            ok: true,
+            expedition: player.expedition || null,
+            player: normalizePlayer(player)
+        });
+    } catch (error) {
+        console.error("GET /api/expedition/:telegramId failed:", error);
+        return res.status(500).json({
+            error: "Expedition state load failed",
+            details: error?.message || "Unknown server error"
+        });
     }
-
-    const player = getPlayerOrCreate(db, telegramId, "Gracz");
-
-    return res.json({
-        ok: true,
-        expedition: player.expedition || null,
-        player: normalizePlayer(player)
-    });
 });
 
 module.exports = router;
