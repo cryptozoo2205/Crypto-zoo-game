@@ -340,194 +340,59 @@ CryptoZoo.ui = {
         }
     },
 
-    getOfflineInfoBar() {
-        const selectors = [
-            "#homeOfflineInfoBar",
-            "#homeOfflineBox",
-            "#offlineInfoBar",
-            "#offlineBox",
-            "[data-role='offline-info-box']",
-            "[data-offline-box='1']",
-            ".home-offline-info-box",
-            ".offline-info-box"
-        ];
-
-        for (const selector of selectors) {
-            const el = document.querySelector(selector);
-            if (el) return el;
-        }
-
-        return null;
-    },
-
     getOfflineAdRewardHours() {
-        const candidates = [
-            CryptoZoo.offlineAds?.getRewardHours?.(),
-            CryptoZoo.offlineAds?.getHoursPerAd?.(),
-            CryptoZoo.offlineAds?.rewardHours,
-            CryptoZoo.offlineAds?.hoursPerAd,
-            CryptoZoo.offlineAds?.AD_REWARD_HOURS,
-            CryptoZoo.offlineAds?.REWARD_HOURS,
-            CryptoZoo.config?.offlineAdsRewardHours,
-            CryptoZoo.config?.offlineAdsHoursPerAd,
-            CryptoZoo.config?.offlineAdRewardHours,
-            2
-        ];
-
-        for (const value of candidates) {
-            const num = Number(value);
-            if (Number.isFinite(num) && num > 0) {
-                return num;
-            }
-        }
-
-        return 2;
-    },
-
-    getOfflineBadgeElement(bar) {
-        if (!bar) return null;
-
-        const selectors = [
-            ".offline-max-badge",
-            ".offline-badge",
-            ".home-offline-badge",
-            ".home-stat-badge",
-            ".stat-badge",
-            ".info-badge",
-            ".box-badge",
-            ".badge",
-            "button"
-        ];
-
-        for (const selector of selectors) {
-            const nodes = Array.from(bar.querySelectorAll(selector));
-            if (!nodes.length) continue;
-
-            const exact = nodes.find((node) => {
-                const text = String(node.textContent || "").trim().toUpperCase();
-                return text === "MAX" || text === "📺 MAX";
-            });
-
-            if (exact) return exact;
-        }
-
-        const allNodes = Array.from(bar.querySelectorAll("*"));
-        const fallback = allNodes.find((node) => {
-            const text = String(node.textContent || "").trim().toUpperCase();
-            return text === "MAX" || text === "📺 MAX";
-        });
-
-        return fallback || null;
+        const value = Number(CryptoZoo.offlineAds?.HOURS_PER_AD);
+        return Number.isFinite(value) && value > 0 ? value : 2;
     },
 
     renderOfflineInfo() {
-        const bar = this.getOfflineInfoBar();
-        if (!bar) return;
+        const mainText = document.getElementById("homeOfflineMainText");
+        const subText = document.getElementById("homeOfflineSubText");
+        const adBtn = document.getElementById("watchOfflineAdBtn");
 
-        const oldAdsBar = document.getElementById("homeOfflineAdsInfoBar");
-        if (oldAdsBar && oldAdsBar !== bar) {
-            oldAdsBar.remove();
-        }
+        if (!mainText || !subText || !adBtn) return;
 
         const totalHours = Math.max(
             1,
             Number(CryptoZoo.gameplay?.getOfflineHoursTotal?.() || 1)
         );
+
         const baseHours = Math.max(
             1,
             Number(CryptoZoo.gameplay?.getOfflineBaseHours?.() || 1)
         );
+
         const boostHours = Math.max(
             0,
             Number(CryptoZoo.gameplay?.getOfflineBoostHours?.() || 0)
         );
+
         const adsHours = Math.max(
             0,
             Number(CryptoZoo.gameplay?.getOfflineAdsHours?.() || 0)
         );
+
         const offlineBoost = Math.max(1, Number(CryptoZoo.state?.offlineBoost) || 1);
 
         const adsResetSeconds = Math.max(
             0,
             Number(CryptoZoo.offlineAds?.getSecondsUntilReset?.() || 0)
         );
+
         const canWatchAd = !!CryptoZoo.offlineAds?.canWatchAd?.();
         const rewardHours = this.getOfflineAdRewardHours();
 
-        const existingTitle = bar.querySelector(".home-stat-title, .stat-title, .info-title, .box-title, h3, h4, strong");
-        const existingSubtitle = bar.querySelector(".home-stat-subtitle, .stat-subtitle, .info-subtitle, .box-subtitle");
-        const existingMeta = bar.querySelector(".home-stat-meta, .stat-meta, .info-meta, .box-meta");
-        const badge = this.getOfflineBadgeElement(bar);
+        mainText.textContent =
+            `${this.t("offlineLimit", "Limit offline")}: ${CryptoZoo.formatNumber(totalHours)}h • ${this.t("standardMultiplier", "Standardowy mnożnik")} offline x${CryptoZoo.formatNumber(offlineBoost)}`;
 
-        if (existingTitle || existingSubtitle || existingMeta || badge) {
-            if (existingTitle) {
-                existingTitle.textContent = `💤 ${this.t("offlineEarnings", "Zarobki offline")}`;
-            }
+        subText.textContent =
+            `${this.t("baseLimit", "Limit bazowy")}: ${CryptoZoo.formatNumber(baseHours)}h • Shop: +${CryptoZoo.formatNumber(boostHours)}h • Ads: +${CryptoZoo.formatNumber(adsHours)}h`;
 
-            if (existingSubtitle) {
-                existingSubtitle.textContent =
-                    `${this.t("offlineLimit", "Limit offline")}: ${CryptoZoo.formatNumber(totalHours)}h • ${this.t("standardMultiplier", "Standardowy mnożnik")} offline x${CryptoZoo.formatNumber(offlineBoost)}`;
-            }
+        adBtn.textContent = canWatchAd
+            ? `📺 +${CryptoZoo.formatNumber(rewardHours)}h`
+            : this.formatTimeLeft(adsResetSeconds);
 
-            if (existingMeta) {
-                existingMeta.textContent =
-                    `${this.t("baseLimit", "Limit bazowy")}: ${CryptoZoo.formatNumber(baseHours)}h • Shop: +${CryptoZoo.formatNumber(boostHours)}h • Ads: +${CryptoZoo.formatNumber(adsHours)}h`;
-            }
-
-            if (badge) {
-                badge.innerHTML = canWatchAd
-                    ? `📺 +${CryptoZoo.formatNumber(rewardHours)}h`
-                    : this.formatTimeLeft(adsResetSeconds);
-
-                badge.style.whiteSpace = "nowrap";
-                badge.style.display = "inline-flex";
-                badge.style.alignItems = "center";
-                badge.style.justifyContent = "center";
-                badge.style.textAlign = "center";
-                badge.style.fontWeight = "900";
-                badge.style.fontSize = canWatchAd ? "18px" : "15px";
-                badge.style.lineHeight = "1";
-                badge.style.padding = "0 12px";
-            }
-
-            return;
-        }
-
-        bar.style.overflow = "visible";
-        bar.style.height = "auto";
-        bar.style.minHeight = "unset";
-        bar.innerHTML = `
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:14px;">
-                <div style="min-width:0; flex:1;">
-                    <div style="font-size:13px; font-weight:900; margin-bottom:4px;">💤 ${this.t("offlineEarnings", "Zarobki offline")}</div>
-                    <div style="color: rgba(255,255,255,0.78); margin-bottom:4px;">
-                        ${this.t("offlineLimit", "Limit offline")}: ${CryptoZoo.formatNumber(totalHours)}h • ${this.t("standardMultiplier", "Standardowy mnożnik")} offline x${CryptoZoo.formatNumber(offlineBoost)}
-                    </div>
-                    <div style="color: rgba(255,255,255,0.58); font-size:11px;">
-                        ${this.t("baseLimit", "Limit bazowy")}: ${CryptoZoo.formatNumber(baseHours)}h • Shop: +${CryptoZoo.formatNumber(boostHours)}h • Ads: +${CryptoZoo.formatNumber(adsHours)}h
-                    </div>
-                </div>
-                <div style="
-                    min-width: 132px;
-                    height: 74px;
-                    border-radius: 22px;
-                    background: linear-gradient(180deg, #c7a73a 0%, #a98a26 100%);
-                    color: #172033;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    text-align:center;
-                    font-weight:900;
-                    font-size:${canWatchAd ? "20px" : "16px"};
-                    line-height:1;
-                    padding:0 12px;
-                    white-space:nowrap;
-                    box-shadow: inset 0 1px 0 rgba(255,255,255,0.28);
-                ">
-                    ${canWatchAd ? `📺 +${CryptoZoo.formatNumber(rewardHours)}h` : this.formatTimeLeft(adsResetSeconds)}
-                </div>
-            </div>
-        `;
+        adBtn.disabled = !canWatchAd;
     },
 
     ensureOfflineInfoTimerRunning() {
@@ -536,9 +401,6 @@ CryptoZoo.ui = {
         this.offlineInfoTimer = setInterval(() => {
             const activeScreen = CryptoZoo.gameplay?.activeScreen || "game";
             if (activeScreen !== "game") return;
-
-            const bar = this.getOfflineInfoBar();
-            if (!bar) return;
 
             this.renderOfflineInfo();
         }, 1000);
