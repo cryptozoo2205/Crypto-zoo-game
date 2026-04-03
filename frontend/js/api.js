@@ -188,7 +188,7 @@ window.CryptoZoo.api = {
             offlineBaseHours: 1,
             offlineBoostHours: 0,
             offlineAdsHours: 0,
-            offlineAdsResetAt: now,
+            offlineAdsResetAt: 0,
             offlineMaxSeconds: 3600,
             offlineBoostMultiplier: 1,
             offlineBoostActiveUntil: 0,
@@ -208,6 +208,10 @@ window.CryptoZoo.api = {
             settings: {},
             profile: {},
             stats: {},
+
+            lastDailyRewardAt: 0,
+            dailyRewardStreak: 0,
+            dailyRewardClaimDayKey: "",
 
             lastLogin: now,
             updatedAt: now
@@ -345,6 +349,13 @@ window.CryptoZoo.api = {
             profile: this.normalizeObject(data.profile),
             stats: this.normalizeObject(data.stats),
 
+            lastDailyRewardAt: this.normalizeNumber(data.lastDailyRewardAt, base.lastDailyRewardAt, 0),
+            dailyRewardStreak: Math.max(
+                0,
+                Math.floor(this.normalizeNumber(data.dailyRewardStreak, base.dailyRewardStreak, 0))
+            ),
+            dailyRewardClaimDayKey: String(data.dailyRewardClaimDayKey || base.dailyRewardClaimDayKey || ""),
+
             lastLogin: this.normalizeNumber(data.lastLogin, Date.now(), 0),
             updatedAt: this.normalizeNumber(data.updatedAt, Date.now(), 0)
         };
@@ -418,9 +429,9 @@ window.CryptoZoo.api = {
 
             coins: Math.max(server.coins, local.coins),
             gems: Math.max(server.gems, local.gems),
-            rewardBalance: server.rewardBalance,
-            rewardWallet: server.rewardWallet,
-            withdrawPending: server.withdrawPending,
+            rewardBalance: Math.max(server.rewardBalance, local.rewardBalance),
+            rewardWallet: Math.max(server.rewardWallet, local.rewardWallet),
+            withdrawPending: Math.max(server.withdrawPending, local.withdrawPending),
 
             level: Math.max(server.level, local.level),
             xp: Math.max(server.xp, local.xp),
@@ -504,7 +515,7 @@ window.CryptoZoo.api = {
                 ...local.stats
             },
 
-            expedition: server.expedition || null,
+            expedition: local.expedition || server.expedition || null,
 
             offlineBaseHours: Math.max(server.offlineBaseHours || 1, local.offlineBaseHours || 1),
             offlineBoostHours: Math.max(server.offlineBoostHours || 0, local.offlineBoostHours || 0),
@@ -522,6 +533,12 @@ window.CryptoZoo.api = {
             payoutHistory: this.mergeUniqueByKey(local.payoutHistory, server.payoutHistory),
             referrals: this.mergeUniqueByKey(local.referrals, server.referrals),
             referralHistory: this.mergeUniqueByKey(local.referralHistory, server.referralHistory),
+
+            lastDailyRewardAt: Math.max(server.lastDailyRewardAt || 0, local.lastDailyRewardAt || 0),
+            dailyRewardStreak: Math.max(server.dailyRewardStreak || 0, local.dailyRewardStreak || 0),
+            dailyRewardClaimDayKey:
+                String(local.dailyRewardClaimDayKey || "") ||
+                String(server.dailyRewardClaimDayKey || ""),
 
             lastLogin: Math.max(server.lastLogin || 0, local.lastLogin || 0),
             updatedAt: Date.now()
@@ -584,6 +601,10 @@ window.CryptoZoo.api = {
             profile: state.profile,
             stats: state.stats,
 
+            lastDailyRewardAt: state.lastDailyRewardAt,
+            dailyRewardStreak: state.dailyRewardStreak,
+            dailyRewardClaimDayKey: state.dailyRewardClaimDayKey,
+
             lastLogin: state.lastLogin,
             updatedAt: state.updatedAt
         };
@@ -628,7 +649,10 @@ window.CryptoZoo.api = {
             boosts: payload.boosts,
             settings: payload.settings,
             profile: payload.profile,
-            stats: payload.stats
+            stats: payload.stats,
+            lastDailyRewardAt: payload.lastDailyRewardAt,
+            dailyRewardStreak: payload.dailyRewardStreak,
+            dailyRewardClaimDayKey: payload.dailyRewardClaimDayKey
         });
     },
 
@@ -644,7 +668,6 @@ window.CryptoZoo.api = {
                 method: options.method || "GET",
                 headers: {
                     "Content-Type": "application/json",
-                    "ngrok-skip-browser-warning": "1",
                     ...(options.headers || {})
                 },
                 ...options,
@@ -694,6 +717,9 @@ window.CryptoZoo.api = {
         let serverRaw = null;
 
         try {
+            console.log("LOAD PLAYER ID:", this.getPlayerId());
+            console.log("API BASE:", this.getApiBase());
+
             serverRaw = await this.request(`/player/${this.getPlayerId()}`, {
                 timeoutMs: 4000
             });
@@ -711,6 +737,7 @@ window.CryptoZoo.api = {
         }
 
         CryptoZoo.state.telegramUser = this.getTelegramUser();
+
         this.writeLocalState(CryptoZoo.state);
 
         try {
@@ -819,169 +846,6 @@ window.CryptoZoo.api = {
     async savePlayer() {
         this.markDirty();
         return CryptoZoo.state;
-    },
-
-    async transferRewardToWallet() {
-        const response = await this.request("/reward/transfer", {
-            method: "POST",
-            body: JSON.stringify({
-                telegramId: this.getPlayerId(),
-                username: this.getUsername()
-            }),
-            timeoutMs: 4000
-        });
-
-        const player = this.unwrapPlayerResponse(response);
-
-        if (player && typeof player === "object") {
-            CryptoZoo.state = this.mergeStates(player, CryptoZoo.state || {});
-            this.writeLocalState(CryptoZoo.state);
-
-            const payload = this.getSavePayload();
-            this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
-            this.pendingDirty = false;
-        }
-
-        return response;
-    },
-
-    async createWithdrawRequest(amount) {
-        const safeAmount = Number(amount) || 0;
-
-        const response = await this.request("/withdraw/request", {
-            method: "POST",
-            body: JSON.stringify({
-                telegramId: this.getPlayerId(),
-                username: this.getUsername(),
-                amount: safeAmount
-            }),
-            timeoutMs: 5000
-        });
-
-        const player = this.unwrapPlayerResponse(response);
-
-        if (player && typeof player === "object") {
-            CryptoZoo.state = this.mergeStates(player, CryptoZoo.state || {});
-            this.writeLocalState(CryptoZoo.state);
-
-            const payload = this.getSavePayload();
-            this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
-            this.pendingDirty = false;
-        }
-
-        return response;
-    },
-
-    async loadWithdrawHistory() {
-        const response = await this.request(`/withdraw/${this.getPlayerId()}`, {
-            method: "GET",
-            timeoutMs: 4000
-        });
-
-        return Array.isArray(response?.requests) ? response.requests : [];
-    },
-
-    async loadDepositsHistory() {
-        const response = await this.request(`/deposit/${this.getPlayerId()}`, {
-            method: "GET",
-            timeoutMs: 4000
-        });
-
-        return Array.isArray(response?.deposits) ? response.deposits : [];
-    },
-
-    async expeditionStart(expeditionId, selectedAnimals = []) {
-        const response = await this.request("/expedition/start", {
-            method: "POST",
-            body: JSON.stringify({
-                telegramId: this.getPlayerId(),
-                username: this.getUsername(),
-                expeditionId,
-                selectedAnimals
-            }),
-            timeoutMs: 5000
-        });
-
-        const player = this.unwrapPlayerResponse(response);
-
-        if (player && typeof player === "object") {
-            CryptoZoo.state = this.mergeStates(player, CryptoZoo.state || {});
-            this.writeLocalState(CryptoZoo.state);
-
-            const payload = this.getSavePayload();
-            this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
-            this.pendingDirty = false;
-        }
-
-        return response;
-    },
-
-    async expeditionCollect() {
-        const response = await this.request("/expedition/collect", {
-            method: "POST",
-            body: JSON.stringify({
-                telegramId: this.getPlayerId(),
-                username: this.getUsername()
-            }),
-            timeoutMs: 5000
-        });
-
-        const player = this.unwrapPlayerResponse(response);
-
-        if (player && typeof player === "object") {
-            CryptoZoo.state = this.mergeStates(player, CryptoZoo.state || {});
-            this.writeLocalState(CryptoZoo.state);
-
-            const payload = this.getSavePayload();
-            this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
-            this.pendingDirty = false;
-        }
-
-        return response;
-    },
-
-    async expeditionUseTimeBoost() {
-        const response = await this.request("/expedition/time-boost", {
-            method: "POST",
-            body: JSON.stringify({
-                telegramId: this.getPlayerId(),
-                username: this.getUsername()
-            }),
-            timeoutMs: 5000
-        });
-
-        const player = this.unwrapPlayerResponse(response);
-
-        if (player && typeof player === "object") {
-            CryptoZoo.state = this.mergeStates(player, CryptoZoo.state || {});
-            this.writeLocalState(CryptoZoo.state);
-
-            const payload = this.getSavePayload();
-            this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
-            this.pendingDirty = false;
-        }
-
-        return response;
-    },
-
-    async loadExpeditionState() {
-        const response = await this.request(`/expedition/${this.getPlayerId()}`, {
-            method: "GET",
-            timeoutMs: 4000
-        });
-
-        const player = this.unwrapPlayerResponse(response);
-
-        if (player && typeof player === "object") {
-            CryptoZoo.state = this.mergeStates(player, CryptoZoo.state || {});
-            this.writeLocalState(CryptoZoo.state);
-
-            const payload = this.getSavePayload();
-            this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
-            this.pendingDirty = false;
-        }
-
-        return response;
     },
 
     async syncPendingDeposits(forceReload = false) {
