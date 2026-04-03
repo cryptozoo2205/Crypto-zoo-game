@@ -360,6 +360,30 @@ CryptoZoo.ui = {
         return null;
     },
 
+    getOfflineAdRewardHours() {
+        const candidates = [
+            CryptoZoo.offlineAds?.getRewardHours?.(),
+            CryptoZoo.offlineAds?.getHoursPerAd?.(),
+            CryptoZoo.offlineAds?.rewardHours,
+            CryptoZoo.offlineAds?.hoursPerAd,
+            CryptoZoo.offlineAds?.AD_REWARD_HOURS,
+            CryptoZoo.offlineAds?.REWARD_HOURS,
+            CryptoZoo.config?.offlineAdsRewardHours,
+            CryptoZoo.config?.offlineAdsHoursPerAd,
+            CryptoZoo.config?.offlineAdRewardHours,
+            2
+        ];
+
+        for (const value of candidates) {
+            const num = Number(value);
+            if (Number.isFinite(num) && num > 0) {
+                return num;
+            }
+        }
+
+        return 2;
+    },
+
     getOfflineBadgeElement(bar) {
         if (!bar) return null;
 
@@ -371,21 +395,29 @@ CryptoZoo.ui = {
             ".stat-badge",
             ".info-badge",
             ".box-badge",
-            ".badge"
+            ".badge",
+            "button"
         ];
 
         for (const selector of selectors) {
-            const el = bar.querySelector(selector);
-            if (el) return el;
+            const nodes = Array.from(bar.querySelectorAll(selector));
+            if (!nodes.length) continue;
+
+            const exact = nodes.find((node) => {
+                const text = String(node.textContent || "").trim().toUpperCase();
+                return text === "MAX" || text === "📺 MAX";
+            });
+
+            if (exact) return exact;
         }
 
         const allNodes = Array.from(bar.querySelectorAll("*"));
-        const maxNode = allNodes.find((node) => {
+        const fallback = allNodes.find((node) => {
             const text = String(node.textContent || "").trim().toUpperCase();
             return text === "MAX" || text === "📺 MAX";
         });
 
-        return maxNode || null;
+        return fallback || null;
     },
 
     renderOfflineInfo() {
@@ -420,13 +452,14 @@ CryptoZoo.ui = {
             Number(CryptoZoo.offlineAds?.getSecondsUntilReset?.() || 0)
         );
         const canWatchAd = !!CryptoZoo.offlineAds?.canWatchAd?.();
+        const rewardHours = this.getOfflineAdRewardHours();
 
         const existingTitle = bar.querySelector(".home-stat-title, .stat-title, .info-title, .box-title, h3, h4, strong");
         const existingSubtitle = bar.querySelector(".home-stat-subtitle, .stat-subtitle, .info-subtitle, .box-subtitle");
         const existingMeta = bar.querySelector(".home-stat-meta, .stat-meta, .info-meta, .box-meta");
         const badge = this.getOfflineBadgeElement(bar);
 
-        if (existingTitle || existingSubtitle || badge) {
+        if (existingTitle || existingSubtitle || existingMeta || badge) {
             if (existingTitle) {
                 existingTitle.textContent = `💤 ${this.t("offlineEarnings", "Zarobki offline")}`;
             }
@@ -443,7 +476,7 @@ CryptoZoo.ui = {
 
             if (badge) {
                 badge.innerHTML = canWatchAd
-                    ? "📺 +1h"
+                    ? `📺 +${CryptoZoo.formatNumber(rewardHours)}h`
                     : this.formatTimeLeft(adsResetSeconds);
 
                 badge.style.whiteSpace = "nowrap";
@@ -491,7 +524,7 @@ CryptoZoo.ui = {
                     white-space:nowrap;
                     box-shadow: inset 0 1px 0 rgba(255,255,255,0.28);
                 ">
-                    ${canWatchAd ? "📺 +1h" : this.formatTimeLeft(adsResetSeconds)}
+                    ${canWatchAd ? `📺 +${CryptoZoo.formatNumber(rewardHours)}h` : this.formatTimeLeft(adsResetSeconds)}
                 </div>
             </div>
         `;
