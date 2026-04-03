@@ -191,7 +191,7 @@ CryptoZoo.uiRoadmap = {
                     </div>
 
                     <div>
-                        <div style="font-weight: 700; margin-bottom: 4px;">👥 System poleceń</div>
+                        <div style="font-weight: 700; margin-bottom: 4px;">👥 System poleceń v2</div>
                         <div>Zapraszaj znajomych i odbieraj bonusy za rozwój swojej społeczności.</div>
                     </div>
 
