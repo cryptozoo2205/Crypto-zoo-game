@@ -3,22 +3,51 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.offlineAdsUI = {
     timer: null,
 
-    findOfflineButton() {
-        const buttons = document.querySelectorAll("button");
+    getRewardHours() {
+        const candidates = [
+            CryptoZoo.offlineAds?.getRewardHours?.(),
+            CryptoZoo.offlineAds?.getHoursPerAd?.(),
+            CryptoZoo.offlineAds?.rewardHours,
+            CryptoZoo.offlineAds?.hoursPerAd,
+            CryptoZoo.offlineAds?.AD_REWARD_HOURS,
+            CryptoZoo.offlineAds?.REWARD_HOURS,
+            CryptoZoo.config?.offlineAdsRewardHours,
+            CryptoZoo.config?.offlineAdsHoursPerAd,
+            CryptoZoo.config?.offlineAdRewardHours,
+            2
+        ];
 
-        for (let btn of buttons) {
-            const text = btn.textContent || "";
-
-            if (
-                text.includes("MAX") ||
-                text.includes("📺") ||
-                text.includes("+1h")
-            ) {
-                return btn;
+        for (const value of candidates) {
+            const num = Number(value);
+            if (Number.isFinite(num) && num > 0) {
+                return num;
             }
         }
 
-        return null;
+        return 2;
+    },
+
+    findOfflineButton() {
+        const direct = document.querySelector(".home-offline-ad-btn");
+        if (direct) return direct;
+
+        const insideStrip = document.querySelector(".home-offline-strip .home-offline-ad-btn");
+        if (insideStrip) return insideStrip;
+
+        const buttons = Array.from(document.querySelectorAll("button"));
+
+        const exactOffline = buttons.find((btn) => {
+            const text = String(btn.textContent || "").trim().toUpperCase();
+            return text === "MAX" || text === "📺 MAX";
+        });
+        if (exactOffline) return exactOffline;
+
+        const fallback = buttons.find((btn) => {
+            const text = String(btn.textContent || "").trim();
+            return text.includes("MAX") || text.includes("📺") || text.includes("+1h") || text.includes("+2h");
+        });
+
+        return fallback || null;
     },
 
     updateButton() {
@@ -30,13 +59,18 @@ CryptoZoo.offlineAdsUI = {
             0,
             Number(CryptoZoo.offlineAds?.getSecondsUntilReset?.() || 0)
         );
+        const rewardHours = this.getRewardHours();
 
         if (canWatchAd) {
-            btn.textContent = "📺 +1h";
-            btn.style.background = "#4CAF50";
+            btn.textContent = `📺 +${CryptoZoo.formatNumber ? CryptoZoo.formatNumber(rewardHours) : rewardHours}h`;
+            btn.style.background = "linear-gradient(180deg, #ffd94d 0%, #f0b90b 100%)";
+            btn.style.color = "#1f1f1f";
+            btn.disabled = false;
         } else {
             btn.textContent = this.formatTime(seconds);
-            btn.style.background = "#C9A84A";
+            btn.style.background = "linear-gradient(180deg, #ffd94d 0%, #f0b90b 100%)";
+            btn.style.color = "#1f1f1f";
+            btn.disabled = true;
         }
     },
 
@@ -54,6 +88,8 @@ CryptoZoo.offlineAdsUI = {
     },
 
     start() {
+        this.updateButton();
+
         if (this.timer) return;
 
         this.timer = setInterval(() => {
