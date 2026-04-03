@@ -106,14 +106,12 @@ function applyOfflineAdsServerGuard(oldPlayer, safePlayer) {
 function applyExpeditionBoostServerGuard(oldPlayer, safePlayer) {
     const trustedServerBoost = normalizeBoost(oldPlayer?.expeditionBoost, 0);
 
-    // expeditionBoost ma pochodzić tylko z backendu (np. confirm deposit),
-    // więc save z frontu nigdy go nie zwiększa ani nie zmniejsza
     safePlayer.expeditionBoost = trustedServerBoost;
 
     return safePlayer;
 }
 
-router.get("/api/player/:telegramId", (req, res) => {
+router.get("/:telegramId", (req, res) => {
     const db = readDb();
     const telegramId = safeString(req.params.telegramId, "local-player");
     const username = safeString(req.query.username, "Gracz");
@@ -129,10 +127,10 @@ router.get("/api/player/:telegramId", (req, res) => {
     db.players[telegramId] = normalizePlayer(db.players[telegramId] || player);
     writeDb(db);
 
-    res.json({ player: normalizePlayer(db.players[telegramId]) });
+    return res.json({ player: normalizePlayer(db.players[telegramId]) });
 });
 
-router.post("/api/player/save", (req, res) => {
+router.post("/save", (req, res) => {
     const db = readDb();
 
     const bodyTelegramUser = normalizeTelegramUser(
@@ -186,7 +184,7 @@ router.post("/api/player/save", (req, res) => {
     db.players[telegramId] = normalizePlayer(db.players[telegramId]);
     writeDb(db);
 
-    res.json({
+    return res.json({
         ok: true,
         player: db.players[telegramId]
     });
