@@ -51,6 +51,18 @@ CryptoZoo.uiProfile = {
         return String(user?.first_name || user?.username || "Gracz");
     },
 
+    getFallbackAvatarUrl() {
+        return String(this.fallbackAvatarPath || "assets/ui/avatar.png").trim();
+    },
+
+    hasTelegramAvatar() {
+        const user = this.getTelegramUser();
+        const fromUser = String(user?.photo_url || "").trim();
+        const fromStorage = String(localStorage.getItem("telegramPhotoUrl") || "").trim();
+
+        return !!(fromUser || fromStorage);
+    },
+
     getAvatarUrl() {
         const user = this.getTelegramUser();
         const fromUser = String(user?.photo_url || "").trim();
@@ -63,19 +75,45 @@ CryptoZoo.uiProfile = {
             return fromStorage;
         }
 
-        return String(this.fallbackAvatarPath || "").trim();
+        return this.getFallbackAvatarUrl();
     },
 
     applyAvatarToElement(element, avatarUrl) {
         if (!element) return;
 
         const safeUrl = String(avatarUrl || "").trim();
+        const fallbackUrl = this.getFallbackAvatarUrl();
 
         element.style.backgroundImage = safeUrl ? `url("${safeUrl}")` : "";
         element.style.backgroundSize = "cover";
         element.style.backgroundPosition = "center";
         element.style.backgroundRepeat = "no-repeat";
         element.style.overflow = "hidden";
+        element.style.backgroundColor = "transparent";
+
+        if (safeUrl === fallbackUrl) {
+            element.classList.add("avatar-fallback-active");
+        } else {
+            element.classList.remove("avatar-fallback-active");
+        }
+
+        if (!element.dataset.avatarErrorBound) {
+            element.dataset.avatarErrorBound = "1";
+
+            const img = new Image();
+            img.onload = () => {};
+            img.onerror = () => {
+                const latestAvatarUrl = String(this.getAvatarUrl() || "").trim();
+                if (latestAvatarUrl !== fallbackUrl) {
+                    this.lastAvatarUrlApplied = "";
+                    this.applyAvatarToElement(element, fallbackUrl);
+                }
+            };
+
+            if (safeUrl) {
+                img.src = safeUrl;
+            }
+        }
     },
 
     renderAvatarImages(force = false) {
