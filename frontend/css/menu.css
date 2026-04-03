@@ -9,7 +9,7 @@
     position: fixed;
     left: 10px;
     right: 10px;
-    bottom: calc(4px + var(--menu-safe-bottom));
+    bottom: var(--menu-safe-bottom);
     z-index: 1000;
 
     display: grid;
@@ -108,7 +108,7 @@
     .menu {
         left: 8px;
         right: 8px;
-        bottom: calc(4px + var(--menu-safe-bottom));
+        bottom: var(--menu-safe-bottom);
         gap: 6px;
         padding: 6px;
         border-radius: 18px;
@@ -133,7 +133,7 @@
     .menu {
         left: 7px;
         right: 7px;
-        bottom: calc(3px + var(--menu-safe-bottom));
+        bottom: var(--menu-safe-bottom);
         gap: 5px;
         padding: 5px;
         border-radius: 17px;
@@ -151,8 +151,6 @@
 }
 
 /* ===== KLUCZOWE: USUNIĘCIE PUSTEJ PRZESTRZENI ===== */
-
-/* Dostosuj do swojego kontenera (WAŻNE!) */
 .screen,
 .tab-content,
 .zoo-screen,
