@@ -12,7 +12,7 @@
     --safe-left: env(safe-area-inset-left, 0px);
 
     --app-height: 100dvh;
-    --content-bottom-space: calc(var(--menu-height) + var(--menu-safe-bottom) + 1px);
+    --content-bottom-space: calc(var(--menu-height) + 8px);
 }
 
 * {
@@ -264,7 +264,7 @@ img {
     position: fixed;
     left: 6px;
     right: 6px;
-    bottom: calc(0px + var(--menu-safe-bottom));
+    bottom: 0;
     z-index: 1000;
 
     display: grid;
@@ -276,7 +276,7 @@ img {
 
     background: linear-gradient(180deg, rgba(10, 18, 34, 0.98) 0%, rgba(6, 11, 24, 0.99) 100%);
     border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 16px;
+    border-radius: 16px 16px 0 0;
 
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
     backdrop-filter: none;
@@ -1254,16 +1254,16 @@ img {
         --screen-gap: 6px;
         --menu-height: 60px;
         --menu-gap: 4px;
-        --content-bottom-space: calc(var(--menu-height) + var(--menu-safe-bottom) + 1px);
+        --content-bottom-space: calc(var(--menu-height) + 8px);
     }
 
     .menu {
         left: 5px;
         right: 5px;
-        bottom: calc(0px + var(--menu-safe-bottom));
+        bottom: 0;
         gap: 4px;
         padding: 4px;
-        border-radius: 15px;
+        border-radius: 15px 15px 0 0;
     }
 
     .menu-btn {
@@ -1562,16 +1562,16 @@ img {
 @media (max-width: 400px) {
     :root {
         --menu-height: 56px;
-        --content-bottom-space: calc(var(--menu-height) + var(--menu-safe-bottom) + 1px);
+        --content-bottom-space: calc(var(--menu-height) + 8px);
     }
 
     .menu {
         left: 4px;
         right: 4px;
-        bottom: calc(0px + var(--menu-safe-bottom));
+        bottom: 0;
         gap: 4px;
         padding: 4px;
-        border-radius: 14px;
+        border-radius: 14px 14px 0 0;
     }
 
     .menu-btn {
@@ -1588,7 +1588,7 @@ img {
 @media (max-width: 380px) {
     :root {
         --app-side-padding: 6px;
-        --content-bottom-space: calc(var(--menu-height) + var(--menu-safe-bottom) + 1px);
+        --content-bottom-space: calc(var(--menu-height) + 8px);
     }
 
     .top-bar-shell {
