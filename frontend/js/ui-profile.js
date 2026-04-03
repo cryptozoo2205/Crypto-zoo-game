@@ -202,70 +202,6 @@ CryptoZoo.uiProfile = {
         return "#--";
     },
 
-    getReferralRewardsText() {
-        const rewards = this.referralsData?.referralRewards || null;
-
-        const activateAtLevel = Math.max(1, Number(rewards?.activateAtLevel) || 3);
-
-        const visitCoins = Math.max(0, Number(rewards?.visitNewPlayerCoins) || 0);
-        const visitGems = Math.max(0, Number(rewards?.visitNewPlayerGems) || 0);
-        const visitReward = Math.max(0, Number(rewards?.visitNewPlayerReward) || 0);
-
-        const activatedNewCoins = Math.max(0, Number(rewards?.activatedNewPlayerCoins) || 0);
-        const activatedNewGems = Math.max(0, Number(rewards?.activatedNewPlayerGems) || 0);
-        const activatedNewReward = Math.max(0, Number(rewards?.activatedNewPlayerReward) || 0);
-
-        const activatedRefCoins = Math.max(0, Number(rewards?.activatedReferrerCoins) || 0);
-        const activatedRefGems = Math.max(0, Number(rewards?.activatedReferrerGems) || 0);
-        const activatedRefReward = Math.max(0, Number(rewards?.activatedReferrerReward) || 0);
-
-        const formatBundle = ({ coins = 0, gems = 0, reward = 0 }) => {
-            const parts = [];
-
-            if (coins > 0) {
-                parts.push(`+${CryptoZoo.formatNumber?.(coins) || coins} coins`);
-            }
-
-            if (gems > 0) {
-                parts.push(`+${CryptoZoo.formatNumber?.(gems) || gems} gem${gems === 1 ? "" : "s"}`);
-            }
-
-            if (reward > 0) {
-                parts.push(`+${Number(reward).toFixed(3)} reward`);
-            }
-
-            return parts.length ? parts.join(" • ") : this.t("noReferralReward", "No bonus");
-        };
-
-        return [
-            this.t("referralNewPlayerTitle", "New player:"),
-            formatBundle({
-                coins: visitCoins,
-                gems: visitGems,
-                reward: visitReward
-            }),
-            "",
-            `${this.t("referralActivationTitle", `After reaching level ${activateAtLevel}:`)}`,
-            formatBundle({
-                coins: activatedNewCoins,
-                gems: activatedNewGems,
-                reward: activatedNewReward
-            }),
-            "",
-            this.t("referralReferrerTitle", "Referrer:"),
-            formatBundle({
-                coins: activatedRefCoins,
-                gems: activatedRefGems,
-                reward: activatedRefReward
-            }),
-            "",
-            this.t(
-                "referralActivationInfo",
-                `Bonuses unlock after the invited player reaches level ${activateAtLevel}`
-            )
-        ].join("\n");
-    },
-
     setFirstExistingText(ids, value) {
         ids.forEach((id) => {
             const el = document.getElementById(id);
@@ -454,12 +390,49 @@ CryptoZoo.uiProfile = {
         codeEl.textContent = referralCode || "-";
         linkEl.textContent = referralLink || `ref_${fallbackPlayerId || ""}` || "-";
 
+        const r = data.referralRewards || {};
+        const isPl = (CryptoZoo.lang?.current || "en") === "pl";
+
+        let rewardsText = "";
+
+        if (r && Object.keys(r).length > 0) {
+            if (isPl) {
+                rewardsText =
+                    `Nowy gracz: +${r.visitNewPlayerCoins || 0} coins\n` +
+                    (Number(r.visitNewPlayerGems || 0) > 0 ? `+${r.visitNewPlayerGems || 0} gems\n` : "") +
+                    (Number(r.visitNewPlayerReward || 0) > 0 ? `+${Number(r.visitNewPlayerReward || 0).toFixed(3)} reward\n` : "") +
+                    `\nPoziom ${r.activateAtLevel || 3}: +${r.activatedNewPlayerCoins || 0} coins\n` +
+                    (Number(r.activatedNewPlayerGems || 0) > 0 ? `+${r.activatedNewPlayerGems || 0} gems\n` : "") +
+                    (Number(r.activatedNewPlayerReward || 0) > 0 ? `+${Number(r.activatedNewPlayerReward || 0).toFixed(3)} reward\n` : "") +
+                    `\nPolecający:\n` +
+                    `Poziom ${r.activateAtLevel || 3} zaproszonego: +${r.activatedReferrerCoins || 0} coins\n` +
+                    (Number(r.activatedReferrerGems || 0) > 0 ? `+${r.activatedReferrerGems || 0} gems\n` : "") +
+                    (Number(r.activatedReferrerReward || 0) > 0 ? `+${Number(r.activatedReferrerReward || 0).toFixed(3)} reward\n` : "") +
+                    `\nNagrody aktywują się po osiągnięciu poziomu ${r.activateAtLevel || 3}`;
+            } else {
+                rewardsText =
+                    `New player: +${r.visitNewPlayerCoins || 0} coins\n` +
+                    (Number(r.visitNewPlayerGems || 0) > 0 ? `+${r.visitNewPlayerGems || 0} gems\n` : "") +
+                    (Number(r.visitNewPlayerReward || 0) > 0 ? `+${Number(r.visitNewPlayerReward || 0).toFixed(3)} reward\n` : "") +
+                    `\nLevel ${r.activateAtLevel || 3}: +${r.activatedNewPlayerCoins || 0} coins\n` +
+                    (Number(r.activatedNewPlayerGems || 0) > 0 ? `+${r.activatedNewPlayerGems || 0} gems\n` : "") +
+                    (Number(r.activatedNewPlayerReward || 0) > 0 ? `+${Number(r.activatedNewPlayerReward || 0).toFixed(3)} reward\n` : "") +
+                    `\nReferrer:\n` +
+                    `Referred player level ${r.activateAtLevel || 3}: +${r.activatedReferrerCoins || 0} coins\n` +
+                    (Number(r.activatedReferrerGems || 0) > 0 ? `+${r.activatedReferrerGems || 0} gems\n` : "") +
+                    (Number(r.activatedReferrerReward || 0) > 0 ? `+${Number(r.activatedReferrerReward || 0).toFixed(3)} reward\n` : "") +
+                    `\nRewards unlock when the referred player reaches level ${r.activateAtLevel || 3}`;
+            }
+        } else {
+            rewardsText = this.t("profileReferralRewards", "Brak danych o nagrodach");
+        }
+
         rewardsEl.style.whiteSpace = "pre-line";
-        rewardsEl.textContent = this.getReferralRewardsText();
+        rewardsEl.textContent = rewardsText;
 
         const referrals = Array.isArray(data.referrals) ? data.referrals : [];
         if (!referrals.length) {
-            listEl.innerHTML = `<div>Brak zaproszonych</div>`;
+            listEl.innerHTML = `<div>${isPl ? "Brak zaproszonych" : "No invited players"}</div>`;
             return;
         }
 
@@ -476,7 +449,9 @@ CryptoZoo.uiProfile = {
                         <div style="font-weight:800;">${displayName}</div>
                         <div style="font-size:12px; color:rgba(255,255,255,0.68); margin-top:4px;">@${username || "gracz"}</div>
                         <div style="font-size:12px; color:${activated ? "#8df0a8" : "rgba(255,255,255,0.68)"}; margin-top:6px;">
-                            ${activated ? "Aktywny" : "Oczekuje na lvl 3"}
+                            ${activated
+                                ? (isPl ? "Aktywny" : "Active")
+                                : (isPl ? "Oczekuje na lvl 3" : "Waiting for lvl 3")}
                         </div>
                     </div>
                 `;
