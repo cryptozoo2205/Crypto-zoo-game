@@ -373,23 +373,50 @@ CryptoZoo.ui = {
             1,
             Number(CryptoZoo.gameplay?.getOfflineHoursTotal?.() || 1)
         );
+
         const adsHours = Math.max(
             0,
             Number(CryptoZoo.gameplay?.getOfflineAdsHours?.() || 0)
         );
+
         const adsMaxHours = Math.max(
             0,
             Number(CryptoZoo.offlineAds?.getMaxHours?.() || 12)
         );
+
         const adsResetSeconds = Math.max(
             0,
             Number(CryptoZoo.offlineAds?.getSecondsUntilReset?.() || 0)
         );
+
         const canWatchAd = !!CryptoZoo.offlineAds?.canWatchAd?.();
 
         const adsStatus = canWatchAd
             ? this.t("adsAvailable", "Reklamy dostępne")
             : this.t("adsLimitReached", "Limit osiągnięty");
+
+        const existingMax = bar.querySelector(".home-stat-value, .stat-value, .info-value, .box-value");
+        const existingLabel = bar.querySelector(".home-stat-label, .stat-label, .info-label, .box-label");
+
+        if (existingMax || existingLabel) {
+            if (existingLabel) {
+                existingLabel.textContent = this.t("offlineEarnings", "Zarobki offline");
+            }
+
+            if (existingMax) {
+                existingMax.innerHTML = `
+                    ${CryptoZoo.formatNumber(totalHours)}h
+                    <div style="font-size:10px; line-height:1.2; margin-top:4px; color:${canWatchAd ? "#8af7a5" : "#ffd86b"};">
+                        ${CryptoZoo.formatNumber(adsHours)}/${CryptoZoo.formatNumber(adsMaxHours)}h
+                    </div>
+                    <div style="font-size:10px; line-height:1.2; margin-top:2px; color:rgba(255,255,255,0.72);">
+                        ${this.formatTimeLeft(adsResetSeconds)}
+                    </div>
+                `;
+            }
+
+            return;
+        }
 
         bar.style.overflow = "visible";
         bar.style.height = "auto";
