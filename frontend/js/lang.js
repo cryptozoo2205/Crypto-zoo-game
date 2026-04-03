@@ -178,6 +178,11 @@ CryptoZoo.lang = {
             copyReferralLink: "Copy link",
             referralRewardsLabel: "Referral rewards",
             profileReferralRewards: "New player: +50 coins at start\nLevel 3: +150 coins\n\nReferrer:\nReferred player level 3: +250 coins\n\nRewards unlock when the referred player reaches level 3",
+            referralNewPlayerTitle: "New player:",
+            referralActivationTitle: "After reaching required level:",
+            referralReferrerTitle: "Referrer:",
+            referralActivationInfo: "Bonuses unlock after the invited player reaches the required level",
+            noReferralReward: "No bonus",
             latestReferrals: "Latest invited",
 
             approved: "Approved",
@@ -463,6 +468,11 @@ CryptoZoo.lang = {
             copyReferralLink: "Kopiuj link",
             referralRewardsLabel: "Nagrody referral",
             profileReferralRewards: "Nowy gracz: +50 coins na start\nPoziom 3: +150 coins\n\nPolecający:\nPoziom 3 zaproszonego: +250 coins\n\nNagrody aktywują się po osiągnięciu poziomu 3 przez zaproszonego gracza",
+            referralNewPlayerTitle: "Nowy gracz:",
+            referralActivationTitle: "Po osiągnięciu wymaganego poziomu:",
+            referralReferrerTitle: "Polecający:",
+            referralActivationInfo: "Bonusy aktywują się po osiągnięciu wymaganego poziomu przez zaproszonego gracza",
+            noReferralReward: "Brak bonusu",
             latestReferrals: "Ostatni zaproszeni",
 
             approved: "Approved",
@@ -577,7 +587,7 @@ CryptoZoo.lang = {
 
     t(key) {
         const lang = this.current || "en";
-        return this.translations?.[lang]?.[key] || key;
+        return this.translations?.[lang]?.[key] || this.translations?.en?.[key] || key;
     },
 
     detectFromTelegram() {
