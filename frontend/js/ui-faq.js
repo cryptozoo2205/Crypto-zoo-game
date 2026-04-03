@@ -16,71 +16,143 @@ CryptoZoo.uiFaq = {
     },
 
     getFaqItems() {
+        const lang = this.getLanguage();
+
+        if (lang === "pl") {
+            return [
+                {
+                    id: "what-is-game",
+                    q: "🐾 Czym jest Crypto Zoo?",
+                    a: "Crypto Zoo to gra klikana w Telegramie, w której rozwijasz swoje zoo, wysyłasz zwierzęta na ekspedycje i zdobywasz nagrody."
+                },
+                {
+                    id: "how-earn-coins",
+                    q: "🪙 Jak zdobywać coins?",
+                    a: "Coins zdobywasz przez klikanie, pasywny dochód zoo, ekspedycje, misje dzienne oraz system poleceń."
+                },
+                {
+                    id: "gems",
+                    q: "💎 Do czego służą gemy?",
+                    a: "Gemy są rzadką walutą używaną do specjalnych boostów, przyspieszeń i przyszłych funkcji premium."
+                },
+                {
+                    id: "reward",
+                    q: "🎁 Co to jest reward?",
+                    a: "Reward to specjalna waluta zdobywana głównie z ekspedycji. Możesz przenieść ją do wallet i później użyć do wypłaty, jeśli spełniasz warunki."
+                },
+                {
+                    id: "expeditions",
+                    q: "🌍 Jak działają ekspedycje?",
+                    a: "Wybierasz ekspedycję, płacisz coins za start, czekasz określony czas i odbierasz nagrody w postaci coins, gems oraz reward."
+                },
+                {
+                    id: "expedition-collect",
+                    q: "⏳ Dlaczego nie mogę odebrać nagrody z ekspedycji?",
+                    a: "Nagrody nie odbierzesz, jeśli ekspedycja jeszcze trwa, została już odebrana albo backend jest chwilowo niedostępny w trybie testowym."
+                },
+                {
+                    id: "daily-missions",
+                    q: "🎯 Czym są misje dzienne?",
+                    a: "To zadania resetujące się codziennie. Dają dodatkowe nagrody i pomagają szybciej rozwijać konto."
+                },
+                {
+                    id: "daily-reward",
+                    q: "📅 Jak działa daily reward?",
+                    a: "Pierwsza nagroda odblokowuje się po czasie, a kolejne możesz odbierać co 24 godziny. Streak zwiększa wartość nagród."
+                },
+                {
+                    id: "referral",
+                    q: "👥 Jak działa system poleceń?",
+                    a: "Zapraszasz graczy swoim linkiem. Otrzymują bonus na start, a po osiągnięciu poziomu 3 nagrodę dostają zarówno oni, jak i Ty."
+                },
+                {
+                    id: "save",
+                    q: "💾 Czy gra zapisuje postęp?",
+                    a: "Tak, postęp zapisuje się automatycznie. W trybie testowym bez backendu niektóre elementy mogą działać tymczasowo lub lokalnie."
+                },
+                {
+                    id: "lost-progress",
+                    q: "⚠️ Co jeśli stracę progres?",
+                    a: "Najczęstsze przyczyny to tryb testowy, brak backendu albo testowe lokalne dane. Przed publikacją gra będzie działać na pełnym backendzie."
+                },
+                {
+                    id: "withdraw",
+                    q: "💸 Jak wypłacić reward?",
+                    a: "Aby wypłacić reward, musisz osiągnąć wymagany poziom, uzbierać minimalną ilość reward i spełnić warunki bezpieczeństwa systemu."
+                },
+                {
+                    id: "security",
+                    q: "🔒 Czy gra ma zabezpieczenia?",
+                    a: "Tak. Gra posiada limity progresu, walidację nagród i systemy anti-cheat chroniące przed nadużyciami."
+                }
+            ];
+        }
+
         return [
             {
                 id: "what-is-game",
-                q: this.t("faqWhatIsGameQ", "🐾 What is Crypto Zoo?"),
-                a: this.t("faqWhatIsGameA", "Crypto Zoo is a clicker + idle Telegram WebApp game where you build your own zoo, earn coins, buy animals, upgrade income, and unlock more game systems.")
+                q: "🐾 What is Crypto Zoo?",
+                a: "Crypto Zoo is a Telegram clicker game where you build your zoo, send animals on expeditions, and earn rewards."
             },
             {
                 id: "how-earn-coins",
-                q: this.t("faqHowEarnCoinsQ", "🪙 How do I earn coins?"),
-                a: this.t("faqHowEarnCoinsA", "You earn coins by tapping the main button, from passive zoo income, daily reward, daily missions, memory, and expeditions.")
+                q: "🪙 How do I earn coins?",
+                a: "You can earn coins by tapping, zoo passive income, expeditions, daily missions, and the referral system."
             },
             {
                 id: "gems",
-                q: this.t("faqGemsQ", "💎 What are Gems?"),
-                a: this.t("faqGemsA", "Gems are premium currency used for special features such as X2 Boost and future premium systems.")
+                q: "💎 What are gems used for?",
+                a: "Gems are a rare currency used for special boosts, time reductions, and future premium features."
             },
             {
                 id: "reward",
-                q: this.t("faqRewardQ", "🎯 What is Reward?"),
-                a: this.t("faqRewardA", "Reward is a special earning currency. It first goes to Reward Balance, then you can transfer it to Wallet and use it for withdraw.")
-            },
-            {
-                id: "daily-reward",
-                q: this.t("faqDailyRewardQ", "🎁 How does Daily Reward work?"),
-                a: this.t("faqDailyRewardA", "Daily Reward can be claimed every 24 hours. The system includes a 7-day streak for better rewards.")
-            },
-            {
-                id: "daily-missions",
-                q: this.t("faqDailyMissionsQ", "📋 How do Daily Missions work?"),
-                a: this.t("faqDailyMissionsA", "Each day you get missions. They unlock one by one after claiming the previous one.")
-            },
-            {
-                id: "memory",
-                q: this.t("faqMemoryQ", "🧠 How does Memory work?"),
-                a: this.t("faqMemoryA", "Match all pairs to win. After completion you receive coins and gems, then cooldown starts.")
+                q: "🎁 What is reward?",
+                a: "Reward is a special currency earned mainly from expeditions. You can move it to your wallet and later use it for withdrawal if you meet the conditions."
             },
             {
                 id: "expeditions",
-                q: this.t("faqExpeditionsQ", "🚀 How do expeditions work?"),
-                a: this.t("faqExpeditionsA", "Send animals on expeditions. After time you receive coins and additional rewards based on expedition quality.")
+                q: "🌍 How do expeditions work?",
+                a: "You choose an expedition, pay coins to start it, wait for the timer, and collect rewards such as coins, gems, and reward."
             },
             {
-                id: "boost",
-                q: this.t("faqBoostQ", "⚡ How does X2 Boost work?"),
-                a: this.t("faqBoostA", "X2 Boost doubles tap income and zoo income for 10 minutes.")
+                id: "expedition-collect",
+                q: "⏳ Why can’t I collect expedition rewards?",
+                a: "You cannot collect rewards if the expedition is still running, the reward was already claimed, or the backend is temporarily unavailable in test mode."
             },
             {
-                id: "animals",
-                q: this.t("faqAnimalsQ", "🦁 How do animals work?"),
-                a: this.t("faqAnimalsA", "Each animal generates income. More animals and higher levels increase zoo income.")
+                id: "daily-missions",
+                q: "🎯 What are daily missions?",
+                a: "These are tasks that reset every day. They give extra rewards and help you progress faster."
             },
             {
-                id: "wallet",
-                q: this.t("faqWalletQ", "🏦 How does Reward Wallet work?"),
-                a: this.t("faqWalletA", "You can transfer Reward Balance to Wallet. Wallet is used for withdrawals.")
+                id: "daily-reward",
+                q: "📅 How does daily reward work?",
+                a: "The first reward unlocks after a timer, and the next ones can be claimed every 24 hours. Your streak increases reward value."
+            },
+            {
+                id: "referral",
+                q: "👥 How does the referral system work?",
+                a: "You invite players using your link. They get a starting bonus, and after reaching level 3 both they and you receive rewards."
+            },
+            {
+                id: "save",
+                q: "💾 Does the game save progress?",
+                a: "Yes, progress is saved automatically. In test mode without backend, some parts may work temporarily or locally."
+            },
+            {
+                id: "lost-progress",
+                q: "⚠️ What if I lose progress?",
+                a: "The most common reasons are test mode, missing backend, or temporary local data. Before publication the game will run on the full backend."
             },
             {
                 id: "withdraw",
-                q: this.t("faqWithdrawQ", "📤 How does withdraw work?"),
-                a: this.t("faqWithdrawA", "After reaching minimum amount you can create a withdraw request and track its status.")
+                q: "💸 How do I withdraw reward?",
+                a: "To withdraw reward, you must reach the required level, collect the minimum reward amount, and meet the security conditions."
             },
             {
-                id: "ref",
-                q: this.t("faqRefQ", "🤝 How does referral work?"),
-                a: this.t("faqRefA", "Invite players using your link and earn bonuses based on their activity.")
+                id: "security",
+                q: "🔒 Does the game have security systems?",
+                a: "Yes. The game has progress limits, reward validation, and anti-cheat systems to reduce abuse."
             }
         ];
     },
