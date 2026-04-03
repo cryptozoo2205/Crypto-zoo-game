@@ -32,8 +32,24 @@ CryptoZoo.gameplay = {
 
     enableTapEffects: true,
 
+    // ================= ANTI AUTO-CLICK =================
+    tapAntiCheatEnabled: true,
+    maxAcceptedTapsPerSecond: 18,
+    maxAcceptedTapBurst: 3,
+    minHumanTapIntervalMs: 22,
+    suspiciousTapStrikeLimit: 6,
+    suspiciousTapStrikeWindowMs: 2500,
+    temporaryTapBlockMs: 1500,
+    antiCheatToastCooldownMs: 2500,
+    tapEventHistory: [],
+    tapStrikeTimestamps: [],
+    lastAcceptedTapAt: 0,
+    tapBlockUntil: 0,
+    antiCheatToastAt: 0,
+
     init() {
         this.ensureState();
+        this.resetTapAntiCheat();
         this.recalculateProgress();
         this.applyOfflineEarnings();
 
@@ -53,6 +69,119 @@ CryptoZoo.gameplay = {
         this.startBoostTimer();
 
         CryptoZoo.dailyReward?.startTimer?.();
+    },
+
+    resetTapAntiCheat() {
+        this.tapEventHistory = [];
+        this.tapStrikeTimestamps = [];
+        this.lastAcceptedTapAt = 0;
+        this.tapBlockUntil = 0;
+        this.antiCheatToastAt = 0;
+    },
+
+    pruneTapEventHistory(now = Date.now()) {
+        const cutoff = now - 1000;
+        this.tapEventHistory = (this.tapEventHistory || []).filter((entry) => {
+            return entry && Number(entry.time || 0) >= cutoff;
+        });
+    },
+
+    pruneTapStrikes(now = Date.now()) {
+        const cutoff = now - this.suspiciousTapStrikeWindowMs;
+        this.tapStrikeTimestamps = (this.tapStrikeTimestamps || []).filter((value) => {
+            return Number(value || 0) >= cutoff;
+        });
+    },
+
+    getAcceptedTapCountLastSecond(now = Date.now()) {
+        this.pruneTapEventHistory(now);
+
+        return this.tapEventHistory.reduce((sum, entry) => {
+            return sum + Math.max(0, Number(entry?.amount) || 0);
+        }, 0);
+    },
+
+    addTapStrike(now = Date.now()) {
+        this.tapStrikeTimestamps.push(now);
+        this.pruneTapStrikes(now);
+
+        if (this.tapStrikeTimestamps.length >= this.suspiciousTapStrikeLimit) {
+            this.tapBlockUntil = now + this.temporaryTapBlockMs;
+            this.tapStrikeTimestamps = [];
+            return true;
+        }
+
+        return false;
+    },
+
+    showTapAntiCheatToast(message = "Zbyt szybkie klikanie") {
+        const now = Date.now();
+
+        if (now - this.antiCheatToastAt < this.antiCheatToastCooldownMs) {
+            return;
+        }
+
+        this.antiCheatToastAt = now;
+        CryptoZoo.ui?.showToast?.(message);
+    },
+
+    getAllowedTapAmount(requestedAmount = 1) {
+        if (!this.tapAntiCheatEnabled) {
+            return Math.max(1, Math.floor(Number(requestedAmount) || 1));
+        }
+
+        const now = Date.now();
+
+        if (now < this.tapBlockUntil) {
+            this.showTapAntiCheatToast("Klikasz zbyt szybko");
+            return 0;
+        }
+
+        let safeRequestedAmount = Math.max(1, Math.floor(Number(requestedAmount) || 1));
+        safeRequestedAmount = Math.min(safeRequestedAmount, this.maxAcceptedTapBurst);
+
+        this.pruneTapEventHistory(now);
+        this.pruneTapStrikes(now);
+
+        const usedLastSecond = this.getAcceptedTapCountLastSecond(now);
+        const remainingThisSecond = Math.max(0, this.maxAcceptedTapsPerSecond - usedLastSecond);
+
+        if (remainingThisSecond <= 0) {
+            this.showTapAntiCheatToast("Limit klików / sek");
+            return 0;
+        }
+
+        const timeSinceLastAcceptedTap = this.lastAcceptedTapAt > 0
+            ? now - this.lastAcceptedTapAt
+            : 999999;
+
+        if (
+            safeRequestedAmount === 1 &&
+            timeSinceLastAcceptedTap > 0 &&
+            timeSinceLastAcceptedTap < this.minHumanTapIntervalMs
+        ) {
+            const blocked = this.addTapStrike(now);
+
+            if (blocked) {
+                this.showTapAntiCheatToast("Auto click zablokowany");
+                return 0;
+            }
+        }
+
+        const allowedAmount = Math.max(0, Math.min(safeRequestedAmount, remainingThisSecond));
+
+        if (allowedAmount <= 0) {
+            this.showTapAntiCheatToast("Limit klików / sek");
+            return 0;
+        }
+
+        this.tapEventHistory.push({
+            time: now,
+            amount: allowedAmount
+        });
+
+        this.lastAcceptedTapAt = now;
+        return allowedAmount;
     },
 
     ensureState() {
@@ -462,8 +591,13 @@ CryptoZoo.gameplay = {
             if (this.activeScreen !== "game") return false;
             if (Date.now() < this.suppressClickUntil) return false;
 
+            const allowedAmount = this.getAllowedTapAmount(amount);
+            if (allowedAmount <= 0) {
+                return false;
+            }
+
             this.suppressClickUntil = Date.now() + 90;
-            this.handleTap(amount);
+            this.handleTap(allowedAmount);
             return true;
         };
 
@@ -873,6 +1007,7 @@ CryptoZoo.gameplay = {
         }, 1000);
     }
 };
+
 // ================= DEBUG PANEL =================
 
 window.CryptoZooDebug = {
