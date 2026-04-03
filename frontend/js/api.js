@@ -188,7 +188,7 @@ window.CryptoZoo.api = {
             offlineBaseHours: 1,
             offlineBoostHours: 0,
             offlineAdsHours: 0,
-            offlineAdsResetAt: 0,
+            offlineAdsResetAt: now,
             offlineMaxSeconds: 3600,
             offlineBoostMultiplier: 1,
             offlineBoostActiveUntil: 0,
@@ -644,6 +644,7 @@ window.CryptoZoo.api = {
                 method: options.method || "GET",
                 headers: {
                     "Content-Type": "application/json",
+                    "ngrok-skip-browser-warning": "1",
                     ...(options.headers || {})
                 },
                 ...options,
