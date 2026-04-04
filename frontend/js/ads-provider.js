@@ -3,82 +3,42 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.ads = {
     isLoading: false,
 
-    formatSecondsToClock(totalSeconds) {
-        const safe = Math.max(0, Math.floor(Number(totalSeconds) || 0));
-        const hours = Math.floor(safe / 3600);
-        const minutes = Math.floor((safe % 3600) / 60);
-        const seconds = safe % 60;
-
-        return [
-            String(hours).padStart(2, "0"),
-            String(minutes).padStart(2, "0"),
-            String(seconds).padStart(2, "0")
-        ].join(":");
-    },
-
     updateOfflineUi() {
-        const mainEl = document.getElementById("homeOfflineMainText");
-        const subEl = document.getElementById("homeOfflineSubText");
         const btnEl = document.getElementById("watchOfflineAdBtn");
+        if (!btnEl) return;
 
-        const totalHours = Math.max(
-            1,
-            Number(CryptoZoo.gameplay?.getOfflineHoursTotal?.() || 1)
-        );
-        const baseHours = Math.max(
-            1,
-            Number(CryptoZoo.gameplay?.getOfflineBaseHours?.() || 1)
-        );
-        const shopHours = Math.max(
-            0,
-            Number(CryptoZoo.gameplay?.getOfflineBoostHours?.() || 0)
-        );
         const adsHours = Math.max(
             0,
             Number(CryptoZoo.gameplay?.getOfflineAdsHours?.() || 0)
-        );
-        const offlineMultiplier = Math.max(
-            1,
-            Number(CryptoZoo.state?.offlineBoostMultiplier) || 1
         );
 
         const maxAds = Math.max(
             0,
             Number(CryptoZoo.offlineAds?.getMaxHours?.() || 12)
         );
-        const remainingAdsHours = Math.max(0, maxAds - adsHours);
+
         const resetSeconds = Math.max(
             0,
             Number(CryptoZoo.offlineAds?.getSecondsUntilReset?.() || 0)
         );
-        const resetText = this.formatSecondsToClock(resetSeconds);
 
-        if (mainEl) {
-            mainEl.textContent =
-                `Limit offline: ${totalHours}h • Standardowy mnożnik offline x${offlineMultiplier}`;
+        const resetText =
+            CryptoZoo.ui?.formatTimeLeft?.(resetSeconds) || "00:00:00";
+
+        if (this.isLoading) {
+            btnEl.disabled = true;
+            btnEl.textContent = "⏳ Ładowanie...";
+            return;
         }
 
-        if (subEl) {
-            subEl.textContent =
-                `Limit bazowy: ${baseHours}h • Shop: +${shopHours}h • Reklamy: ${adsHours}h / ${maxAds}h • Zostało: ${remainingAdsHours}h • Reset za: ${resetText}`;
+        if (adsHours >= maxAds) {
+            btnEl.disabled = true;
+            btnEl.textContent = `📺 MAX • ${resetText}`;
+            return;
         }
 
-        if (btnEl) {
-            if (this.isLoading) {
-                btnEl.disabled = true;
-                btnEl.textContent = "⏳ Ładowanie...";
-                return;
-            }
-
-            if (adsHours >= maxAds) {
-                btnEl.disabled = true;
-                btnEl.textContent = `📺 MAX • ${resetText}`;
-                return;
-            }
-
-            btnEl.disabled = false;
-            btnEl.textContent = `📺 +2h • ${adsHours}/${maxAds}h`;
-        }
+        btnEl.disabled = false;
+        btnEl.textContent = `📺 +2h • ${adsHours}/${maxAds}h`;
     },
 
     getPlayerPayload() {
@@ -152,6 +112,7 @@ CryptoZoo.ads = {
             }
 
             CryptoZoo.gameplay?.recalculateProgress?.();
+            CryptoZoo.ui?.renderOfflineInfo?.();
             this.updateOfflineUi();
 
             if (result?.message) {
@@ -167,6 +128,7 @@ CryptoZoo.ads = {
             return false;
         } finally {
             this.isLoading = false;
+            CryptoZoo.ui?.renderOfflineInfo?.();
             this.updateOfflineUi();
         }
     }
@@ -176,8 +138,4 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => {
         CryptoZoo.ads?.updateOfflineUi?.();
     }, 400);
-
-    setInterval(() => {
-        CryptoZoo.ads?.updateOfflineUi?.();
-    }, 1000);
 });
