@@ -213,6 +213,10 @@ CryptoZoo.gameplay = {
                 1,
                 Math.floor(Number(CryptoZoo.state.animals[type].level) || 1)
             );
+
+            if (CryptoZoo.state.animals[type].count <= 0) {
+                CryptoZoo.state.animals[type].level = 1;
+            }
         });
 
         const defaults = {
@@ -812,11 +816,15 @@ CryptoZoo.gameplay = {
                 0,
                 Math.min(maxOwnedPerAnimal, Math.floor(Number(animalState.count) || 0))
             );
-            const level = Math.max(
+            let level = Math.max(
                 1,
                 Math.min(maxLevelPerAnimal, Math.floor(Number(animalState.level) || 1))
             );
             const baseIncome = Math.max(0, Number(animals[type]?.baseIncome) || 0);
+
+            if (count <= 0) {
+                level = 1;
+            }
 
             CryptoZoo.state.animals[type].count = count;
             CryptoZoo.state.animals[type].level = level;
