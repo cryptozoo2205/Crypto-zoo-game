@@ -192,179 +192,7 @@
         </header>
 
         <main id="game">
-            <section id="screen-game" class="screen">
-                <div class="panel card game-main-card">
-                    <div class="home-stats-panel">
-                        <div class="home-stat-box">
-                            <div class="home-stat-title" id="langHomeCoinsTitle">Coins</div>
-                            <div class="home-stat-value" id="homeCoins">0</div>
-                        </div>
-
-                        <div class="home-stat-box">
-                            <div class="home-stat-title" id="langHomeGemsTitle">Gems</div>
-                            <div class="home-stat-value" id="homeGems">0</div>
-                        </div>
-
-                        <div class="home-stat-box">
-                            <div class="home-stat-title" id="langHomeRewardTitle">Reward</div>
-                            <div class="home-stat-value" id="homeRewardBalance">0</div>
-                        </div>
-
-                        <div class="home-stat-box">
-                            <div class="home-stat-title" id="langHomeLevelTitle">Poziom</div>
-                            <div class="home-stat-value" id="homeLevel">1</div>
-                            <div class="home-xp-bar-wrap">
-                                <div class="home-xp-bar">
-                                    <div id="homeXpFill" class="home-xp-fill"></div>
-                                </div>
-                                <div id="homeXpText" class="home-xp-text">0 / 100 XP</div>
-                            </div>
-                        </div>
-
-                        <div class="home-stat-box">
-                            <div class="home-stat-title" id="langHomeClickTitle">Za klik</div>
-                            <div class="home-stat-value" id="homeCoinsPerClick">1</div>
-                        </div>
-
-                        <div class="home-stat-box">
-                            <div class="home-stat-title" id="langHomeZooPerSecTitle">Zoo / sek</div>
-                            <div class="home-stat-value" id="homeZooIncomeStat">0</div>
-                        </div>
-                    </div>
-
-                    <div class="tap-area">
-                        <div class="tap-glow"></div>
-                        <button id="tapButton" class="tap-button" type="button" aria-label="Tap"></button>
-                    </div>
-
-                    <div class="home-tap-caption">
-                        <div class="home-tap-title" id="langTapTitle">UZYSKAJ MONETY</div>
-                        <div class="home-tap-subtitle" id="langTapSubtitle">Klikaj i rozwijaj swoje zoo</div>
-                    </div>
-
-                    <div class="home-income-strip">
-                        <div class="home-income-left">
-                            <div class="home-income-label" id="langIncomeLabel">🐾 Dochód zoo / sek</div>
-                            <div class="home-income-value" id="homeIncomeStripValue">0</div>
-                        </div>
-
-                        <div class="home-boost-right">
-                            <div class="home-boost-title" id="langBoostTitle">⚡ X2 Boost</div>
-                            <button id="homeBoostBtn" class="home-boost-button" type="button">Aktywuj</button>
-                            <div id="homeBoostStatus" class="home-boost-status">Nieaktywny</div>
-                        </div>
-                    </div>
-
-                    <div class="home-offline-strip">
-                        <div class="home-offline-left">
-                            <div class="home-offline-title">💤 Zarobki offline</div>
-                            <div class="home-offline-main" id="homeOfflineMainText">
-                                Limit offline: 1h • Standardowy mnożnik offline x1
-                            </div>
-                            <div class="home-offline-sub" id="homeOfflineSubText">
-                                Limit bazowy: 1h • Shop: +0h • Ads: +0h
-                            </div>
-                        </div>
-
-                        <div class="home-offline-right">
-                            <button
-                                id="watchOfflineAdBtn"
-                                class="home-offline-ad-btn"
-                                type="button"
-                                onclick="CryptoZoo.ads && CryptoZoo.ads.showRewardedAd ? CryptoZoo.ads.showRewardedAd() : null"
-                            >
-                                📺 +2h
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="home-zoo-preview">
-                        <div class="home-zoo-preview-head">
-                            <div class="home-zoo-preview-title" id="langYourZooTitle">🐾 Twoje Zoo</div>
-                            <button id="homeZooPreviewBtn" class="home-zoo-preview-button" type="button">Zobacz więcej</button>
-                        </div>
-
-                        <div class="home-zoo-preview-list">
-                            <div class="home-zoo-preview-card">
-                                <img src="assets/animals/monkey.png" alt="Monkey">
-                                <div class="home-zoo-preview-name" id="homeMonkeyName">Monkey</div>
-                                <div class="home-zoo-preview-meta">
-                                    <span id="langMonkeyAmount">Ilość</span>: <span id="homeMonkeyCount">0</span><br>
-                                    <span id="langMonkeyLvl">Lvl</span>: <span id="homeMonkeyLevel">1</span>
-                                </div>
-                                <div class="home-zoo-preview-actions">
-                                    <button id="homeBuyMonkeyBtn" type="button">Kup</button>
-                                    <button id="homeUpgradeMonkeyBtn" type="button">Ulepsz</button>
-                                </div>
-                            </div>
-
-                            <div class="home-zoo-preview-card">
-                                <img src="assets/animals/panda.png" alt="Panda">
-                                <div class="home-zoo-preview-name" id="homePandaName">Panda</div>
-                                <div class="home-zoo-preview-meta">
-                                    <span id="langPandaAmount">Ilość</span>: <span id="homePandaCount">0</span><br>
-                                    <span id="langPandaLvl">Lvl</span>: <span id="homePandaLevel">1</span>
-                                </div>
-                                <div class="home-zoo-preview-actions">
-                                    <button id="homeBuyPandaBtn" type="button">Kup</button>
-                                    <button id="homeUpgradePandaBtn" type="button">Ulepsz</button>
-                                </div>
-                            </div>
-
-                            <div class="home-zoo-preview-card">
-                                <img src="assets/animals/lion.png" alt="Lion">
-                                <div class="home-zoo-preview-name" id="homeLionName">Lion</div>
-                                <div class="home-zoo-preview-meta">
-                                    <span id="langLionAmount">Ilość</span>: <span id="homeLionCount">0</span><br>
-                                    <span id="langLionLvl">Lvl</span>: <span id="homeLionLevel">1</span>
-                                </div>
-                                <div class="home-zoo-preview-actions">
-                                    <button id="homeBuyLionBtn" type="button">Kup</button>
-                                    <button id="homeUpgradeLionBtn" type="button">Ulepsz</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="home-quick-panel">
-                        <button id="homeDailyBtn" class="home-quick-card" type="button" aria-label="Otwórz Daily Reward">
-                            <div class="home-quick-icon">🎁</div>
-                            <div class="home-quick-text">
-                                <div class="home-quick-title">Daily Reward</div>
-                                <div class="home-quick-subtitle">
-                                    <span id="homeDailyStatusText">Gotowe do dopracowania</span><br>
-                                    <span id="homeDailyTimerText">Countdown pojawi się tutaj</span>
-                                </div>
-                            </div>
-                        </button>
-
-                        <button id="homeEventsBtn" class="home-quick-card" type="button">
-                            <div class="home-quick-icon">⭐</div>
-                            <div class="home-quick-text">
-                                <div class="home-quick-title" id="langEventsTitle">Events</div>
-                                <div class="home-quick-subtitle" id="langEventsSubtitle">Nowe eventy wkrótce</div>
-                            </div>
-                        </button>
-
-                        <button id="homeBoostInfoBtn" class="home-quick-card" type="button">
-                            <div class="home-quick-icon">⚡</div>
-                            <div class="home-quick-text">
-                                <div class="home-quick-title" id="langBoostCenterTitle">Boost Center</div>
-                                <div class="home-quick-subtitle" id="langBoostCenterSubtitle">Kup lub aktywuj X2</div>
-                            </div>
-                        </button>
-                    </div>
-
-                    <div style="display:none;">
-                        <span id="coins">0</span>
-                        <span id="gems">0</span>
-                        <span id="rewardBalance">0</span>
-                        <span id="level">1</span>
-                        <span id="coinsPerClick">1</span>
-                        <span id="zooIncome">0</span>
-                    </div>
-                </div>
-            </section>
+            <div id="homeMount"></div>
 
             <section id="screen-zoo" class="screen hidden">
                 <div class="panel card">
@@ -653,13 +481,6 @@
                         </div>
                     </div>
 
-                    <div class="profile-boost-row" style="margin-top:12px;">
-                        <div class="profile-boost-left">
-                            <div class="profile-boost-label" id="langProfileRewardWalletTitle">Reward Wallet</div>
-                            <div class="profile-boost-value" id="langProfileRewardWalletDesc">Przenieś Reward do Wallet lub wyślij request wypłaty</div>
-                        </div>
-                    </div>
-
                     <button id="settingsTransferRewardBtn" class="profile-close-btn" type="button" style="margin-top:12px;">Transfer Reward</button>
                     <button id="settingsRequestWithdrawBtn" class="profile-close-btn" type="button">Withdraw Request</button>
 
@@ -777,7 +598,8 @@
     <script src="./js/gameplay.js"></script>
     <script src="./js/lang.js"></script>
     <script src="./js/deposit-verify-ui.js"></script>
-<script src="./js/html-loader.js"></script>
+    <script src="./js/html-loader.js"></script>
+    <script src="./js/ui-roadmap.js"></script>
     <script src="./js/init.js"></script>
 </body>
 </html>
