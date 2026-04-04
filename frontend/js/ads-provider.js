@@ -3,6 +3,19 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.ads = {
     isLoading: false,
 
+    formatSecondsToClock(totalSeconds) {
+        const safe = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+        const hours = Math.floor(safe / 3600);
+        const minutes = Math.floor((safe % 3600) / 60);
+        const seconds = safe % 60;
+
+        return [
+            String(hours).padStart(2, "0"),
+            String(minutes).padStart(2, "0"),
+            String(seconds).padStart(2, "0")
+        ].join(":");
+    },
+
     updateOfflineUi() {
         const mainEl = document.getElementById("homeOfflineMainText");
         const subEl = document.getElementById("homeOfflineSubText");
@@ -29,20 +42,28 @@ CryptoZoo.ads = {
             Number(CryptoZoo.state?.offlineBoostMultiplier) || 1
         );
 
+        const maxAds = Math.max(
+            0,
+            Number(CryptoZoo.offlineAds?.getMaxHours?.() || 12)
+        );
+        const remainingAdsHours = Math.max(0, maxAds - adsHours);
+        const resetSeconds = Math.max(
+            0,
+            Number(CryptoZoo.offlineAds?.getSecondsUntilReset?.() || 0)
+        );
+        const resetText = this.formatSecondsToClock(resetSeconds);
+
         if (mainEl) {
-            mainEl.textContent = `Limit offline: ${totalHours}h • Standardowy mnożnik offline x${offlineMultiplier}`;
+            mainEl.textContent =
+                `Limit offline: ${totalHours}h • Standardowy mnożnik offline x${offlineMultiplier}`;
         }
 
         if (subEl) {
-            subEl.textContent = `Limit bazowy: ${baseHours}h • Shop: +${shopHours}h • Ads: +${adsHours}h`;
+            subEl.textContent =
+                `Limit bazowy: ${baseHours}h • Shop: +${shopHours}h • Reklamy: ${adsHours}h / ${maxAds}h • Zostało: ${remainingAdsHours}h • Reset za: ${resetText}`;
         }
 
         if (btnEl) {
-            const maxAds = Math.max(
-                0,
-                Number(CryptoZoo.offlineAds?.getMaxHours?.() || 12)
-            );
-
             if (this.isLoading) {
                 btnEl.disabled = true;
                 btnEl.textContent = "⏳ Ładowanie...";
@@ -51,25 +72,24 @@ CryptoZoo.ads = {
 
             if (adsHours >= maxAds) {
                 btnEl.disabled = true;
-                btnEl.textContent = "📺 MAX";
+                btnEl.textContent = `📺 MAX • ${resetText}`;
                 return;
             }
 
             btnEl.disabled = false;
-            btnEl.textContent = "📺 +2h";
+            btnEl.textContent = `📺 +2h • ${adsHours}/${maxAds}h`;
         }
     },
 
     getPlayerPayload() {
         const telegramUser = window.Telegram?.WebApp?.initDataUnsafe?.user || null;
 
-        const playerId =
-            String(
-                telegramUser?.id ||
-                CryptoZoo.state?.telegramId ||
-                CryptoZoo.state?.playerId ||
-                "local-player"
-            );
+        const playerId = String(
+            telegramUser?.id ||
+            CryptoZoo.state?.telegramId ||
+            CryptoZoo.state?.playerId ||
+            "local-player"
+        );
 
         const username =
             telegramUser?.username ||
@@ -156,4 +176,8 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => {
         CryptoZoo.ads?.updateOfflineUi?.();
     }, 400);
+
+    setInterval(() => {
+        CryptoZoo.ads?.updateOfflineUi?.();
+    }, 1000);
 });
