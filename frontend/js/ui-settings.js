@@ -73,10 +73,10 @@ CryptoZoo.uiSettings = {
         const safeDays = Math.max(0, Math.floor(Number(days) || 0));
 
         if (safeDays === 1) {
-            return this.t("oneDay", "1 day");
+            return this.t("oneDay", "1 dzień");
         }
 
-        return `${safeDays} ${this.t("days", "days")}`;
+        return `${safeDays} ${this.t("days", "dni")}`;
     },
 
     getDepositBonusMeta(amount) {
@@ -298,33 +298,42 @@ CryptoZoo.uiSettings = {
                     class="deposit-amount-btn${isActive ? " active" : ""}"
                     data-amount="${amount}"
                     style="
-                        min-width:116px;
-                        padding:12px 12px;
+                        width:100%;
+                        padding:14px 16px;
                         border-radius:16px;
                         border:${isActive ? "2px solid rgba(255,210,60,0.95)" : "1px solid rgba(255,255,255,0.14)"};
-                        background:${isActive ? "linear-gradient(180deg, rgba(255,210,60,0.24) 0%, rgba(255,185,0,0.14) 100%)" : "rgba(255,255,255,0.04)"};
+                        background:${isActive ? "linear-gradient(180deg, rgba(255,210,60,0.20) 0%, rgba(255,185,0,0.10) 100%)" : "rgba(255,255,255,0.04)"};
                         color:#ffffff;
                         font-weight:900;
                         font-size:14px;
-                        box-shadow:${isActive ? "0 10px 24px rgba(255,190,0,0.18)" : "none"};
+                        box-shadow:${isActive ? "0 10px 24px rgba(255,190,0,0.14)" : "none"};
                         cursor:pointer;
-                        display:flex;
-                        flex-direction:column;
-                        align-items:flex-start;
-                        gap:6px;
+                        display:block;
                         text-align:left;
                     "
                 >
-                    <div style="font-size:16px; font-weight:900; line-height:1;">${amount} TON</div>
-                    <div style="font-size:11px; font-weight:700; line-height:1.25; color:rgba(255,255,255,0.88);">
-                        +${CryptoZoo.formatNumber(bonus.gems)} gem
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                        <div style="font-size:16px;font-weight:900;">${amount} TON</div>
+                        <div style="font-size:18px;line-height:1;">${isActive ? "▲" : "▼"}</div>
                     </div>
-                    <div style="font-size:11px; font-weight:700; line-height:1.25; color:rgba(255,255,255,0.78);">
-                        +${CryptoZoo.formatNumber(bonus.boostPercent)}% expedition boost
-                    </div>
-                    <div style="font-size:11px; font-weight:700; line-height:1.25; color:rgba(255,255,255,0.68);">
-                        ${this.formatDaysLabel(bonus.durationDays)}
-                    </div>
+
+                    ${
+                        isActive
+                            ? `
+                                <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.10);">
+                                    <div style="font-size:13px;font-weight:800;line-height:1.35;color:rgba(255,255,255,0.92);">
+                                        +${CryptoZoo.formatNumber(bonus.gems)} gem
+                                    </div>
+                                    <div style="margin-top:6px;font-size:13px;font-weight:800;line-height:1.35;color:rgba(255,255,255,0.82);">
+                                        +${CryptoZoo.formatNumber(bonus.boostPercent)}% expedition boost
+                                    </div>
+                                    <div style="margin-top:6px;font-size:13px;font-weight:800;line-height:1.35;color:rgba(255,255,255,0.72);">
+                                        ${this.formatDaysLabel(bonus.durationDays)}
+                                    </div>
+                                </div>
+                            `
+                            : ``
+                    }
                 </button>
             `;
         }).join("");
@@ -352,6 +361,7 @@ CryptoZoo.uiSettings = {
         const rewardWalletUsdEl = document.getElementById("settingsRewardWalletUsd");
         const withdrawPendingUsdEl = document.getElementById("settingsWithdrawPendingUsd");
         const withdrawHintEl = document.getElementById("settingsWithdrawHint");
+        const rewardWalletDescEl = document.getElementById("settingsRewardWalletDesc");
 
         const rewardBalance = this.getRewardBalance();
         const rewardWallet = this.getRewardWallet();
@@ -382,6 +392,11 @@ CryptoZoo.uiSettings = {
 
         if (withdrawPendingUsdEl) {
             withdrawPendingUsdEl.textContent = this.getRewardUsdLabel(withdrawPending);
+        }
+
+        if (rewardWalletDescEl) {
+            rewardWalletDescEl.textContent = "";
+            rewardWalletDescEl.style.display = "none";
         }
 
         const transferBtn = document.getElementById("settingsTransferRewardBtn");
