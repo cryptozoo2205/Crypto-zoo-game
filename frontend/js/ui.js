@@ -360,12 +360,29 @@ CryptoZoo.ui = {
             Number(CryptoZoo.gameplay?.getOfflineBaseHours?.() || 1)
         );
 
+        const shopHours = Math.max(
+            0,
+            Number(CryptoZoo.gameplay?.getOfflineBoostHours?.() || 0)
+        );
+
         const adsHours = Math.max(
             0,
             Number(CryptoZoo.gameplay?.getOfflineAdsHours?.() || 0)
         );
 
-        const offlineBoost = Math.max(1, Number(CryptoZoo.state?.offlineBoost) || 1);
+        const maxAds = Math.max(
+            0,
+            Number(CryptoZoo.offlineAds?.getMaxHours?.() || 12)
+        );
+
+        const remainingAdsHours = Math.max(0, maxAds - adsHours);
+
+        const offlineBoost = Math.max(
+            1,
+            Number(CryptoZoo.state?.offlineBoostMultiplier) ||
+            Number(CryptoZoo.state?.offlineBoost) ||
+            1
+        );
 
         const adsResetSeconds = Math.max(
             0,
@@ -379,13 +396,22 @@ CryptoZoo.ui = {
             `${this.t("offlineLimit", "Limit offline")}: ${CryptoZoo.formatNumber(totalHours)}h • ${this.t("standardMultiplier", "Standardowy mnożnik")} offline x${CryptoZoo.formatNumber(offlineBoost)}`;
 
         subText.textContent =
-            `${this.t("baseLimit", "Limit bazowy")}: ${CryptoZoo.formatNumber(baseHours)}h • Ads: +${CryptoZoo.formatNumber(adsHours)}h`;
+            `${this.t("baseLimit", "Limit bazowy")}: ${CryptoZoo.formatNumber(baseHours)}h • Shop: +${CryptoZoo.formatNumber(shopHours)}h • Reklamy: ${CryptoZoo.formatNumber(adsHours)}h / ${CryptoZoo.formatNumber(maxAds)}h • Zostało: ${CryptoZoo.formatNumber(remainingAdsHours)}h • Reset za: ${this.formatTimeLeft(adsResetSeconds)}`;
 
-        adBtn.textContent = canWatchAd
-            ? `📺 +${CryptoZoo.formatNumber(rewardHours)}h`
-            : this.formatTimeLeft(adsResetSeconds);
+        if (CryptoZoo.ads?.isLoading) {
+            adBtn.disabled = true;
+            adBtn.textContent = "⏳ Ładowanie...";
+            return;
+        }
 
-        adBtn.disabled = !canWatchAd;
+        if (!canWatchAd) {
+            adBtn.disabled = true;
+            adBtn.textContent = `📺 MAX • ${this.formatTimeLeft(adsResetSeconds)}`;
+            return;
+        }
+
+        adBtn.disabled = false;
+        adBtn.textContent = `📺 +${CryptoZoo.formatNumber(rewardHours)}h • ${CryptoZoo.formatNumber(adsHours)}/${CryptoZoo.formatNumber(maxAds)}h`;
     },
 
     ensureOfflineInfoTimerRunning() {
