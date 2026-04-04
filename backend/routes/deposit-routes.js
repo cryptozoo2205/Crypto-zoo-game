@@ -97,6 +97,10 @@ function buildPlayerDepositHistoryEntry(deposit, txHash = "") {
             0,
             Number(deposit?.expeditionBoostAmount) || 0
         ),
+        expeditionBoostDurationMs: Math.max(
+            0,
+            Number(deposit?.expeditionBoostDurationMs) || 0
+        ),
         paymentComment: safeString(deposit?.paymentComment, ""),
         status: safeString(deposit?.status, "approved") || "approved",
         walletAddress: safeString(deposit?.walletAddress, ""),
@@ -121,6 +125,10 @@ function buildPlayerTransactionEntry(deposit, txHash = "") {
         expeditionBoostAmount: Math.max(
             0,
             Number(deposit?.expeditionBoostAmount) || 0
+        ),
+        expeditionBoostDurationMs: Math.max(
+            0,
+            Number(deposit?.expeditionBoostDurationMs) || 0
         ),
         depositId: safeString(deposit?.id, ""),
         paymentComment: safeString(deposit?.paymentComment, ""),
@@ -367,7 +375,9 @@ router.post("/api/deposit/confirm", (req, res) => {
             deposit.amount
         );
 
-        player.expeditionBoostActiveUntil = getExpeditionBoostActiveUntil();
+        player.expeditionBoostActiveUntil = getExpeditionBoostActiveUntil(
+            deposit.amount
+        );
 
         deposit.approvedAt = Date.now();
 
