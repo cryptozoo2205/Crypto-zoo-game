@@ -2,7 +2,7 @@ const { normalizeRewardNumber, safeString } = require("../utils/helpers");
 
 const TON_RECEIVER_WALLET = "UQBTjBORP2cXRNE_hakpG-2DZlBn0uUWME8tKhi7HCcynER5";
 const MAX_EXPEDITION_BOOST = 1.0;
-const EXPEDITION_BOOST_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
+const MAX_EXPEDITION_BOOST_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
 
 function getDepositGemsAmount(amount) {
     const safeAmount = normalizeRewardNumber(amount, 0);
@@ -22,6 +22,17 @@ function getDepositExpeditionBoostAmount(amount) {
     if (safeAmount >= 5) return 0.30;
     if (safeAmount >= 3) return 0.15;
     if (safeAmount >= 1) return 0.05;
+
+    return 0;
+}
+
+function getDepositExpeditionBoostDurationMs(amount) {
+    const safeAmount = normalizeRewardNumber(amount, 0);
+
+    if (safeAmount >= 10) return 7 * 24 * 60 * 60 * 1000;
+    if (safeAmount >= 5) return 5 * 24 * 60 * 60 * 1000;
+    if (safeAmount >= 3) return 3 * 24 * 60 * 60 * 1000;
+    if (safeAmount >= 1) return 1 * 24 * 60 * 60 * 1000;
 
     return 0;
 }
@@ -46,8 +57,14 @@ function getRemainingExpeditionBoostCapacity(currentBoost) {
     );
 }
 
-function getExpeditionBoostActiveUntil(now = Date.now()) {
-    return Math.max(0, Number(now) || 0) + EXPEDITION_BOOST_DURATION_MS;
+function getExpeditionBoostActiveUntil(depositAmount, now = Date.now()) {
+    const safeNow = Math.max(0, Number(now) || 0);
+    const durationMs = Math.min(
+        MAX_EXPEDITION_BOOST_DURATION_MS,
+        Math.max(0, Number(getDepositExpeditionBoostDurationMs(depositAmount)) || 0)
+    );
+
+    return safeNow + durationMs;
 }
 
 function createDeposit({
@@ -65,6 +82,7 @@ function createDeposit({
     const safeAmount = normalizeRewardNumber(amount, 0);
     const gemsAmount = getDepositGemsAmount(safeAmount);
     const expeditionBoostAmount = getDepositExpeditionBoostAmount(safeAmount);
+    const expeditionBoostDurationMs = getDepositExpeditionBoostDurationMs(safeAmount);
 
     return {
         id,
@@ -74,6 +92,7 @@ function createDeposit({
         amount: safeAmount,
         gemsAmount: Math.max(0, Number(gemsAmount) || 0),
         expeditionBoostAmount: Math.max(0, Number(expeditionBoostAmount) || 0),
+        expeditionBoostDurationMs: Math.max(0, Number(expeditionBoostDurationMs) || 0),
 
         source: safeString(source, "ton") || "ton",
         asset: safeString(asset, "TON") || "TON",
@@ -101,6 +120,7 @@ function buildDepositPaymentData(deposit) {
         amount: normalizeRewardNumber(deposit?.amount, 0),
         gemsAmount: Math.max(0, Number(deposit?.gemsAmount) || 0),
         expeditionBoostAmount: Math.max(0, Number(deposit?.expeditionBoostAmount) || 0),
+        expeditionBoostDurationMs: Math.max(0, Number(deposit?.expeditionBoostDurationMs) || 0),
         asset: String(deposit?.asset || "TON"),
         source: String(deposit?.source || "ton"),
         receiverAddress: String(receiverAddress || ""),
@@ -118,9 +138,10 @@ function getPlayerDeposits(db, telegramId) {
 module.exports = {
     TON_RECEIVER_WALLET,
     MAX_EXPEDITION_BOOST,
-    EXPEDITION_BOOST_DURATION_MS,
+    MAX_EXPEDITION_BOOST_DURATION_MS,
     getDepositGemsAmount,
     getDepositExpeditionBoostAmount,
+    getDepositExpeditionBoostDurationMs,
     clampExpeditionBoost,
     applyDepositExpeditionBoost,
     getRemainingExpeditionBoostCapacity,
