@@ -24,6 +24,66 @@ CryptoZoo.depositUI = {
         event.stopPropagation?.();
     },
 
+    getDepositBonusMeta(amount, payment = {}, deposit = {}) {
+        const safeAmount = Math.max(0, Number(amount) || 0);
+
+        const gemsAmount = Math.max(
+            0,
+            Number(payment?.gemsAmount ?? deposit?.gemsAmount) || 0
+        );
+
+        const expeditionBoostAmount = Math.max(
+            0,
+            Number(payment?.expeditionBoostAmount ?? deposit?.expeditionBoostAmount) || 0
+        );
+
+        const boostPercent = Math.round(expeditionBoostAmount * 100);
+
+        const durationMsRaw = Math.max(
+            0,
+            Number(payment?.expeditionBoostDurationMs ?? deposit?.expeditionBoostDurationMs) || 0
+        );
+
+        let durationDays = 0;
+
+        if (durationMsRaw > 0) {
+            durationDays = Math.max(1, Math.round(durationMsRaw / (24 * 60 * 60 * 1000)));
+        } else {
+            if (safeAmount >= 10) durationDays = 7;
+            else if (safeAmount >= 5) durationDays = 5;
+            else if (safeAmount >= 3) durationDays = 3;
+            else if (safeAmount >= 1) durationDays = 1;
+        }
+
+        return {
+            gemsAmount,
+            boostPercent,
+            durationDays
+        };
+    },
+
+    formatBonusText(meta) {
+        const gems = Math.max(0, Number(meta?.gemsAmount) || 0);
+        const boostPercent = Math.max(0, Number(meta?.boostPercent) || 0);
+        const durationDays = Math.max(0, Number(meta?.durationDays) || 0);
+
+        const parts = [];
+
+        if (gems > 0) {
+            parts.push(`+${CryptoZoo.formatNumber(gems)} gem`);
+        }
+
+        if (boostPercent > 0) {
+            parts.push(`+${CryptoZoo.formatNumber(boostPercent)}% boost ekspedycji`);
+        }
+
+        if (durationDays > 0) {
+            parts.push(durationDays === 1 ? "1 dzień" : `${durationDays} dni`);
+        }
+
+        return parts.join(" • ");
+    },
+
     async copy(text, label = "Skopiowano") {
         const safeText = String(text || "").trim();
 
@@ -111,6 +171,17 @@ CryptoZoo.depositUI = {
                         <button id="depositCopyAmountBtn" class="profile-close-btn" type="button" style="margin-top:10px;">
                             Kopiuj kwotę
                         </button>
+                    </div>
+                </div>
+
+                <div class="profile-boost-row" style="margin-top:12px;">
+                    <div class="profile-boost-left" style="width:100%;">
+                        <div class="profile-boost-label">Bonus depozytu</div>
+                        <div
+                            id="depositPaymentBonus"
+                            class="profile-boost-value"
+                            style="margin-top:6px; word-break:break-word; font-size:13px; line-height:1.5;"
+                        >-</div>
                     </div>
                 </div>
 
@@ -265,12 +336,14 @@ CryptoZoo.depositUI = {
                 const address = this.currentDepositData?.address || "";
                 const amount = Number(this.currentDepositData?.amount || 0).toFixed(3);
                 const comment = this.currentDepositData?.comment || "";
+                const bonusText = String(this.currentDepositData?.bonusText || "").trim();
 
                 const fullText = [
                     `AMOUNT: ${amount} TON`,
                     `ADDRESS: ${address}`,
-                    `COMMENT: ${comment}`
-                ].join("\n");
+                    `COMMENT: ${comment}`,
+                    bonusText ? `BONUS: ${bonusText}` : ""
+                ].filter(Boolean).join("\n");
 
                 await this.copy(fullText, "Skopiowano wszystko");
             });
@@ -297,15 +370,21 @@ CryptoZoo.depositUI = {
 
     fillModalData() {
         const amountEl = document.getElementById("depositPaymentAmount");
+        const bonusEl = document.getElementById("depositPaymentBonus");
         const addressEl = document.getElementById("depositPaymentAddress");
         const commentEl = document.getElementById("depositPaymentComment");
 
         const amount = Number(this.currentDepositData?.amount || 0);
         const address = String(this.currentDepositData?.address || "");
         const comment = String(this.currentDepositData?.comment || "");
+        const bonusText = String(this.currentDepositData?.bonusText || "").trim();
 
         if (amountEl) {
             amountEl.textContent = `${amount.toFixed(3)} TON`;
+        }
+
+        if (bonusEl) {
+            bonusEl.textContent = bonusText || "-";
         }
 
         if (addressEl) {
@@ -419,7 +498,7 @@ CryptoZoo.depositUI = {
 
             if (approved || alreadyProcessed || result?.player) {
                 this.stopVerifyWatcher();
-                await this.refreshPlayerAndUi("✅ Depozyt zatwierdzony, gems dodane");
+                await this.refreshPlayerAndUi("✅ Depozyt zatwierdzony, bonus dodany");
                 this.closeDepositModal();
                 return true;
             }
@@ -534,16 +613,25 @@ CryptoZoo.depositUI = {
                 throw new Error("Missing TON receiver address");
             }
 
+            const bonusMeta = this.getDepositBonusMeta(paymentAmount, payment, deposit);
+            const bonusText = this.formatBonusText(bonusMeta);
+
             this.currentDepositData = {
                 depositId: String(deposit.id || ""),
                 address: receiverAddress,
                 amount: paymentAmount,
-                comment: paymentComment
+                comment: paymentComment,
+                bonusText
             };
 
             this.bindResumeEvents();
             this.showDepositModal();
-            CryptoZoo.ui?.showToast?.(`Deposit ${paymentAmount.toFixed(3)} TON utworzony`);
+
+            const toastMessage = bonusText
+                ? `Deposit ${paymentAmount.toFixed(3)} TON utworzony • ${bonusText}`
+                : `Deposit ${paymentAmount.toFixed(3)} TON utworzony`;
+
+            CryptoZoo.ui?.showToast?.(toastMessage);
 
             return {
                 ok: true,
