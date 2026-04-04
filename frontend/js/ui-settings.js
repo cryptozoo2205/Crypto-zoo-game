@@ -286,6 +286,8 @@ CryptoZoo.uiSettings = {
         const wrap = document.getElementById("settingsDepositAmountOptions");
         if (!wrap) return;
 
+        CryptoZoo.depositBind = CryptoZoo.depositBind || {};
+
         const selectedAmount = this.getSelectedDepositAmount();
 
         wrap.innerHTML = this.depositAmounts.map((amount) => {
@@ -310,6 +312,8 @@ CryptoZoo.uiSettings = {
                         cursor:pointer;
                         display:block;
                         text-align:left;
+                        appearance:none;
+                        -webkit-appearance:none;
                     "
                 >
                     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
@@ -325,7 +329,7 @@ CryptoZoo.uiSettings = {
                                         +${CryptoZoo.formatNumber(bonus.gems)} gem
                                     </div>
                                     <div style="margin-top:6px;font-size:13px;font-weight:800;line-height:1.35;color:rgba(255,255,255,0.82);">
-                                        +${CryptoZoo.formatNumber(bonus.boostPercent)}% expedition boost
+                                        +${CryptoZoo.formatNumber(bonus.boostPercent)}% ${this.t("expeditionBoost", "boost ekspedycji")}
                                     </div>
                                     <div style="margin-top:6px;font-size:13px;font-weight:800;line-height:1.35;color:rgba(255,255,255,0.72);">
                                         ${this.formatDaysLabel(bonus.durationDays)}
@@ -338,7 +342,26 @@ CryptoZoo.uiSettings = {
             `;
         }).join("");
 
-        CryptoZoo.depositBind?.bindAmountButtons?.();
+        const buttons = wrap.querySelectorAll(".deposit-amount-btn");
+        buttons.forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const amount = Number(btn.dataset.amount) || 1;
+
+                CryptoZoo.depositBind = CryptoZoo.depositBind || {};
+                CryptoZoo.depositBind.selectedAmount = amount;
+
+                this.renderDepositAmountOptions();
+
+                const depositBtn = document.getElementById("settingsCreateDepositBtn");
+                if (depositBtn) {
+                    depositBtn.textContent = `${this.t("createDeposit", "Stwórz deposit")} (${amount} TON)`;
+                }
+            });
+        });
+
+        if (typeof CryptoZoo.depositBind?.bindAmountButtons === "function") {
+            CryptoZoo.depositBind.bindAmountButtons();
+        }
     },
 
     refreshSettingsModalData() {
@@ -396,6 +419,7 @@ CryptoZoo.uiSettings = {
 
         if (rewardWalletDescEl) {
             rewardWalletDescEl.textContent = "";
+            rewardWalletDescEl.innerHTML = "";
             rewardWalletDescEl.style.display = "none";
         }
 
@@ -442,7 +466,7 @@ CryptoZoo.uiSettings = {
             const selectedAmount = this.getSelectedDepositAmount();
             depositBtn.disabled = false;
             depositBtn.style.opacity = "1";
-            depositBtn.textContent = `${this.t("createDeposit", "Create Deposit")} (${selectedAmount} TON)`;
+            depositBtn.textContent = `${this.t("createDeposit", "Stwórz deposit")} (${selectedAmount} TON)`;
         }
 
         this.renderDepositAmountOptions();
@@ -683,7 +707,7 @@ CryptoZoo.uiSettings = {
                     <div style="padding:10px;border:1px solid rgba(255,255,255,0.1);border-radius:10px;margin-bottom:8px;">
                         <div>${this.format(d.amount).toFixed(3)} TON</div>
                         ${gemsAmount > 0 ? `<div style="margin-top:4px;">+${CryptoZoo.formatNumber(gemsAmount)} gem</div>` : ``}
-                        ${boostPercent > 0 ? `<div style="margin-top:4px;">+${boostPercent}% expedition boost</div>` : ``}
+                        ${boostPercent > 0 ? `<div style="margin-top:4px;">+${boostPercent}% ${this.t("expeditionBoost", "boost ekspedycji")}</div>` : ``}
                         ${durationDays > 0 ? `<div style="margin-top:4px;">${this.formatDaysLabel(durationDays)}</div>` : ``}
                         <div style="margin-top:4px;">${d.status}</div>
                     </div>
