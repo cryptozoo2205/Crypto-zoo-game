@@ -37,6 +37,8 @@ CryptoZoo.lang = {
 
             dailyReward: "Daily Reward",
             day: "Day",
+            oneDay: "1 day",
+            days: "days",
             dailyRewardSubtitle: "Claim your daily reward and come back for more",
             dailyRewardChecking: "Checking...",
             dailyRewardInfoText: "Here we will show reward readiness, cooldown and later streak without touching other systems.",
@@ -80,7 +82,7 @@ CryptoZoo.lang = {
             available: "Available",
             clickBoost: "Click Boost",
             incomeBoost: "Income Boost",
-            expeditionBoost: "Expedition Boost",
+            expeditionBoost: "Expedition boost",
             timeConsumable: "Time Consumable",
             offlineBoost: "Offline Boost",
             consumable: "Consumable",
@@ -327,6 +329,8 @@ CryptoZoo.lang = {
 
             dailyReward: "Codzienna nagroda",
             day: "Dzień",
+            oneDay: "1 dzień",
+            days: "dni",
             dailyRewardSubtitle: "Odbierz codzienną nagrodę i wracaj po więcej",
             dailyRewardChecking: "Sprawdzanie...",
             dailyRewardInfoText: "Tutaj pokażemy gotowość nagrody, cooldown i później streak bez ruszania innych systemów.",
