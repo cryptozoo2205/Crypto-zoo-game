@@ -727,13 +727,17 @@ CryptoZoo.ui = {
                     return;
                 }
 
-                if (gems >= 1) {
+                if (gems >= 3) {
+                    CryptoZoo.state.gems = Math.max(0, gems - 3);
+                    CryptoZoo.state.lastLogin = Date.now();
                     CryptoZoo.boostSystem?.activate?.();
+                    CryptoZoo.ui?.render?.();
+                    CryptoZoo.api?.savePlayer?.();
                     return;
                 }
 
                 this.goToBoostShop();
-                this.showToast(this.t("needGemBoost", "Potrzebujesz 1 gema na X2 Boost"));
+                this.showToast(this.t("needGemBoost", "Potrzebujesz 3 gemy na X2 Boost"));
             };
         }
 
