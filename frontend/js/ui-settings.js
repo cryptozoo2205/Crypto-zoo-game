@@ -69,6 +69,54 @@ CryptoZoo.uiSettings = {
         return Number((Number(v) || 0).toFixed(3));
     },
 
+    formatDaysLabel(days) {
+        const safeDays = Math.max(0, Math.floor(Number(days) || 0));
+
+        if (safeDays === 1) {
+            return this.t("oneDay", "1 day");
+        }
+
+        return `${safeDays} ${this.t("days", "days")}`;
+    },
+
+    getDepositBonusMeta(amount) {
+        const safeAmount = Number(amount) || 0;
+
+        if (safeAmount >= 10) {
+            return {
+                amount: 10,
+                gems: 150,
+                boostPercent: 60,
+                durationDays: 7
+            };
+        }
+
+        if (safeAmount >= 5) {
+            return {
+                amount: 5,
+                gems: 70,
+                boostPercent: 30,
+                durationDays: 5
+            };
+        }
+
+        if (safeAmount >= 3) {
+            return {
+                amount: 3,
+                gems: 35,
+                boostPercent: 15,
+                durationDays: 3
+            };
+        }
+
+        return {
+            amount: 1,
+            gems: 10,
+            boostPercent: 5,
+            durationDays: 1
+        };
+    },
+
     getWithdrawFeeAmount(rewardAmount) {
         const reward = Math.max(0, Number(rewardAmount) || 0);
         return Number((reward * this.withdrawFeePercent).toFixed(3));
@@ -242,6 +290,7 @@ CryptoZoo.uiSettings = {
 
         wrap.innerHTML = this.depositAmounts.map((amount) => {
             const isActive = amount === selectedAmount;
+            const bonus = this.getDepositBonusMeta(amount);
 
             return `
                 <button
@@ -249,9 +298,9 @@ CryptoZoo.uiSettings = {
                     class="deposit-amount-btn${isActive ? " active" : ""}"
                     data-amount="${amount}"
                     style="
-                        min-width:88px;
-                        padding:12px 16px;
-                        border-radius:14px;
+                        min-width:116px;
+                        padding:12px 12px;
+                        border-radius:16px;
                         border:${isActive ? "2px solid rgba(255,210,60,0.95)" : "1px solid rgba(255,255,255,0.14)"};
                         background:${isActive ? "linear-gradient(180deg, rgba(255,210,60,0.24) 0%, rgba(255,185,0,0.14) 100%)" : "rgba(255,255,255,0.04)"};
                         color:#ffffff;
@@ -259,8 +308,24 @@ CryptoZoo.uiSettings = {
                         font-size:14px;
                         box-shadow:${isActive ? "0 10px 24px rgba(255,190,0,0.18)" : "none"};
                         cursor:pointer;
+                        display:flex;
+                        flex-direction:column;
+                        align-items:flex-start;
+                        gap:6px;
+                        text-align:left;
                     "
-                >${amount} TON</button>
+                >
+                    <div style="font-size:16px; font-weight:900; line-height:1;">${amount} TON</div>
+                    <div style="font-size:11px; font-weight:700; line-height:1.25; color:rgba(255,255,255,0.88);">
+                        +${CryptoZoo.formatNumber(bonus.gems)} gem
+                    </div>
+                    <div style="font-size:11px; font-weight:700; line-height:1.25; color:rgba(255,255,255,0.78);">
+                        +${CryptoZoo.formatNumber(bonus.boostPercent)}% expedition boost
+                    </div>
+                    <div style="font-size:11px; font-weight:700; line-height:1.25; color:rgba(255,255,255,0.68);">
+                        ${this.formatDaysLabel(bonus.durationDays)}
+                    </div>
+                </button>
             `;
         }).join("");
 
@@ -362,7 +427,7 @@ CryptoZoo.uiSettings = {
             const selectedAmount = this.getSelectedDepositAmount();
             depositBtn.disabled = false;
             depositBtn.style.opacity = "1";
-            depositBtn.textContent = `${this.t("createDeposit", "Create Deposit")} (${selectedAmount.toFixed(3)})`;
+            depositBtn.textContent = `${this.t("createDeposit", "Create Deposit")} (${selectedAmount} TON)`;
         }
 
         this.renderDepositAmountOptions();
@@ -594,12 +659,17 @@ CryptoZoo.uiSettings = {
                 const gemsAmount = Math.max(0, Number(d.gemsAmount) || 0);
                 const expeditionBoostAmount = Math.max(0, Number(d.expeditionBoostAmount) || 0);
                 const boostPercent = Math.round(expeditionBoostAmount * 100);
+                const durationMs = Math.max(0, Number(d.expeditionBoostDurationMs) || 0);
+                const durationDays = durationMs > 0
+                    ? Math.max(1, Math.round(durationMs / (24 * 60 * 60 * 1000)))
+                    : 0;
 
                 return `
                     <div style="padding:10px;border:1px solid rgba(255,255,255,0.1);border-radius:10px;margin-bottom:8px;">
                         <div>${this.format(d.amount).toFixed(3)} TON</div>
                         ${gemsAmount > 0 ? `<div style="margin-top:4px;">+${CryptoZoo.formatNumber(gemsAmount)} gem</div>` : ``}
                         ${boostPercent > 0 ? `<div style="margin-top:4px;">+${boostPercent}% expedition boost</div>` : ``}
+                        ${durationDays > 0 ? `<div style="margin-top:4px;">${this.formatDaysLabel(durationDays)}</div>` : ``}
                         <div style="margin-top:4px;">${d.status}</div>
                     </div>
                 `;
