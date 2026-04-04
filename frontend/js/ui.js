@@ -81,9 +81,7 @@ CryptoZoo.ui = {
             expeditionTime1: "shopExpeditionTime1",
             expeditionTime2: "shopExpeditionTime2",
             expeditionTime3: "shopExpeditionTime3",
-            expeditionTime4: "shopExpeditionTime4",
-            offline1: "shopOffline1",
-            offline2: "shopOffline2"
+            expeditionTime4: "shopExpeditionTime4"
         };
 
         const langKey = itemKeyMap[item.id];
@@ -362,11 +360,6 @@ CryptoZoo.ui = {
             Number(CryptoZoo.gameplay?.getOfflineBaseHours?.() || 1)
         );
 
-        const boostHours = Math.max(
-            0,
-            Number(CryptoZoo.gameplay?.getOfflineBoostHours?.() || 0)
-        );
-
         const adsHours = Math.max(
             0,
             Number(CryptoZoo.gameplay?.getOfflineAdsHours?.() || 0)
@@ -386,7 +379,7 @@ CryptoZoo.ui = {
             `${this.t("offlineLimit", "Limit offline")}: ${CryptoZoo.formatNumber(totalHours)}h • ${this.t("standardMultiplier", "Standardowy mnożnik")} offline x${CryptoZoo.formatNumber(offlineBoost)}`;
 
         subText.textContent =
-            `${this.t("baseLimit", "Limit bazowy")}: ${CryptoZoo.formatNumber(baseHours)}h • Shop: +${CryptoZoo.formatNumber(boostHours)}h • Ads: +${CryptoZoo.formatNumber(adsHours)}h`;
+            `${this.t("baseLimit", "Limit bazowy")}: ${CryptoZoo.formatNumber(baseHours)}h • Ads: +${CryptoZoo.formatNumber(adsHours)}h`;
 
         adBtn.textContent = canWatchAd
             ? `📺 +${CryptoZoo.formatNumber(rewardHours)}h`
@@ -530,7 +523,6 @@ CryptoZoo.ui = {
         if (normalizedType === "expeditiontime" || normalizedEffect === "expeditiontime") {
             return this.t("timeConsumable", "Skracanie czasu");
         }
-        if (normalizedType === "offline") return this.t("offlineBoost", "Boost offline");
         return this.t("special", "Specjalny");
     },
 
@@ -542,7 +534,6 @@ CryptoZoo.ui = {
         if (normalizedType === "income") return "💰";
         if (normalizedType === "expedition") return "🧭";
         if (normalizedType === "expeditiontime" || normalizedEffect === "expeditiontime") return "⏱";
-        if (normalizedType === "offline") return "💤";
         if (normalizedEffect === "coinpack") return "🪙";
         if (normalizedEffect === "boost2x") return "⚡";
         return "✨";
@@ -618,22 +609,6 @@ CryptoZoo.ui = {
         if (normalizedType === "expeditiontime" || normalizedEffect === "expeditiontime") {
             const reductionSeconds = Math.max(0, Number(item.timeReductionSeconds) || 0);
             return `${this.t("reduceOneActiveExpedition", "Skraca jedną aktywną ekspedycję o")} ${this.formatDurationLabel(reductionSeconds)}`;
-        }
-
-        if (normalizedType === "offline") {
-            const isCapacityItem = !!CryptoZoo.shopSystem?.isOfflineCapacityItem?.(item);
-
-            if (isCapacityItem) {
-                const addHours = Math.max(
-                    1,
-                    Number(CryptoZoo.shopSystem?.getOfflineCapacityHoursFromItem?.(item) || 1)
-                );
-                return `+${CryptoZoo.formatNumber(addHours)}h ${this.t("offlineLimit", "limitu offline")} • ${this.t("maxWithoutAds", "max bez reklam")}: 4h`;
-            }
-
-            const multiplier = Math.max(1, Number(item.offlineMultiplier) || 2);
-            const durationSeconds = Math.max(60, Number(item.offlineDurationSeconds) || 600);
-            return `x${CryptoZoo.formatNumber(multiplier)} ${this.t("offlineIncomeFor", "offline income przez")} ${this.formatDurationLabel(durationSeconds)}`;
         }
 
         if (normalizedEffect === "coinpack") {
