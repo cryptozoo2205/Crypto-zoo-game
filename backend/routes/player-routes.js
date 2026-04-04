@@ -1,131 +1,201 @@
 const express = require("express");
 
 const { readDb, writeDb } = require("../db/db");
-const { safeString } = require("../utils/helpers");
-const { normalizePlayer, getDefaultPlayer } = require("../services/player-service");
+const {
+    safeString,
+    extractReferrerId,
+    normalizeTelegramUser,
+    sanitizeReferrerId
+} = require("../utils/helpers");
+const {
+    getDefaultPlayer,
+    normalizePlayer,
+    getPlayerOrCreate
+} = require("../services/player-service");
+const { buildSafePlayerState } = require("../services/validation-service");
+const {
+    applyReferralIfPossible,
+    syncReferralLinkState,
+    applyReferralWelcomeBonusIfPossible,
+    applyReferralActivationRewardsIfPossible
+} = require("../services/referral-service");
 
 const router = express.Router();
 
 const OFFLINE_ADS_MAX_HOURS = 12;
 const OFFLINE_ADS_HOURS_PER_AD = 2;
-const OFFLINE_ADS_RESET_INTERVAL_MS = 24 * 60 * 60 * 1000;
+const MAX_EXPEDITION_BOOST = 1.0;
 
 function normalizeInt(value, fallback = 0) {
     return Math.max(0, Math.floor(Number(value) || fallback || 0));
 }
 
-function ensureOfflineAdsState(player) {
-    const now = Date.now();
-
-    player.offlineBaseHours = Math.max(
-        1,
-        normalizeInt(player.offlineBaseHours, 1)
-    );
-
-    player.offlineBoostHours = Math.max(
-        0,
-        normalizeInt(player.offlineBoostHours, 0)
-    );
-
-    player.offlineAdsHours = Math.max(
-        0,
-        Math.min(OFFLINE_ADS_MAX_HOURS, normalizeInt(player.offlineAdsHours, 0))
-    );
-
-    player.offlineAdsResetAt = Math.max(
-        0,
-        Number(player.offlineAdsResetAt) || 0
-    );
-
-    if (!player.offlineAdsResetAt) {
-        player.offlineAdsResetAt = Math.max(
-            0,
-            Number(player.createdAt) || now
-        );
-    }
-
-    if (now - player.offlineAdsResetAt >= OFFLINE_ADS_RESET_INTERVAL_MS) {
-        player.offlineAdsHours = 0;
-        player.offlineAdsResetAt = now;
-    }
-
-    player.offlineMaxSeconds =
-        (player.offlineBaseHours + player.offlineBoostHours + player.offlineAdsHours) * 60 * 60;
-
-    return player;
+function normalizeBoost(value, fallback = 0) {
+    return Math.max(0, Math.min(MAX_EXPEDITION_BOOST, Number(value) || fallback || 0));
 }
 
-router.post("/reward-offline", async (req, res) => {
-    try {
-        const db = readDb();
+function applyOfflineAdsServerGuard(oldPlayer, safePlayer) {
+    const now = Date.now();
 
-        const telegramId = safeString(
-            req.body?.playerId,
-            req.body?.telegramId || "local-player"
+    const oldOfflineBaseHours = Math.max(
+        1,
+        normalizeInt(oldPlayer?.offlineBaseHours, 1)
+    );
+
+    const oldOfflineBoostHours = Math.max(
+        0,
+        normalizeInt(oldPlayer?.offlineBoostHours, 0)
+    );
+
+    const oldLastUpdateAt = Math.max(
+        0,
+        Number(oldPlayer?.offlineAdsLastUpdateAt) || 0
+    );
+
+    let serverHours = Math.max(
+        0,
+        Math.min(OFFLINE_ADS_MAX_HOURS, Number(oldPlayer?.offlineAdsHours) || 0)
+    );
+
+    let serverLastUpdateAt = oldLastUpdateAt || now;
+
+    if (serverLastUpdateAt > 0) {
+        const elapsedSeconds = Math.max(
+            0,
+            Math.floor((now - serverLastUpdateAt) / 1000)
         );
 
-        const username = safeString(
-            req.body?.username,
-            "Gracz"
-        );
-
-        const oldPlayer = db.players[telegramId]
-            ? normalizePlayer(db.players[telegramId])
-            : getDefaultPlayer(telegramId, username);
-
-        const player = ensureOfflineAdsState(oldPlayer);
-        const now = Date.now();
-
-        if (player.offlineAdsHours >= OFFLINE_ADS_MAX_HOURS) {
-            db.players[telegramId] = normalizePlayer(player);
-            writeDb(db);
-
-            const secondsUntilReset = Math.max(
+        if (elapsedSeconds > 0) {
+            const currentSeconds = Math.floor(serverHours * 3600);
+            const nextSeconds = Math.max(0, currentSeconds - elapsedSeconds);
+            serverHours = Math.max(
                 0,
-                Math.ceil((player.offlineAdsResetAt + OFFLINE_ADS_RESET_INTERVAL_MS - now) / 1000)
+                Math.min(OFFLINE_ADS_MAX_HOURS, Number((nextSeconds / 3600).toFixed(6)))
             );
-
-            return res.status(200).json({
-                ok: false,
-                error: `Osiągnięto limit reklam offline • Reset za ${secondsUntilReset}s`,
-                offlineAdsHours: player.offlineAdsHours,
-                offlineAdsResetAt: player.offlineAdsResetAt
-            });
+            serverLastUpdateAt = now;
         }
-
-        const remaining = OFFLINE_ADS_MAX_HOURS - player.offlineAdsHours;
-        const addedHours = Math.min(OFFLINE_ADS_HOURS_PER_AD, remaining);
-
-        player.offlineAdsHours = Math.max(
-            0,
-            Math.min(OFFLINE_ADS_MAX_HOURS, player.offlineAdsHours + addedHours)
-        );
-
-        player.lastLogin = now;
-        player.offlineMaxSeconds =
-            (player.offlineBaseHours + player.offlineBoostHours + player.offlineAdsHours) * 60 * 60;
-
-        db.players[telegramId] = normalizePlayer(player);
-        writeDb(db);
-
-        const secondsUntilReset = Math.max(
-            0,
-            Math.ceil((player.offlineAdsResetAt + OFFLINE_ADS_RESET_INTERVAL_MS - now) / 1000)
-        );
-
-        return res.status(200).json({
-            ok: true,
-            message: `+${addedHours}h offline • Reset za ${secondsUntilReset}s`,
-            offlineAdsHours: player.offlineAdsHours,
-            offlineAdsResetAt: player.offlineAdsResetAt
-        });
-    } catch (error) {
-        console.error("ads reward-offline error:", error);
-        return res.status(500).json({
-            ok: false,
-            error: "Nie udało się obsłużyć reward reklamy"
-        });
     }
+
+    const requestedHours = Math.max(
+        0,
+        Math.min(OFFLINE_ADS_MAX_HOURS, Number(safePlayer?.offlineAdsHours) || 0)
+    );
+
+    const maxAllowedThisSave = Math.min(
+        OFFLINE_ADS_MAX_HOURS,
+        serverHours + OFFLINE_ADS_HOURS_PER_AD
+    );
+
+    const finalOfflineAdsHours = Math.max(
+        0,
+        Math.min(requestedHours, maxAllowedThisSave)
+    );
+
+    const finalOfflineBaseHours = Math.max(
+        1,
+        normalizeInt(safePlayer?.offlineBaseHours, oldOfflineBaseHours)
+    );
+
+    const finalOfflineBoostHours = Math.max(
+        0,
+        normalizeInt(safePlayer?.offlineBoostHours, oldOfflineBoostHours)
+    );
+
+    safePlayer.offlineAdsHours = finalOfflineAdsHours;
+    safePlayer.offlineAdsLastUpdateAt = now;
+    safePlayer.offlineMaxSeconds =
+        (finalOfflineBaseHours + finalOfflineBoostHours + finalOfflineAdsHours) * 60 * 60;
+
+    delete safePlayer.offlineAdsResetAt;
+
+    return safePlayer;
+}
+
+function applyExpeditionBoostServerGuard(oldPlayer, safePlayer) {
+    const trustedServerBoost = normalizeBoost(oldPlayer?.expeditionBoost, 0);
+
+    safePlayer.expeditionBoost = trustedServerBoost;
+
+    return safePlayer;
+}
+
+router.get("/:telegramId", (req, res) => {
+    const db = readDb();
+    const telegramId = safeString(req.params.telegramId, "local-player");
+    const username = safeString(req.query.username, "Gracz");
+    const referrerId = extractReferrerId(req);
+
+    const player = getPlayerOrCreate(db, telegramId, username);
+
+    applyReferralIfPossible(db, player, referrerId, sanitizeReferrerId);
+    syncReferralLinkState(db, db.players[telegramId] || player);
+    applyReferralWelcomeBonusIfPossible(db, db.players[telegramId] || player);
+    applyReferralActivationRewardsIfPossible(db, db.players[telegramId] || player);
+
+    db.players[telegramId] = normalizePlayer(db.players[telegramId] || player);
+    writeDb(db);
+
+    return res.json({ player: normalizePlayer(db.players[telegramId]) });
+});
+
+router.post("/save", (req, res) => {
+    const db = readDb();
+
+    const bodyTelegramUser = normalizeTelegramUser(
+        req.body?.telegramUser,
+        req.body?.telegramId,
+        req.body?.username
+    );
+
+    const telegramId = safeString(
+        req.body?.telegramId,
+        bodyTelegramUser.id || "local-player"
+    );
+
+    const username = safeString(
+        req.body?.username,
+        bodyTelegramUser.username || bodyTelegramUser.first_name || "Gracz"
+    );
+
+    const referrerId = extractReferrerId(req);
+
+    const oldPlayer = db.players[telegramId]
+        ? normalizePlayer(db.players[telegramId])
+        : getDefaultPlayer(telegramId, username);
+
+    let safePlayer = buildSafePlayerState(
+        oldPlayer,
+        {
+            ...req.body,
+            telegramId,
+            username,
+            telegramUser: {
+                ...bodyTelegramUser,
+                id: telegramId,
+                username: bodyTelegramUser.username || username,
+                first_name: bodyTelegramUser.first_name || username || "Gracz"
+            }
+        },
+        normalizeTelegramUser
+    );
+
+    safePlayer = applyOfflineAdsServerGuard(oldPlayer, safePlayer);
+    safePlayer = applyExpeditionBoostServerGuard(oldPlayer, safePlayer);
+
+    db.players[telegramId] = safePlayer;
+
+    applyReferralIfPossible(db, db.players[telegramId], referrerId, sanitizeReferrerId);
+    syncReferralLinkState(db, db.players[telegramId]);
+    applyReferralWelcomeBonusIfPossible(db, db.players[telegramId]);
+    applyReferralActivationRewardsIfPossible(db, db.players[telegramId]);
+
+    db.players[telegramId] = normalizePlayer(db.players[telegramId]);
+    writeDb(db);
+
+    return res.json({
+        ok: true,
+        player: db.players[telegramId]
+    });
 });
 
 module.exports = router;
