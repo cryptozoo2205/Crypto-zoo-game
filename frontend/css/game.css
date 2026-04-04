@@ -355,21 +355,43 @@ main#game {
 
 .tap-area {
     width: 100%;
-    min-height: 328px;
+    min-height: 360px;
     position: relative;
-    margin-top: 8px;
-    margin-bottom: 6px;
-    overflow: visible;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 20px 10px 12px;
+    overflow: hidden;
     isolation: isolate;
+    border-radius: 24px;
+    background:
+        linear-gradient(rgba(7, 14, 28, 0.34), rgba(7, 14, 28, 0.56)),
+        radial-gradient(circle at 50% 36%, rgba(88, 255, 140, 0.10) 0%, rgba(88, 255, 140, 0) 36%),
+        radial-gradient(circle at 50% 74%, rgba(66, 220, 255, 0.06) 0%, rgba(66, 220, 255, 0) 34%),
+        url("../assets/backgrounds/background_main.png") center center / cover no-repeat,
+        linear-gradient(
+            180deg,
+            rgba(20, 29, 49, 0.94) 0%,
+            rgba(11, 18, 34, 0.96) 100%
+        );
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow:
+        0 14px 26px rgba(0, 0, 0, 0.18),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+    backdrop-filter: blur(8px);
 }
 
 .tap-area::before {
     content: "";
     position: absolute;
-    inset: 0;
+    inset: 12px;
+    border-radius: 20px;
     pointer-events: none;
     z-index: 0;
-    display: none;
+    display: block;
+    background:
+        linear-gradient(180deg, rgba(255,255,255,0.035) 0%, rgba(255,255,255,0.01) 100%),
+        radial-gradient(circle at 50% 44%, rgba(120, 255, 160, 0.05) 0%, rgba(120, 255, 160, 0) 42%);
+    border: 1px solid rgba(255,255,255,0.035);
 }
 
 .tap-area::after {
@@ -381,7 +403,7 @@ main#game {
     height: 320px;
     transform: translate(-50%, -50%);
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(80, 255, 120, 0.09) 0%, rgba(80, 255, 120, 0.04) 36%, rgba(80, 255, 120, 0.012) 52%, rgba(80, 255, 120, 0) 74%);
+    background: radial-gradient(circle, rgba(80, 255, 120, 0.10) 0%, rgba(80, 255, 120, 0.05) 36%, rgba(80, 255, 120, 0.015) 52%, rgba(80, 255, 120, 0) 74%);
     filter: blur(10px);
     pointer-events: none;
     z-index: 0;
@@ -472,7 +494,7 @@ main#game {
 
 .home-tap-caption {
     text-align: center;
-    margin-top: 0;
+    margin-top: 2px;
     margin-bottom: 14px;
 }
 
@@ -1144,8 +1166,15 @@ main#game {
     }
 
     .tap-area {
-        min-height: 268px;
-        margin-top: 6px;
+        min-height: 300px;
+        margin-top: 8px;
+        padding: 18px 8px 10px;
+        border-radius: 20px;
+    }
+
+    .tap-area::before {
+        inset: 10px;
+        border-radius: 16px;
     }
 
     .tap-area::after {
@@ -1340,7 +1369,13 @@ main#game {
     }
 
     .tap-area {
-        min-height: 244px;
+        min-height: 276px;
+        border-radius: 18px;
+    }
+
+    .tap-area::before {
+        inset: 8px;
+        border-radius: 14px;
     }
 
     .tap-area::after {
