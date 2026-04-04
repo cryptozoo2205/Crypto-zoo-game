@@ -64,10 +64,16 @@ CryptoZoo.ads = {
         };
     },
 
+    getApiBase() {
+        const rawBase = String(CryptoZoo.config?.apiBase || "/api").trim();
+        return rawBase.replace(/\/+$/, "");
+    },
+
     async requestOfflineRewardFromBackend() {
         const payload = this.getPlayerPayload();
+        const apiBase = this.getApiBase();
 
-        const response = await fetch("/api/ads/reward-offline", {
+        const response = await fetch(`${apiBase}/ads/reward-offline`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -105,10 +111,6 @@ CryptoZoo.ads = {
 
             if (typeof result.offlineAdsHours === "number") {
                 CryptoZoo.state.offlineAdsHours = result.offlineAdsHours;
-            }
-
-            if (typeof result.offlineAdsResetAt === "number") {
-                CryptoZoo.state.offlineAdsResetAt = result.offlineAdsResetAt;
             }
 
             CryptoZoo.gameplay?.recalculateProgress?.();
