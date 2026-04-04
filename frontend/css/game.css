@@ -1065,6 +1065,26 @@ main#game {
     }
 }
 
+#screen-game {
+    position: relative;
+    overflow: hidden;
+}
+
+#screen-game::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: url("../assets/backgrounds/background_main.png") center center / cover no-repeat;
+    opacity: 0.9;
+    z-index: 0;
+    pointer-events: none;
+}
+
+#screen-game > * {
+    position: relative;
+    z-index: 1;
+}
+
 /* MOBILE */
 
 @media (max-width: 520px) {
