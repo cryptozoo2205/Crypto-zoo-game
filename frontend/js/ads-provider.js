@@ -60,6 +60,32 @@ CryptoZoo.ads = {
         }
     },
 
+    async requestOfflineRewardFromBackend() {
+        const playerId =
+            CryptoZoo.telegram?.getPlayerId?.() ||
+            CryptoZoo.state?.telegramId ||
+            CryptoZoo.state?.playerId ||
+            null;
+
+        const response = await fetch("/api/ads/reward-offline", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                playerId
+            })
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok || !data?.ok) {
+            throw new Error(data?.error || "Nie udało się odebrać rewardu reklamy");
+        }
+
+        return data;
+    },
+
     async showRewardedAd() {
         if (this.isLoading) return false;
 
@@ -69,25 +95,37 @@ CryptoZoo.ads = {
             return false;
         }
 
-        if (!CryptoZoo.offlineAds?.canWatchAd?.()) {
-            const resetText =
-                CryptoZoo.offlineAds?.getFormattedTimeUntilReset?.() || "--:--:--";
-            CryptoZoo.ui?.showToast?.(`Osiągnięto limit reklam offline • Reset za ${resetText}`);
-            return false;
-        }
-
         this.isLoading = true;
         this.updateOfflineUi();
 
         try {
             await show_10822070();
 
-            CryptoZoo.ui?.showToast?.("Reklama zamknięta. Reward tymczasowo wyłączony do poprawnego zabezpieczenia.");
+            const result = await this.requestOfflineRewardFromBackend();
+
+            if (typeof result.offlineAdsHours === "number") {
+                CryptoZoo.state = CryptoZoo.state || {};
+                CryptoZoo.state.offlineAdsHours = result.offlineAdsHours;
+            }
+
+            if (typeof result.offlineAdsResetAt === "number") {
+                CryptoZoo.state = CryptoZoo.state || {};
+                CryptoZoo.state.offlineAdsResetAt = result.offlineAdsResetAt;
+            }
+
+            CryptoZoo.gameplay?.recalculateProgress?.();
             this.updateOfflineUi();
-            return false;
+
+            if (result?.message) {
+                CryptoZoo.ui?.showToast?.(result.message);
+            }
+
+            return true;
         } catch (error) {
             console.error("Rewarded ad error:", error);
-            CryptoZoo.ui?.showToast?.("Nie udało się załadować reklamy");
+            CryptoZoo.ui?.showToast?.(
+                error?.message || "Nie udało się odebrać rewardu reklamy"
+            );
             return false;
         } finally {
             this.isLoading = false;
