@@ -376,18 +376,18 @@ CryptoZoo.ui = {
 
         if (CryptoZoo.ads?.isLoading) {
             adBtn.disabled = true;
-            adBtn.innerHTML = `<img src="assets/icons/icon-ads.png" class="ui-inline-icon" alt="ads"> Ładowanie...`;
+            adBtn.textContent = "⏳ Ładowanie...";
             return;
         }
 
         if (!canWatchAd) {
             adBtn.disabled = true;
-            adBtn.innerHTML = `<img src="assets/icons/icon-ads.png" class="ui-inline-icon" alt="ads"> MAX • ${resetText}`;
+            adBtn.textContent = `📺 MAX • ${resetText}`;
             return;
         }
 
         adBtn.disabled = false;
-        adBtn.innerHTML = `<img src="assets/icons/icon-ads.png" class="ui-inline-icon" alt="ads"> +${CryptoZoo.formatNumber(rewardHours)}h • ${CryptoZoo.formatNumber(adsHours)}/${CryptoZoo.formatNumber(maxAds)}`;
+        adBtn.textContent = `📺 +${CryptoZoo.formatNumber(rewardHours)}h • ${CryptoZoo.formatNumber(adsHours)}/${CryptoZoo.formatNumber(maxAds)}`;
     },
 
     ensureOfflineInfoTimerRunning() {
@@ -446,7 +446,7 @@ CryptoZoo.ui = {
             );
 
             subtitleEl.textContent = `${this.t("unlockIn", "Unlock in")} ${this.formatTimeLeft(unlockSeconds)}`;
-            iconEl.innerHTML = `<img src="assets/icons/icon-reward.png" class="ui-icon-img" alt="reward">`;
+            iconEl.textContent = "🔒";
             return;
         }
 
@@ -455,12 +455,12 @@ CryptoZoo.ui = {
                 rewardGems > 0
                     ? `${streakLabel} • ${this.t("ready", "READY")} • ${CryptoZoo.formatNumber(rewardCoins)} ${this.t("coins", "coins")} + ${CryptoZoo.formatNumber(rewardGems)} ${this.t("gem", "gem")}`
                     : `${streakLabel} • ${this.t("ready", "READY")} • ${CryptoZoo.formatNumber(rewardCoins)} ${this.t("coins", "coins")}`;
-            iconEl.innerHTML = `<img src="assets/icons/icon-reward.png" class="ui-icon-img" alt="reward">`;
+            iconEl.textContent = "🎁";
             return;
         }
 
         subtitleEl.textContent = `${streakLabel} • ${this.t("nextRewardIn", "Next reward in")} ${this.formatTimeLeft(timeLeftSeconds)}`;
-        iconEl.innerHTML = `<img src="assets/icons/icon-reward.png" class="ui-icon-img" alt="reward">`;
+        iconEl.textContent = "⏳";
     },
 
     renderXpBar() {
@@ -859,7 +859,7 @@ CryptoZoo.ui = {
 
             if (homeBtn) {
                 homeBtn.classList.add("boost-active");
-                homeBtn.innerHTML = `<img src="assets/icons/icon-boost.png" class="ui-inline-icon" alt="boost"> ${this.t("active", "Aktywny")}`;
+                homeBtn.textContent = this.t("active", "Aktywny");
             }
 
             if (incomeStrip) {
@@ -886,7 +886,7 @@ CryptoZoo.ui = {
 
             if (homeBtn) {
                 homeBtn.classList.remove("boost-active");
-                homeBtn.innerHTML = `<img src="assets/icons/icon-boost.png" class="ui-inline-icon" alt="boost"> ${this.t("activate", "Aktywuj")}`;
+                homeBtn.textContent = this.t("activate", "Aktywuj");
             }
 
             if (incomeStrip) {
@@ -938,16 +938,6 @@ CryptoZoo.ui = {
         this.updateText("homePandaLevel", CryptoZoo.formatNumber(pandaLevel));
         this.updateText("homeLionCount", CryptoZoo.formatNumber(lionCount));
         this.updateText("homeLionLevel", CryptoZoo.formatNumber(lionLevel));
-
-        const eventsIcon = document.querySelector("#homeEventsBtn .home-quick-icon");
-        if (eventsIcon) {
-            eventsIcon.innerHTML = `<img src="assets/icons/icon-event.png" class="ui-icon-img" alt="event">`;
-        }
-
-        const boostInfoIcon = document.querySelector("#homeBoostInfoBtn .home-quick-icon");
-        if (boostInfoIcon) {
-            boostInfoIcon.innerHTML = `<img src="assets/icons/icon-boost.png" class="ui-icon-img" alt="boost">`;
-        }
 
         this.renderXpBar();
 
