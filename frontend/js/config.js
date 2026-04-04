@@ -397,33 +397,6 @@ CryptoZoo.config = {
             gemPrice: 40,
             effect: "expeditionTime",
             timeReductionSeconds: 14400
-        },
-
-        {
-            id: "offline1",
-            name: "Offline Boost 10m",
-            namePl: "Boost Offline 10m",
-            nameEn: "Offline Boost 10m",
-            desc: "x2 offline income przez 10 minut",
-            descPl: "x2 offline income przez 10 minut",
-            descEn: "x2 offline income for 10 minutes",
-            gemPrice: 3,
-            type: "offline",
-            offlineMultiplier: 2,
-            offlineDurationSeconds: 600
-        },
-        {
-            id: "offline2",
-            name: "Offline Boost 1h",
-            namePl: "Boost Offline 1h",
-            nameEn: "Offline Boost 1h",
-            desc: "x2 offline income przez 1 godzinę",
-            descPl: "x2 offline income przez 1 godzinę",
-            descEn: "x2 offline income for 1 hour",
-            gemPrice: 7,
-            type: "offline",
-            offlineMultiplier: 2,
-            offlineDurationSeconds: 3600
         }
     ]
 };
