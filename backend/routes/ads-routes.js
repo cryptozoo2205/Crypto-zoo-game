@@ -15,8 +15,6 @@ function normalizeNumber(value, fallback = 0) {
 }
 
 function ensureOfflineAdsState(player) {
-    const now = Date.now();
-
     player.offlineBaseHours = Math.max(
         1,
         Math.floor(normalizeNumber(player.offlineBaseHours, 1))
@@ -32,32 +30,11 @@ function ensureOfflineAdsState(player) {
         Math.min(OFFLINE_ADS_MAX_HOURS, normalizeNumber(player.offlineAdsHours, 0))
     );
 
-    player.offlineAdsLastUpdateAt = Math.max(
-        0,
-        normalizeNumber(player.offlineAdsLastUpdateAt, 0)
-    );
-
-    if (!player.offlineAdsLastUpdateAt) {
-        player.offlineAdsLastUpdateAt = now;
-    }
-
-    const elapsedSeconds = Math.max(
-        0,
-        Math.floor((now - player.offlineAdsLastUpdateAt) / 1000)
-    );
-
-    if (elapsedSeconds > 0) {
-        const currentSeconds = Math.floor(player.offlineAdsHours * 3600);
-        const nextSeconds = Math.max(0, currentSeconds - elapsedSeconds);
-        player.offlineAdsHours = Math.max(
-            0,
-            Math.min(OFFLINE_ADS_MAX_HOURS, Number((nextSeconds / 3600).toFixed(6)))
-        );
-        player.offlineAdsLastUpdateAt = now;
-    }
-
     player.offlineMaxSeconds =
         (player.offlineBaseHours + player.offlineBoostHours + player.offlineAdsHours) * 60 * 60;
+
+    delete player.offlineAdsLastUpdateAt;
+    delete player.offlineAdsResetAt;
 
     return player;
 }
@@ -87,8 +64,7 @@ router.post("/reward-offline", async (req, res) => {
             return res.status(200).json({
                 ok: false,
                 error: `Osiągnięto limit reklam offline • Reset za ${Math.ceil(player.offlineAdsHours * 3600)}s`,
-                offlineAdsHours: player.offlineAdsHours,
-                offlineAdsLastUpdateAt: player.offlineAdsLastUpdateAt
+                offlineAdsHours: player.offlineAdsHours
             });
         }
 
@@ -97,13 +73,9 @@ router.post("/reward-offline", async (req, res) => {
 
         player.offlineAdsHours = Math.max(
             0,
-            Math.min(
-                OFFLINE_ADS_MAX_HOURS,
-                Number((player.offlineAdsHours + addedHours).toFixed(6))
-            )
+            Math.min(OFFLINE_ADS_MAX_HOURS, player.offlineAdsHours + addedHours)
         );
 
-        player.offlineAdsLastUpdateAt = now;
         player.lastLogin = now;
         player.offlineMaxSeconds =
             (player.offlineBaseHours + player.offlineBoostHours + player.offlineAdsHours) * 60 * 60;
@@ -114,8 +86,7 @@ router.post("/reward-offline", async (req, res) => {
         return res.status(200).json({
             ok: true,
             message: `+${addedHours}h offline • Reset za ${Math.ceil(player.offlineAdsHours * 3600)}s`,
-            offlineAdsHours: player.offlineAdsHours,
-            offlineAdsLastUpdateAt: player.offlineAdsLastUpdateAt
+            offlineAdsHours: player.offlineAdsHours
         });
     } catch (error) {
         console.error("ads reward-offline error:", error);
