@@ -35,8 +35,6 @@ function normalizeBoost(value, fallback = 0) {
 }
 
 function applyOfflineAdsServerGuard(oldPlayer, safePlayer) {
-    const now = Date.now();
-
     const oldOfflineBaseHours = Math.max(
         1,
         normalizeInt(oldPlayer?.offlineBaseHours, 1)
@@ -47,34 +45,10 @@ function applyOfflineAdsServerGuard(oldPlayer, safePlayer) {
         normalizeInt(oldPlayer?.offlineBoostHours, 0)
     );
 
-    const oldLastUpdateAt = Math.max(
-        0,
-        Number(oldPlayer?.offlineAdsLastUpdateAt) || 0
-    );
-
-    let serverHours = Math.max(
+    const serverHours = Math.max(
         0,
         Math.min(OFFLINE_ADS_MAX_HOURS, Number(oldPlayer?.offlineAdsHours) || 0)
     );
-
-    let serverLastUpdateAt = oldLastUpdateAt || now;
-
-    if (serverLastUpdateAt > 0) {
-        const elapsedSeconds = Math.max(
-            0,
-            Math.floor((now - serverLastUpdateAt) / 1000)
-        );
-
-        if (elapsedSeconds > 0) {
-            const currentSeconds = Math.floor(serverHours * 3600);
-            const nextSeconds = Math.max(0, currentSeconds - elapsedSeconds);
-            serverHours = Math.max(
-                0,
-                Math.min(OFFLINE_ADS_MAX_HOURS, Number((nextSeconds / 3600).toFixed(6)))
-            );
-            serverLastUpdateAt = now;
-        }
-    }
 
     const requestedHours = Math.max(
         0,
@@ -102,10 +76,10 @@ function applyOfflineAdsServerGuard(oldPlayer, safePlayer) {
     );
 
     safePlayer.offlineAdsHours = finalOfflineAdsHours;
-    safePlayer.offlineAdsLastUpdateAt = now;
     safePlayer.offlineMaxSeconds =
         (finalOfflineBaseHours + finalOfflineBoostHours + finalOfflineAdsHours) * 60 * 60;
 
+    delete safePlayer.offlineAdsLastUpdateAt;
     delete safePlayer.offlineAdsResetAt;
 
     return safePlayer;
