@@ -28,6 +28,133 @@
             --menu-height: 110px;
         }
 
+        html, body {
+            width: 100%;
+            height: 100%;
+            min-height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #0b1220;
+        }
+
+        body.telegram-webapp {
+            overscroll-behavior: none;
+            touch-action: manipulation;
+        }
+
+        #app {
+            width: 100%;
+            height: 100%;
+            min-height: 100%;
+            overflow: hidden;
+            background: #0b1220;
+        }
+
+        #game {
+            width: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            box-sizing: border-box;
+        }
+
+        .top-bar {
+            padding-top: env(safe-area-inset-top, 0px);
+            box-sizing: border-box;
+        }
+
+        .menu {
+            padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
+            box-sizing: border-box;
+        }
+
+        #loading-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+
+<!-- (reszta Twojego pliku BEZ ZMIAN) -->
+
+<div id="settingsFinanceContent" class="profile-boost-row" style="margin-top:12px; display:none;">
+    <div class="profile-boost-left" style="width:100%;">
+
+        <div class="profile-grid">
+            <div class="profile-box">
+                <div class="profile-box-label">Reward</div>
+                <div class="profile-box-value" id="settingsRewardBalance">0.000</div>
+            </div>
+
+            <div class="profile-box">
+                <div class="profile-box-label">Wallet</div>
+                <div class="profile-box-value" id="settingsRewardWallet">0.000</div>
+            </div>
+
+            <div class="profile-box">
+                <div class="profile-box-label">Pending</div>
+                <div class="profile-box-value" id="settingsWithdrawPending">0.000</div>
+            </div>
+        </div>
+
+        <!-- ❌ USUNIĘTY BLOK REWARD WALLET OPIS -->
+
+        <button id="settingsTransferRewardBtn" class="profile-close-btn" type="button" style="margin-top:12px;">
+            Transfer Reward
+        </button>
+
+        <button id="settingsRequestWithdrawBtn" class="profile-close-btn" type="button">
+            Withdraw Request
+        </button>
+
+        <div class="profile-boost-row" style="margin-top:12px;">
+            <div class="profile-boost-left" style="width:100%;">
+                <div class="profile-boost-label">Wybierz depozyt</div>
+                <div id="settingsDepositAmountOptions" style="margin-top:10px; display:flex; flex-wrap:wrap; gap:12px;"></div>
+            </div>
+        </div>
+
+        <button id="settingsCreateDepositBtn" class="profile-close-btn" type="button" style="margin-top:12px;">
+            Create Deposit
+        </button>
+
+        <div class="profile-boost-row" style="margin-top:12px;">
+            <div class="profile-boost-left" style="width:100%;">
+                <div class="profile-boost-label">Historia wypłat</div>
+                <div id="settingsWithdrawHistoryList" style="margin-top:10px;"></div>
+            </div>
+        </div>
+
+        <div class="profile-boost-row" style="margin-top:12px;">
+            <div class="profile-boost-left" style="width:100%;">
+                <div class="profile-boost-label">Historia wpłat</div>
+                <div id="settingsDepositsHistoryList" style="margin-top:10px;"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- (reszta Twojego pliku dalej BEZ ZMIAN – wszystkie scripty itd.) -->
+
+</body>
+</html>
+<link rel="stylesheet" href="css/zoo.css">
+    <link rel="stylesheet" href="css/shop.css">
+    <link rel="stylesheet" href="css/expeditions.css">
+    <link rel="stylesheet" href="css/ranking.css">
+    <link rel="stylesheet" href="css/menu.css">
+    <link rel="stylesheet" href="css/minigames-ui.css">
+    <link rel="stylesheet" href="css/responsive.css">
+
+    <style>
+        :root {
+            --menu-height: 110px;
+        }
+
         html,
         body {
             width: 100%;
@@ -143,7 +270,7 @@
     </style>
 </head>
 <body>
-    <div id="loading-screen">
+<div id="loading-screen">
         <div class="loading-visual">
             <div class="loading-image-wrap">
                 <img
@@ -219,8 +346,7 @@
             </button>
         </footer>
     </div>
-
-    <div id="profileModal" class="profile-modal hidden">
+<div id="profileModal" class="profile-modal hidden">
         <div class="profile-backdrop" id="profileBackdrop"></div>
 
         <div class="profile-card">
@@ -316,7 +442,9 @@
                         >-</div>
                     </div>
 
-                    <button id="copyReferralBtn" class="profile-close-btn" type="button" style="margin-top:10px;">Kopiuj link</button>
+                    <button id="copyReferralBtn" class="profile-close-btn" type="button" style="margin-top:10px;">
+                        Kopiuj link
+                    </button>
 
                     <div style="margin-top:12px;">
                         <div class="profile-box-label" style="margin-bottom:6px;">Nagrody referral</div>
@@ -335,11 +463,12 @@
                 </div>
             </div>
 
-            <button id="closeProfileBtn" class="profile-close-btn" type="button">Zamknij</button>
+            <button id="closeProfileBtn" class="profile-close-btn" type="button">
+                Zamknij
+            </button>
         </div>
     </div>
-
-    <div id="settingsModal" class="profile-modal hidden">
+<div id="settingsModal" class="profile-modal hidden">
         <div class="profile-backdrop" id="settingsBackdrop"></div>
 
         <div class="profile-card">
@@ -395,6 +524,7 @@
                 style="margin-top:12px; display:none;"
             >
                 <div class="profile-boost-left" style="width:100%;">
+
                     <div class="profile-grid">
                         <div class="profile-box">
                             <div class="profile-box-label">Reward</div>
@@ -412,15 +542,15 @@
                         </div>
                     </div>
 
-                    <div class="profile-boost-row" style="margin-top:12px;">
-                        <div class="profile-boost-left">
-                            <div class="profile-boost-label" id="langProfileRewardWalletTitle">Reward Wallet</div>
-                            <div class="profile-boost-value" id="langProfileRewardWalletDesc"></div>
-                        </div>
-                    </div>
+                    <!-- ❌ TU BYŁ TEN TEKST – USUNIĘTY -->
 
-                    <button id="settingsTransferRewardBtn" class="profile-close-btn" type="button" style="margin-top:12px;">Transfer Reward</button>
-                    <button id="settingsRequestWithdrawBtn" class="profile-close-btn" type="button">Withdraw Request</button>
+                    <button id="settingsTransferRewardBtn" class="profile-close-btn" type="button" style="margin-top:12px;">
+                        Transfer Reward
+                    </button>
+
+                    <button id="settingsRequestWithdrawBtn" class="profile-close-btn" type="button">
+                        Withdraw Request
+                    </button>
 
                     <div class="profile-boost-row" style="margin-top:12px;">
                         <div class="profile-boost-left" style="width:100%;">
@@ -432,7 +562,9 @@
                         </div>
                     </div>
 
-                    <button id="settingsCreateDepositBtn" class="profile-close-btn" type="button" style="margin-top:12px;">Create Deposit</button>
+                    <button id="settingsCreateDepositBtn" class="profile-close-btn" type="button" style="margin-top:12px;">
+                        Create Deposit
+                    </button>
 
                     <div class="profile-boost-row" style="margin-top:12px;">
                         <div class="profile-boost-left" style="width:100%;">
@@ -447,16 +579,18 @@
                             <div id="settingsDepositsHistoryList" style="margin-top:10px;"></div>
                         </div>
                     </div>
+
                 </div>
             </div>
 
             <div id="settingsFaqMount"></div>
 
-            <button id="closeSettingsBtn" class="profile-close-btn" type="button">Zamknij</button>
+            <button id="closeSettingsBtn" class="profile-close-btn" type="button">
+                Zamknij
+            </button>
         </div>
     </div>
-
-    <div id="dailyRewardModal" class="profile-modal hidden">
+<div id="dailyRewardModal" class="profile-modal hidden">
         <div class="profile-backdrop" id="dailyRewardBackdrop"></div>
 
         <div class="profile-card">
