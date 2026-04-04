@@ -60,21 +60,39 @@ CryptoZoo.ads = {
         }
     },
 
-    async requestOfflineRewardFromBackend() {
+    getPlayerPayload() {
+        const telegramUser = window.Telegram?.WebApp?.initDataUnsafe?.user || null;
+
         const playerId =
-            CryptoZoo.telegram?.getPlayerId?.() ||
-            CryptoZoo.state?.telegramId ||
-            CryptoZoo.state?.playerId ||
-            null;
+            String(
+                telegramUser?.id ||
+                CryptoZoo.state?.telegramId ||
+                CryptoZoo.state?.playerId ||
+                "local-player"
+            );
+
+        const username =
+            telegramUser?.username ||
+            telegramUser?.first_name ||
+            CryptoZoo.state?.username ||
+            "Gracz";
+
+        return {
+            playerId,
+            telegramId: playerId,
+            username
+        };
+    },
+
+    async requestOfflineRewardFromBackend() {
+        const payload = this.getPlayerPayload();
 
         const response = await fetch("/api/ads/reward-offline", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({
-                playerId
-            })
+            body: JSON.stringify(payload)
         });
 
         const data = await response.json().catch(() => ({}));
@@ -103,13 +121,13 @@ CryptoZoo.ads = {
 
             const result = await this.requestOfflineRewardFromBackend();
 
+            CryptoZoo.state = CryptoZoo.state || {};
+
             if (typeof result.offlineAdsHours === "number") {
-                CryptoZoo.state = CryptoZoo.state || {};
                 CryptoZoo.state.offlineAdsHours = result.offlineAdsHours;
             }
 
             if (typeof result.offlineAdsResetAt === "number") {
-                CryptoZoo.state = CryptoZoo.state || {};
                 CryptoZoo.state.offlineAdsResetAt = result.offlineAdsResetAt;
             }
 
