@@ -26,6 +26,7 @@ const depositRoutes = require("./routes/deposit-routes");
 const depositVerifierRoutes = require("./routes/deposit-verifier-routes");
 const rewardRoutes = require("./routes/reward-routes");
 const expeditionRoutes = require("./routes/expedition-routes");
+const adsRoutes = require("./routes/ads-routes");
 
 // 🔥 API ROUTING
 app.use("/api/health", healthRoutes);
@@ -37,6 +38,7 @@ app.use("/api/deposit", depositRoutes);
 app.use("/api/deposit-verifier", depositVerifierRoutes);
 app.use("/api/reward", rewardRoutes);
 app.use("/api/expedition", expeditionRoutes);
+app.use("/api/ads", adsRoutes);
 
 // 🖼️ STATIC FILES
 if (fs.existsSync(FRONTEND_DIR)) {
