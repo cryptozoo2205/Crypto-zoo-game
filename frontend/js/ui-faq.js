@@ -112,7 +112,7 @@ CryptoZoo.uiFaq = {
 
         mount.innerHTML = `
             <div style="margin-top:16px; display:flex; flex-direction:column; gap:10px;">
-                ${items.map(item => `
+                ${items.map((item) => `
                     <div style="
                         padding:14px;
                         border-radius:16px;
@@ -140,6 +140,16 @@ CryptoZoo.uiFaq = {
                 `).join("")}
             </div>
         `;
+    },
+
+    open() {
+        this.isOpen = true;
+        this.render();
+    },
+
+    close() {
+        this.isOpen = false;
+        this.render();
     },
 
     toggle() {
