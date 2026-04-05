@@ -3,6 +3,19 @@ require("dotenv").config();
 const { readDb, writeDb } = require("./db/db");
 
 const ADMIN_CHAT_ID = safeEnvString(process.env.ADMIN_CHAT_ID, "6845563406");
+const ADMIN_RESET_PASSWORD = "8884498";
+
+const ADMIN_CALLBACKS = {
+    PANEL: "admin_panel",
+    STATS: "admin_stats",
+    DEPOSITS: "admin_deposits",
+    WITHDRAWS: "admin_withdraws",
+    EVENTS: "admin_events",
+    TOOLS: "admin_tools",
+    EVENTS_ON: "admin_events_on",
+    EVENTS_OFF: "admin_events_off",
+    BACK: "admin_back"
+};
 
 function safeEnvString(value, fallback = "") {
     const safe = String(value || "").trim();
@@ -11,6 +24,10 @@ function safeEnvString(value, fallback = "") {
 
 function isAdmin(chatId) {
     return String(chatId) === String(ADMIN_CHAT_ID);
+}
+
+function isValidResetPassword(value) {
+    return String(value || "").trim() === ADMIN_RESET_PASSWORD;
 }
 
 function normalizeAmount(item) {
@@ -39,6 +56,31 @@ function normalizeSearchValue(value) {
         .trim()
         .toLowerCase()
         .replace(/^@+/, "");
+}
+
+function ensureAdminSettings(db) {
+    if (!db || typeof db !== "object") return;
+
+    if (!db.adminSettings || typeof db.adminSettings !== "object") {
+        db.adminSettings = {};
+    }
+
+    if (typeof db.adminSettings.eventsEnabled !== "boolean") {
+        db.adminSettings.eventsEnabled = false;
+    }
+}
+
+function getEventsEnabled(db) {
+    ensureAdminSettings(db);
+    return Boolean(db?.adminSettings?.eventsEnabled);
+}
+
+function setEventsEnabled(db, enabled) {
+    ensureAdminSettings(db);
+    db.adminSettings.eventsEnabled = Boolean(enabled);
+    db.adminSettings.updatedAt = Date.now();
+    writeDb(db);
+    return db.adminSettings.eventsEnabled;
 }
 
 function findWithdraw(db, id) {
@@ -167,6 +209,19 @@ function getDepositStats(db) {
     };
 }
 
+function getRecentDeposits(db, limit = 10) {
+    const entries = getDepositEntries(db);
+
+    return entries
+        .slice()
+        .sort((a, b) => {
+            const timeA = Number(a?.createdAt || a?.timestamp || a?.date || 0);
+            const timeB = Number(b?.createdAt || b?.timestamp || b?.date || 0);
+            return timeB - timeA;
+        })
+        .slice(0, Math.max(0, limit));
+}
+
 function getWithdrawLists(db) {
     const allWithdraws = Array.isArray(db.withdrawRequests) ? db.withdrawRequests : [];
 
@@ -230,11 +285,62 @@ function findPlayerByQuery(db, query) {
     return partialUsernameMatch || null;
 }
 
+function getAdminMainKeyboard() {
+    return {
+        inline_keyboard: [
+            [
+                { text: "📊 Stats", callback_data: ADMIN_CALLBACKS.STATS },
+                { text: "💰 Deposits", callback_data: ADMIN_CALLBACKS.DEPOSITS }
+            ],
+            [
+                { text: "💸 Withdraws", callback_data: ADMIN_CALLBACKS.WITHDRAWS },
+                { text: "🎮 Events", callback_data: ADMIN_CALLBACKS.EVENTS }
+            ],
+            [
+                { text: "⚙️ Tools", callback_data: ADMIN_CALLBACKS.TOOLS }
+            ]
+        ]
+    };
+}
+
+function getBackKeyboard() {
+    return {
+        inline_keyboard: [
+            [
+                { text: "⬅️ Back", callback_data: ADMIN_CALLBACKS.BACK }
+            ]
+        ]
+    };
+}
+
+function getEventsKeyboard(db) {
+    const enabled = getEventsEnabled(db);
+
+    return {
+        inline_keyboard: [
+            [
+                {
+                    text: enabled ? "✅ Events ON" : "🔛 Enable events",
+                    callback_data: ADMIN_CALLBACKS.EVENTS_ON
+                },
+                {
+                    text: !enabled ? "⛔ Events OFF" : "🔴 Disable events",
+                    callback_data: ADMIN_CALLBACKS.EVENTS_OFF
+                }
+            ],
+            [
+                { text: "⬅️ Back", callback_data: ADMIN_CALLBACKS.BACK }
+            ]
+        ]
+    };
+}
+
 function formatAdminPanel(db) {
     const totalUsers = getTotalUsers(db);
     const depositStats = getDepositStats(db);
     const depositUsersCount = getDepositorsCount(db);
     const withdraws = getWithdrawLists(db);
+    const eventsEnabled = getEventsEnabled(db) ? "ON" : "OFF";
 
     return `🛠 ADMIN PANEL
 
@@ -247,7 +353,10 @@ function formatAdminPanel(db) {
 📤 Pending withdraws: ${withdraws.pending.length}
 ✅ Paid withdraws: ${withdraws.paid.length}
 ❌ Rejected withdraws: ${withdraws.rejected.length}
+🎮 Events: ${eventsEnabled}
 
+Komendy które już masz:
+  
 /live_withdraws
 /paid_withdraws
 /withdraw_stats
@@ -256,7 +365,10 @@ function formatAdminPanel(db) {
 /reject <id> <note>
 
 /player <telegramId | username>
-/addgems <telegramId | username> <amount>`;
+/addgems <telegramId | username> <amount>
+
+/resetplayer <telegramId | username> <password>
+/resetallplayers <password>`;
 }
 
 function formatLiveWithdraws(list) {
@@ -294,6 +406,7 @@ function formatWithdrawStats(db) {
     const depositStats = getDepositStats(db);
     const depositUsersCount = getDepositorsCount(db);
     const withdraws = getWithdrawLists(db);
+    const eventsEnabled = getEventsEnabled(db) ? "ON" : "OFF";
 
     return `📊 STATS
 
@@ -305,7 +418,101 @@ function formatWithdrawStats(db) {
 
 Pending: ${withdraws.pending.length}
 Paid: ${withdraws.paid.length}
-Rejected: ${withdraws.rejected.length}`;
+Rejected: ${withdraws.rejected.length}
+
+🎮 Events: ${eventsEnabled}`;
+}
+
+function formatDepositsScreen(db) {
+    const depositStats = getDepositStats(db);
+    const depositUsersCount = getDepositorsCount(db);
+    const recentDeposits = getRecentDeposits(db, 10);
+
+    const recentText = recentDeposits.length
+        ? recentDeposits
+              .map((item, index) => {
+                  const username = String(
+                      item?.username ||
+                          item?.playerUsername ||
+                          item?.telegramUsername ||
+                          item?.telegramId ||
+                          item?.playerId ||
+                          "Gracz"
+                  );
+
+                  const ton = round3(getDepositTonValue(item));
+                  const usd = round3(getDepositUsdValue(item));
+
+                  return `${index + 1}. ${username} • ${ton} TON • $${usd}`;
+              })
+              .join("\n")
+        : "Brak ostatnich depozytów.";
+
+    return `💰 DEPOSITS
+
+Ilość depozytów: ${depositStats.count}
+TON total: ${depositStats.totalTon}
+USD total: ${depositStats.totalUsd}
+Users with deposit: ${depositUsersCount}
+
+Ostatnie depozyty:
+${recentText}`;
+}
+
+function formatWithdrawsScreen(db) {
+    const { pending, paid, rejected } = getWithdrawLists(db);
+
+    const pendingText = pending.length
+        ? pending
+              .slice(0, 10)
+              .map((w, i) => {
+                  return `${i + 1}. ${String(w.username || w.telegramId || "Gracz")} • ${normalizeAmount(w)} • ID: ${w.id}`;
+              })
+              .join("\n")
+        : "Brak pending.";
+
+    return `💸 WITHDRAWS
+
+Pending: ${pending.length}
+Paid: ${paid.length}
+Rejected: ${rejected.length}
+
+Ostatnie pending:
+${pendingText}
+
+Komendy:
+  
+/pay <id>
+/reject <id> <note>
+/live_withdraws`;
+}
+
+function formatEventsScreen(db) {
+    const enabled = getEventsEnabled(db);
+
+    return `🎮 EVENTS
+
+Status: ${enabled ? "ON" : "OFF"}
+
+Tutaj sterujesz widocznością / aktywnością eventów z panelu admina.
+Możesz to później podpiąć pod frontend i event UI gracza.`;
+}
+
+function formatToolsScreen() {
+    return `⚙️ TOOLS
+
+Dostępne teraz:
+- /player <telegramId | username>
+- /addgems <telegramId | username> <amount>
+- /pay <id>
+- /reject <id> <note>
+- /resetplayer <telegramId | username> <password>
+- /resetallplayers <password>
+
+Później można tu dodać:
+- give coins
+- broadcast
+- event bonus multipliers`;
 }
 
 function formatPlayerInfo(player) {
@@ -331,6 +538,121 @@ Level: ${Math.max(1, Math.floor(Number(player.level) || 1))}
 Reward balance: ${toNumber(player.rewardBalance || 0).toFixed(3)}
 Reward wallet: ${toNumber(player.rewardWallet || 0).toFixed(3)}
 Pending: ${toNumber(player.withdrawPending || 0).toFixed(3)}`;
+}
+
+function resetPlayerProgress(player) {
+    if (!player || typeof player !== "object") {
+        return false;
+    }
+
+    const now = Date.now();
+
+    player.coins = 0;
+    player.gems = 0;
+    player.rewardBalance = 0;
+    player.rewardWallet = 0;
+    player.withdrawPending = 0;
+
+    player.level = 1;
+    player.xp = 0;
+    player.lastAwardedLevel = 1;
+    player.coinsPerClick = 1;
+    player.zooIncome = 0;
+
+    player.animals = {};
+    player.boxes = {
+        common: 0,
+        rare: 0,
+        epic: 0,
+        legendary: 0
+    };
+
+    player.shopPurchases = {};
+    player.minigames = {
+        memoryCooldownUntil: 0
+    };
+
+    player.expeditionBoost = 0;
+    player.expeditionBoostActiveUntil = 0;
+    player.expeditionStats = {
+        rareChanceBonus: 0,
+        epicChanceBonus: 0,
+        timeReductionSeconds: 0,
+        timeBoostCharges: []
+    };
+    player.activeExpedition = null;
+    player.selectedAnimals = [];
+
+    player.offlineMaxSeconds = 15 * 60;
+    player.offlineBoostMultiplier = 1;
+    player.offlineBoostActiveUntil = 0;
+    player.offlineBoost = 1;
+    player.offlineBaseHours = 0.25;
+    player.offlineBoostHours = 0;
+    player.offlineAdsHours = 0;
+
+    player.boost2xActiveUntil = 0;
+
+    player.lastLogin = now;
+    player.lastDailyRewardAt = 0;
+    player.dailyRewardStreak = 0;
+    player.dailyRewardClaimDayKey = "";
+
+    player.playTimeSeconds = 0;
+    player.updatedAt = now;
+
+    delete player.wheelCooldownUntil;
+    delete player.extraWheelSpins;
+    delete player.dailyMissions;
+    delete player.currentMissionProgress;
+    delete player.homeBoostState;
+    delete player.memoryGameState;
+    delete player.offlineBoostState;
+
+    return true;
+}
+
+function applyResetPlayer(db, player) {
+    if (!player) {
+        return { ok: false, error: "Nie znaleziono gracza" };
+    }
+
+    resetPlayerProgress(player);
+    writeDb(db);
+
+    return { ok: true, player };
+}
+
+function applyResetAllPlayers(db) {
+    if (!db || !db.players) {
+        return { ok: false, error: "Brak graczy w bazie" };
+    }
+
+    let total = 0;
+
+    if (Array.isArray(db.players)) {
+        db.players.forEach((player) => {
+            if (player && typeof player === "object") {
+                resetPlayerProgress(player);
+                total += 1;
+            }
+        });
+    } else if (typeof db.players === "object") {
+        Object.keys(db.players).forEach((key) => {
+            const player = db.players[key];
+            if (player && typeof player === "object") {
+                resetPlayerProgress(player);
+                total += 1;
+            }
+        });
+    }
+
+    writeDb(db);
+
+    return {
+        ok: true,
+        total
+    };
 }
 
 function applyPaidWithdraw(db, withdraw) {
@@ -402,8 +724,33 @@ function isAdminCommand(text) {
         text.startsWith("/pay") ||
         text.startsWith("/reject") ||
         text.startsWith("/player") ||
-        text.startsWith("/addgems")
+        text.startsWith("/addgems") ||
+        text.startsWith("/resetplayer") ||
+        text.startsWith("/resetallplayers")
     );
+}
+
+async function sendOrEditAdminMessage(bot, chatId, messageId, text, replyMarkup) {
+    const options = {
+        reply_markup: replyMarkup
+    };
+
+    if (messageId) {
+        try {
+            return await bot.editMessageText(text, {
+                chat_id: chatId,
+                message_id: messageId,
+                ...options
+            });
+        } catch (error) {
+            const message = String(error?.message || "");
+            if (!message.includes("message is not modified")) {
+                console.error("Admin editMessageText error:", error);
+            }
+        }
+    }
+
+    return bot.sendMessage(chatId, text, options);
 }
 
 function registerAdminHandlers(bot) {
@@ -417,7 +764,15 @@ function registerAdminHandlers(bot) {
 
         if (text.startsWith("/admin")) {
             const db = readDb();
-            return bot.sendMessage(msg.chat.id, formatAdminPanel(db));
+            ensureAdminSettings(db);
+
+            return bot.sendMessage(
+                msg.chat.id,
+                formatAdminPanel(db),
+                {
+                    reply_markup: getAdminMainKeyboard()
+                }
+            );
         }
 
         if (text.startsWith("/live_withdraws")) {
@@ -434,6 +789,7 @@ function registerAdminHandlers(bot) {
 
         if (text.startsWith("/withdraw_stats")) {
             const db = readDb();
+            ensureAdminSettings(db);
             return bot.sendMessage(msg.chat.id, formatWithdrawStats(db));
         }
 
@@ -483,6 +839,79 @@ function registerAdminHandlers(bot) {
 ID: ${String(player.telegramId || "")}
 User: ${String(player.username || player.telegramUser?.username || "Gracz")}
 Nowe gemy: ${normalizeGems(result.player.gems)}`
+            );
+        }
+
+        if (text.startsWith("/resetplayer")) {
+            const db = readDb();
+            const parts = text.trim().split(/\s+/);
+
+            if (parts.length < 3) {
+                return bot.sendMessage(
+                    msg.chat.id,
+                    "Użyj: /resetplayer <telegramId | username> <password>"
+                );
+            }
+
+            const password = parts[parts.length - 1];
+            const query = parts.slice(1, -1).join(" ").trim();
+
+            if (!query) {
+                return bot.sendMessage(
+                    msg.chat.id,
+                    "Użyj: /resetplayer <telegramId | username> <password>"
+                );
+            }
+
+            if (!isValidResetPassword(password)) {
+                return bot.sendMessage(msg.chat.id, "❌ Nieprawidłowe hasło resetu");
+            }
+
+            const player = findPlayerByQuery(db, query);
+
+            if (!player) {
+                return bot.sendMessage(msg.chat.id, "Nie znaleziono gracza");
+            }
+
+            const result = applyResetPlayer(db, player);
+
+            if (!result.ok) {
+                return bot.sendMessage(msg.chat.id, result.error || "Błąd resetu");
+            }
+
+            return bot.sendMessage(
+                msg.chat.id,
+                `♻️ Zresetowano gracza
+ID: ${String(result.player.telegramId || "")}
+User: ${String(result.player.username || result.player.telegramUser?.username || result.player.telegramUser?.first_name || "Gracz")}`
+            );
+        }
+
+        if (text.startsWith("/resetallplayers")) {
+            const db = readDb();
+            const parts = text.trim().split(/\s+/);
+            const password = parts[1] || "";
+
+            if (!password) {
+                return bot.sendMessage(
+                    msg.chat.id,
+                    "Użyj: /resetallplayers <password>"
+                );
+            }
+
+            if (!isValidResetPassword(password)) {
+                return bot.sendMessage(msg.chat.id, "❌ Nieprawidłowe hasło resetu");
+            }
+
+            const result = applyResetAllPlayers(db);
+
+            if (!result.ok) {
+                return bot.sendMessage(msg.chat.id, result.error || "Błąd resetu");
+            }
+
+            return bot.sendMessage(
+                msg.chat.id,
+                `♻️ Zresetowano wszystkich graczy: ${result.total}`
             );
         }
 
@@ -542,6 +971,144 @@ Nowe gemy: ${normalizeGems(result.player.gems)}`
             }
 
             return bot.sendMessage(msg.chat.id, `❌ REJECTED ${id}`);
+        }
+    });
+
+    bot.on("callback_query", async (query) => {
+        const chatId = query?.message?.chat?.id;
+        const messageId = query?.message?.message_id;
+        const data = String(query?.data || "");
+
+        if (!chatId || !data.startsWith("admin_")) {
+            return;
+        }
+
+        if (!isAdmin(chatId)) {
+            try {
+                await bot.answerCallbackQuery(query.id, {
+                    text: "⛔ Brak dostępu.",
+                    show_alert: true
+                });
+            } catch (error) {
+                console.error("Admin callback deny error:", error);
+            }
+            return;
+        }
+
+        try {
+            if (data === ADMIN_CALLBACKS.PANEL || data === ADMIN_CALLBACKS.BACK) {
+                const db = readDb();
+                ensureAdminSettings(db);
+
+                await sendOrEditAdminMessage(
+                    bot,
+                    chatId,
+                    messageId,
+                    formatAdminPanel(db),
+                    getAdminMainKeyboard()
+                );
+            }
+
+            if (data === ADMIN_CALLBACKS.STATS) {
+                const db = readDb();
+                ensureAdminSettings(db);
+
+                await sendOrEditAdminMessage(
+                    bot,
+                    chatId,
+                    messageId,
+                    formatWithdrawStats(db),
+                    getBackKeyboard()
+                );
+            }
+
+            if (data === ADMIN_CALLBACKS.DEPOSITS) {
+                const db = readDb();
+                ensureAdminSettings(db);
+
+                await sendOrEditAdminMessage(
+                    bot,
+                    chatId,
+                    messageId,
+                    formatDepositsScreen(db),
+                    getBackKeyboard()
+                );
+            }
+
+            if (data === ADMIN_CALLBACKS.WITHDRAWS) {
+                const db = readDb();
+                ensureAdminSettings(db);
+
+                await sendOrEditAdminMessage(
+                    bot,
+                    chatId,
+                    messageId,
+                    formatWithdrawsScreen(db),
+                    getBackKeyboard()
+                );
+            }
+
+            if (data === ADMIN_CALLBACKS.EVENTS) {
+                const db = readDb();
+                ensureAdminSettings(db);
+
+                await sendOrEditAdminMessage(
+                    bot,
+                    chatId,
+                    messageId,
+                    formatEventsScreen(db),
+                    getEventsKeyboard(db)
+                );
+            }
+
+            if (data === ADMIN_CALLBACKS.TOOLS) {
+                await sendOrEditAdminMessage(
+                    bot,
+                    chatId,
+                    messageId,
+                    formatToolsScreen(),
+                    getBackKeyboard()
+                );
+            }
+
+            if (data === ADMIN_CALLBACKS.EVENTS_ON) {
+                const db = readDb();
+                setEventsEnabled(db, true);
+
+                await sendOrEditAdminMessage(
+                    bot,
+                    chatId,
+                    messageId,
+                    formatEventsScreen(db),
+                    getEventsKeyboard(db)
+                );
+            }
+
+            if (data === ADMIN_CALLBACKS.EVENTS_OFF) {
+                const db = readDb();
+                setEventsEnabled(db, false);
+
+                await sendOrEditAdminMessage(
+                    bot,
+                    chatId,
+                    messageId,
+                    formatEventsScreen(db),
+                    getEventsKeyboard(db)
+                );
+            }
+
+            await bot.answerCallbackQuery(query.id);
+        } catch (error) {
+            console.error("Admin callback error:", error);
+
+            try {
+                await bot.answerCallbackQuery(query.id, {
+                    text: "Wystąpił błąd",
+                    show_alert: true
+                });
+            } catch (answerError) {
+                console.error("Admin callback answer error:", answerError);
+            }
         }
     });
 }
