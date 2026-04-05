@@ -55,6 +55,12 @@ CryptoZoo.minigames = {
 
     memoryDifficultyStorageKey: "cryptozoo_memory_difficulty",
 
+    unlockLevels: {
+        memory: 5,
+        tapChallenge: 7,
+        animalHunt: 10
+    },
+
     getLanguage() {
         return CryptoZoo.lang?.current || "en";
     },
@@ -125,7 +131,10 @@ CryptoZoo.minigames = {
                 animalHuntGreat: "Great hunt",
                 animalHuntMaster: "Master hunter",
                 animalHuntNice: "Nice run",
-                animalHuntRewardToast: "Animal Hunt reward"
+                animalHuntRewardToast: "Animal Hunt reward",
+
+                unlockAtLevel: "Unlocks at level",
+                minigameLocked: "This minigame unlocks at level"
             },
             pl: {
                 startMemory: "Start Memory",
@@ -189,11 +198,34 @@ CryptoZoo.minigames = {
                 animalHuntGreat: "Świetne polowanie",
                 animalHuntMaster: "Mistrz łowów",
                 animalHuntNice: "Dobry wynik",
-                animalHuntRewardToast: "Nagroda Animal Hunt"
+                animalHuntRewardToast: "Nagroda Animal Hunt",
+
+                unlockAtLevel: "Odblokowanie na poziomie",
+                minigameLocked: "Ta minigra odblokowuje się na poziomie"
             }
         };
 
         return dict[lang]?.[key] || fallback || key;
+    },
+
+    getPlayerLevel() {
+        return Math.max(1, Math.floor(Number(CryptoZoo.state?.level) || 1));
+    },
+
+    getUnlockLevel(gameKey) {
+        return Math.max(1, Number(this.unlockLevels?.[gameKey]) || 1);
+    },
+
+    isUnlocked(gameKey) {
+        return this.getPlayerLevel() >= this.getUnlockLevel(gameKey);
+    },
+
+    getLockText(gameKey) {
+        return `${this.lt("minigameLocked", "Ta minigra odblokowuje się na poziomie")} ${this.getUnlockLevel(gameKey)}`;
+    },
+
+    showLockedToast(gameKey) {
+        CryptoZoo.ui?.showToast?.(this.getLockText(gameKey));
     },
 
     init() {
@@ -323,9 +355,15 @@ CryptoZoo.minigames = {
         const memoryStatus = document.getElementById("memoryStatus");
 
         const memoryLeft = this.getMemoryCooldownLeft?.() || 0;
+        const memoryUnlocked = this.isUnlocked("memory");
 
         if (memoryBtn) {
-            if (this.memorySessionActive) {
+            if (!memoryUnlocked) {
+                memoryBtn.disabled = true;
+                memoryBtn.textContent = `${this.lt("unlockAtLevel", "Odblokowanie na poziomie")} ${this.getUnlockLevel("memory")}`;
+                memoryBtn.style.opacity = "0.72";
+                memoryBtn.style.cursor = "not-allowed";
+            } else if (this.memorySessionActive) {
                 memoryBtn.disabled = false;
                 memoryBtn.textContent = this.lt("restartMemory", "Play Again");
                 memoryBtn.style.opacity = "1";
@@ -344,7 +382,9 @@ CryptoZoo.minigames = {
         }
 
         if (memoryStatus && this.memoryCards.length === 0) {
-            if (memoryLeft > 0) {
+            if (!memoryUnlocked) {
+                memoryStatus.textContent = this.getLockText("memory");
+            } else if (memoryLeft > 0) {
                 memoryStatus.textContent = `${this.lt("memoryReadyIn", "Memory ready in")} ${this.formatCooldown(memoryLeft)}`;
             } else {
                 memoryStatus.textContent = this.lt("findAllPairs", "Find all pairs");
@@ -363,6 +403,11 @@ CryptoZoo.minigames = {
             memoryBtn.onclick = () => {
                 CryptoZoo.audio?.play?.("click");
 
+                if (!this.isUnlocked("memory")) {
+                    this.showLockedToast("memory");
+                    return;
+                }
+
                 if (this.memorySessionActive || this.memoryCards.length > 0) {
                     this.resetMemoryBoard?.(true);
                 }
@@ -377,6 +422,12 @@ CryptoZoo.minigames = {
 
             tapBtn.onclick = (e) => {
                 e.preventDefault();
+
+                if (!this.isUnlocked("tapChallenge")) {
+                    this.showLockedToast("tapChallenge");
+                    return;
+                }
+
                 this.registerTapChallengePress?.(1);
             };
 
@@ -390,6 +441,12 @@ CryptoZoo.minigames = {
                 );
 
                 e.preventDefault();
+
+                if (!this.isUnlocked("tapChallenge")) {
+                    this.showLockedToast("tapChallenge");
+                    return;
+                }
+
                 this.registerTapChallengePress?.(amount);
             }, { passive: false });
         }
@@ -408,6 +465,12 @@ CryptoZoo.minigames = {
             animalHuntStartBtn.dataset.bound = "1";
             animalHuntStartBtn.onclick = () => {
                 CryptoZoo.audio?.play?.("click");
+
+                if (!this.isUnlocked("animalHunt")) {
+                    this.showLockedToast("animalHunt");
+                    return;
+                }
+
                 this.startAnimalHunt?.();
             };
         }
