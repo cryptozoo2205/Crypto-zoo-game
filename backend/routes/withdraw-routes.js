@@ -29,12 +29,34 @@ const {
 
 const router = express.Router();
 
+const MAX_TON_ADDRESS_LENGTH = 128;
+const MAX_NOTE_LENGTH = 500;
+const MAX_TX_HASH_LENGTH = 256;
+
+function ensureWithdrawCollections(db) {
+    db.withdrawRequests = Array.isArray(db.withdrawRequests) ? db.withdrawRequests : [];
+    db.players = db.players && typeof db.players === "object" ? db.players : {};
+    return db;
+}
+
+function sanitizeTonAddress(value) {
+    return safeString(value, "").trim().slice(0, MAX_TON_ADDRESS_LENGTH);
+}
+
+function sanitizeNote(value) {
+    return safeString(value, "").trim().slice(0, MAX_NOTE_LENGTH);
+}
+
+function sanitizeTxHash(value) {
+    return safeString(value, "").trim().slice(0, MAX_TX_HASH_LENGTH);
+}
+
 router.post("/api/withdraw/set-wallet", (req, res) => {
-    const db = readDb();
+    const db = ensureWithdrawCollections(readDb());
 
     const telegramId = safeString(req.body?.telegramId, "");
     const username = safeString(req.body?.username, "Gracz");
-    const tonAddress = safeString(req.body?.tonAddress || req.body?.address, "");
+    const tonAddress = sanitizeTonAddress(req.body?.tonAddress || req.body?.address);
 
     if (!telegramId) {
         return res.status(400).json({ error: "Missing telegramId" });
@@ -59,7 +81,7 @@ router.post("/api/withdraw/set-wallet", (req, res) => {
 });
 
 router.get("/api/withdraw/wallet/:telegramId", (req, res) => {
-    const db = readDb();
+    const db = ensureWithdrawCollections(readDb());
     const telegramId = safeString(req.params.telegramId, "");
 
     if (!telegramId) {
@@ -70,13 +92,13 @@ router.get("/api/withdraw/wallet/:telegramId", (req, res) => {
 
     return res.json({
         ok: true,
-        tonAddress: safeString(player.tonAddress, ""),
+        tonAddress: sanitizeTonAddress(player.tonAddress),
         player: normalizePlayer(player)
     });
 });
 
 router.post("/api/withdraw/request", async (req, res) => {
-    const db = readDb();
+    const db = ensureWithdrawCollections(readDb());
 
     const telegramId = safeString(req.body?.telegramId, "");
     const username = safeString(req.body?.username, "Gracz");
@@ -105,6 +127,12 @@ router.post("/api/withdraw/request", async (req, res) => {
     }
 
     const player = getPlayerOrCreate(db, telegramId, username);
+
+    if (!sanitizeTonAddress(player.tonAddress)) {
+        return res.status(400).json({
+            error: "Set TON wallet first"
+        });
+    }
 
     const pendingRequests = getPendingWithdrawsForPlayer(db, telegramId);
     if (pendingRequests.length > 0) {
@@ -136,7 +164,7 @@ router.post("/api/withdraw/request", async (req, res) => {
         telegramId,
         username: player.username || username,
         amount,
-        tonAddress: player.tonAddress
+        tonAddress: sanitizeTonAddress(player.tonAddress)
     });
 
     db.withdrawRequests.push(request);
@@ -163,10 +191,10 @@ router.post("/api/withdraw/request", async (req, res) => {
 });
 
 router.get("/api/withdraw/:telegramId", (req, res) => {
-    const db = readDb();
+    const db = ensureWithdrawCollections(readDb());
     const telegramId = String(req.params.telegramId || "");
 
-    const requests = (Array.isArray(db.withdrawRequests) ? db.withdrawRequests : [])
+    const requests = db.withdrawRequests
         .filter((item) => String(item.telegramId || "") === telegramId)
         .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
 
@@ -179,12 +207,12 @@ router.get("/api/withdraw/:telegramId", (req, res) => {
 router.post("/api/withdraw/update", async (req, res) => {
     if (!requireAdmin(req, res)) return;
 
-    const db = readDb();
+    const db = ensureWithdrawCollections(readDb());
 
     const requestId = safeString(req.body?.requestId, "");
     const nextStatus = safeString(req.body?.status, "").toLowerCase();
-    const note = safeString(req.body?.note, "");
-    const payoutTxHash = safeString(req.body?.payoutTxHash, "");
+    const note = sanitizeNote(req.body?.note);
+    const payoutTxHash = sanitizeTxHash(req.body?.payoutTxHash);
 
     if (!requestId) {
         return res.status(400).json({ error: "Missing requestId" });
