@@ -31,7 +31,7 @@ Object.assign(CryptoZoo.minigames, {
                 "
             >
                 <div style="padding:10px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); text-align:center;">
-                    <div style="font-size:11px; color:rgba(255,255,255,0.65);">${this.lt("time", "Time")}</div>
+                    <div style="font-size:11px; color:rgba(255,255,255,0.65);">${this.lt("time", "Czas")}</div>
                     <div id="animalHuntTimeText" style="font-size:18px; font-weight:900;">10.0</div>
                 </div>
                 <div style="padding:10px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); text-align:center;">
@@ -63,8 +63,8 @@ Object.assign(CryptoZoo.minigames, {
             <div
                 id="animalHuntStatus"
                 class="minigame-status"
-                style="margin-top:12px;"
-            >${this.lt("animalHuntSubtitle", "Łap zwierzęta zanim znikną")}</div>
+                style="margin-top:12px; display:none;"
+            ></div>
 
             <div
                 id="animalHuntResultBox"
@@ -203,12 +203,19 @@ Object.assign(CryptoZoo.minigames, {
         this.animalHuntStatusMessage = String(text || "");
         const status = document.getElementById("animalHuntStatus");
         if (status) {
-            status.textContent = this.animalHuntStatusMessage;
+            if (this.animalHuntStatusMessage) {
+                status.textContent = this.animalHuntStatusMessage;
+                status.style.display = "block";
+            } else {
+                status.textContent = "";
+                status.style.display = "none";
+            }
         }
     },
 
     renderAnimalHunt() {
         const startBtn = document.getElementById("animalHuntStartBtn");
+        const status = document.getElementById("animalHuntStatus");
         const timeText = document.getElementById("animalHuntTimeText");
         const scoreText = document.getElementById("animalHuntScoreText");
         const comboText = document.getElementById("animalHuntComboText");
@@ -257,6 +264,11 @@ Object.assign(CryptoZoo.minigames, {
             claimBtn.style.opacity = this.animalHuntResult ? "1" : "0.65";
         }
 
+        if (status) {
+            status.textContent = "";
+            status.style.display = "none";
+        }
+
         if (startBtn) {
             const cooldownLeft = this.getAnimalHuntCooldownLeft();
 
@@ -288,18 +300,6 @@ Object.assign(CryptoZoo.minigames, {
             }
         }
 
-        if (!this.animalHuntStatusMessage) {
-            if (!this.isUnlocked("animalHunt")) {
-                this.setAnimalHuntStatus(this.getLockText("animalHunt"));
-            } else if (this.animalHuntSessionActive) {
-                this.setAnimalHuntStatus(this.lt("animalHuntRunning", "Łap jak najwięcej zwierząt"));
-            } else if (this.getAnimalHuntCooldownLeft() > 0) {
-                this.setAnimalHuntStatus(`${this.lt("animalHuntReadyIn", "Animal Hunt gotowe za")} ${this.formatCooldown(this.getAnimalHuntCooldownLeft())}`);
-            } else {
-                this.setAnimalHuntStatus(this.lt("animalHuntSubtitle", "Łap zwierzęta zanim znikną"));
-            }
-        }
-
         this.renderAnimalHuntBoard();
     },
 
@@ -320,7 +320,6 @@ Object.assign(CryptoZoo.minigames, {
             if (cell.type !== "empty" && now >= Number(cell.expiresAt || 0)) {
                 if (!cell.clicked && (cell.type === "normal" || cell.type === "gold")) {
                     this.animalHuntCombo = 0;
-                    this.setAnimalHuntStatus(this.lt("animalHuntMissed", "Uciekło zwierzę"));
                 }
 
                 return {
@@ -385,7 +384,6 @@ Object.assign(CryptoZoo.minigames, {
         this.animalHuntResult = null;
         this.animalHuntStatusMessage = "";
 
-        this.setAnimalHuntStatus(this.lt("animalHuntRunning", "Łap jak najwięcej zwierząt"));
         this.renderAnimalHunt();
 
         this.spawnAnimalHuntCell();
@@ -421,18 +419,15 @@ Object.assign(CryptoZoo.minigames, {
             this.animalHuntScore += 1;
             this.animalHuntCombo += 1;
             this.animalHuntBestCombo = Math.max(this.animalHuntBestCombo, this.animalHuntCombo);
-            this.setAnimalHuntStatus(this.lt("animalHuntRunning", "Łap jak najwięcej zwierząt"));
             CryptoZoo.audio?.play?.("tap");
         } else if (cell.type === "gold") {
             this.animalHuntScore += 3;
             this.animalHuntCombo += 1;
             this.animalHuntBestCombo = Math.max(this.animalHuntBestCombo, this.animalHuntCombo);
-            this.setAnimalHuntStatus(`${this.lt("animalHuntGolden", "Złote zwierzę")} +3`);
             CryptoZoo.audio?.play?.("win");
         } else if (cell.type === "bomb") {
             this.animalHuntScore = Math.max(0, this.animalHuntScore - 2);
             this.animalHuntCombo = 0;
-            this.setAnimalHuntStatus(`${this.lt("animalHuntBomb", "Bomba")} -2`);
             CryptoZoo.audio?.play?.("click");
         }
 
@@ -498,7 +493,6 @@ Object.assign(CryptoZoo.minigames, {
         );
 
         this.resetAnimalHuntBoardState();
-        this.setAnimalHuntStatus(this.lt("animalHuntResultTitle", "Wynik polowania"));
         this.renderAnimalHunt();
     },
 
