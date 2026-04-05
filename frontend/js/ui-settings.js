@@ -785,6 +785,25 @@ CryptoZoo.uiSettings = {
                 this.openFaq();
             });
         }
+
+        const openSupportBtn = document.getElementById("openSupportBtn");
+        if (openSupportBtn && !openSupportBtn.dataset.bound) {
+            openSupportBtn.dataset.bound = "1";
+            openSupportBtn.addEventListener("click", () => {
+                CryptoZoo.audio?.play?.("click");
+
+                const tg = window.Telegram?.WebApp;
+                const url = "https://t.me/CryptoZooSupportBot";
+
+                CryptoZoo.ui?.showToast?.("Otwieranie supportu...");
+
+                if (tg?.openLink) {
+                    tg.openLink(url);
+                } else {
+                    window.open(url, "_blank");
+                }
+            });
+        }
     },
 
     bindSettingsModal() {
