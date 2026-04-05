@@ -24,33 +24,33 @@ Object.assign(CryptoZoo.minigames, {
                 pairs: 4,
                 moveLimit: 18,
                 previewMs: 2400,
-                coinsReward: 2200,
-                gemChance: 0.08,
+                coinsReward: 1200,
+                gemChance: 0.04,
                 targetTimeSeconds: 28,
-                timeBonusCoins: 300,
-                comboBonusPerStep: 90
+                timeBonusCoins: 180,
+                comboBonusPerStep: 45
             },
             medium: {
                 id: "medium",
                 pairs: 5,
                 moveLimit: 16,
                 previewMs: 2100,
-                coinsReward: 3000,
-                gemChance: 0.18,
+                coinsReward: 1800,
+                gemChance: 0.08,
                 targetTimeSeconds: 40,
-                timeBonusCoins: 500,
-                comboBonusPerStep: 130
+                timeBonusCoins: 260,
+                comboBonusPerStep: 60
             },
             hard: {
                 id: "hard",
                 pairs: 6,
                 moveLimit: 14,
                 previewMs: 1800,
-                coinsReward: 4200,
-                gemChance: 0.30,
+                coinsReward: 2600,
+                gemChance: 0.14,
                 targetTimeSeconds: 55,
-                timeBonusCoins: 800,
-                comboBonusPerStep: 180
+                timeBonusCoins: 420,
+                comboBonusPerStep: 85
             }
         };
     },
@@ -64,6 +64,7 @@ Object.assign(CryptoZoo.minigames, {
         const configs = this.getMemoryDifficultyConfigs();
         if (!configs[difficultyId]) return;
         if (this.memorySessionActive) return;
+        if (!this.isUnlocked("memory")) return;
 
         this.memoryDifficulty = difficultyId;
         this.saveMemoryDifficulty();
@@ -71,8 +72,8 @@ Object.assign(CryptoZoo.minigames, {
         this.renderCooldowns();
         this.setMemoryStatus(
             this.isMemoryReady()
-                ? this.lt("findAllPairs", "Find all pairs")
-                : `${this.lt("memoryReadyIn", "Memory ready in")} ${this.formatCooldown(this.getMemoryCooldownLeft())}`
+                ? this.lt("findAllPairs", "Znajdź wszystkie pary")
+                : `${this.lt("memoryReadyIn", "Memory gotowe za")} ${this.formatCooldown(this.getMemoryCooldownLeft())}`
         );
     },
 
@@ -96,17 +97,18 @@ Object.assign(CryptoZoo.minigames, {
 
         const configs = this.getMemoryDifficultyConfigs();
         const current = this.memoryDifficulty;
+        const unlocked = this.isUnlocked("memory");
 
         mount.className = "memory-mode-bar";
         mount.innerHTML = `
-            <div class="memory-mode-label">${this.lt("mode", "Mode")}</div>
+            <div class="memory-mode-label">${this.lt("mode", "Tryb")}</div>
             <div class="memory-mode-buttons">
                 ${Object.keys(configs).map((key) => `
                     <button
                         type="button"
                         class="memory-mode-btn ${current === key ? "is-active" : ""}"
                         data-memory-mode="${key}"
-                        ${this.memorySessionActive ? "disabled" : ""}
+                        ${this.memorySessionActive || !unlocked ? "disabled" : ""}
                     >
                         ${this.lt(key, key)}
                     </button>
@@ -149,6 +151,8 @@ Object.assign(CryptoZoo.minigames, {
 
         CryptoZoo.state.minigames.memoryCooldownUntil =
             Date.now() + duration * 1000;
+
+        CryptoZoo.api?.savePlayer?.();
     },
 
     createMemoryDeck(pairCount) {
@@ -208,15 +212,15 @@ Object.assign(CryptoZoo.minigames, {
         hud.className = "memory-hud";
         hud.innerHTML = `
             <div class="memory-stat-chip">
-                <span class="memory-stat-label">${this.lt("moves", "Moves")}</span>
+                <span class="memory-stat-label">${this.lt("moves", "Ruchy")}</span>
                 <span class="memory-stat-value">${CryptoZoo.formatNumber(this.memoryMoves)}/${CryptoZoo.formatNumber(this.memoryMoveLimit)}</span>
             </div>
             <div class="memory-stat-chip">
-                <span class="memory-stat-label">${this.lt("time", "Time")}</span>
+                <span class="memory-stat-label">${this.lt("time", "Czas")}</span>
                 <span class="memory-stat-value">${elapsed}</span>
             </div>
             <div class="memory-stat-chip">
-                <span class="memory-stat-label">${this.lt("pairs", "Pairs")}</span>
+                <span class="memory-stat-label">${this.lt("pairs", "Pary")}</span>
                 <span class="memory-stat-value">${pairsDone}/${pairsTotal}</span>
             </div>
             <div class="memory-stat-chip">
@@ -300,11 +304,15 @@ Object.assign(CryptoZoo.minigames, {
         this.renderMemoryDifficultyBar();
 
         if (!silent) {
-            this.setMemoryStatus(
-                this.isMemoryReady()
-                    ? this.lt("findAllPairs", "Find all pairs")
-                    : `${this.lt("memoryReadyIn", "Memory ready in")} ${this.formatCooldown(this.getMemoryCooldownLeft())}`
-            );
+            if (!this.isUnlocked("memory")) {
+                this.setMemoryStatus(this.getLockText("memory"));
+            } else {
+                this.setMemoryStatus(
+                    this.isMemoryReady()
+                        ? this.lt("findAllPairs", "Znajdź wszystkie pary")
+                        : `${this.lt("memoryReadyIn", "Memory gotowe za")} ${this.formatCooldown(this.getMemoryCooldownLeft())}`
+                );
+            }
         }
 
         this.renderCooldowns();
@@ -321,9 +329,14 @@ Object.assign(CryptoZoo.minigames, {
     startMemory() {
         if (!this.isMiniGamesVisible()) return;
 
+        if (!this.isUnlocked("memory")) {
+            this.showLockedToast("memory");
+            return;
+        }
+
         const memoryLeft = this.getMemoryCooldownLeft();
         if (memoryLeft > 0) {
-            CryptoZoo.ui?.showToast?.(`${this.lt("memoryReadyIn", "Memory ready in")} ${this.formatCooldown(memoryLeft)}`);
+            CryptoZoo.ui?.showToast?.(`${this.lt("memoryReadyIn", "Memory gotowe za")} ${this.formatCooldown(memoryLeft)}`);
             this.renderCooldowns();
             return;
         }
@@ -351,7 +364,7 @@ Object.assign(CryptoZoo.minigames, {
 
         this.renderMemory();
         this.renderCooldowns();
-        this.setMemoryStatus(`${this.lt("previewMemory", "Preview cards...")} • ${this.lt(config.id, config.id)}`);
+        this.setMemoryStatus(`${this.lt("previewMemory", "Podgląd kart...")} • ${this.lt(config.id, config.id)}`);
 
         this.memoryPreviewTimeout = setTimeout(() => {
             this.memoryCards.forEach((card) => {
@@ -362,7 +375,7 @@ Object.assign(CryptoZoo.minigames, {
             this.renderMemory();
             this.renderMemoryHud();
             this.startMemoryTimer();
-            this.setMemoryStatus(this.lt("findAllPairs", "Find all pairs"));
+            this.setMemoryStatus(this.lt("findAllPairs", "Znajdź wszystkie pary"));
         }, config.previewMs);
     },
 
@@ -372,10 +385,10 @@ Object.assign(CryptoZoo.minigames, {
         this.startMemoryCooldown(this.memoryFailCooldownSeconds);
         this.clearMemoryTimers();
         this.renderMemoryHud();
-        this.setMemoryStatus(`${this.lt("memoryFailed", "Memory failed")} • ${this.lt("noMovesLeft", "No moves left")}`);
+        this.setMemoryStatus(`${this.lt("memoryFailed", "Memory przegrane")} • ${this.lt("noMovesLeft", "Brak ruchów")}`);
 
         CryptoZoo.audio?.play?.("click");
-        CryptoZoo.ui?.showToast?.(`❌ ${this.lt("noMovesLeft", "No moves left")}`);
+        CryptoZoo.ui?.showToast?.(`❌ ${this.lt("noMovesLeft", "Brak ruchów")}`);
 
         this.memoryPreviewTimeout = setTimeout(() => {
             this.resetMemoryBoard(true);
@@ -418,24 +431,24 @@ Object.assign(CryptoZoo.minigames, {
         this.renderMemoryHud();
 
         const summaryPrefix = this.memoryMoves <= this.memoryPairsTotal * 2
-            ? this.lt("perfectRun", "Perfect run")
-            : this.lt("greatJob", "Great job");
+            ? this.lt("perfectRun", "Perfekcyjna runda")
+            : this.lt("greatJob", "Dobra robota");
 
         const bonusParts = [];
         if (timeBonus > 0) {
-            bonusParts.push(`${this.lt("timeBonus", "Time bonus")} +${CryptoZoo.formatNumber(timeBonus)}`);
+            bonusParts.push(`${this.lt("timeBonus", "Bonus czasu")} +${CryptoZoo.formatNumber(timeBonus)}`);
         }
         if (comboBonus > 0) {
-            bonusParts.push(`${this.lt("comboBonus", "Combo bonus")} +${CryptoZoo.formatNumber(comboBonus)}`);
+            bonusParts.push(`${this.lt("comboBonus", "Bonus combo")} +${CryptoZoo.formatNumber(comboBonus)}`);
         }
         if (gemWon) {
-            bonusParts.push(this.lt("gemWon", "Gem won"));
+            bonusParts.push(this.lt("gemWon", "Wygrany gem"));
         }
 
         this.setMemoryStatus(
             bonusParts.length > 0
-                ? `${this.lt("memoryCompletedTitle", "Completed!")} • ${summaryPrefix} • ${bonusParts.join(" • ")}`
-                : `${this.lt("memoryCompletedTitle", "Completed!")} • ${summaryPrefix}`
+                ? `${this.lt("memoryCompletedTitle", "Ukończono!")} • ${summaryPrefix} • ${bonusParts.join(" • ")}`
+                : `${this.lt("memoryCompletedTitle", "Ukończono!")} • ${summaryPrefix}`
         );
 
         const toastParts = [`+${CryptoZoo.formatNumber(totalCoins)} Coins`];
@@ -444,7 +457,7 @@ Object.assign(CryptoZoo.minigames, {
         }
 
         CryptoZoo.audio?.play?.("win");
-        CryptoZoo.ui?.showToast?.(`🎉 ${this.lt("memoryRewardToast", "Memory reward")}: ${toastParts.join(" • ")}`);
+        CryptoZoo.ui?.showToast?.(`🎉 ${this.lt("memoryRewardToast", "Nagroda Memory")}: ${toastParts.join(" • ")}`);
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
 
@@ -455,6 +468,7 @@ Object.assign(CryptoZoo.minigames, {
 
     flipMemoryCard(cardId) {
         if (!this.isMiniGamesVisible()) return;
+        if (!this.isUnlocked("memory")) return;
         if (this.memoryLocked) return;
         if (!this.isMemoryReady() && this.memoryCards.length === 0) return;
 
@@ -515,7 +529,7 @@ Object.assign(CryptoZoo.minigames, {
                     return;
                 }
 
-                this.setMemoryStatus(this.lt("findAllPairs", "Find all pairs"));
+                this.setMemoryStatus(this.lt("findAllPairs", "Znajdź wszystkie pary"));
             }, 780);
         }
     }
