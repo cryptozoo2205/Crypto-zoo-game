@@ -142,7 +142,7 @@ CryptoZoo.shopSystem = {
         if (gemPrice > 0) {
             return {
                 label: "Koszt",
-                value: `${CryptoZoo.formatNumber(gemPrice)} gem`,
+                value: `${CryptoZoo.formatNumber(gemPrice)} gemy`,
                 type: "gems",
                 amount: gemPrice
             };
@@ -195,7 +195,7 @@ CryptoZoo.shopSystem = {
         return true;
     },
 
-    applyExpeditionRewardUpgrade(item) {
+    applyExpeditionRewardUpgrade() {
         this.ensurePurchaseState();
 
         if (!this.canBuyDailyBoost()) {
@@ -264,7 +264,7 @@ CryptoZoo.shopSystem = {
         const count = CryptoZoo.expeditions?.getTimeBoostChargesCount?.() || 0;
         const label = CryptoZoo.ui?.formatDurationLabel?.(reductionSeconds) || `${reductionSeconds}s`;
 
-        return `+1 boost czasu ekspedycji (${label}) • Charges: ${CryptoZoo.formatNumber(count)}`;
+        return `+1 boost czasu ekspedycji (${label}) • Ładunki: ${CryptoZoo.formatNumber(count)}`;
     },
 
     applyOfflineBoost() {
@@ -325,7 +325,7 @@ CryptoZoo.shopSystem = {
             const priceMeta = this.getCurrentPriceMeta(item);
             const text =
                 priceMeta.type === "gems"
-                    ? `Potrzebujesz ${CryptoZoo.formatNumber(priceMeta.amount)} gem`
+                    ? `Potrzebujesz ${CryptoZoo.formatNumber(priceMeta.amount)} gemów`
                     : `Potrzebujesz ${CryptoZoo.formatNumber(priceMeta.amount)} coins`;
 
             CryptoZoo.ui?.showToast?.(text);
