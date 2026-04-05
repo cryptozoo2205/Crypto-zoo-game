@@ -340,12 +340,12 @@ CryptoZoo.config = {
         {
             id: "expedition1",
             name: "Daily Expedition Boost",
-            namePl: "Dzienny Boost Ekspedycji",
+            namePl: "Lepszy Ekwipunek Ekspedycji",
             nameEn: "Daily Expedition Boost",
             desc: "+25% reward z ekspedycji przez 24h",
             descPl: "+25% reward z ekspedycji przez 24h",
             descEn: "+25% expedition reward for 24h",
-            price: 25000,
+            gemPrice: 2,
             priceScale: 1,
             type: "expedition",
             expeditionBonus: 0.25
