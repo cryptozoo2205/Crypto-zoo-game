@@ -136,15 +136,32 @@ function rollRewardRarity(player, expedition) {
     return "common";
 }
 
+function getRarityCoinsMultiplier(rewardRarity) {
+    if (rewardRarity === "rare") return 1.35;
+    if (rewardRarity === "epic") return 1.95;
+    return 1;
+}
+
+function getRarityRewardBalanceMultiplier(rewardRarity) {
+    if (rewardRarity === "rare") return 1.35;
+    if (rewardRarity === "epic") return 1.9;
+    return 1;
+}
+
 function getCoinsReward(player, expedition, rewardRarity) {
     const baseCoins = Math.max(0, Number(expedition?.baseCoins) || 0);
     const boostMultiplier = getTotalExpeditionRewardMultiplier(player);
-
-    let rarityMultiplier = 1;
-    if (rewardRarity === "rare") rarityMultiplier = 1.35;
-    if (rewardRarity === "epic") rarityMultiplier = 1.95;
+    const rarityMultiplier = getRarityCoinsMultiplier(rewardRarity);
 
     return Math.max(0, Math.floor(baseCoins * rarityMultiplier * boostMultiplier));
+}
+
+function getMaxCoinsRewardForExpedition(expedition, rewardRarity) {
+    const baseCoins = Math.max(0, Number(expedition?.baseCoins) || 0);
+    const rarityMultiplier = getRarityCoinsMultiplier(normalizeRewardRarity(rewardRarity));
+    const theoreticalMaxBoostMultiplier = 2.0 * 1.25;
+
+    return Math.max(0, Math.floor(baseCoins * rarityMultiplier * theoreticalMaxBoostMultiplier));
 }
 
 function getGemsReward(expedition, rewardRarity) {
@@ -188,14 +205,30 @@ function getRewardBalanceAmount(player, expeditionState) {
     const hours = durationSeconds / 3600;
     const tierMultiplier = getRewardTierMultiplier(expeditionState?.id);
     const rewardRarity = normalizeRewardRarity(expeditionState?.rewardRarity);
-
-    let rarityMultiplier = 1;
-    if (rewardRarity === "rare") rarityMultiplier = 1.35;
-    if (rewardRarity === "epic") rarityMultiplier = 1.90;
-
+    const rarityMultiplier = getRarityRewardBalanceMultiplier(rewardRarity);
     const boostMultiplier = getTotalExpeditionRewardMultiplier(player);
 
     let reward = hours * 0.024 * tierMultiplier * rarityMultiplier * boostMultiplier;
+    reward = Math.min(reward, 1.5);
+
+    return Number(reward.toFixed(3));
+}
+
+function getMaxRewardBalanceAmount(expeditionState) {
+    const durationSeconds = Math.max(
+        60,
+        Number(expeditionState?.baseDuration) ||
+        Number(expeditionState?.duration) ||
+        60
+    );
+
+    const hours = durationSeconds / 3600;
+    const tierMultiplier = getRewardTierMultiplier(expeditionState?.id);
+    const rewardRarity = normalizeRewardRarity(expeditionState?.rewardRarity);
+    const rarityMultiplier = getRarityRewardBalanceMultiplier(rewardRarity);
+    const theoreticalMaxBoostMultiplier = 2.0 * 1.25;
+
+    let reward = hours * 0.024 * tierMultiplier * rarityMultiplier * theoreticalMaxBoostMultiplier;
     reward = Math.min(reward, 1.5);
 
     return Number(reward.toFixed(3));
@@ -235,6 +268,12 @@ function buildActiveExpedition(player, expedition, selectedAnimals = []) {
     const rewardRarity = rollRewardRarity(player, expedition);
     const rewardCoins = getCoinsReward(player, expedition, rewardRarity);
     const rewardGems = getGemsReward(expedition, rewardRarity);
+    const rewardBalance = getRewardBalanceAmount(player, {
+        id: expedition.id,
+        duration: baseDuration,
+        baseDuration,
+        rewardRarity
+    });
     const startCostCoins = Math.max(0, Math.floor(Number(expedition?.startCostCoins) || 0));
 
     return {
@@ -248,6 +287,7 @@ function buildActiveExpedition(player, expedition, selectedAnimals = []) {
         rewardRarity,
         rewardCoins,
         rewardGems,
+        rewardBalance,
         startCostCoins,
         selectedAnimals: normalizeSelectedAnimals(selectedAnimals),
         claimed: false,
@@ -303,6 +343,37 @@ function consumeBestTimeBoostCharge(player, remainingSeconds) {
     setTimeBoostCharges(player, charges);
 
     return bestApplied;
+}
+
+function sanitizeStoredCoinsReward(expeditionConfig, expeditionState) {
+    const maxAllowed = getMaxCoinsRewardForExpedition(
+        expeditionConfig,
+        expeditionState?.rewardRarity
+    );
+
+    return clamp(
+        Math.floor(Number(expeditionState?.rewardCoins) || 0),
+        0,
+        Math.max(0, maxAllowed)
+    );
+}
+
+function sanitizeStoredGemsReward(expeditionState) {
+    return clamp(
+        Math.floor(Number(expeditionState?.rewardGems) || 0),
+        0,
+        2
+    );
+}
+
+function sanitizeStoredRewardBalance(expeditionState) {
+    const maxAllowed = getMaxRewardBalanceAmount(expeditionState);
+
+    return clamp(
+        normalizeRewardNumber(expeditionState?.rewardBalance, 0),
+        0,
+        Math.max(0, maxAllowed)
+    );
 }
 
 router.post("/start", (req, res) => {
@@ -472,12 +543,17 @@ router.post("/collect", (req, res) => {
             return res.status(400).json({ error: "Expedition still in progress" });
         }
 
+        const expeditionConfig = getExpeditionById(expedition.id);
+        if (!expeditionConfig) {
+            return res.status(400).json({ error: "Expedition config not found" });
+        }
+
         expedition.claimed = true;
         expedition.collectedAt = Date.now();
 
-        const coins = Math.max(0, Number(expedition.rewardCoins) || 0);
-        const gems = Math.max(0, Number(expedition.rewardGems) || 0);
-        const rewardBalance = Math.max(0, getRewardBalanceAmount(player, expedition));
+        const coins = sanitizeStoredCoinsReward(expeditionConfig, expedition);
+        const gems = sanitizeStoredGemsReward(expedition);
+        const rewardBalance = sanitizeStoredRewardBalance(expedition);
 
         player.coins = clamp((Number(player.coins) || 0) + coins, 0, LIMITS.MAX_COINS);
         player.gems = clamp((Number(player.gems) || 0) + gems, 0, LIMITS.MAX_GEMS);
