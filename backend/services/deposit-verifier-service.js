@@ -9,6 +9,8 @@ const {
 const { LIMITS } = require("../config/game-config");
 
 const TONCENTER_BASE_URL = "https://toncenter.com/api/v2";
+const MAX_DEPOSIT_GEMS = 150;
+const MAX_DEPOSIT_AMOUNT = 100000;
 
 function getReceiverWalletAddress() {
     return safeString(
@@ -313,6 +315,21 @@ function attachApprovedDepositToPlayer(player, deposit, txHash) {
     return player;
 }
 
+function sanitizeApprovedDeposit(deposit) {
+    return {
+        amount: clamp(
+            normalizeRewardNumber(deposit?.amount, 0),
+            0,
+            MAX_DEPOSIT_AMOUNT
+        ),
+        gemsAmount: clamp(
+            Math.floor(Number(deposit?.gemsAmount) || 0),
+            0,
+            MAX_DEPOSIT_GEMS
+        )
+    };
+}
+
 function approveDepositInDb(db, deposit, tx) {
     db.players = db.players && typeof db.players === "object" ? db.players : {};
     db.deposits = Array.isArray(db.deposits) ? db.deposits : [];
@@ -355,13 +372,15 @@ function approveDepositInDb(db, deposit, tx) {
         };
     }
 
+    const approvedDeposit = sanitizeApprovedDeposit(safeDeposit);
+
     safeDeposit.status = "approved";
     safeDeposit.txHash = txHash;
     safeDeposit.note = safeString(safeDeposit.note, "") || "TON verified";
     safeDeposit.updatedAt = Date.now();
     safeDeposit.approvedAt = Date.now();
 
-    const gemsToAdd = Math.max(0, Number(safeDeposit.gemsAmount) || 0);
+    const gemsToAdd = approvedDeposit.gemsAmount;
 
     player.gems = clamp(
         Math.max(0, Number(player.gems || 0) + gemsToAdd),
@@ -371,10 +390,13 @@ function approveDepositInDb(db, deposit, tx) {
 
     player.expeditionBoost = applyDepositExpeditionBoost(
         Number(player.expeditionBoost) || 0,
-        Number(safeDeposit.amount) || 0
+        approvedDeposit.amount
     );
 
-    player.expeditionBoostActiveUntil = getExpeditionBoostActiveUntil();
+    player.expeditionBoostActiveUntil = getExpeditionBoostActiveUntil(
+        approvedDeposit.amount,
+        Date.now()
+    );
     player.updatedAt = Date.now();
 
     attachApprovedDepositToPlayer(player, safeDeposit, txHash);
