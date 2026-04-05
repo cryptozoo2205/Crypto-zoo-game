@@ -19,6 +19,6 @@ CryptoZoo.htmlLoader = {
     },
 
     async init() {
-        await this.load("game", "./partials/home.html");
+        await this.load("homeMount", "./partials/home.html");
     }
 };
