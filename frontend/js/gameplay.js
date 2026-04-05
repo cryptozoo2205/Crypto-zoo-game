@@ -8,8 +8,8 @@ CryptoZoo.gameplay = {
     touchBurstActive: false,
     touchReleaseTimer: null,
 
-    maxOfflineSeconds: 1 * 60 * 60,
-    baseOfflineHours: 1,
+    maxOfflineSeconds: 15 * 60,
+    baseOfflineHours: 0.25,
     maxOfflineHoursWithoutAds: 4,
     maxOfflineBoostHoursFromShop: 0,
     maxOfflineAdsHours: 12,
@@ -288,10 +288,10 @@ CryptoZoo.gameplay = {
         );
 
         CryptoZoo.state.offlineBaseHours = Math.max(
-            1,
+            0.25,
             Math.min(
                 this.maxOfflineHoursWithoutAds,
-                Math.floor(Number(CryptoZoo.state.offlineBaseHours) || this.baseOfflineHours)
+                Number(CryptoZoo.state.offlineBaseHours) || this.baseOfflineHours
             )
         );
 
@@ -385,10 +385,10 @@ CryptoZoo.gameplay = {
 
     getOfflineBaseHours() {
         return Math.max(
-            1,
+            0.25,
             Math.min(
                 this.maxOfflineHoursWithoutAds,
-                Math.floor(Number(CryptoZoo.state?.offlineBaseHours) || this.baseOfflineHours)
+                Number(CryptoZoo.state?.offlineBaseHours) || this.baseOfflineHours
             )
         );
     },
@@ -415,15 +415,15 @@ CryptoZoo.gameplay = {
     },
 
     getOfflineHoursWithoutAds() {
-        return Math.max(1, this.getOfflineBaseHours());
+        return Math.max(0.25, this.getOfflineBaseHours());
     },
 
     getOfflineHoursTotal() {
-        return Math.max(1, this.getOfflineHoursWithoutAds() + this.getOfflineAdsHours());
+        return Math.max(0.25, this.getOfflineHoursWithoutAds() + this.getOfflineAdsHours());
     },
 
     getOfflineMaxSeconds() {
-        return this.getOfflineHoursTotal() * 60 * 60;
+        return Math.floor(this.getOfflineHoursTotal() * 60 * 60);
     },
 
     addOfflineHourBoost(hours = 1) {
