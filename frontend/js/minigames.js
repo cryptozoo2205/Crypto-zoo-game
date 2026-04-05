@@ -3,8 +3,13 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.minigames = {
     memoryCooldownSeconds: 15 * 60,
     memoryFailCooldownSeconds: 5 * 60,
+
     tapChallengeCooldownSeconds: 45 * 60,
     tapChallengeDurationSeconds: 5,
+
+    animalHuntCooldownSeconds: 35 * 60,
+    animalHuntDurationSeconds: 10,
+
     cooldownTimerStarted: false,
 
     memoryCards: [],
@@ -34,6 +39,20 @@ CryptoZoo.minigames = {
     tapChallengeTimerInterval: null,
     tapChallengeResult: null,
 
+    animalHuntSessionActive: false,
+    animalHuntLocked: false,
+    animalHuntStartedAt: 0,
+    animalHuntEndsAt: 0,
+    animalHuntScore: 0,
+    animalHuntCombo: 0,
+    animalHuntBestCombo: 0,
+    animalHuntResult: null,
+    animalHuntSpawnInterval: null,
+    animalHuntTickInterval: null,
+    animalHuntBoardSize: 9,
+    animalHuntCells: [],
+    animalHuntStatusMessage: "",
+
     memoryDifficultyStorageKey: "cryptozoo_memory_difficulty",
 
     getLanguage() {
@@ -58,6 +77,7 @@ CryptoZoo.minigames = {
                 combo: "Combo",
                 bestCombo: "Best combo",
                 mode: "Mode",
+                score: "Score",
 
                 easy: "Easy",
                 medium: "Medium",
@@ -89,7 +109,23 @@ CryptoZoo.minigames = {
                 active: "Active",
                 finished: "Finished",
                 challengeRunning: "Challenge in progress",
-                antiClickLimited: "Too fast taps ignored"
+                antiClickLimited: "Too fast taps ignored",
+
+                animalHuntTitle: "Animal Hunt",
+                animalHuntSubtitle: "Catch animals before they disappear",
+                startAnimalHunt: "Start Animal Hunt",
+                animalHuntCooldown: "Animal Hunt CD",
+                animalHuntReadyIn: "Animal Hunt ready in",
+                animalHuntResultTitle: "Hunt Result",
+                animalHuntClaim: "Claim reward",
+                animalHuntRunning: "Catch as many animals as you can",
+                animalHuntGolden: "Golden animal",
+                animalHuntBomb: "Bomb",
+                animalHuntMissed: "Missed animal",
+                animalHuntGreat: "Great hunt",
+                animalHuntMaster: "Master hunter",
+                animalHuntNice: "Nice run",
+                animalHuntRewardToast: "Animal Hunt reward"
             },
             pl: {
                 startMemory: "Start Memory",
@@ -105,6 +141,7 @@ CryptoZoo.minigames = {
                 combo: "Combo",
                 bestCombo: "Najlepsze combo",
                 mode: "Tryb",
+                score: "Wynik",
 
                 easy: "Łatwy",
                 medium: "Średni",
@@ -136,7 +173,23 @@ CryptoZoo.minigames = {
                 active: "Aktywny",
                 finished: "Koniec",
                 challengeRunning: "Challenge trwa",
-                antiClickLimited: "Za szybkie tapy pominięte"
+                antiClickLimited: "Za szybkie tapy pominięte",
+
+                animalHuntTitle: "Animal Hunt",
+                animalHuntSubtitle: "Łap zwierzęta zanim znikną",
+                startAnimalHunt: "Start Animal Hunt",
+                animalHuntCooldown: "Animal Hunt CD",
+                animalHuntReadyIn: "Animal Hunt gotowe za",
+                animalHuntResultTitle: "Wynik polowania",
+                animalHuntClaim: "Odbierz nagrodę",
+                animalHuntRunning: "Łap jak najwięcej zwierząt",
+                animalHuntGolden: "Złote zwierzę",
+                animalHuntBomb: "Bomba",
+                animalHuntMissed: "Uciekło zwierzę",
+                animalHuntGreat: "Świetne polowanie",
+                animalHuntMaster: "Mistrz łowów",
+                animalHuntNice: "Dobry wynik",
+                animalHuntRewardToast: "Nagroda Animal Hunt"
             }
         };
 
@@ -149,9 +202,11 @@ CryptoZoo.minigames = {
         this.ensureMemoryBoardClass();
         this.hideWheelGame();
         this.ensureTapChallengeCard?.();
+        this.ensureAnimalHuntCard?.();
         this.bindButtons();
         this.renderMemoryDifficultyBar?.();
         this.renderTapChallenge?.();
+        this.renderAnimalHunt?.();
         this.startCooldownTimer();
         this.renderCooldowns();
     },
@@ -168,6 +223,11 @@ CryptoZoo.minigames = {
         CryptoZoo.state.minigames.tapChallengeCooldownUntil = Math.max(
             0,
             Number(CryptoZoo.state.minigames.tapChallengeCooldownUntil) || 0
+        );
+
+        CryptoZoo.state.minigames.animalHuntCooldownUntil = Math.max(
+            0,
+            Number(CryptoZoo.state.minigames.animalHuntCooldownUntil) || 0
         );
 
         CryptoZoo.state.minigames.extraWheelSpins = 0;
@@ -222,6 +282,13 @@ CryptoZoo.minigames = {
         this.tapChallengeTimerInterval = null;
     },
 
+    clearAnimalHuntTimers() {
+        clearInterval(this.animalHuntSpawnInterval);
+        clearInterval(this.animalHuntTickInterval);
+        this.animalHuntSpawnInterval = null;
+        this.animalHuntTickInterval = null;
+    },
+
     startCooldownTimer() {
         if (this.cooldownTimerStarted) return;
         this.cooldownTimerStarted = true;
@@ -238,6 +305,14 @@ CryptoZoo.minigames = {
                     this.finishTapChallenge?.();
                 } else {
                     this.renderTapChallenge?.();
+                }
+            }
+
+            if (this.animalHuntSessionActive) {
+                if (Date.now() >= this.animalHuntEndsAt) {
+                    this.finishAnimalHunt?.();
+                } else {
+                    this.renderAnimalHunt?.();
                 }
             }
         }, 1000);
@@ -277,6 +352,7 @@ CryptoZoo.minigames = {
         }
 
         this.renderTapChallenge?.();
+        this.renderAnimalHunt?.();
     },
 
     bindButtons() {
@@ -324,6 +400,24 @@ CryptoZoo.minigames = {
             claimBtn.onclick = () => {
                 CryptoZoo.audio?.play?.("click");
                 this.claimTapChallengeReward?.();
+            };
+        }
+
+        const animalHuntStartBtn = document.getElementById("animalHuntStartBtn");
+        if (animalHuntStartBtn && !animalHuntStartBtn.dataset.bound) {
+            animalHuntStartBtn.dataset.bound = "1";
+            animalHuntStartBtn.onclick = () => {
+                CryptoZoo.audio?.play?.("click");
+                this.startAnimalHunt?.();
+            };
+        }
+
+        const animalHuntClaimBtn = document.getElementById("animalHuntClaimBtn");
+        if (animalHuntClaimBtn && !animalHuntClaimBtn.dataset.bound) {
+            animalHuntClaimBtn.dataset.bound = "1";
+            animalHuntClaimBtn.onclick = () => {
+                CryptoZoo.audio?.play?.("click");
+                this.claimAnimalHuntReward?.();
             };
         }
     }
