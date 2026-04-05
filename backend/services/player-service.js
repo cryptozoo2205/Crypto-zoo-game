@@ -123,6 +123,8 @@ function getDefaultPlayer(telegramId = "local-player", username = "Gracz") {
         minigames: {
             wheelCooldownUntil: 0,
             memoryCooldownUntil: 0,
+            tapChallengeCooldownUntil: 0,
+            animalHuntCooldownUntil: 0,
             extraWheelSpins: 0
         },
 
@@ -332,6 +334,14 @@ function normalizePlayer(input) {
             memoryCooldownUntil: Math.max(
                 0,
                 normalizeNumber(minigamesInput.memoryCooldownUntil, base.minigames.memoryCooldownUntil)
+            ),
+            tapChallengeCooldownUntil: Math.max(
+                0,
+                normalizeNumber(minigamesInput.tapChallengeCooldownUntil, base.minigames.tapChallengeCooldownUntil)
+            ),
+            animalHuntCooldownUntil: Math.max(
+                0,
+                normalizeNumber(minigamesInput.animalHuntCooldownUntil, base.minigames.animalHuntCooldownUntil)
             ),
             extraWheelSpins: Math.max(
                 0,
