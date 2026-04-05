@@ -983,6 +983,84 @@ window.CryptoZoo.api = {
         return response;
     },
 
+    async createDepositWithPayment(amount) {
+        const safeAmount = Number((Math.max(0, Number(amount) || 0)).toFixed(3));
+
+        if (safeAmount <= 0) {
+            throw new Error("Invalid deposit amount");
+        }
+
+        return this.request("/deposit/create", {
+            method: "POST",
+            body: JSON.stringify({
+                telegramId: this.getPlayerId(),
+                username: this.getUsername(),
+                amount: safeAmount,
+                source: "ton"
+            }),
+            timeoutMs: 5000
+        });
+    },
+
+    async verifyDepositById(depositId) {
+        const safeDepositId = String(depositId || "").trim();
+
+        if (!safeDepositId) {
+            throw new Error("Missing depositId");
+        }
+
+        const response = await this.request("/deposit/verify", {
+            method: "POST",
+            body: JSON.stringify({
+                depositId: safeDepositId
+            }),
+            timeoutMs: 12000
+        });
+
+        const playerPart = this.unwrapPlayerResponse(response?.player || response);
+
+        if (playerPart && typeof playerPart === "object") {
+            CryptoZoo.state = this.mergeStates(playerPart, CryptoZoo.state || {});
+            this.writeLocalState(CryptoZoo.state);
+
+            const payload = this.getSavePayload();
+            this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
+            this.pendingDirty = false;
+        }
+
+        return response;
+    },
+
+    async verifyPendingDepositsForPlayer() {
+        const response = await this.request("/deposit/verify-player", {
+            method: "POST",
+            body: JSON.stringify({
+                telegramId: this.getPlayerId()
+            }),
+            timeoutMs: 12000
+        });
+
+        const playerPart = this.unwrapPlayerResponse(response?.player || response);
+
+        if (playerPart && typeof playerPart === "object") {
+            CryptoZoo.state = this.mergeStates(playerPart, CryptoZoo.state || {});
+            this.writeLocalState(CryptoZoo.state);
+
+            const payload = this.getSavePayload();
+            this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
+            this.pendingDirty = false;
+        }
+
+        return response;
+    },
+
+    async getPlayerDeposits() {
+        return this.request(`/deposit/${this.getPlayerId()}`, {
+            method: "GET",
+            timeoutMs: 5000
+        });
+    },
+
     async syncPendingDeposits(forceReload = false) {
         try {
             const response = await this.request("/deposit/verify-player", {
