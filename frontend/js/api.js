@@ -773,6 +773,21 @@ window.CryptoZoo.api = {
         return data;
     },
 
+    syncPlayerFromResponse(response, fallbackState = null) {
+        const playerPart = this.unwrapPlayerResponse(response?.player || response);
+
+        if (playerPart && typeof playerPart === "object") {
+            CryptoZoo.state = this.mergeStates(playerPart, CryptoZoo.state || fallbackState || {});
+            this.writeLocalState(CryptoZoo.state);
+
+            const payload = this.getSavePayload();
+            this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
+            this.pendingDirty = false;
+        }
+
+        return response;
+    },
+
     async loadPlayer() {
         const localRaw = this.readLocalState();
         let serverRaw = null;
@@ -920,18 +935,7 @@ window.CryptoZoo.api = {
             timeoutMs: 4000
         });
 
-        const playerPart = this.unwrapPlayerResponse(response?.player || response);
-
-        if (playerPart && typeof playerPart === "object") {
-            CryptoZoo.state = this.mergeStates(playerPart, CryptoZoo.state || {});
-            this.writeLocalState(CryptoZoo.state);
-
-            const payload = this.getSavePayload();
-            this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
-            this.pendingDirty = false;
-        }
-
-        return response;
+        return this.syncPlayerFromResponse(response);
     },
 
     async expeditionCollect() {
@@ -944,18 +948,7 @@ window.CryptoZoo.api = {
             timeoutMs: 5000
         });
 
-        const playerPart = this.unwrapPlayerResponse(response?.player || response);
-
-        if (playerPart && typeof playerPart === "object") {
-            CryptoZoo.state = this.mergeStates(playerPart, CryptoZoo.state || {});
-            this.writeLocalState(CryptoZoo.state);
-
-            const payload = this.getSavePayload();
-            this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
-            this.pendingDirty = false;
-        }
-
-        return response;
+        return this.syncPlayerFromResponse(response);
     },
 
     async expeditionUseTimeReduction(seconds = 0) {
@@ -969,18 +962,7 @@ window.CryptoZoo.api = {
             timeoutMs: 4000
         });
 
-        const playerPart = this.unwrapPlayerResponse(response?.player || response);
-
-        if (playerPart && typeof playerPart === "object") {
-            CryptoZoo.state = this.mergeStates(playerPart, CryptoZoo.state || {});
-            this.writeLocalState(CryptoZoo.state);
-
-            const payload = this.getSavePayload();
-            this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
-            this.pendingDirty = false;
-        }
-
-        return response;
+        return this.syncPlayerFromResponse(response);
     },
 
     async createDepositWithPayment(amount) {
@@ -1017,18 +999,7 @@ window.CryptoZoo.api = {
             timeoutMs: 12000
         });
 
-        const playerPart = this.unwrapPlayerResponse(response?.player || response);
-
-        if (playerPart && typeof playerPart === "object") {
-            CryptoZoo.state = this.mergeStates(playerPart, CryptoZoo.state || {});
-            this.writeLocalState(CryptoZoo.state);
-
-            const payload = this.getSavePayload();
-            this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
-            this.pendingDirty = false;
-        }
-
-        return response;
+        return this.syncPlayerFromResponse(response);
     },
 
     async verifyPendingDepositsForPlayer() {
@@ -1040,18 +1011,7 @@ window.CryptoZoo.api = {
             timeoutMs: 12000
         });
 
-        const playerPart = this.unwrapPlayerResponse(response?.player || response);
-
-        if (playerPart && typeof playerPart === "object") {
-            CryptoZoo.state = this.mergeStates(playerPart, CryptoZoo.state || {});
-            this.writeLocalState(CryptoZoo.state);
-
-            const payload = this.getSavePayload();
-            this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
-            this.pendingDirty = false;
-        }
-
-        return response;
+        return this.syncPlayerFromResponse(response);
     },
 
     async getPlayerDeposits() {
@@ -1059,6 +1019,80 @@ window.CryptoZoo.api = {
             method: "GET",
             timeoutMs: 5000
         });
+    },
+
+    async loadDepositsHistory() {
+        const response = await this.getPlayerDeposits();
+        return Array.isArray(response?.deposits) ? response.deposits : [];
+    },
+
+    async setWithdrawWallet(tonAddress) {
+        const safeAddress = String(tonAddress || "").trim();
+
+        if (!safeAddress) {
+            throw new Error("Missing TON wallet address");
+        }
+
+        const response = await this.request("/withdraw/set-wallet", {
+            method: "POST",
+            body: JSON.stringify({
+                telegramId: this.getPlayerId(),
+                username: this.getUsername(),
+                tonAddress: safeAddress
+            }),
+            timeoutMs: 5000
+        });
+
+        return this.syncPlayerFromResponse(response);
+    },
+
+    async getWithdrawWallet() {
+        return this.request(`/withdraw/wallet/${this.getPlayerId()}`, {
+            method: "GET",
+            timeoutMs: 5000
+        });
+    },
+
+    async createWithdrawRequest(amount) {
+        const safeAmount = Number((Math.max(0, Number(amount) || 0)).toFixed(3));
+
+        if (safeAmount <= 0) {
+            throw new Error("Invalid withdraw amount");
+        }
+
+        const response = await this.request("/withdraw/request", {
+            method: "POST",
+            body: JSON.stringify({
+                telegramId: this.getPlayerId(),
+                username: this.getUsername(),
+                amount: safeAmount
+            }),
+            timeoutMs: 8000
+        });
+
+        return this.syncPlayerFromResponse(response);
+    },
+
+    async loadWithdrawHistory() {
+        const response = await this.request(`/withdraw/${this.getPlayerId()}`, {
+            method: "GET",
+            timeoutMs: 5000
+        });
+
+        return Array.isArray(response?.requests) ? response.requests : [];
+    },
+
+    async transferRewardToWallet() {
+        const response = await this.request("/reward/transfer-to-wallet", {
+            method: "POST",
+            body: JSON.stringify({
+                telegramId: this.getPlayerId(),
+                username: this.getUsername()
+            }),
+            timeoutMs: 5000
+        });
+
+        return this.syncPlayerFromResponse(response);
     },
 
     async syncPendingDeposits(forceReload = false) {
@@ -1072,16 +1106,7 @@ window.CryptoZoo.api = {
             });
 
             if (response && typeof response === "object") {
-                const playerPart = this.unwrapPlayerResponse(response.player || response);
-
-                if (playerPart && typeof playerPart === "object") {
-                    CryptoZoo.state = this.mergeStates(playerPart, CryptoZoo.state || {});
-                    this.writeLocalState(CryptoZoo.state);
-
-                    const payload = this.getSavePayload();
-                    this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
-                    this.pendingDirty = false;
-                }
+                this.syncPlayerFromResponse(response);
             }
 
             if (forceReload) {
