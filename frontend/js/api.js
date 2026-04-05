@@ -185,6 +185,14 @@ window.CryptoZoo.api = {
             boxes: {},
             expedition: null,
 
+            minigames: {
+                wheelCooldownUntil: 0,
+                memoryCooldownUntil: 0,
+                tapChallengeCooldownUntil: 0,
+                animalHuntCooldownUntil: 0,
+                extraWheelSpins: 0
+            },
+
             offlineBaseHours: 1,
             offlineBoostHours: 0,
             offlineAdsHours: 0,
@@ -322,6 +330,34 @@ window.CryptoZoo.api = {
             animals: this.normalizeObject(data.animals),
             boxes: this.normalizeObject(data.boxes),
             expedition: data.expedition || null,
+
+            minigames: {
+                wheelCooldownUntil: this.normalizeNumber(
+                    data.minigames?.wheelCooldownUntil,
+                    base.minigames.wheelCooldownUntil,
+                    0
+                ),
+                memoryCooldownUntil: this.normalizeNumber(
+                    data.minigames?.memoryCooldownUntil,
+                    base.minigames.memoryCooldownUntil,
+                    0
+                ),
+                tapChallengeCooldownUntil: this.normalizeNumber(
+                    data.minigames?.tapChallengeCooldownUntil,
+                    base.minigames.tapChallengeCooldownUntil,
+                    0
+                ),
+                animalHuntCooldownUntil: this.normalizeNumber(
+                    data.minigames?.animalHuntCooldownUntil,
+                    base.minigames.animalHuntCooldownUntil,
+                    0
+                ),
+                extraWheelSpins: this.normalizeNumber(
+                    data.minigames?.extraWheelSpins,
+                    base.minigames.extraWheelSpins,
+                    0
+                )
+            },
 
             offlineBaseHours,
             offlineBoostHours,
@@ -517,6 +553,29 @@ window.CryptoZoo.api = {
 
             expedition: local.expedition || server.expedition || null,
 
+            minigames: {
+                wheelCooldownUntil: Math.max(
+                    server.minigames?.wheelCooldownUntil || 0,
+                    local.minigames?.wheelCooldownUntil || 0
+                ),
+                memoryCooldownUntil: Math.max(
+                    server.minigames?.memoryCooldownUntil || 0,
+                    local.minigames?.memoryCooldownUntil || 0
+                ),
+                tapChallengeCooldownUntil: Math.max(
+                    server.minigames?.tapChallengeCooldownUntil || 0,
+                    local.minigames?.tapChallengeCooldownUntil || 0
+                ),
+                animalHuntCooldownUntil: Math.max(
+                    server.minigames?.animalHuntCooldownUntil || 0,
+                    local.minigames?.animalHuntCooldownUntil || 0
+                ),
+                extraWheelSpins: Math.max(
+                    server.minigames?.extraWheelSpins || 0,
+                    local.minigames?.extraWheelSpins || 0
+                )
+            },
+
             offlineBaseHours: Math.max(server.offlineBaseHours || 1, local.offlineBaseHours || 1),
             offlineBoostHours: Math.max(server.offlineBoostHours || 0, local.offlineBoostHours || 0),
             offlineAdsHours: Math.max(server.offlineAdsHours || 0, local.offlineAdsHours || 0),
@@ -576,6 +635,7 @@ window.CryptoZoo.api = {
             animals: state.animals,
             boxes: state.boxes,
             expedition: state.expedition,
+            minigames: state.minigames,
 
             offlineBaseHours: state.offlineBaseHours,
             offlineBoostHours: state.offlineBoostHours,
@@ -629,6 +689,7 @@ window.CryptoZoo.api = {
             animals: payload.animals,
             boxes: payload.boxes,
             expedition: payload.expedition,
+            minigames: payload.minigames,
             offlineBaseHours: payload.offlineBaseHours,
             offlineBoostHours: payload.offlineBoostHours,
             offlineAdsHours: payload.offlineAdsHours,
