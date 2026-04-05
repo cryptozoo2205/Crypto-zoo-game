@@ -39,8 +39,8 @@ CryptoZoo.offline = {
         CryptoZoo.state.lastLogin = this.clampLastLogin(CryptoZoo.state?.lastLogin);
 
         CryptoZoo.state.offlineBaseHours = Math.max(
-            1,
-            Math.floor(Number(CryptoZoo.state?.offlineBaseHours) || 1)
+            0.25,
+            Number(CryptoZoo.state?.offlineBaseHours) || 0.25
         );
 
         CryptoZoo.state.offlineBoostHours = 0;
@@ -57,14 +57,14 @@ CryptoZoo.offline = {
         if (CryptoZoo.gameplay?.getOfflineMaxSeconds) {
             CryptoZoo.state.offlineMaxSeconds = Math.max(
                 0,
-                Number(CryptoZoo.gameplay.getOfflineMaxSeconds()) || 3600
+                Number(CryptoZoo.gameplay.getOfflineMaxSeconds()) || 15 * 60
             );
         } else {
             CryptoZoo.state.offlineMaxSeconds = Math.max(
                 0,
                 Number(CryptoZoo.state?.offlineMaxSeconds) ||
                     Number(CryptoZoo.gameplay?.maxOfflineSeconds) ||
-                    1 * 60 * 60
+                    15 * 60
             );
         }
     },
