@@ -93,6 +93,43 @@ function applyExpeditionBoostServerGuard(oldPlayer, safePlayer) {
     return safePlayer;
 }
 
+function applyMinigamesServerGuard(oldPlayer, safePlayer) {
+    const oldMinigames =
+        oldPlayer && typeof oldPlayer.minigames === "object" && !Array.isArray(oldPlayer.minigames)
+            ? oldPlayer.minigames
+            : {};
+
+    const nextMinigames =
+        safePlayer && typeof safePlayer.minigames === "object" && !Array.isArray(safePlayer.minigames)
+            ? safePlayer.minigames
+            : {};
+
+    const oldMemoryCooldownUntil = Math.max(0, Number(oldMinigames.memoryCooldownUntil) || 0);
+    const oldTapChallengeCooldownUntil = Math.max(0, Number(oldMinigames.tapChallengeCooldownUntil) || 0);
+    const oldAnimalHuntCooldownUntil = Math.max(0, Number(oldMinigames.animalHuntCooldownUntil) || 0);
+    const oldWheelCooldownUntil = Math.max(0, Number(oldMinigames.wheelCooldownUntil) || 0);
+    const oldExtraWheelSpins = Math.max(0, Number(oldMinigames.extraWheelSpins) || 0);
+
+    const requestedMemoryCooldownUntil = Math.max(0, Number(nextMinigames.memoryCooldownUntil) || 0);
+    const requestedTapChallengeCooldownUntil = Math.max(0, Number(nextMinigames.tapChallengeCooldownUntil) || 0);
+    const requestedAnimalHuntCooldownUntil = Math.max(0, Number(nextMinigames.animalHuntCooldownUntil) || 0);
+    const requestedWheelCooldownUntil = Math.max(0, Number(nextMinigames.wheelCooldownUntil) || 0);
+    const requestedExtraWheelSpins = Math.max(0, Number(nextMinigames.extraWheelSpins) || 0);
+
+    safePlayer.minigames = {
+        ...nextMinigames,
+
+        memoryCooldownUntil: Math.max(oldMemoryCooldownUntil, requestedMemoryCooldownUntil),
+        tapChallengeCooldownUntil: Math.max(oldTapChallengeCooldownUntil, requestedTapChallengeCooldownUntil),
+        animalHuntCooldownUntil: Math.max(oldAnimalHuntCooldownUntil, requestedAnimalHuntCooldownUntil),
+        wheelCooldownUntil: Math.max(oldWheelCooldownUntil, requestedWheelCooldownUntil),
+
+        extraWheelSpins: Math.min(oldExtraWheelSpins, requestedExtraWheelSpins)
+    };
+
+    return safePlayer;
+}
+
 router.get("/:telegramId", (req, res) => {
     const db = readDb();
     const telegramId = safeString(req.params.telegramId, "local-player");
@@ -155,6 +192,7 @@ router.post("/save", (req, res) => {
 
     safePlayer = applyOfflineAdsServerGuard(oldPlayer, safePlayer);
     safePlayer = applyExpeditionBoostServerGuard(oldPlayer, safePlayer);
+    safePlayer = applyMinigamesServerGuard(oldPlayer, safePlayer);
 
     db.players[telegramId] = safePlayer;
 
