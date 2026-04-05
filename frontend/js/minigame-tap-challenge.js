@@ -64,8 +64,8 @@ Object.assign(CryptoZoo.minigames, {
             <div
                 id="tapChallengeStatus"
                 class="minigame-status"
-                style="margin-top:12px;"
-            >${this.lt("tapChallengeSubtitle", "Klikaj jak najszybciej przez 5 sekund")}</div>
+                style="margin-top:12px; display:none;"
+            ></div>
 
             <div
                 id="tapChallengeResultBox"
@@ -236,7 +236,12 @@ Object.assign(CryptoZoo.minigames, {
             claimBtn.style.opacity = this.tapChallengeResult ? "1" : "0.65";
         }
 
-        if (!btn || !status) return;
+        if (status) {
+            status.textContent = "";
+            status.style.display = "none";
+        }
+
+        if (!btn) return;
 
         const cooldownLeft = this.getTapChallengeCooldownLeft();
 
@@ -245,7 +250,6 @@ Object.assign(CryptoZoo.minigames, {
             btn.textContent = `${this.lt("unlockAtLevel", "Odblokowanie na poziomie")} ${this.getUnlockLevel("tapChallenge")}`;
             btn.style.opacity = "0.72";
             btn.style.cursor = "not-allowed";
-            status.textContent = this.getLockText("tapChallenge");
             return;
         }
 
@@ -254,7 +258,6 @@ Object.assign(CryptoZoo.minigames, {
             btn.textContent = this.lt("tapChallengeTapNow", "KLIKAJ!");
             btn.style.opacity = "1";
             btn.style.cursor = "pointer";
-            status.textContent = `${this.lt("challengeRunning", "Challenge trwa")} • ${this.lt("taps", "Tapy")}: ${CryptoZoo.formatNumber(this.tapChallengeClicks)}`;
             return;
         }
 
@@ -263,7 +266,6 @@ Object.assign(CryptoZoo.minigames, {
             btn.textContent = this.lt("finished", "Koniec");
             btn.style.opacity = "0.72";
             btn.style.cursor = "not-allowed";
-            status.textContent = this.lt("tapChallengeResultTitle", "Wynik");
             return;
         }
 
@@ -272,7 +274,6 @@ Object.assign(CryptoZoo.minigames, {
             btn.textContent = `${this.lt("tapChallengeCooldown", "Tap Challenge CD")} ${this.formatCooldown(cooldownLeft)}`;
             btn.style.opacity = "0.72";
             btn.style.cursor = "not-allowed";
-            status.textContent = `${this.lt("tapChallengeReadyIn", "Tap Challenge gotowe za")} ${this.formatCooldown(cooldownLeft)}`;
             return;
         }
 
@@ -280,7 +281,6 @@ Object.assign(CryptoZoo.minigames, {
         btn.textContent = this.lt("startTapChallenge", "Start Tap Challenge");
         btn.style.opacity = "1";
         btn.style.cursor = "pointer";
-        status.textContent = this.lt("tapChallengeSubtitle", "Klikaj jak najszybciej przez 5 sekund");
     },
 
     startTapChallenge() {
