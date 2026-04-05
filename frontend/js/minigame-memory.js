@@ -70,11 +70,7 @@ Object.assign(CryptoZoo.minigames, {
         this.saveMemoryDifficulty();
         this.renderMemoryDifficultyBar();
         this.renderCooldowns();
-        this.setMemoryStatus(
-            this.isMemoryReady()
-                ? this.lt("findAllPairs", "Znajdź wszystkie pary")
-                : `${this.lt("memoryReadyIn", "Memory gotowe za")} ${this.formatCooldown(this.getMemoryCooldownLeft())}`
-        );
+        this.setMemoryStatus("");
     },
 
     getMemoryModeMount() {
@@ -272,7 +268,9 @@ Object.assign(CryptoZoo.minigames, {
     setMemoryStatus(text) {
         const status = document.getElementById("memoryStatus");
         if (status) {
-            status.textContent = text;
+            const safeText = String(text || "").trim();
+            status.textContent = safeText;
+            status.style.display = safeText ? "block" : "none";
         }
     },
 
@@ -304,15 +302,7 @@ Object.assign(CryptoZoo.minigames, {
         this.renderMemoryDifficultyBar();
 
         if (!silent) {
-            if (!this.isUnlocked("memory")) {
-                this.setMemoryStatus(this.getLockText("memory"));
-            } else {
-                this.setMemoryStatus(
-                    this.isMemoryReady()
-                        ? this.lt("findAllPairs", "Znajdź wszystkie pary")
-                        : `${this.lt("memoryReadyIn", "Memory gotowe za")} ${this.formatCooldown(this.getMemoryCooldownLeft())}`
-                );
-            }
+            this.setMemoryStatus("");
         }
 
         this.renderCooldowns();
@@ -364,7 +354,7 @@ Object.assign(CryptoZoo.minigames, {
 
         this.renderMemory();
         this.renderCooldowns();
-        this.setMemoryStatus(`${this.lt("previewMemory", "Podgląd kart...")} • ${this.lt(config.id, config.id)}`);
+        this.setMemoryStatus("");
 
         this.memoryPreviewTimeout = setTimeout(() => {
             this.memoryCards.forEach((card) => {
@@ -375,7 +365,7 @@ Object.assign(CryptoZoo.minigames, {
             this.renderMemory();
             this.renderMemoryHud();
             this.startMemoryTimer();
-            this.setMemoryStatus(this.lt("findAllPairs", "Znajdź wszystkie pary"));
+            this.setMemoryStatus("");
         }, config.previewMs);
     },
 
@@ -512,7 +502,7 @@ Object.assign(CryptoZoo.minigames, {
                     return;
                 }
 
-                this.setMemoryStatus(`${this.lt("combo", "Combo")} x${this.memoryCurrentCombo}`);
+                this.setMemoryStatus("");
             }, 320);
         } else {
             this.memoryResolveTimeout = setTimeout(() => {
@@ -529,7 +519,7 @@ Object.assign(CryptoZoo.minigames, {
                     return;
                 }
 
-                this.setMemoryStatus(this.lt("findAllPairs", "Znajdź wszystkie pary"));
+                this.setMemoryStatus("");
             }, 780);
         }
     }
