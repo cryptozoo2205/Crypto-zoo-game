@@ -20,6 +20,7 @@ const router = express.Router();
 
 const MAX_ACTIVE_PENDING_DEPOSITS_PER_PLAYER = 1;
 const DEPOSIT_CREATE_COOLDOWN_MS = 2 * 60 * 1000;
+const MAX_DEPOSIT_AMOUNT = 100000;
 
 function ensurePlayerCollections(player) {
     player.depositHistory = Array.isArray(player.depositHistory)
@@ -163,6 +164,46 @@ function attachDepositToPlayer(player, deposit) {
     return player;
 }
 
+function sanitizeDepositForCreate(deposit) {
+    return {
+        ...deposit,
+        telegramId: safeString(deposit?.telegramId, ""),
+        username: safeString(deposit?.username, "Gracz"),
+        amount: clamp(normalizeRewardNumber(deposit?.amount, 0), 0, MAX_DEPOSIT_AMOUNT),
+        status: normalizeDepositStatus(deposit?.status),
+        createdAt: Math.max(0, Number(deposit?.createdAt) || Date.now()),
+        updatedAt: Math.max(0, Number(deposit?.updatedAt) || Date.now())
+    };
+}
+
+function sanitizeApprovedDepositRewards(deposit) {
+    return {
+        gemsAmount: Math.max(0, Math.floor(Number(deposit?.gemsAmount) || 0)),
+        amount: clamp(normalizeRewardNumber(deposit?.amount, 0), 0, MAX_DEPOSIT_AMOUNT)
+    };
+}
+
+function applyApprovedDepositToPlayer(player, deposit) {
+    const sanitized = sanitizeApprovedDepositRewards(deposit);
+
+    const gemsToAdd = sanitized.gemsAmount;
+    player.gems = Math.max(
+        0,
+        Number(player.gems || 0) + gemsToAdd
+    );
+
+    player.expeditionBoost = applyDepositExpeditionBoost(
+        player.expeditionBoost,
+        sanitized.amount
+    );
+
+    player.expeditionBoostActiveUntil = getExpeditionBoostActiveUntil(
+        sanitized.amount
+    );
+
+    return player;
+}
+
 /* =========================
    CREATE DEPOSIT
 ========================= */
@@ -179,7 +220,7 @@ router.post("/api/deposit/create", (req, res) => {
     const amount = clamp(
         normalizeRewardNumber(req.body?.amount, 0),
         0,
-        100000
+        MAX_DEPOSIT_AMOUNT
     );
 
     if (!telegramId) {
@@ -213,12 +254,14 @@ router.post("/api/deposit/create", (req, res) => {
         });
     }
 
-    const deposit = createDeposit({
-        telegramId,
-        username,
-        amount,
-        source
-    });
+    const deposit = sanitizeDepositForCreate(
+        createDeposit({
+            telegramId,
+            username,
+            amount,
+            source
+        })
+    );
 
     db.deposits.push(deposit);
     writeDb(db);
@@ -351,36 +394,23 @@ router.post("/api/deposit/confirm", (req, res) => {
         return res.status(404).json({ error: "Deposit not found" });
     }
 
+    deposit.status = normalizeDepositStatus(deposit.status);
+
     if (deposit.status !== "pending" && deposit.status !== "created") {
         return res.status(400).json({ error: "Already processed" });
     }
+
+    const player = getPlayerOrCreate(db, deposit.telegramId, deposit.username);
+    ensurePlayerCollections(player);
 
     deposit.status = status;
     deposit.note = note;
     deposit.updatedAt = Date.now();
 
-    const player = getPlayerOrCreate(db, deposit.telegramId, deposit.username);
-    ensurePlayerCollections(player);
-
     if (status === "approved") {
-        const gemsToAdd = Math.max(0, Number(deposit.gemsAmount) || 0);
-
-        player.gems = Math.max(
-            0,
-            Number(player.gems || 0) + gemsToAdd
-        );
-
-        player.expeditionBoost = applyDepositExpeditionBoost(
-            player.expeditionBoost,
-            deposit.amount
-        );
-
-        player.expeditionBoostActiveUntil = getExpeditionBoostActiveUntil(
-            deposit.amount
-        );
-
         deposit.approvedAt = Date.now();
 
+        applyApprovedDepositToPlayer(player, deposit);
         attachDepositToPlayer(player, deposit);
     }
 
