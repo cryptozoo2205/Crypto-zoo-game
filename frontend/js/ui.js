@@ -605,7 +605,7 @@ CryptoZoo.ui = {
                 (Number(CryptoZoo.shopSystem?.DAILY_EXPEDITION_BOOST_VALUE) || 0.25) * 100
             );
 
-            return `+${percent}% ${this.t("expeditionReward", "reward z ekspedycji")} ${this.t("for24h", "na 24h")} • ${this.t("oncePer24h", "1 raz / 24h")}`;
+            return `+${percent}% reward z ekspedycji przez 24h • 1 raz / 24h`;
         }
 
         if (normalizedType === "expeditiontime" || normalizedEffect === "expeditiontime") {
@@ -643,7 +643,7 @@ CryptoZoo.ui = {
         if (gemPrice > 0) {
             return {
                 label: this.t("cost", "Koszt"),
-                value: `${CryptoZoo.formatNumber(gemPrice)} ${this.t("gem", "gem")}`
+                value: `${CryptoZoo.formatNumber(gemPrice)} gemy`
             };
         }
 
@@ -690,14 +690,14 @@ CryptoZoo.ui = {
             if (isActive) {
                 return {
                     label: this.t("status", "Status"),
-                    value: this.t("active24h", "Aktywny 24h")
+                    value: "Aktywny 24h"
                 };
             }
 
             if (!canBuy) {
                 return {
                     label: this.t("status", "Status"),
-                    value: this.t("cooldown", "Cooldown")
+                    value: "Cooldown"
                 };
             }
 
