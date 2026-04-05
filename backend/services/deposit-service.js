@@ -3,9 +3,15 @@ const { normalizeRewardNumber, safeString } = require("../utils/helpers");
 const TON_RECEIVER_WALLET = "UQBTjBORP2cXRNE_hakpG-2DZlBn0uUWME8tKhi7HCcynER5";
 const MAX_EXPEDITION_BOOST = 1.0;
 const MAX_EXPEDITION_BOOST_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
+const MAX_DEPOSIT_AMOUNT = 100000;
+const MAX_GEMS_FROM_DEPOSIT = 150;
+
+function clampDepositAmount(amount) {
+    return Math.max(0, Math.min(MAX_DEPOSIT_AMOUNT, normalizeRewardNumber(amount, 0)));
+}
 
 function getDepositGemsAmount(amount) {
-    const safeAmount = normalizeRewardNumber(amount, 0);
+    const safeAmount = clampDepositAmount(amount);
 
     if (safeAmount >= 10) return 150;
     if (safeAmount >= 5) return 70;
@@ -16,7 +22,7 @@ function getDepositGemsAmount(amount) {
 }
 
 function getDepositExpeditionBoostAmount(amount) {
-    const safeAmount = normalizeRewardNumber(amount, 0);
+    const safeAmount = clampDepositAmount(amount);
 
     if (safeAmount >= 10) return 0.60;
     if (safeAmount >= 5) return 0.30;
@@ -27,7 +33,7 @@ function getDepositExpeditionBoostAmount(amount) {
 }
 
 function getDepositExpeditionBoostDurationMs(amount) {
-    const safeAmount = normalizeRewardNumber(amount, 0);
+    const safeAmount = clampDepositAmount(amount);
 
     if (safeAmount >= 10) return 7 * 24 * 60 * 60 * 1000;
     if (safeAmount >= 5) return 5 * 24 * 60 * 60 * 1000;
@@ -79,20 +85,23 @@ function createDeposit({
     const randomPart = Math.random().toString(36).slice(2, 8);
     const id = `dp_${now}_${randomPart}`;
     const paymentComment = `CRYPTOZOO_${id}`;
-    const safeAmount = normalizeRewardNumber(amount, 0);
-    const gemsAmount = getDepositGemsAmount(safeAmount);
-    const expeditionBoostAmount = getDepositExpeditionBoostAmount(safeAmount);
-    const expeditionBoostDurationMs = getDepositExpeditionBoostDurationMs(safeAmount);
+    const safeAmount = clampDepositAmount(amount);
+    const gemsAmount = Math.max(0, Math.min(MAX_GEMS_FROM_DEPOSIT, Number(getDepositGemsAmount(safeAmount)) || 0));
+    const expeditionBoostAmount = clampExpeditionBoost(getDepositExpeditionBoostAmount(safeAmount));
+    const expeditionBoostDurationMs = Math.min(
+        MAX_EXPEDITION_BOOST_DURATION_MS,
+        Math.max(0, Number(getDepositExpeditionBoostDurationMs(safeAmount)) || 0)
+    );
 
     return {
         id,
-        telegramId: String(telegramId),
+        telegramId: String(telegramId || ""),
         username: String(username || "Gracz"),
 
         amount: safeAmount,
-        gemsAmount: Math.max(0, Number(gemsAmount) || 0),
-        expeditionBoostAmount: Math.max(0, Number(expeditionBoostAmount) || 0),
-        expeditionBoostDurationMs: Math.max(0, Number(expeditionBoostDurationMs) || 0),
+        gemsAmount,
+        expeditionBoostAmount,
+        expeditionBoostDurationMs,
 
         source: safeString(source, "ton") || "ton",
         asset: safeString(asset, "TON") || "TON",
@@ -117,22 +126,28 @@ function buildDepositPaymentData(deposit) {
 
     return {
         depositId: String(deposit?.id || ""),
-        amount: normalizeRewardNumber(deposit?.amount, 0),
-        gemsAmount: Math.max(0, Number(deposit?.gemsAmount) || 0),
-        expeditionBoostAmount: Math.max(0, Number(deposit?.expeditionBoostAmount) || 0),
-        expeditionBoostDurationMs: Math.max(0, Number(deposit?.expeditionBoostDurationMs) || 0),
+        amount: clampDepositAmount(deposit?.amount),
+        gemsAmount: Math.max(
+            0,
+            Math.min(MAX_GEMS_FROM_DEPOSIT, Number(deposit?.gemsAmount) || 0)
+        ),
+        expeditionBoostAmount: clampExpeditionBoost(deposit?.expeditionBoostAmount),
+        expeditionBoostDurationMs: Math.min(
+            MAX_EXPEDITION_BOOST_DURATION_MS,
+            Math.max(0, Number(deposit?.expeditionBoostDurationMs) || 0)
+        ),
         asset: String(deposit?.asset || "TON"),
         source: String(deposit?.source || "ton"),
         receiverAddress: String(receiverAddress || ""),
         paymentComment: String(deposit?.paymentComment || ""),
-        expiresAt: Number(deposit?.expiresAt || 0)
+        expiresAt: Math.max(0, Number(deposit?.expiresAt || 0))
     };
 }
 
 function getPlayerDeposits(db, telegramId) {
     return (Array.isArray(db?.deposits) ? db.deposits : [])
-        .filter((d) => String(d.telegramId) === String(telegramId))
-        .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+        .filter((d) => String(d?.telegramId || "") === String(telegramId || ""))
+        .sort((a, b) => Number(b?.createdAt || 0) - Number(a?.createdAt || 0));
 }
 
 module.exports = {
