@@ -1,46 +1,31 @@
-/* =========================
-   MINI GAMES MAIN
-========================= */
-
 .minigames-card {
+    padding: 18px;
+    border-radius: 26px;
     background:
-        radial-gradient(circle at 18% 14%, rgba(80, 180, 255, 0.16) 0%, transparent 30%),
-        radial-gradient(circle at 84% 10%, rgba(255, 200, 80, 0.12) 0%, transparent 22%),
-        linear-gradient(180deg, rgba(18, 28, 48, 0.98) 0%, rgba(10, 17, 31, 0.99) 100%);
-    border-radius: 24px;
-    border: 1px solid rgba(255,255,255,0.08);
+        linear-gradient(180deg, rgba(13, 24, 66, 0.98) 0%, rgba(7, 16, 45, 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow:
-        0 22px 46px rgba(0,0,0,0.30),
-        inset 0 1px 0 rgba(255,255,255,0.04);
-    padding: 12px;
-    overflow: hidden;
+        0 18px 44px rgba(0, 0, 0, 0.30),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
-/* =========================
-   HEADER
-========================= */
-
 .minigames-header {
-    margin-bottom: 6px;
+    margin-bottom: 14px;
 }
 
 .minigames-title {
     font-size: 24px;
     font-weight: 900;
     color: #ffffff;
-    line-height: 1.1;
+    letter-spacing: 0.01em;
 }
 
 .minigames-subtitle {
+    margin-top: 6px;
     font-size: 13px;
-    color: rgba(255,255,255,0.72);
-    margin-top: 3px;
-    line-height: 1.32;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.72);
 }
-
-/* =========================
-   WRAP
-========================= */
 
 #minigamesWrap {
     display: flex;
@@ -48,440 +33,191 @@
     gap: 14px;
 }
 
-/* =========================
-   GAME BOX
-========================= */
-
 .minigame-box {
-    position: relative;
-    padding: 8px 12px 12px;
+    padding: 16px;
     border-radius: 22px;
     background:
-        linear-gradient(180deg, rgba(30, 40, 70, 0.97) 0%, rgba(15, 22, 40, 0.99) 100%);
-    border: 1px solid rgba(255,255,255,0.08);
+        linear-gradient(180deg, rgba(21, 34, 86, 0.94) 0%, rgba(10, 20, 55, 0.96) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow:
-        0 14px 28px rgba(0,0,0,0.24),
-        inset 0 1px 0 rgba(255,255,255,0.04);
-    overflow: hidden;
+        0 14px 30px rgba(0, 0, 0, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
-/* =========================
-   GAME HEADER
-========================= */
-
 .minigame-box-header {
-    margin-bottom: -10px;
-    text-align: center;
-    position: relative;
-    z-index: 3;
+    margin-bottom: 12px;
 }
 
 .minigame-name {
     font-size: 18px;
     font-weight: 900;
     color: #ffffff;
-    line-height: 1.12;
 }
 
 .minigame-desc {
-    font-size: 12px;
-    color: rgba(255,255,255,0.72);
-    margin-top: 2px;
-    line-height: 1.3;
+    margin-top: 4px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.72);
 }
-
-/* =========================
-   STATUS
-========================= */
 
 .minigame-status {
-    margin-top: 8px;
-    text-align: center;
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.88);
     font-size: 13px;
-    font-weight: 800;
-    color: #ffffff;
-    min-height: 18px;
-    line-height: 1.3;
-}
-
-/* =========================
-   WHEEL GAME
-========================= */
-
-#wheelGame {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding-top: 0;
-}
-
-#wheelGame .minigame-box-header {
-    margin-bottom: -22px;
-}
-
-.wheel-container {
-    position: relative;
-    margin: -58px auto 0 auto;
-    width: 360px;
-    height: 360px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* outer glow */
-.wheel-container::before {
-    content: "";
-    position: absolute;
-    width: 420px;
-    height: 420px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,255,255,0.08), transparent 70%);
-    filter: blur(14px);
-    pointer-events: none;
-}
-
-/* secondary glow */
-.wheel-container::after {
-    content: "";
-    position: absolute;
-    width: 380px;
-    height: 380px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,208,0,0.08), transparent 72%);
-    filter: blur(12px);
-    pointer-events: none;
-}
-
-/* spinning ambient */
-.wheel-container.wheel-container-spinning::before {
-    animation: wheelGlowPulse 1.1s ease-in-out infinite;
-}
-
-@keyframes wheelGlowPulse {
-    0% {
-        opacity: 0.7;
-        transform: scale(0.98);
-    }
-    50% {
-        opacity: 1;
-        transform: scale(1.02);
-    }
-    100% {
-        opacity: 0.7;
-        transform: scale(0.98);
-    }
-}
-
-/* =========================
-   WHEEL
-========================= */
-
-.wheel {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: 118%;
-    box-shadow:
-        0 22px 42px rgba(0,0,0,0.35),
-        0 0 30px rgba(255,255,255,0.08);
-    z-index: 2;
-    transition: filter 0.2s ease, transform 0.2s ease;
-}
-
-.wheel-spinning {
-    filter: saturate(1.08) brightness(1.03);
-}
-
-/* center orb */
-.wheel::after {
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 78px;
-    height: 78px;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    background:
-        radial-gradient(circle at 38% 35%, #ffffff 0%, #eef3ff 28%, #d9e2ff 62%, #8a97ab 100%);
-    box-shadow:
-        inset 0 2px 4px rgba(255,255,255,0.78),
-        0 6px 12px rgba(0,0,0,0.25);
-    border: 4px solid rgba(255,255,255,0.9);
-    z-index: 6;
-}
-
-/* =========================
-   LABELS
-========================= */
-
-.wheel-label {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 68px;
+    line-height: 1.45;
     text-align: center;
-    font-weight: 900;
-    font-size: 14px;
-    color: #fff7cf;
-    transform-origin: center center;
-    text-shadow:
-        0 2px 8px rgba(0,0,0,0.48),
-        0 0 10px rgba(255,220,120,0.14);
-    transition: transform 0.18s ease, filter 0.18s ease, text-shadow 0.18s ease, opacity 0.18s ease;
-    z-index: 5;
-    user-select: none;
-    letter-spacing: 0.2px;
 }
 
-.wheel-label-active {
-    filter: brightness(1.22);
-    text-shadow:
-        0 0 10px rgba(255,255,255,0.6),
-        0 0 20px rgba(255,215,0,0.45),
-        0 0 30px rgba(255,238,160,0.20);
-    animation: rewardPulse 0.7s ease-out 2;
-}
-
-@keyframes rewardPulse {
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.16);
-    }
-    100% {
-        transform: scale(1);
-    }
-}
-
-/* =========================
-   POINTER
-========================= */
-
-.wheel-pointer {
-    position: absolute;
-    top: 28px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 18px solid transparent;
-    border-right: 18px solid transparent;
-    border-bottom: 32px solid #ffffff;
-    z-index: 7;
-    filter: drop-shadow(0 5px 10px rgba(0,0,0,0.28));
-    transition: transform 0.08s ease;
-}
-
-.wheel-pointer::after {
-    content: "";
-    position: absolute;
-    left: -8px;
-    top: 4px;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-bottom: 14px solid #ffcc00;
-}
-
-.wheel-pointer-spinning {
-    animation: pointerTick 0.16s ease-in-out infinite;
-}
-
-@keyframes pointerTick {
-    0% {
-        transform: translateX(-50%) rotate(0deg);
-    }
-    50% {
-        transform: translateX(-50%) rotate(-4deg);
-    }
-    100% {
-        transform: translateX(-50%) rotate(0deg);
-    }
-}
-
-/* =========================
-   WIN FLASH
-========================= */
-
-.wheel-win-flash {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 9999;
-    opacity: 0;
-    background:
-        radial-gradient(circle at center, rgba(255, 229, 120, 0.22) 0%, rgba(255, 229, 120, 0.08) 24%, rgba(255, 229, 120, 0) 55%);
-}
-
-.wheel-win-flash.active {
-    animation: wheelWinFlashAnim 0.5s ease-out forwards;
-}
-
-@keyframes wheelWinFlashAnim {
-    0% {
-        opacity: 0;
-    }
-    30% {
-        opacity: 1;
-    }
-    100% {
-        opacity: 0;
-    }
-}
-
-/* =========================
-   BUTTON
-========================= */
-
-.minigame-box > button {
+#startMemoryBtn,
+#tapChallengeTapBtn,
+#tapChallengeClaimBtn,
+#animalHuntStartBtn,
+#animalHuntClaimBtn {
     width: 100%;
-    margin-top: 2px;
-    padding: 14px;
-    border-radius: 14px;
+    min-height: 50px;
     border: none;
-    font-weight: 900;
-    font-size: 15px;
+    border-radius: 18px;
     cursor: pointer;
-    background: linear-gradient(180deg, #ffe27a, #ffbf00);
-    box-shadow:
-        0 8px 16px rgba(255,191,0,0.25),
-        inset 0 1px 0 rgba(255,255,255,0.4);
-    transition: transform 0.12s ease, filter 0.12s ease, opacity 0.12s ease;
+    font-size: 15px;
+    font-weight: 900;
+    color: #1d1d1d;
+    background: linear-gradient(180deg, #ffd84c 0%, #f0b90b 100%);
+    box-shadow: 0 12px 24px rgba(240, 185, 11, 0.22);
+    transition: transform 0.14s ease, box-shadow 0.14s ease, opacity 0.14s ease;
 }
 
-.minigame-box > button:active {
-    transform: scale(0.98);
+#startMemoryBtn:hover,
+#tapChallengeTapBtn:hover,
+#tapChallengeClaimBtn:hover,
+#animalHuntStartBtn:hover,
+#animalHuntClaimBtn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 28px rgba(240, 185, 11, 0.26);
 }
 
-.minigame-box > button:disabled {
-    background: #444;
-    color: #aaa;
+#startMemoryBtn:active,
+#tapChallengeTapBtn:active,
+#tapChallengeClaimBtn:active,
+#animalHuntStartBtn:active,
+#animalHuntClaimBtn:active {
+    transform: scale(0.99);
+}
+
+#startMemoryBtn:disabled,
+#tapChallengeTapBtn:disabled,
+#tapChallengeClaimBtn:disabled,
+#animalHuntStartBtn:disabled,
+#animalHuntClaimBtn:disabled {
     cursor: not-allowed;
     box-shadow: none;
 }
 
-/* =========================
-   MEMORY PRO
-========================= */
-
-#memoryGame {
-    padding-top: 10px;
-}
-
-#memoryGame .minigame-box-header {
-    margin-bottom: 10px;
-}
-
 .memory-mode-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin: 2px 0 10px 0;
-    flex-wrap: wrap;
+    margin-bottom: 12px;
+    padding: 12px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 .memory-mode-label {
-    font-size: 11px;
-    line-height: 1;
-    color: rgba(255,255,255,0.68);
-    font-weight: 900;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.65);
 }
 
 .memory-mode-buttons {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
-    flex-wrap: wrap;
+    margin-top: 10px;
 }
 
 .memory-mode-btn {
-    border: 1px solid rgba(255,255,255,0.10);
-    background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%);
-    color: rgba(255,255,255,0.86);
-    padding: 8px 12px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 900;
+    min-height: 42px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    background: rgba(255, 255, 255, 0.04);
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 800;
     cursor: pointer;
-    transition: transform 0.12s ease, filter 0.12s ease, opacity 0.12s ease;
+    transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+
+.memory-mode-btn:hover {
+    transform: translateY(-1px);
 }
 
 .memory-mode-btn.is-active {
-    background: linear-gradient(180deg, #ffe27a, #ffbf00);
-    color: #1d2331;
-    border-color: rgba(255,255,255,0.18);
-    box-shadow: 0 8px 16px rgba(255,191,0,0.18);
+    border-color: rgba(255, 216, 76, 0.85);
+    background: linear-gradient(180deg, rgba(255, 216, 76, 0.22) 0%, rgba(240, 185, 11, 0.10) 100%);
+    color: #fff3c4;
+    box-shadow: 0 10px 20px rgba(240, 185, 11, 0.14);
 }
 
 .memory-mode-btn:disabled {
-    opacity: 0.55;
+    opacity: 0.65;
     cursor: not-allowed;
 }
 
 .memory-hud {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
-    margin: 4px 0 12px 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
 }
 
 .memory-stat-chip {
-    border-radius: 14px;
-    padding: 10px 10px 9px;
-    background:
-        linear-gradient(180deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.04) 100%);
-    border: 1px solid rgba(255,255,255,0.07);
-    box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.05),
-        0 10px 18px rgba(0,0,0,0.16);
+    padding: 10px 12px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     text-align: center;
 }
 
 .memory-stat-label {
     display: block;
     font-size: 11px;
-    line-height: 1;
-    color: rgba(255,255,255,0.68);
-    font-weight: 800;
-    margin-bottom: 6px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.62);
     text-transform: uppercase;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.03em;
 }
 
 .memory-stat-value {
     display: block;
+    margin-top: 4px;
     font-size: 16px;
-    line-height: 1;
-    color: #ffffff;
     font-weight: 900;
+    color: #ffffff;
 }
 
+.memory-grid,
 .memory-grid-pro {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
-    margin-top: 0;
+    margin-bottom: 12px;
 }
 
 .memory-card-pro {
-    aspect-ratio: 1 / 1;
+    position: relative;
+    width: 100%;
+    min-height: 92px;
     border: none;
-    padding: 0;
-    margin: 0;
     border-radius: 18px;
     background: transparent;
-    perspective: 900px;
     cursor: pointer;
-    position: relative;
-    box-shadow: none;
+    padding: 0;
+    perspective: 900px;
 }
 
 .memory-card-pro:disabled {
@@ -490,14 +226,15 @@
 
 .memory-card-inner {
     position: relative;
-    width: 100%;
-    height: 100%;
     display: block;
+    width: 100%;
+    min-height: 92px;
     transform-style: preserve-3d;
-    transition: transform 0.42s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: transform 0.35s ease;
 }
 
-.memory-card-pro.is-flipped .memory-card-inner {
+.memory-card-pro.is-flipped .memory-card-inner,
+.memory-card-pro.is-matched .memory-card-inner {
     transform: rotateY(180deg);
 }
 
@@ -509,300 +246,120 @@
     justify-content: center;
     border-radius: 18px;
     backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    user-select: none;
+    font-size: 32px;
+    font-weight: 900;
 }
 
 .memory-card-front {
     background:
-        radial-gradient(circle at 30% 25%, rgba(255,255,255,0.18) 0%, transparent 24%),
-        linear-gradient(180deg, #506488 0%, #344666 100%);
-    border: 1px solid rgba(255,255,255,0.10);
+        linear-gradient(180deg, rgba(29, 45, 109, 0.96) 0%, rgba(13, 24, 66, 0.96) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    color: rgba(255, 255, 255, 0.92);
     box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.08),
-        0 10px 18px rgba(0,0,0,0.22);
-    color: #ffffff;
-    font-size: 28px;
-    font-weight: 900;
+        0 12px 22px rgba(0, 0, 0, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .memory-card-back {
     transform: rotateY(180deg);
     background:
-        radial-gradient(circle at 32% 26%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.08) 26%, transparent 36%),
-        linear-gradient(180deg, #fff7d7 0%, #ffe39a 52%, #ffc857 100%);
-    border: 1px solid rgba(255,255,255,0.28);
+        linear-gradient(180deg, rgba(255, 216, 76, 0.24) 0%, rgba(240, 185, 11, 0.14) 100%);
+    border: 1px solid rgba(255, 216, 76, 0.32);
+    color: #ffffff;
     box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.55),
-        0 10px 18px rgba(0,0,0,0.20);
-    color: #1b2434;
-    font-size: 30px;
-    font-weight: 900;
+        0 12px 22px rgba(240, 185, 11, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .memory-card-pro.is-matched .memory-card-back {
+    background:
+        linear-gradient(180deg, rgba(84, 214, 120, 0.24) 0%, rgba(44, 163, 77, 0.12) 100%);
+    border-color: rgba(84, 214, 120, 0.34);
     box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.72),
-        0 0 0 1px rgba(255,255,255,0.18),
-        0 0 18px rgba(255,220,120,0.40),
-        0 10px 18px rgba(0,0,0,0.18);
+        0 12px 22px rgba(44, 163, 77, 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-.memory-card-pro.is-matched {
-    animation: memoryMatchedPulse 0.5s ease;
+#tapChallengeHud,
+#animalHuntHud {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
 }
 
-@keyframes memoryMatchedPulse {
-    0% {
-        transform: scale(1);
-    }
-    40% {
-        transform: scale(1.04);
-    }
-    100% {
-        transform: scale(1);
-    }
+#tapChallengeHud > div,
+#animalHuntHud > div {
+    padding: 10px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    text-align: center;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
-/* =========================
-   MOBILE
-========================= */
-
-@media (max-width: 700px) {
-    .wheel-container {
-        width: 320px;
-        height: 320px;
-        margin: -54px auto 0 auto;
-    }
-
-    .wheel-container::before {
-        width: 372px;
-        height: 372px;
-    }
-
-    .wheel-container::after {
-        width: 338px;
-        height: 338px;
-    }
-
-    #wheelGame .minigame-box-header {
-        margin-bottom: -20px;
-    }
+#tapChallengeResultBox,
+#animalHuntResultBox {
+    border-radius: 18px !important;
+    background: rgba(255, 255, 255, 0.045) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
-@media (max-width: 520px) {
-    .minigames-card {
-        padding: 10px;
-    }
+#animalHuntBoard {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 4px;
+}
 
-    .minigames-header {
-        margin-bottom: 4px;
-    }
+#animalHuntBoard button {
+    min-height: 86px;
+    border: none;
+    border-radius: 18px;
+    cursor: pointer;
+    transition: transform 0.12s ease, opacity 0.12s ease, box-shadow 0.12s ease;
+}
 
-    .minigames-title {
-        font-size: 22px;
-    }
+#animalHuntBoard button:hover {
+    transform: translateY(-1px);
+}
 
-    .minigames-subtitle {
-        font-size: 12px;
-    }
-
-    .minigame-box {
-        padding: 6px 10px 12px;
-    }
-
-    #wheelGame .minigame-box-header {
-        margin-bottom: -18px;
-    }
-
-    .wheel-container {
-        width: 286px;
-        height: 286px;
-        margin: -48px auto -2px auto;
-    }
-
-    .wheel-container::before {
-        width: 332px;
-        height: 332px;
-    }
-
-    .wheel-container::after {
-        width: 302px;
-        height: 302px;
-    }
-
-    .wheel {
-        background-size: 118%;
-    }
-
-    .wheel-label {
-        width: 60px;
-        font-size: 13px;
-    }
-
-    .wheel::after {
-        width: 66px;
-        height: 66px;
-    }
-
-    .wheel-pointer {
-        top: 20px;
-        border-left-width: 16px;
-        border-right-width: 16px;
-        border-bottom-width: 28px;
-    }
-
-    .wheel-pointer::after {
-        left: -7px;
-        border-left-width: 7px;
-        border-right-width: 7px;
-        border-bottom-width: 13px;
-    }
-
-    .memory-mode-bar {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 8px;
-    }
-
-    .memory-mode-buttons {
-        justify-content: center;
-    }
-
-    .memory-hud {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 7px;
-    }
-
-    .memory-grid-pro {
-        gap: 8px;
-    }
-
-    .memory-stat-chip {
-        padding: 9px 8px 8px;
-    }
-
-    .memory-stat-value {
-        font-size: 15px;
-    }
+#animalHuntBoard button:active {
+    transform: scale(0.97);
 }
 
 @media (max-width: 420px) {
-    .wheel-container {
-        width: 258px;
-        height: 258px;
-        margin: -44px auto -4px auto;
+    .minigames-card {
+        padding: 14px;
+        border-radius: 22px;
     }
 
-    .wheel-container::before {
-        width: 300px;
-        height: 300px;
+    .minigame-box {
+        padding: 14px;
+        border-radius: 18px;
     }
 
-    .wheel-container::after {
-        width: 274px;
-        height: 274px;
-    }
-
-    .wheel-label {
-        width: 54px;
-        font-size: 12px;
-    }
-
-    .wheel::after {
-        width: 60px;
-        height: 60px;
-    }
-
-    .wheel-pointer {
-        top: 18px;
-    }
-
-    .minigame-name {
-        font-size: 17px;
-    }
-
-    .minigame-desc {
-        font-size: 11px;
-    }
-
+    .memory-grid,
     .memory-grid-pro {
-        gap: 7px;
+        gap: 8px;
     }
 
-    .memory-card-front,
-    .memory-card-back {
-        border-radius: 16px;
+    .memory-card-pro,
+    .memory-card-inner {
+        min-height: 82px;
     }
 
-    .memory-card-front {
-        font-size: 24px;
+    .memory-card-face {
+        font-size: 28px;
     }
 
-    .memory-card-back {
-        font-size: 26px;
+    #animalHuntBoard button {
+        min-height: 76px;
+        font-size: 26px !important;
     }
 
-    .memory-stat-label {
-        font-size: 10px;
-    }
-
-    .memory-stat-value {
-        font-size: 14px;
-    }
-
-    .memory-mode-btn {
-        padding: 7px 11px;
-        font-size: 11px;
-    }
-}
-
-@media (max-width: 380px) {
-    .wheel-container {
-        width: 238px;
-        height: 238px;
-        margin: -40px auto -6px auto;
-    }
-
-    .wheel-container::before {
-        width: 278px;
-        height: 278px;
-    }
-
-    .wheel-container::after {
-        width: 252px;
-        height: 252px;
-    }
-
-    .wheel-label {
-        width: 50px;
-        font-size: 11px;
-    }
-
-    .wheel::after {
-        width: 56px;
-        height: 56px;
-    }
-
-    .minigame-box > button {
-        font-size: 14px;
-        padding: 13px;
-    }
-
-    .memory-grid-pro {
-        gap: 6px;
-    }
-
-    .memory-card-front,
-    .memory-card-back {
-        border-radius: 14px;
-    }
-
-    .memory-card-front {
-        font-size: 22px;
-    }
-
-    .memory-card-back {
-        font-size: 24px;
+    #tapChallengeTapBtn,
+    #animalHuntStartBtn {
+        min-height: 54px;
+        font-size: 16px !important;
     }
 }
