@@ -2,6 +2,12 @@ const { LIMITS, ANIMALS_CONFIG } = require("../config/game-config");
 const { clamp, normalizeRewardNumber, normalizeNumber } = require("../utils/helpers");
 const { normalizePlayer } = require("./player-service");
 
+const MINIGAME_UNLOCK_LEVELS = {
+    memory: 5,
+    tapChallenge: 7,
+    animalHunt: 10
+};
+
 function normalizeObject(value) {
     return value && typeof value === "object" && !Array.isArray(value) ? value : {};
 }
@@ -246,6 +252,46 @@ function sanitizeExpedition(oldPlayer, newPlayer) {
             newPlayer.expedition = oldExp;
         }
     }
+
+    return newPlayer;
+}
+
+function sanitizeMinigames(oldPlayer, newPlayer) {
+    const oldMinigames = normalizeObject(oldPlayer?.minigames);
+    const nextMinigames = normalizeObject(newPlayer?.minigames);
+    const playerLevel = Math.max(1, Number(newPlayer?.level || oldPlayer?.level || 1));
+
+    const oldMemoryCooldownUntil = Math.max(0, Number(oldMinigames.memoryCooldownUntil) || 0);
+    const oldTapChallengeCooldownUntil = Math.max(0, Number(oldMinigames.tapChallengeCooldownUntil) || 0);
+    const oldAnimalHuntCooldownUntil = Math.max(0, Number(oldMinigames.animalHuntCooldownUntil) || 0);
+    const oldWheelCooldownUntil = Math.max(0, Number(oldMinigames.wheelCooldownUntil) || 0);
+    const oldExtraWheelSpins = Math.max(0, Math.floor(Number(oldMinigames.extraWheelSpins) || 0));
+
+    const requestedMemoryCooldownUntil = Math.max(0, Number(nextMinigames.memoryCooldownUntil) || 0);
+    const requestedTapChallengeCooldownUntil = Math.max(0, Number(nextMinigames.tapChallengeCooldownUntil) || 0);
+    const requestedAnimalHuntCooldownUntil = Math.max(0, Number(nextMinigames.animalHuntCooldownUntil) || 0);
+    const requestedWheelCooldownUntil = Math.max(0, Number(nextMinigames.wheelCooldownUntil) || 0);
+    const requestedExtraWheelSpins = Math.max(0, Math.floor(Number(nextMinigames.extraWheelSpins) || 0));
+
+    const allowMemory = playerLevel >= MINIGAME_UNLOCK_LEVELS.memory;
+    const allowTapChallenge = playerLevel >= MINIGAME_UNLOCK_LEVELS.tapChallenge;
+    const allowAnimalHunt = playerLevel >= MINIGAME_UNLOCK_LEVELS.animalHunt;
+
+    newPlayer.minigames = {
+        ...oldMinigames,
+        ...nextMinigames,
+        memoryCooldownUntil: allowMemory
+            ? Math.max(oldMemoryCooldownUntil, requestedMemoryCooldownUntil)
+            : oldMemoryCooldownUntil,
+        tapChallengeCooldownUntil: allowTapChallenge
+            ? Math.max(oldTapChallengeCooldownUntil, requestedTapChallengeCooldownUntil)
+            : oldTapChallengeCooldownUntil,
+        animalHuntCooldownUntil: allowAnimalHunt
+            ? Math.max(oldAnimalHuntCooldownUntil, requestedAnimalHuntCooldownUntil)
+            : oldAnimalHuntCooldownUntil,
+        wheelCooldownUntil: Math.max(oldWheelCooldownUntil, requestedWheelCooldownUntil),
+        extraWheelSpins: Math.min(oldExtraWheelSpins, requestedExtraWheelSpins)
+    };
 
     return newPlayer;
 }
@@ -524,6 +570,7 @@ function buildSafePlayerState(oldPlayer, incomingRaw) {
     };
 
     sanitizeExpedition(oldSafe, merged);
+    sanitizeMinigames(oldSafe, merged);
     merged.zooIncome = computeZooIncome(merged);
     sanitizeReward(oldSafe, merged);
     validateProgress(oldSafe, merged);
