@@ -1,5 +1,5 @@
 const { LIMITS, ADMIN_SECRET } = require("../config/game-config");
-const { normalizeRewardNumber, safeString } = require("../utils/helpers");
+const { normalizeRewardNumber, safeString, clamp } = require("../utils/helpers");
 
 const WITHDRAW_RATE_USD = normalizeRewardNumber(
     LIMITS?.withdrawUsdPerReward,
@@ -26,6 +26,10 @@ const WITHDRAW_FEE_PERCENT = Math.max(
     Math.min(1, Number(LIMITS?.withdrawFeePercent) || 0.10)
 );
 
+const MAX_TON_ADDRESS_LENGTH = 128;
+const MAX_NOTE_LENGTH = 500;
+const MAX_TX_HASH_LENGTH = 256;
+
 function getNow() {
     return Date.now();
 }
@@ -34,6 +38,18 @@ function logSuspiciousWithdraw(message, payload = {}) {
     try {
         console.warn("[withdraw-guard]", message, payload);
     } catch (_) {}
+}
+
+function sanitizeTonAddress(value) {
+    return safeString(value, "").trim().slice(0, MAX_TON_ADDRESS_LENGTH);
+}
+
+function sanitizeNote(value) {
+    return safeString(value, "").trim().slice(0, MAX_NOTE_LENGTH);
+}
+
+function sanitizeTxHash(value) {
+    return safeString(value, "").trim().slice(0, MAX_TX_HASH_LENGTH);
 }
 
 function getPlayerCreatedAtMs(player) {
@@ -70,7 +86,7 @@ function getPlayerRewardWallet(player) {
 }
 
 function getPlayerTonAddress(player) {
-    return safeString(player?.tonAddress, "");
+    return sanitizeTonAddress(player?.tonAddress);
 }
 
 function getWithdrawFeeAmount(amount) {
@@ -105,7 +121,7 @@ function createWithdrawRequest({ telegramId, username, amount, tonAddress }) {
         id: `wd_${now}_${Math.random().toString(36).slice(2, 8)}`,
         telegramId: String(telegramId || ""),
         username: safeString(username || "Gracz"),
-        tonAddress: safeString(tonAddress || ""),
+        tonAddress: sanitizeTonAddress(tonAddress),
 
         amount: safeAmount,
         rewardAmount: safeAmount,
@@ -256,14 +272,22 @@ function applyCreateWithdrawToPlayer(player, amount) {
     const currentRewardWallet = getPlayerRewardWallet(player);
     const currentWithdrawPending = getPlayerWithdrawPending(player);
 
-    player.rewardWallet = normalizeRewardNumber(
-        Math.max(0, currentRewardWallet - safeAmount),
-        0
+    player.rewardWallet = clamp(
+        normalizeRewardNumber(
+            Math.max(0, currentRewardWallet - safeAmount),
+            0
+        ),
+        0,
+        LIMITS.MAX_REWARD_WALLET
     );
 
-    player.withdrawPending = normalizeRewardNumber(
-        currentWithdrawPending + safeAmount,
-        0
+    player.withdrawPending = clamp(
+        normalizeRewardNumber(
+            currentWithdrawPending + safeAmount,
+            0
+        ),
+        0,
+        LIMITS.MAX_WITHDRAW_PENDING
     );
 
     player.updatedAt = getNow();
@@ -338,9 +362,13 @@ function applyPaidWithdrawToPlayer(player, withdrawRequest) {
         return null;
     }
 
-    player.withdrawPending = normalizeRewardNumber(
-        Math.max(0, validation.pendingAmount - validation.grossAmount),
-        0
+    player.withdrawPending = clamp(
+        normalizeRewardNumber(
+            Math.max(0, validation.pendingAmount - validation.grossAmount),
+            0
+        ),
+        0,
+        LIMITS.MAX_WITHDRAW_PENDING
     );
 
     player.updatedAt = getNow();
@@ -355,14 +383,22 @@ function applyRejectedWithdrawToPlayer(player, withdrawRequest) {
 
     const currentRewardWallet = getPlayerRewardWallet(player);
 
-    player.withdrawPending = normalizeRewardNumber(
-        Math.max(0, validation.pendingAmount - validation.grossAmount),
-        0
+    player.withdrawPending = clamp(
+        normalizeRewardNumber(
+            Math.max(0, validation.pendingAmount - validation.grossAmount),
+            0
+        ),
+        0,
+        LIMITS.MAX_WITHDRAW_PENDING
     );
 
-    player.rewardWallet = normalizeRewardNumber(
-        currentRewardWallet + validation.grossAmount,
-        0
+    player.rewardWallet = clamp(
+        normalizeRewardNumber(
+            currentRewardWallet + validation.grossAmount,
+            0
+        ),
+        0,
+        LIMITS.MAX_REWARD_WALLET
     );
 
     player.updatedAt = getNow();
@@ -384,8 +420,8 @@ function markWithdrawAsPaid(withdrawRequest, note = "", payoutTxHash = "") {
     }
 
     withdrawRequest.status = "paid";
-    withdrawRequest.note = safeString(note || "");
-    withdrawRequest.payoutTxHash = safeString(
+    withdrawRequest.note = sanitizeNote(note);
+    withdrawRequest.payoutTxHash = sanitizeTxHash(
         payoutTxHash || withdrawRequest.payoutTxHash || ""
     );
     withdrawRequest.payoutError = "";
@@ -410,7 +446,7 @@ function markWithdrawAsRejected(withdrawRequest, note = "") {
     }
 
     withdrawRequest.status = "rejected";
-    withdrawRequest.note = safeString(note || "");
+    withdrawRequest.note = sanitizeNote(note);
     withdrawRequest.updatedAt = getNow();
     withdrawRequest.processedAt = getNow();
 
