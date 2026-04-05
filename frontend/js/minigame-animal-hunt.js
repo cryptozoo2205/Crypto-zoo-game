@@ -17,7 +17,7 @@ Object.assign(CryptoZoo.minigames, {
         card.innerHTML = `
             <div class="minigame-box-header">
                 <div class="minigame-name" id="animalHuntTitle">${this.lt("animalHuntTitle", "Animal Hunt")}</div>
-                <div class="minigame-desc" id="animalHuntDesc">${this.lt("animalHuntSubtitle", "Catch animals before they disappear")}</div>
+                <div class="minigame-desc" id="animalHuntDesc">${this.lt("animalHuntSubtitle", "Łap zwierzęta zanim znikną")}</div>
             </div>
 
             <div
@@ -35,7 +35,7 @@ Object.assign(CryptoZoo.minigames, {
                     <div id="animalHuntTimeText" style="font-size:18px; font-weight:900;">10.0</div>
                 </div>
                 <div style="padding:10px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); text-align:center;">
-                    <div style="font-size:11px; color:rgba(255,255,255,0.65);">${this.lt("score", "Score")}</div>
+                    <div style="font-size:11px; color:rgba(255,255,255,0.65);">${this.lt("score", "Wynik")}</div>
                     <div id="animalHuntScoreText" style="font-size:18px; font-weight:900;">0</div>
                 </div>
                 <div style="padding:10px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); text-align:center;">
@@ -64,7 +64,7 @@ Object.assign(CryptoZoo.minigames, {
                 id="animalHuntStatus"
                 class="minigame-status"
                 style="margin-top:12px;"
-            >${this.lt("animalHuntSubtitle", "Catch animals before they disappear")}</div>
+            >${this.lt("animalHuntSubtitle", "Łap zwierzęta zanim znikną")}</div>
 
             <div
                 id="animalHuntResultBox"
@@ -77,13 +77,13 @@ Object.assign(CryptoZoo.minigames, {
                     border:1px solid rgba(255,255,255,0.08);
                 "
             >
-                <div style="font-size:16px; font-weight:900; margin-bottom:8px;">${this.lt("animalHuntResultTitle", "Hunt Result")}</div>
+                <div style="font-size:16px; font-weight:900; margin-bottom:8px;">${this.lt("animalHuntResultTitle", "Wynik polowania")}</div>
                 <div id="animalHuntResultText" style="font-size:13px; line-height:1.5;"></div>
                 <button
                     id="animalHuntClaimBtn"
                     type="button"
                     style="margin-top:12px; width:100%;"
-                >${this.lt("animalHuntClaim", "Claim reward")}</button>
+                >${this.lt("animalHuntClaim", "Odbierz nagrodę")}</button>
             </div>
         `;
 
@@ -124,6 +124,8 @@ Object.assign(CryptoZoo.minigames, {
 
         CryptoZoo.state.minigames.animalHuntCooldownUntil =
             Date.now() + duration * 1000;
+
+        CryptoZoo.api?.savePlayer?.();
     },
 
     getAnimalHuntTargetScore() {
@@ -238,9 +240,9 @@ Object.assign(CryptoZoo.minigames, {
         if (resultText && this.animalHuntResult) {
             const result = this.animalHuntResult;
             const lines = [
-                `<div>${this.lt("score", "Score")}: ${CryptoZoo.formatNumber(result.score)}</div>`,
-                `<div>${this.lt("bestCombo", "Best combo")}: ${CryptoZoo.formatNumber(result.bestCombo)}x</div>`,
-                `<div>${this.lt("reward", "Reward")}: +${CryptoZoo.formatNumber(result.coins)} coins${result.gems > 0 ? ` • +${CryptoZoo.formatNumber(result.gems)} gem` : ""}</div>`
+                `<div>${this.lt("score", "Wynik")}: ${CryptoZoo.formatNumber(result.score)}</div>`,
+                `<div>${this.lt("bestCombo", "Najlepsze combo")}: ${CryptoZoo.formatNumber(result.bestCombo)}x</div>`,
+                `<div>${this.lt("reward", "Nagroda")}: +${CryptoZoo.formatNumber(result.coins)} coins${result.gems > 0 ? ` • +${CryptoZoo.formatNumber(result.gems)} gem` : ""}</div>`
             ];
 
             if (result.title) {
@@ -258,14 +260,19 @@ Object.assign(CryptoZoo.minigames, {
         if (startBtn) {
             const cooldownLeft = this.getAnimalHuntCooldownLeft();
 
-            if (this.animalHuntSessionActive) {
+            if (!this.isUnlocked("animalHunt")) {
                 startBtn.disabled = true;
-                startBtn.textContent = this.lt("animalHuntRunning", "Catch as many animals as you can");
+                startBtn.textContent = `${this.lt("unlockAtLevel", "Odblokowanie na poziomie")} ${this.getUnlockLevel("animalHunt")}`;
+                startBtn.style.opacity = "0.72";
+                startBtn.style.cursor = "not-allowed";
+            } else if (this.animalHuntSessionActive) {
+                startBtn.disabled = true;
+                startBtn.textContent = this.lt("animalHuntRunning", "Łap jak najwięcej zwierząt");
                 startBtn.style.opacity = "0.9";
                 startBtn.style.cursor = "default";
             } else if (this.animalHuntResult) {
                 startBtn.disabled = true;
-                startBtn.textContent = this.lt("finished", "Finished");
+                startBtn.textContent = this.lt("finished", "Koniec");
                 startBtn.style.opacity = "0.72";
                 startBtn.style.cursor = "not-allowed";
             } else if (cooldownLeft > 0) {
@@ -282,12 +289,14 @@ Object.assign(CryptoZoo.minigames, {
         }
 
         if (!this.animalHuntStatusMessage) {
-            if (this.animalHuntSessionActive) {
-                this.setAnimalHuntStatus(this.lt("animalHuntRunning", "Catch as many animals as you can"));
+            if (!this.isUnlocked("animalHunt")) {
+                this.setAnimalHuntStatus(this.getLockText("animalHunt"));
+            } else if (this.animalHuntSessionActive) {
+                this.setAnimalHuntStatus(this.lt("animalHuntRunning", "Łap jak najwięcej zwierząt"));
             } else if (this.getAnimalHuntCooldownLeft() > 0) {
-                this.setAnimalHuntStatus(`${this.lt("animalHuntReadyIn", "Animal Hunt ready in")} ${this.formatCooldown(this.getAnimalHuntCooldownLeft())}`);
+                this.setAnimalHuntStatus(`${this.lt("animalHuntReadyIn", "Animal Hunt gotowe za")} ${this.formatCooldown(this.getAnimalHuntCooldownLeft())}`);
             } else {
-                this.setAnimalHuntStatus(this.lt("animalHuntSubtitle", "Catch animals before they disappear"));
+                this.setAnimalHuntStatus(this.lt("animalHuntSubtitle", "Łap zwierzęta zanim znikną"));
             }
         }
 
@@ -311,7 +320,7 @@ Object.assign(CryptoZoo.minigames, {
             if (cell.type !== "empty" && now >= Number(cell.expiresAt || 0)) {
                 if (!cell.clicked && (cell.type === "normal" || cell.type === "gold")) {
                     this.animalHuntCombo = 0;
-                    this.setAnimalHuntStatus(this.lt("animalHuntMissed", "Missed animal"));
+                    this.setAnimalHuntStatus(this.lt("animalHuntMissed", "Uciekło zwierzę"));
                 }
 
                 return {
@@ -352,9 +361,14 @@ Object.assign(CryptoZoo.minigames, {
     startAnimalHunt() {
         if (!this.isMiniGamesVisible()) return;
 
+        if (!this.isUnlocked("animalHunt")) {
+            this.showLockedToast("animalHunt");
+            return;
+        }
+
         const cooldownLeft = this.getAnimalHuntCooldownLeft();
         if (cooldownLeft > 0) {
-            CryptoZoo.ui?.showToast?.(`${this.lt("animalHuntReadyIn", "Animal Hunt ready in")} ${this.formatCooldown(cooldownLeft)}`);
+            CryptoZoo.ui?.showToast?.(`${this.lt("animalHuntReadyIn", "Animal Hunt gotowe za")} ${this.formatCooldown(cooldownLeft)}`);
             return;
         }
 
@@ -371,7 +385,7 @@ Object.assign(CryptoZoo.minigames, {
         this.animalHuntResult = null;
         this.animalHuntStatusMessage = "";
 
-        this.setAnimalHuntStatus(this.lt("animalHuntRunning", "Catch as many animals as you can"));
+        this.setAnimalHuntStatus(this.lt("animalHuntRunning", "Łap jak najwięcej zwierząt"));
         this.renderAnimalHunt();
 
         this.spawnAnimalHuntCell();
@@ -407,18 +421,18 @@ Object.assign(CryptoZoo.minigames, {
             this.animalHuntScore += 1;
             this.animalHuntCombo += 1;
             this.animalHuntBestCombo = Math.max(this.animalHuntBestCombo, this.animalHuntCombo);
-            this.setAnimalHuntStatus(this.lt("animalHuntRunning", "Catch as many animals as you can"));
+            this.setAnimalHuntStatus(this.lt("animalHuntRunning", "Łap jak najwięcej zwierząt"));
             CryptoZoo.audio?.play?.("tap");
         } else if (cell.type === "gold") {
             this.animalHuntScore += 3;
             this.animalHuntCombo += 1;
             this.animalHuntBestCombo = Math.max(this.animalHuntBestCombo, this.animalHuntCombo);
-            this.setAnimalHuntStatus(`${this.lt("animalHuntGolden", "Golden animal")} +3`);
+            this.setAnimalHuntStatus(`${this.lt("animalHuntGolden", "Złote zwierzę")} +3`);
             CryptoZoo.audio?.play?.("win");
         } else if (cell.type === "bomb") {
             this.animalHuntScore = Math.max(0, this.animalHuntScore - 2);
             this.animalHuntCombo = 0;
-            this.setAnimalHuntStatus(`${this.lt("animalHuntBomb", "Bomb")} -2`);
+            this.setAnimalHuntStatus(`${this.lt("animalHuntBomb", "Bomba")} -2`);
             CryptoZoo.audio?.play?.("click");
         }
 
@@ -441,26 +455,25 @@ Object.assign(CryptoZoo.minigames, {
             Number(CryptoZoo.gameplay?.getEffectiveCoinsPerClick?.() || CryptoZoo.state?.coinsPerClick || 1)
         );
 
-        let coins = safeScore * effectiveCoinsPerClick * 42;
-        coins += safeBestCombo * 80;
+        let coins = safeScore * effectiveCoinsPerClick * 18;
+        coins += safeBestCombo * 40;
 
-        if (safeScore >= 12) coins += 900;
-        if (safeScore >= 18) coins += 1800;
-        if (safeScore >= 24) coins += 3200;
-        if (safeScore >= 30) coins += 4800;
+        if (safeScore >= 12) coins += 250;
+        if (safeScore >= 18) coins += 600;
+        if (safeScore >= 24) coins += 1100;
+        if (safeScore >= 30) coins += 1800;
 
-        coins = Math.max(0, Math.min(70000, Math.floor(coins)));
+        coins = Math.max(0, Math.min(18000, Math.floor(coins)));
 
         let gems = 0;
-        if (safeScore >= 16 && Math.random() < 0.07) gems = 1;
-        if (safeScore >= 24 && Math.random() < 0.12) gems = 1;
-        if (safeScore >= 32 && Math.random() < 0.16) gems = 2;
+        if (safeScore >= 20 && Math.random() < 0.05) gems = 1;
+        if (safeScore >= 30 && Math.random() < 0.10) gems = 1;
 
-        let title = this.lt("animalHuntNice", "Nice run");
+        let title = this.lt("animalHuntNice", "Dobry wynik");
         if (safeScore >= 28) {
-            title = this.lt("animalHuntMaster", "Master hunter");
+            title = this.lt("animalHuntMaster", "Mistrz łowów");
         } else if (safeScore >= 18) {
-            title = this.lt("animalHuntGreat", "Great hunt");
+            title = this.lt("animalHuntGreat", "Świetne polowanie");
         }
 
         return {
@@ -485,7 +498,7 @@ Object.assign(CryptoZoo.minigames, {
         );
 
         this.resetAnimalHuntBoardState();
-        this.setAnimalHuntStatus(this.lt("animalHuntResultTitle", "Hunt Result"));
+        this.setAnimalHuntStatus(this.lt("animalHuntResultTitle", "Wynik polowania"));
         this.renderAnimalHunt();
     },
 
@@ -509,7 +522,7 @@ Object.assign(CryptoZoo.minigames, {
         }
 
         CryptoZoo.audio?.play?.("win");
-        CryptoZoo.ui?.showToast?.(`🎯 ${this.lt("animalHuntRewardToast", "Animal Hunt reward")}: ${toastParts.join(" • ")}`);
+        CryptoZoo.ui?.showToast?.(`🎯 ${this.lt("animalHuntRewardToast", "Nagroda Animal Hunt")}: ${toastParts.join(" • ")}`);
 
         this.animalHuntResult = null;
         this.animalHuntScore = 0;
