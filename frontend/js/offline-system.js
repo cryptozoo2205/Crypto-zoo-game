@@ -38,16 +38,20 @@ CryptoZoo.offline = {
 
         CryptoZoo.state.lastLogin = this.clampLastLogin(CryptoZoo.state?.lastLogin);
 
-        CryptoZoo.state.offlineBaseHours = Math.max(
+        const forcedBaseHours = Math.max(
             0.25,
-            Number(CryptoZoo.state?.offlineBaseHours) || 0.25
+            Number(CryptoZoo.gameplay?.baseOfflineHours) || 0.25
         );
 
+        CryptoZoo.state.offlineBaseHours = forcedBaseHours;
         CryptoZoo.state.offlineBoostHours = 0;
 
         CryptoZoo.state.offlineAdsHours = Math.max(
             0,
-            Math.min(12, Math.floor(Number(CryptoZoo.state?.offlineAdsHours) || 0))
+            Math.min(
+                Number(CryptoZoo.gameplay?.getMaxOfflineAdsHours?.() || 12),
+                Math.floor(Number(CryptoZoo.state?.offlineAdsHours) || 0)
+            )
         );
 
         CryptoZoo.state.offlineBoostActiveUntil = 0;
@@ -60,11 +64,8 @@ CryptoZoo.offline = {
                 Number(CryptoZoo.gameplay.getOfflineMaxSeconds()) || 15 * 60
             );
         } else {
-            CryptoZoo.state.offlineMaxSeconds = Math.max(
-                0,
-                Number(CryptoZoo.state?.offlineMaxSeconds) ||
-                    Number(CryptoZoo.gameplay?.maxOfflineSeconds) ||
-                    15 * 60
+            CryptoZoo.state.offlineMaxSeconds = Math.floor(
+                (forcedBaseHours + CryptoZoo.state.offlineAdsHours) * 3600
             );
         }
     },
@@ -123,14 +124,34 @@ CryptoZoo.offline = {
     },
 
     getMaxHours() {
-        const maxSeconds = this.getMaxSeconds();
-        return Math.max(0, Number((maxSeconds / 3600).toFixed(2)));
+        return this.getMaxSeconds() / 3600;
     },
 
     formatDuration(totalSeconds) {
         const safeSeconds = Math.max(0, Number(totalSeconds) || 0);
         const hours = Math.floor(safeSeconds / 3600);
         const minutes = Math.floor((safeSeconds % 3600) / 60);
+
+        if (hours > 0 && minutes > 0) {
+            return `${hours}h ${minutes}m`;
+        }
+
+        if (hours > 0) {
+            return `${hours}h`;
+        }
+
+        if (minutes > 0) {
+            return `${minutes}m`;
+        }
+
+        return `${safeSeconds}s`;
+    },
+
+    formatToastLimitDuration(totalSeconds) {
+        const safeSeconds = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+        const totalMinutes = Math.floor(safeSeconds / 60);
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
 
         if (hours > 0 && minutes > 0) {
             return `${hours}h ${minutes}m`;
@@ -201,7 +222,8 @@ CryptoZoo.offline = {
         }
 
         const timeLabel = this.formatDuration(cappedSeconds);
-        const capLabel = wasCapped ? ` • limit ${this.formatDuration(maxOfflineSeconds)}` : "";
+        const limitLabel = this.formatToastLimitDuration(maxOfflineSeconds);
+        const capLabel = wasCapped ? ` • limit ${limitLabel}` : "";
 
         const toastMessage =
             offlineCoins > 0
