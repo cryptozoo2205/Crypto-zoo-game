@@ -123,7 +123,8 @@ CryptoZoo.offline = {
     },
 
     getMaxHours() {
-        return Math.max(0, Math.floor(this.getMaxSeconds() / 3600));
+        const maxSeconds = this.getMaxSeconds();
+        return Math.max(0, Number((maxSeconds / 3600).toFixed(2)));
     },
 
     formatDuration(totalSeconds) {
