@@ -1,5 +1,5 @@
 :root {
-    --menu-height: 82px;
+    --menu-height: 78px;
     --menu-gap: 0px;
     --menu-safe-bottom: max(env(safe-area-inset-bottom, 0px), var(--tg-safe-bottom, 0px));
 }
@@ -14,38 +14,40 @@
 
     display: grid;
     grid-template-columns: repeat(6, 1fr);
-    gap: 7px;
+    gap: 6px;
 
-    padding: 7px 8px calc(7px + var(--menu-safe-bottom));
+    padding: 6px 8px env(safe-area-inset-bottom, 0px);
     min-height: var(--menu-height);
 
     background:
-        linear-gradient(180deg, rgba(12, 22, 42, 0.985) 0%, rgba(6, 11, 24, 0.995) 100%);
-    border-top: 1px solid rgba(255, 219, 120, 0.10);
+        linear-gradient(180deg, rgba(10, 18, 34, 0.96) 0%, rgba(6, 11, 24, 0.985) 100%);
+    border-top: 1px solid rgba(255, 214, 82, 0.10);
     border-left: none;
     border-right: none;
     border-bottom: none;
-    border-radius: 20px 20px 0 0;
+    border-radius: 18px 18px 0 0;
 
     box-shadow:
-        0 -6px 24px rgba(0, 0, 0, 0.28),
+        0 -8px 24px rgba(0, 0, 0, 0.30),
         inset 0 1px 0 rgba(255, 255, 255, 0.03);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-sizing: border-box;
 }
 
 /* ===== BUTTON ===== */
 .menu-btn {
     position: relative;
     min-width: 0;
-    height: 62px;
+    height: 64px;
     padding: 0;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    border: 1px solid rgba(255, 210, 110, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 16px;
     background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.045) 0%, rgba(255, 255, 255, 0.015) 100%);
@@ -68,8 +70,7 @@
     inset: 0;
     border-radius: inherit;
     pointer-events: none;
-    background:
-        radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.08), transparent 55%);
+    background: radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.08), transparent 58%);
     opacity: 0.75;
 }
 
@@ -81,8 +82,8 @@
     top: 6px;
     height: 1px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.10);
-    opacity: 0.65;
+    background: rgba(255, 255, 255, 0.08);
+    opacity: 0.7;
     pointer-events: none;
 }
 
@@ -91,14 +92,14 @@
 }
 
 .menu-btn:hover {
-    border-color: rgba(255, 220, 130, 0.16);
+    border-color: rgba(255, 214, 82, 0.14);
     box-shadow: 0 0 0 1px rgba(255, 214, 82, 0.03);
 }
 
 /* ===== ICON ===== */
 .menu-icon {
-    width: 48px;
-    height: 48px;
+    width: 52px;
+    height: 52px;
     object-fit: contain;
     display: block;
     position: relative;
@@ -110,25 +111,23 @@
         filter 0.14s ease;
 
     opacity: 0.98;
-    filter:
-        drop-shadow(0 2px 4px rgba(0, 0, 0, 0.22));
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
 }
 
 /* ===== ACTIVE ===== */
 .menu-btn.active-nav {
     border-color: rgba(255, 214, 82, 0.34);
     background:
-        radial-gradient(circle at 50% 18%, rgba(255, 224, 120, 0.16), transparent 54%),
-        linear-gradient(180deg, rgba(255, 214, 82, 0.12) 0%, rgba(255, 190, 40, 0.09) 100%);
+        radial-gradient(circle at 50% 20%, rgba(255, 224, 120, 0.18), transparent 54%),
+        linear-gradient(180deg, rgba(255, 214, 82, 0.12) 0%, rgba(255, 190, 40, 0.08) 100%);
     box-shadow:
         0 0 18px rgba(255, 200, 70, 0.16),
         inset 0 1px 0 rgba(255, 255, 255, 0.05),
-        inset 0 -10px 18px rgba(255, 180, 40, 0.04);
+        inset 0 -8px 16px rgba(255, 180, 40, 0.04);
 }
 
 .menu-btn.active-nav::before {
-    background:
-        radial-gradient(circle at 50% 12%, rgba(255, 243, 190, 0.16), transparent 56%);
+    background: radial-gradient(circle at 50% 12%, rgba(255, 243, 190, 0.18), transparent 58%);
     opacity: 1;
 }
 
@@ -136,58 +135,52 @@
     opacity: 1;
     transform: scale(1.08);
     filter:
-        drop-shadow(0 0 10px rgba(255, 210, 85, 0.20))
+        drop-shadow(0 0 10px rgba(255, 210, 85, 0.22))
         drop-shadow(0 2px 4px rgba(0, 0, 0, 0.24));
 }
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 560px) {
     :root {
-        --menu-height: 78px;
+        --menu-height: 76px;
     }
 
     .menu {
-        left: 0;
-        right: 0;
-        bottom: 0;
         gap: 6px;
-        padding: 6px 8px calc(6px + var(--menu-safe-bottom));
+        padding: 6px 8px env(safe-area-inset-bottom, 0px);
         border-radius: 18px 18px 0 0;
     }
 
     .menu-btn {
-        height: 58px;
+        height: 62px;
         border-radius: 15px;
     }
 
     .menu-icon {
-        width: 44px;
-        height: 44px;
+        width: 48px;
+        height: 48px;
     }
 }
 
 @media (max-width: 400px) {
     :root {
-        --menu-height: 74px;
+        --menu-height: 72px;
     }
 
     .menu {
-        left: 0;
-        right: 0;
-        bottom: 0;
         gap: 5px;
-        padding: 5px 7px calc(5px + var(--menu-safe-bottom));
+        padding: 5px 7px env(safe-area-inset-bottom, 0px);
         border-radius: 17px 17px 0 0;
     }
 
     .menu-btn {
-        height: 54px;
+        height: 58px;
         border-radius: 14px;
     }
 
     .menu-icon {
-        width: 40px;
-        height: 40px;
+        width: 44px;
+        height: 44px;
     }
 }
 
