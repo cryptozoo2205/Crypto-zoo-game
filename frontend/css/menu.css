@@ -1,5 +1,5 @@
 :root {
-    --menu-height: 78px;
+    --menu-height: 82px;
     --menu-safe-bottom: max(env(safe-area-inset-bottom, 0px), var(--tg-safe-bottom, 0px));
 }
 
@@ -19,11 +19,11 @@
     min-height: var(--menu-height);
 
     background:
-        linear-gradient(180deg, rgba(6, 16, 34, 0.82) 0%, rgba(4, 10, 24, 0.92) 100%);
-    border-top: 1px solid rgba(255, 210, 120, 0.08);
+        linear-gradient(180deg, rgba(7, 18, 38, 0.90) 0%, rgba(4, 10, 24, 0.96) 100%);
+    border-top: 1px solid rgba(255, 210, 120, 0.12);
     border-radius: 18px 18px 0 0;
     box-shadow:
-        0 -8px 24px rgba(0, 0, 0, 0.28),
+        0 -8px 24px rgba(0, 0, 0, 0.30),
         inset 0 1px 0 rgba(255, 255, 255, 0.03);
 
     backdrop-filter: blur(10px);
@@ -33,7 +33,7 @@
 /* ===== BUTTON ===== */
 .menu-btn {
     position: relative;
-    height: 60px;
+    height: 66px;
 
     display: flex;
     align-items: center;
@@ -41,7 +41,7 @@
 
     background: transparent;
     border: none;
-    border-radius: 16px;
+    border-radius: 18px;
     box-shadow: none;
 
     cursor: pointer;
@@ -61,24 +61,24 @@
     width: 8px;
     height: 8px;
     border-radius: 999px;
-    background: rgba(255, 220, 120, 0.18);
+    background: rgba(255, 220, 120, 0.22);
     transform: translate(-50%, -50%) scale(0);
     opacity: 0;
     pointer-events: none;
 }
 
 .menu-btn:active {
-    transform: scale(0.92);
+    transform: scale(0.93);
 }
 
 .menu-btn:active::after {
     animation: menuRipple 0.32s ease-out;
 }
 
-/* ===== IKONA ===== */
+/* ===== ICON ===== */
 .menu-icon {
-    width: 44px;
-    height: 44px;
+    width: 52px;
+    height: 52px;
     object-fit: contain;
     background: transparent;
     transform: translateY(1px);
@@ -89,51 +89,52 @@
         opacity 0.18s ease;
 
     filter:
-        drop-shadow(0 2px 6px rgba(0, 0, 0, 0.34))
-        drop-shadow(0 0 4px rgba(255, 200, 80, 0.12));
+        drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35))
+        drop-shadow(0 0 6px rgba(255, 200, 80, 0.18));
 }
 
 /* ===== ACTIVE ===== */
 .menu-btn.active-nav {
     background:
-        radial-gradient(circle at 50% 35%, rgba(255, 220, 120, 0.10) 0%, rgba(255, 220, 120, 0.04) 38%, rgba(255, 255, 255, 0.02) 100%);
+        radial-gradient(circle at 50% 40%, rgba(255, 217, 120, 0.18) 0%, rgba(255, 190, 70, 0.10) 38%, rgba(255, 255, 255, 0.02) 100%);
     box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.04),
-        0 0 0 1px rgba(255, 210, 120, 0.06);
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 0 0 1px rgba(255, 210, 120, 0.08),
+        0 0 18px rgba(255, 185, 55, 0.10);
 }
 
 .menu-btn.active-nav .menu-icon {
-    transform: scale(1.08) translateY(1px);
+    transform: scale(1.10) translateY(1px);
     filter:
-        drop-shadow(0 0 10px rgba(255, 210, 90, 0.30))
-        drop-shadow(0 3px 8px rgba(0, 0, 0, 0.42));
+        drop-shadow(0 0 14px rgba(255, 210, 90, 0.45))
+        drop-shadow(0 3px 8px rgba(0, 0, 0, 0.45));
     animation: activeIconPulse 2.2s ease-in-out infinite;
 }
 
 /* ===== HOVER / PRESS ===== */
 .menu-btn:not(.active-nav):hover .menu-icon {
-    transform: scale(1.03) translateY(1px);
+    transform: scale(1.04) translateY(1px);
 }
 
 .menu-btn:not(.active-nav):active .menu-icon {
-    transform: scale(0.96) translateY(1px);
+    transform: scale(0.97) translateY(1px);
 }
 
 /* ===== ANIMATIONS ===== */
 @keyframes activeIconPulse {
     0% {
         filter:
-            drop-shadow(0 0 6px rgba(255, 210, 90, 0.18))
+            drop-shadow(0 0 8px rgba(255, 210, 90, 0.24))
             drop-shadow(0 3px 8px rgba(0, 0, 0, 0.42));
     }
     50% {
         filter:
-            drop-shadow(0 0 12px rgba(255, 220, 110, 0.34))
-            drop-shadow(0 3px 9px rgba(0, 0, 0, 0.46));
+            drop-shadow(0 0 16px rgba(255, 220, 110, 0.50))
+            drop-shadow(0 3px 10px rgba(0, 0, 0, 0.48));
     }
     100% {
         filter:
-            drop-shadow(0 0 6px rgba(255, 210, 90, 0.18))
+            drop-shadow(0 0 8px rgba(255, 210, 90, 0.24))
             drop-shadow(0 3px 8px rgba(0, 0, 0, 0.42));
     }
 }
@@ -156,23 +157,23 @@
     }
 
     .menu-btn {
-        height: 58px;
+        height: 62px;
     }
 
     .menu-icon {
-        width: 40px;
-        height: 40px;
+        width: 48px;
+        height: 48px;
     }
 }
 
 @media (max-width: 400px) {
     .menu-btn {
-        height: 54px;
+        height: 58px;
     }
 
     .menu-icon {
-        width: 36px;
-        height: 36px;
+        width: 44px;
+        height: 44px;
     }
 }
 
