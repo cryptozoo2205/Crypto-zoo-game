@@ -3,7 +3,7 @@
     --menu-safe-bottom: max(env(safe-area-inset-bottom, 0px), var(--tg-safe-bottom, 0px));
 }
 
-/* ===== MENU (NA SAMYM DOLE) ===== */
+/* ===== MENU ===== */
 .menu {
     position: fixed;
     left: 0;
@@ -13,25 +13,24 @@
 
     display: grid;
     grid-template-columns: repeat(6, 1fr);
-    gap: 6px;
+    gap: 4px;
 
-    padding: 6px 8px env(safe-area-inset-bottom, 0px);
+    padding: 6px 6px calc(6px + var(--menu-safe-bottom));
     min-height: var(--menu-height);
 
-    background: linear-gradient(180deg, rgba(10, 18, 34, 0.96) 0%, rgba(6, 11, 24, 0.99) 100%);
-    border-top: 1px solid rgba(255, 214, 82, 0.08);
+    background: linear-gradient(180deg, rgba(10, 18, 34, 0.96), rgba(6, 11, 24, 0.99));
+    border-top: 1px solid rgba(255, 200, 80, 0.08);
     border-radius: 18px 18px 0 0;
-
     box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.35);
 
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
 }
 
-/* ===== BUTTON (USUNIĘTE RAMKI) ===== */
+/* ===== BUTTON ===== */
 .menu-btn {
     position: relative;
-    height: 64px;
+    height: 60px;
 
     display: flex;
     align-items: center;
@@ -44,63 +43,120 @@
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
 
-    transition: transform 0.12s ease;
+    transition: transform 0.14s ease;
+}
+
+.menu-btn::after {
+    content: "";
+    position: absolute;
+    inset: 50% auto auto 50%;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(255, 220, 120, 0.22);
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+    pointer-events: none;
 }
 
 .menu-btn:active {
-    transform: scale(0.92);
+    transform: scale(0.9);
 }
 
-/* ===== IKONA (CLEAN PNG) ===== */
-.menu-icon {
-    width: 56px;
-    height: 56px;
-    object-fit: contain;
+.menu-btn:active::after {
+    animation: menuRipple 0.32s ease-out;
+}
 
-    background: transparent !important;
+/* ===== IKONA ===== */
+.menu-icon {
+    width: 46px;
+    height: 46px;
+    object-fit: contain;
+    background: transparent;
+    transform: translateY(2px);
 
     transition:
-        transform 0.15s ease,
-        filter 0.15s ease;
+        transform 0.18s ease,
+        filter 0.18s ease,
+        opacity 0.18s ease;
 
     filter:
-        drop-shadow(0 4px 10px rgba(0,0,0,0.5))
-        drop-shadow(0 0 10px rgba(255,200,80,0.15));
+        drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5))
+        drop-shadow(0 0 6px rgba(255, 200, 80, 0.2));
 }
 
-/* ===== ACTIVE (GLOW) ===== */
+/* ===== ACTIVE ===== */
 .menu-btn.active-nav .menu-icon {
-    transform: scale(1.15);
-
+    transform: scale(1.12) translateY(2px);
     filter:
-        drop-shadow(0 0 18px rgba(255,210,90,0.6))
-        drop-shadow(0 4px 12px rgba(0,0,0,0.6));
+        drop-shadow(0 0 14px rgba(255, 210, 90, 0.7))
+        drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6));
+    animation: activeIconPulse 2s ease-in-out infinite;
+}
+
+/* ===== HOVER / PRESS FEEL ===== */
+.menu-btn:not(.active-nav):hover .menu-icon {
+    transform: scale(1.04) translateY(2px);
+}
+
+.menu-btn:not(.active-nav):active .menu-icon {
+    transform: scale(0.96) translateY(2px);
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes activeIconPulse {
+    0% {
+        filter:
+            drop-shadow(0 0 10px rgba(255, 210, 90, 0.45))
+            drop-shadow(0 4px 10px rgba(0, 0, 0, 0.55));
+    }
+    50% {
+        filter:
+            drop-shadow(0 0 18px rgba(255, 220, 110, 0.82))
+            drop-shadow(0 4px 12px rgba(0, 0, 0, 0.62));
+    }
+    100% {
+        filter:
+            drop-shadow(0 0 10px rgba(255, 210, 90, 0.45))
+            drop-shadow(0 4px 10px rgba(0, 0, 0, 0.55));
+    }
+}
+
+@keyframes menuRipple {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0.45;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(8);
+        opacity: 0;
+    }
 }
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 560px) {
     .menu-icon {
-        width: 52px;
-        height: 52px;
+        width: 42px;
+        height: 42px;
     }
 
     .menu-btn {
-        height: 60px;
+        height: 58px;
     }
 }
 
 @media (max-width: 400px) {
     .menu-icon {
-        width: 48px;
-        height: 48px;
+        width: 38px;
+        height: 38px;
     }
 
     .menu-btn {
-        height: 56px;
+        height: 54px;
     }
 }
 
-/* ===== CONTENT SPACE FIX ===== */
+/* ===== CONTENT FIX ===== */
 .screen,
 .tab-content,
 .zoo-screen,
