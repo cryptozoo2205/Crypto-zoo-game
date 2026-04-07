@@ -1,5 +1,5 @@
 :root {
-    --menu-height: 82px;
+    --menu-height: 86px;
     --menu-safe-bottom: max(env(safe-area-inset-bottom, 0px), var(--tg-safe-bottom, 0px));
 }
 
@@ -13,27 +13,27 @@
 
     display: grid;
     grid-template-columns: repeat(6, 1fr);
-    gap: 4px;
+    gap: 3px;
 
     padding: 6px 6px calc(6px + var(--menu-safe-bottom));
     min-height: var(--menu-height);
 
     background:
-        linear-gradient(180deg, rgba(7, 18, 38, 0.90) 0%, rgba(4, 10, 24, 0.96) 100%);
-    border-top: 1px solid rgba(255, 210, 120, 0.12);
-    border-radius: 18px 18px 0 0;
+        linear-gradient(180deg, rgba(7, 18, 38, 0.90) 0%, rgba(4, 10, 24, 0.97) 100%);
+    border-top: 1px solid rgba(255, 214, 120, 0.12);
+    border-radius: 20px 20px 0 0;
     box-shadow:
-        0 -8px 24px rgba(0, 0, 0, 0.30),
+        0 -10px 26px rgba(0, 0, 0, 0.30),
         inset 0 1px 0 rgba(255, 255, 255, 0.03);
 
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 /* ===== BUTTON ===== */
 .menu-btn {
     position: relative;
-    height: 66px;
+    height: 70px;
 
     display: flex;
     align-items: center;
@@ -43,15 +43,14 @@
     border: none;
     border-radius: 18px;
     box-shadow: none;
+    overflow: hidden;
 
     cursor: pointer;
-    overflow: hidden;
     -webkit-tap-highlight-color: transparent;
 
     transition:
         transform 0.14s ease,
-        background 0.18s ease,
-        box-shadow 0.18s ease;
+        opacity 0.18s ease;
 }
 
 .menu-btn::after {
@@ -68,7 +67,7 @@
 }
 
 .menu-btn:active {
-    transform: scale(0.93);
+    transform: scale(0.94);
 }
 
 .menu-btn:active::after {
@@ -77,8 +76,8 @@
 
 /* ===== ICON ===== */
 .menu-icon {
-    width: 52px;
-    height: 52px;
+    width: 58px;
+    height: 58px;
     object-fit: contain;
     background: transparent;
     transform: translateY(1px);
@@ -89,26 +88,38 @@
         opacity 0.18s ease;
 
     filter:
-        drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35))
-        drop-shadow(0 0 6px rgba(255, 200, 80, 0.18));
+        drop-shadow(0 3px 7px rgba(0, 0, 0, 0.35))
+        drop-shadow(0 0 6px rgba(255, 200, 80, 0.16));
 }
 
-/* ===== ACTIVE ===== */
+/* ===== ACTIVE LUXURY ===== */
 .menu-btn.active-nav {
+    background: transparent;
+    box-shadow: none;
+}
+
+.menu-btn.active-nav::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 4px;
+    width: 56px;
+    height: 18px;
+    transform: translateX(-50%);
+    border-radius: 999px;
     background:
-        radial-gradient(circle at 50% 40%, rgba(255, 217, 120, 0.18) 0%, rgba(255, 190, 70, 0.10) 38%, rgba(255, 255, 255, 0.02) 100%);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.05),
-        0 0 0 1px rgba(255, 210, 120, 0.08),
-        0 0 18px rgba(255, 185, 55, 0.10);
+        radial-gradient(circle at 50% 50%, rgba(255, 224, 130, 0.62) 0%, rgba(255, 200, 80, 0.28) 42%, rgba(255, 180, 40, 0.00) 78%);
+    filter: blur(4px);
+    pointer-events: none;
+    opacity: 0.95;
 }
 
 .menu-btn.active-nav .menu-icon {
-    transform: scale(1.10) translateY(1px);
+    transform: scale(1.13) translateY(-1px);
     filter:
-        drop-shadow(0 0 14px rgba(255, 210, 90, 0.45))
-        drop-shadow(0 3px 8px rgba(0, 0, 0, 0.45));
-    animation: activeIconPulse 2.2s ease-in-out infinite;
+        drop-shadow(0 0 16px rgba(255, 216, 100, 0.55))
+        drop-shadow(0 4px 10px rgba(0, 0, 0, 0.46));
+    animation: activeIconPulse 2.1s ease-in-out infinite;
 }
 
 /* ===== HOVER / PRESS ===== */
@@ -117,25 +128,25 @@
 }
 
 .menu-btn:not(.active-nav):active .menu-icon {
-    transform: scale(0.97) translateY(1px);
+    transform: scale(0.98) translateY(1px);
 }
 
 /* ===== ANIMATIONS ===== */
 @keyframes activeIconPulse {
     0% {
         filter:
-            drop-shadow(0 0 8px rgba(255, 210, 90, 0.24))
-            drop-shadow(0 3px 8px rgba(0, 0, 0, 0.42));
+            drop-shadow(0 0 10px rgba(255, 210, 90, 0.24))
+            drop-shadow(0 4px 10px rgba(0, 0, 0, 0.42));
     }
     50% {
         filter:
-            drop-shadow(0 0 16px rgba(255, 220, 110, 0.50))
-            drop-shadow(0 3px 10px rgba(0, 0, 0, 0.48));
+            drop-shadow(0 0 18px rgba(255, 222, 120, 0.58))
+            drop-shadow(0 4px 11px rgba(0, 0, 0, 0.48));
     }
     100% {
         filter:
-            drop-shadow(0 0 8px rgba(255, 210, 90, 0.24))
-            drop-shadow(0 3px 8px rgba(0, 0, 0, 0.42));
+            drop-shadow(0 0 10px rgba(255, 210, 90, 0.24))
+            drop-shadow(0 4px 10px rgba(0, 0, 0, 0.42));
     }
 }
 
@@ -153,27 +164,37 @@
 /* ===== RESPONSIVE ===== */
 @media (max-width: 560px) {
     .menu {
-        gap: 3px;
+        gap: 2px;
     }
 
     .menu-btn {
-        height: 62px;
+        height: 66px;
     }
 
     .menu-icon {
-        width: 48px;
-        height: 48px;
+        width: 54px;
+        height: 54px;
+    }
+
+    .menu-btn.active-nav::before {
+        width: 52px;
+        height: 16px;
     }
 }
 
 @media (max-width: 400px) {
     .menu-btn {
-        height: 58px;
+        height: 62px;
     }
 
     .menu-icon {
-        width: 44px;
-        height: 44px;
+        width: 50px;
+        height: 50px;
+    }
+
+    .menu-btn.active-nav::before {
+        width: 48px;
+        height: 14px;
     }
 }
 
