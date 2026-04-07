@@ -297,45 +297,45 @@ CryptoZoo.config = {
             clickValueBonus: 5
         },
 
-        {
-            id: "income1",
-            name: "Zoo Manager",
-            namePl: "Manager Zoo",
-            nameEn: "Zoo Manager",
-            desc: "+1 level do wszystkich posiadanych zwierząt",
-            descPl: "+1 level do wszystkich posiadanych zwierząt",
-            descEn: "+1 level to all owned animals",
-            price: 18000,
-            priceScale: 1.27,
-            type: "income",
-            incomeBonus: 1
-        },
-        {
-            id: "income2",
-            name: "Automation Crew",
-            namePl: "Ekipa Automatyzacji",
-            nameEn: "Automation Crew",
-            desc: "+2 level do wszystkich posiadanych zwierząt",
-            descPl: "+2 level do wszystkich posiadanych zwierząt",
-            descEn: "+2 levels to all owned animals",
-            price: 90000,
-            priceScale: 1.30,
-            type: "income",
-            incomeBonus: 2
-        },
-        {
-            id: "income3",
-            name: "Elite Zoo Director",
-            namePl: "Elitarny Dyrektor Zoo",
-            nameEn: "Elite Zoo Director",
-            desc: "+4 level do wszystkich posiadanych zwierząt",
-            descPl: "+4 level do wszystkich posiadanych zwierząt",
-            descEn: "+4 levels to all owned animals",
-            price: 340000,
-            priceScale: 1.33,
-            type: "income",
-            incomeBonus: 4
-        },
+    {
+    id: "click1",
+    name: "Click Upgrade I",
+    namePl: "Ulepszenie Kliku I",
+    nameEn: "Click Upgrade I",
+    desc: "+1 coin do każdego kliknięcia",
+    descPl: "+1 coin do każdego kliknięcia",
+    descEn: "+1 coin to every click",
+    price: 1800,
+    priceScale: 1.24,
+    type: "click",
+    clickValueBonus: 1
+},
+{
+    id: "click2",
+    name: "Strong Finger",
+    namePl: "Silny Palec",
+    nameEn: "Strong Finger",
+    desc: "+3 coins do każdego kliknięcia",
+    descPl: "+3 coins do każdego kliknięcia",
+    descEn: "+3 coins to every click",
+    price: 6500,
+    priceScale: 1.26,
+    type: "click",
+    clickValueBonus: 3
+},
+{
+    id: "click3",
+    name: "Turbo Tap",
+    namePl: "Turbo Tap",
+    nameEn: "Turbo Tap",
+    desc: "+5 coins do każdego kliknięcia",
+    descPl: "+5 coins do każdego kliknięcia",
+    descEn: "+5 coins to every click",
+    price: 18000,
+    priceScale: 1.28,
+    type: "click",
+    clickValueBonus: 5
+},
 
         {
             id: "expedition1",
