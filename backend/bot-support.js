@@ -1,3 +1,4 @@
+require('dotenv').config();
 function registerSupportHandlers(bot) {
     const ADMIN_CHAT_ID = process.env.ADMIN_CHAT_ID;
 
