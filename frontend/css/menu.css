@@ -18,10 +18,13 @@
     padding: 6px 6px calc(6px + var(--menu-safe-bottom));
     min-height: var(--menu-height);
 
-    background: linear-gradient(180deg, rgba(10, 18, 34, 0.96), rgba(6, 11, 24, 0.99));
-    border-top: 1px solid rgba(255, 200, 80, 0.08);
+    background:
+        linear-gradient(180deg, rgba(6, 16, 34, 0.82) 0%, rgba(4, 10, 24, 0.92) 100%);
+    border-top: 1px solid rgba(255, 210, 120, 0.08);
     border-radius: 18px 18px 0 0;
-    box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.35);
+    box-shadow:
+        0 -8px 24px rgba(0, 0, 0, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.03);
 
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -38,12 +41,17 @@
 
     background: transparent;
     border: none;
+    border-radius: 16px;
     box-shadow: none;
 
     cursor: pointer;
+    overflow: hidden;
     -webkit-tap-highlight-color: transparent;
 
-    transition: transform 0.14s ease;
+    transition:
+        transform 0.14s ease,
+        background 0.18s ease,
+        box-shadow 0.18s ease;
 }
 
 .menu-btn::after {
@@ -53,14 +61,14 @@
     width: 8px;
     height: 8px;
     border-radius: 999px;
-    background: rgba(255, 220, 120, 0.22);
+    background: rgba(255, 220, 120, 0.18);
     transform: translate(-50%, -50%) scale(0);
     opacity: 0;
     pointer-events: none;
 }
 
 .menu-btn:active {
-    transform: scale(0.9);
+    transform: scale(0.92);
 }
 
 .menu-btn:active::after {
@@ -69,11 +77,11 @@
 
 /* ===== IKONA ===== */
 .menu-icon {
-    width: 46px;
-    height: 46px;
+    width: 44px;
+    height: 44px;
     object-fit: contain;
     background: transparent;
-    transform: translateY(2px);
+    transform: translateY(1px);
 
     transition:
         transform 0.18s ease,
@@ -81,78 +89,90 @@
         opacity 0.18s ease;
 
     filter:
-        drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5))
-        drop-shadow(0 0 6px rgba(255, 200, 80, 0.2));
+        drop-shadow(0 2px 6px rgba(0, 0, 0, 0.34))
+        drop-shadow(0 0 4px rgba(255, 200, 80, 0.12));
 }
 
 /* ===== ACTIVE ===== */
-.menu-btn.active-nav .menu-icon {
-    transform: scale(1.12) translateY(2px);
-    filter:
-        drop-shadow(0 0 14px rgba(255, 210, 90, 0.7))
-        drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6));
-    animation: activeIconPulse 2s ease-in-out infinite;
+.menu-btn.active-nav {
+    background:
+        radial-gradient(circle at 50% 35%, rgba(255, 220, 120, 0.10) 0%, rgba(255, 220, 120, 0.04) 38%, rgba(255, 255, 255, 0.02) 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 0 0 1px rgba(255, 210, 120, 0.06);
 }
 
-/* ===== HOVER / PRESS FEEL ===== */
+.menu-btn.active-nav .menu-icon {
+    transform: scale(1.08) translateY(1px);
+    filter:
+        drop-shadow(0 0 10px rgba(255, 210, 90, 0.30))
+        drop-shadow(0 3px 8px rgba(0, 0, 0, 0.42));
+    animation: activeIconPulse 2.2s ease-in-out infinite;
+}
+
+/* ===== HOVER / PRESS ===== */
 .menu-btn:not(.active-nav):hover .menu-icon {
-    transform: scale(1.04) translateY(2px);
+    transform: scale(1.03) translateY(1px);
 }
 
 .menu-btn:not(.active-nav):active .menu-icon {
-    transform: scale(0.96) translateY(2px);
+    transform: scale(0.96) translateY(1px);
 }
 
 /* ===== ANIMATIONS ===== */
 @keyframes activeIconPulse {
     0% {
         filter:
-            drop-shadow(0 0 10px rgba(255, 210, 90, 0.45))
-            drop-shadow(0 4px 10px rgba(0, 0, 0, 0.55));
+            drop-shadow(0 0 6px rgba(255, 210, 90, 0.18))
+            drop-shadow(0 3px 8px rgba(0, 0, 0, 0.42));
     }
     50% {
         filter:
-            drop-shadow(0 0 18px rgba(255, 220, 110, 0.82))
-            drop-shadow(0 4px 12px rgba(0, 0, 0, 0.62));
+            drop-shadow(0 0 12px rgba(255, 220, 110, 0.34))
+            drop-shadow(0 3px 9px rgba(0, 0, 0, 0.46));
     }
     100% {
         filter:
-            drop-shadow(0 0 10px rgba(255, 210, 90, 0.45))
-            drop-shadow(0 4px 10px rgba(0, 0, 0, 0.55));
+            drop-shadow(0 0 6px rgba(255, 210, 90, 0.18))
+            drop-shadow(0 3px 8px rgba(0, 0, 0, 0.42));
     }
 }
 
 @keyframes menuRipple {
     0% {
         transform: translate(-50%, -50%) scale(0);
-        opacity: 0.45;
+        opacity: 0.35;
     }
     100% {
-        transform: translate(-50%, -50%) scale(8);
+        transform: translate(-50%, -50%) scale(7);
         opacity: 0;
     }
 }
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 560px) {
-    .menu-icon {
-        width: 42px;
-        height: 42px;
+    .menu {
+        gap: 3px;
     }
 
     .menu-btn {
         height: 58px;
     }
+
+    .menu-icon {
+        width: 40px;
+        height: 40px;
+    }
 }
 
 @media (max-width: 400px) {
-    .menu-icon {
-        width: 38px;
-        height: 38px;
-    }
-
     .menu-btn {
         height: 54px;
+    }
+
+    .menu-icon {
+        width: 36px;
+        height: 36px;
     }
 }
 
