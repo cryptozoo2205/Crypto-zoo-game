@@ -25,7 +25,7 @@
 
     <style>
         :root {
-            --menu-height: 110px;
+            --menu-height: 78px;
         }
 
         html,
@@ -66,7 +66,8 @@
         }
 
         .menu {
-            padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
+            bottom: 0;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
             box-sizing: border-box;
         }
 
