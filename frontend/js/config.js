@@ -262,39 +262,39 @@ CryptoZoo.config = {
             name: "Click Upgrade I",
             namePl: "Ulepszenie Kliku I",
             nameEn: "Click Upgrade I",
-            desc: "+2 coins do każdego kliknięcia",
-            descPl: "+2 coins do każdego kliknięcia",
-            descEn: "+2 coins to every click",
+            desc: "+1 coin do każdego kliknięcia",
+            descPl: "+1 coin do każdego kliknięcia",
+            descEn: "+1 coin to every click",
             price: 2200,
             priceScale: 1.24,
             type: "click",
-            clickValueBonus: 2
+            clickValueBonus: 1
         },
         {
             id: "click2",
             name: "Strong Finger",
             namePl: "Silny Palec",
             nameEn: "Strong Finger",
-            desc: "+5 coins do każdego kliknięcia",
-            descPl: "+5 coins do każdego kliknięcia",
-            descEn: "+5 coins to every click",
+            desc: "+3 coins do każdego kliknięcia",
+            descPl: "+3 coins do każdego kliknięcia",
+            descEn: "+3 coins to every click",
             price: 9500,
             priceScale: 1.26,
             type: "click",
-            clickValueBonus: 5
+            clickValueBonus: 3
         },
         {
             id: "click3",
             name: "Turbo Tap",
             namePl: "Turbo Tap",
             nameEn: "Turbo Tap",
-            desc: "+12 coins do każdego kliknięcia",
-            descPl: "+12 coins do każdego kliknięcia",
-            descEn: "+12 coins to every click",
+            desc: "+5 coins do każdego kliknięcia",
+            descPl: "+5 coins do każdego kliknięcia",
+            descEn: "+5 coins to every click",
             price: 42000,
             priceScale: 1.28,
             type: "click",
-            clickValueBonus: 12
+            clickValueBonus: 5
         },
 
         {
