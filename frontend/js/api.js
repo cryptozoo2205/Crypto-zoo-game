@@ -30,11 +30,27 @@ window.CryptoZoo.api = {
 
         this.initPromise = (async () => {
             try {
-                await this.loadPlayer();
+                if (this.testResetMode) {
+                    console.warn("TEST RESET MODE ENABLED: starting with fresh state.");
 
-                this.syncPendingDeposits(false).catch((error) => {
-                    console.warn("Background deposit sync failed:", error);
-                });
+                    const freshState = this.normalizeState(this.getDefaultState());
+                    freshState.telegramUser = this.getTelegramUser();
+                    freshState.updatedAt = Date.now();
+                    freshState.lastLogin = Date.now();
+
+                    CryptoZoo.state = freshState;
+                    this.writeLocalState(freshState);
+
+                    const payload = this.getSavePayload();
+                    this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
+                    this.pendingDirty = false;
+                } else {
+                    await this.loadPlayer();
+
+                    this.syncPendingDeposits(false).catch((error) => {
+                        console.warn("Background deposit sync failed:", error);
+                    });
+                }
             } catch (error) {
                 console.error("API init load failed:", error);
 
@@ -774,6 +790,20 @@ window.CryptoZoo.api = {
     },
 
     syncPlayerFromResponse(response, fallbackState = null) {
+        if (this.testResetMode) {
+            const current = this.normalizeState(CryptoZoo.state || fallbackState || this.getDefaultState());
+            current.telegramUser = this.getTelegramUser();
+            current.updatedAt = Date.now();
+            this.writeLocalState(current);
+            CryptoZoo.state = current;
+
+            const payload = this.getSavePayload();
+            this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
+            this.pendingDirty = false;
+
+            return response;
+        }
+
         const playerPart = this.unwrapPlayerResponse(response?.player || response);
 
         if (playerPart && typeof playerPart === "object") {
@@ -789,6 +819,28 @@ window.CryptoZoo.api = {
     },
 
     async loadPlayer() {
+        if (this.testResetMode) {
+            console.warn("TEST RESET MODE ENABLED: loadPlayer skipped server/local restore.");
+
+            const freshState = this.normalizeState(this.getDefaultState());
+            freshState.telegramUser = this.getTelegramUser();
+            freshState.updatedAt = Date.now();
+            freshState.lastLogin = Date.now();
+
+            CryptoZoo.state = freshState;
+            this.writeLocalState(CryptoZoo.state);
+
+            try {
+                const payload = this.getSavePayload();
+                this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
+                this.pendingDirty = false;
+            } catch (error) {
+                console.warn("Snapshot init failed:", error);
+            }
+
+            return CryptoZoo.state;
+        }
+
         const localRaw = this.readLocalState();
         let serverRaw = null;
 
@@ -856,6 +908,18 @@ window.CryptoZoo.api = {
         this.writeLocalState(payload);
 
         if (!force && !this.pendingDirty && this.lastSavedSnapshot === nextSnapshot) {
+            return CryptoZoo.state;
+        }
+
+        if (this.testResetMode) {
+            CryptoZoo.state = this.normalizeState(CryptoZoo.state || payload);
+            CryptoZoo.state.telegramUser = this.getTelegramUser();
+            CryptoZoo.state.updatedAt = Date.now();
+            this.writeLocalState(CryptoZoo.state);
+
+            this.lastSavedSnapshot = nextSnapshot;
+            this.pendingDirty = false;
+
             return CryptoZoo.state;
         }
 
@@ -1096,6 +1160,10 @@ window.CryptoZoo.api = {
     },
 
     async syncPendingDeposits(forceReload = false) {
+        if (this.testResetMode) {
+            return this.normalizeState(CryptoZoo.state || this.getDefaultState());
+        }
+
         try {
             const response = await this.request("/deposit/verify-player", {
                 method: "POST",
