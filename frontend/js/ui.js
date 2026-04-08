@@ -672,14 +672,14 @@ CryptoZoo.ui = {
         const type = String(item.type || "").toLowerCase();
 
         if (type === "expeditiontime" || effect === "expeditiontime") {
-            const charges =
-                CryptoZoo.expeditions?.getTimeBoostChargesCount?.() ||
-                CryptoZoo.state?.expeditionStats?.timeBoostCharges?.length ||
-                0;
+            const itemCharges = Math.max(
+                0,
+                Number(CryptoZoo.shopSystem?.getItemChargeCount?.(item.id)) || 0
+            );
 
             return {
                 label: this.t("charges", "Ładunki"),
-                value: CryptoZoo.formatNumber(charges)
+                value: CryptoZoo.formatNumber(itemCharges)
             };
         }
 
