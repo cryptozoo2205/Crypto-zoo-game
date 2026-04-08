@@ -75,6 +75,11 @@ CryptoZoo.incomeSystem = {
             this.uiTick += 1;
             if (this.uiTick >= 2) {
                 this.uiTick = 0;
+
+                // pełny render, żeby coins odświeżały się bez klikania
+                CryptoZoo.ui?.render?.();
+
+                // lekkie renderowanie dodatkowych elementów
                 this.renderLight(activeScreen);
             }
 
