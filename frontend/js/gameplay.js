@@ -1,5 +1,3 @@
-Gameplay
-
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.gameplay = {
