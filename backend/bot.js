@@ -31,15 +31,15 @@ bot.onText(/\/start/, async (msg) => {
 
 Build your own zoo, go on expeditions and earn rewards directly in Telegram.
 
-🎯 Tap & upgrade animals  
-🌍 Send expeditions  
-💎 Collect rewards  
+🎯 Tap & upgrade animals
+🌍 Send expeditions
+💎 Collect rewards
 
 👇 Start your adventure`;
 
     await bot.sendPhoto(
         msg.chat.id,
-        "https://i.imgur.com/5QZ7qQy.png", // ✅ Twój obraz (direct link)
+        "https://i.imgur.com/5QZ7qQy.png",
         {
             caption,
             parse_mode: "Markdown",
@@ -58,6 +58,92 @@ Build your own zoo, go on expeditions and earn rewards directly in Telegram.
 
 bot.onText(/\/ping/, (msg) => {
     bot.sendMessage(msg.chat.id, `pong\nchat.id: ${msg.chat.id}`);
+});
+
+// =======================
+// STARS TEST PAYMENT
+// =======================
+
+// Test command: sends a Telegram Stars invoice
+bot.onText(/\/stars/, async (msg) => {
+    try {
+        await bot.sendInvoice(
+            msg.chat.id,
+            "CryptoZoo Stars Pack",
+            "Test purchase for Telegram Stars",
+            "stars_test_pack_1",
+            "XTR",
+            [
+                { label: "Stars Pack", amount: 50 }
+            ]
+        );
+    } catch (error) {
+        console.error("sendInvoice error:", error);
+        await bot.sendMessage(
+            msg.chat.id,
+            "❌ Could not create Telegram Stars payment."
+        );
+    }
+});
+
+// Telegram sends this before charging the user.
+// You must answer it quickly or the payment is cancelled.
+bot.on("pre_checkout_query", async (query) => {
+    try {
+        if (query.invoice_payload !== "stars_test_pack_1") {
+            await bot.answerPreCheckoutQuery(query.id, false, {
+                error_message: "Invalid payment payload."
+            });
+            return;
+        }
+
+        await bot.answerPreCheckoutQuery(query.id, true);
+    } catch (error) {
+        console.error("pre_checkout_query error:", error);
+
+        try {
+            await bot.answerPreCheckoutQuery(query.id, false, {
+                error_message: "Payment validation failed."
+            });
+        } catch (innerError) {
+            console.error("answerPreCheckoutQuery fallback error:", innerError);
+        }
+    }
+});
+
+// Successful Stars payment
+bot.on("message", async (msg) => {
+    try {
+        if (!msg.successful_payment) return;
+
+        const payment = msg.successful_payment;
+
+        console.log("✅ Successful payment received:", {
+            telegramId: msg.from?.id,
+            payload: payment.invoice_payload,
+            currency: payment.currency,
+            totalAmount: payment.total_amount,
+            telegramPaymentChargeId: payment.telegram_payment_charge_id
+        });
+
+        if (
+            payment.invoice_payload === "stars_test_pack_1" &&
+            payment.currency === "XTR" &&
+            payment.total_amount === 50
+        ) {
+            await bot.sendMessage(
+                msg.chat.id,
+                "✅ Payment received! Test Stars pack was purchased successfully."
+            );
+        } else {
+            await bot.sendMessage(
+                msg.chat.id,
+                "⚠️ Payment received, but payload or amount did not match the test pack."
+            );
+        }
+    } catch (error) {
+        console.error("successful_payment handler error:", error);
+    }
 });
 
 // =======================
