@@ -1,7 +1,7 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.api = {
-    testResetMode: true,
+    testResetMode: false,
     localSaveKey: "cryptozoo_save",
     testLocalSaveKey: "cryptozoo_test_save",
 
