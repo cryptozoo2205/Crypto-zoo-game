@@ -2,6 +2,9 @@ window.CryptoZoo = window.CryptoZoo || {};
 
 window.CryptoZoo.api = {
     testResetMode: true,
+    localSaveKey: "cryptozoo_save",
+    testLocalSaveKey: "cryptozoo_test_save",
+
     initialized: false,
     initPromise: null,
     lifecycleBound: false,
@@ -30,23 +33,9 @@ window.CryptoZoo.api = {
 
         this.initPromise = (async () => {
             try {
-                if (this.testResetMode) {
-                    console.warn("TEST RESET MODE ENABLED: starting with fresh state.");
+                await this.loadPlayer();
 
-                    const freshState = this.normalizeState(this.getDefaultState());
-                    freshState.telegramUser = this.getTelegramUser();
-                    freshState.updatedAt = Date.now();
-                    freshState.lastLogin = Date.now();
-
-                    CryptoZoo.state = freshState;
-                    this.writeLocalState(freshState);
-
-                    const payload = this.getSavePayload();
-                    this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
-                    this.pendingDirty = false;
-                } else {
-                    await this.loadPlayer();
-
+                if (!this.testResetMode) {
                     this.syncPendingDeposits(false).catch((error) => {
                         console.warn("Background deposit sync failed:", error);
                     });
@@ -60,8 +49,17 @@ window.CryptoZoo.api = {
                 );
                 CryptoZoo.state.telegramUser = this.getTelegramUser();
                 CryptoZoo.state.updatedAt = Date.now();
+                CryptoZoo.state.lastLogin = Date.now();
 
                 this.writeLocalState(CryptoZoo.state);
+
+                try {
+                    const payload = this.getSavePayload();
+                    this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
+                    this.pendingDirty = false;
+                } catch (snapshotError) {
+                    console.warn("Snapshot init after fallback failed:", snapshotError);
+                }
             }
 
             this.bindLifecycleSave();
@@ -93,6 +91,10 @@ window.CryptoZoo.api = {
                 console.warn("flushSave beforeunload failed", error);
             });
         });
+    },
+
+    getStorageKey() {
+        return this.testResetMode ? this.testLocalSaveKey : this.localSaveKey;
     },
 
     getApiBase() {
@@ -380,8 +382,16 @@ window.CryptoZoo.api = {
             offlineAdsHours,
             offlineAdsResetAt: this.normalizeNumber(data.offlineAdsResetAt, base.offlineAdsResetAt, 0),
             offlineMaxSeconds,
-            offlineBoostMultiplier: this.normalizeNumber(data.offlineBoostMultiplier, base.offlineBoostMultiplier, 1),
-            offlineBoostActiveUntil: this.normalizeNumber(data.offlineBoostActiveUntil, base.offlineBoostActiveUntil, 0),
+            offlineBoostMultiplier: this.normalizeNumber(
+                data.offlineBoostMultiplier,
+                base.offlineBoostMultiplier,
+                1
+            ),
+            offlineBoostActiveUntil: this.normalizeNumber(
+                data.offlineBoostActiveUntil,
+                base.offlineBoostActiveUntil,
+                0
+            ),
             offlineBoost: this.normalizeNumber(data.offlineBoost, base.offlineBoost, 1),
 
             depositHistory: this.normalizeArray(
@@ -415,7 +425,7 @@ window.CryptoZoo.api = {
 
     readLocalState() {
         try {
-            const raw = localStorage.getItem("cryptozoo_save");
+            const raw = localStorage.getItem(this.getStorageKey());
             if (!raw) {
                 return null;
             }
@@ -428,9 +438,17 @@ window.CryptoZoo.api = {
 
     writeLocalState(state) {
         try {
-            localStorage.setItem("cryptozoo_save", JSON.stringify(this.normalizeState(state)));
+            localStorage.setItem(this.getStorageKey(), JSON.stringify(this.normalizeState(state)));
         } catch (error) {
             console.warn("Local save write failed:", error);
+        }
+    },
+
+    clearCurrentModeLocalState() {
+        try {
+            localStorage.removeItem(this.getStorageKey());
+        } catch (error) {
+            console.warn("Local save remove failed:", error);
         }
     },
 
@@ -597,8 +615,14 @@ window.CryptoZoo.api = {
             offlineAdsHours: Math.max(server.offlineAdsHours || 0, local.offlineAdsHours || 0),
             offlineAdsResetAt: Math.max(server.offlineAdsResetAt || 0, local.offlineAdsResetAt || 0),
             offlineMaxSeconds: Math.max(server.offlineMaxSeconds || 3600, local.offlineMaxSeconds || 3600),
-            offlineBoostMultiplier: Math.max(server.offlineBoostMultiplier || 1, local.offlineBoostMultiplier || 1),
-            offlineBoostActiveUntil: Math.max(server.offlineBoostActiveUntil || 0, local.offlineBoostActiveUntil || 0),
+            offlineBoostMultiplier: Math.max(
+                server.offlineBoostMultiplier || 1,
+                local.offlineBoostMultiplier || 1
+            ),
+            offlineBoostActiveUntil: Math.max(
+                server.offlineBoostActiveUntil || 0,
+                local.offlineBoostActiveUntil || 0
+            ),
             offlineBoost: Math.max(server.offlineBoost || 1, local.offlineBoost || 1),
 
             depositHistory: this.mergeUniqueByKey(local.depositHistory, server.depositHistory),
@@ -794,8 +818,10 @@ window.CryptoZoo.api = {
             const current = this.normalizeState(CryptoZoo.state || fallbackState || this.getDefaultState());
             current.telegramUser = this.getTelegramUser();
             current.updatedAt = Date.now();
-            this.writeLocalState(current);
+            current.lastLogin = Date.now();
+
             CryptoZoo.state = current;
+            this.writeLocalState(current);
 
             const payload = this.getSavePayload();
             this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
@@ -819,15 +845,19 @@ window.CryptoZoo.api = {
     },
 
     async loadPlayer() {
+        const localRaw = this.readLocalState();
+
         if (this.testResetMode) {
-            console.warn("TEST RESET MODE ENABLED: loadPlayer skipped server/local restore.");
+            if (localRaw) {
+                CryptoZoo.state = this.normalizeState(localRaw);
+            } else {
+                CryptoZoo.state = this.normalizeState(this.getDefaultState());
+            }
 
-            const freshState = this.normalizeState(this.getDefaultState());
-            freshState.telegramUser = this.getTelegramUser();
-            freshState.updatedAt = Date.now();
-            freshState.lastLogin = Date.now();
+            CryptoZoo.state.telegramUser = this.getTelegramUser();
+            CryptoZoo.state.updatedAt = Date.now();
+            CryptoZoo.state.lastLogin = Date.now();
 
-            CryptoZoo.state = freshState;
             this.writeLocalState(CryptoZoo.state);
 
             try {
@@ -841,7 +871,6 @@ window.CryptoZoo.api = {
             return CryptoZoo.state;
         }
 
-        const localRaw = this.readLocalState();
         let serverRaw = null;
 
         try {
@@ -915,6 +944,8 @@ window.CryptoZoo.api = {
             CryptoZoo.state = this.normalizeState(CryptoZoo.state || payload);
             CryptoZoo.state.telegramUser = this.getTelegramUser();
             CryptoZoo.state.updatedAt = Date.now();
+            CryptoZoo.state.lastLogin = Date.now();
+
             this.writeLocalState(CryptoZoo.state);
 
             this.lastSavedSnapshot = nextSnapshot;
@@ -1161,7 +1192,7 @@ window.CryptoZoo.api = {
 
     async syncPendingDeposits(forceReload = false) {
         if (this.testResetMode) {
-            return this.normalizeState(CryptoZoo.state || this.getDefaultState());
+            return this.normalizeState(CryptoZoo.state || this.readLocalState() || this.getDefaultState());
         }
 
         try {
