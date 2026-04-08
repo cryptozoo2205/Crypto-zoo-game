@@ -12,6 +12,7 @@ CryptoZoo.shopSystem = {
     ensurePurchaseState() {
         CryptoZoo.state = CryptoZoo.state || {};
         CryptoZoo.state.shopPurchases = CryptoZoo.state.shopPurchases || {};
+        CryptoZoo.state.shopItemCharges = CryptoZoo.state.shopItemCharges || {};
         CryptoZoo.state.expeditionStats = CryptoZoo.state.expeditionStats || {
             rareChanceBonus: 0,
             epicChanceBonus: 0,
@@ -51,6 +52,21 @@ CryptoZoo.shopSystem = {
         CryptoZoo.state.expeditionStats.timeBoostCharges = CryptoZoo.state.expeditionStats.timeBoostCharges
             .map((value) => Math.max(0, Number(value) || 0))
             .filter((value) => value > 0);
+
+        if (
+            !CryptoZoo.state.shopItemCharges ||
+            typeof CryptoZoo.state.shopItemCharges !== "object" ||
+            Array.isArray(CryptoZoo.state.shopItemCharges)
+        ) {
+            CryptoZoo.state.shopItemCharges = {};
+        }
+
+        Object.keys(CryptoZoo.state.shopItemCharges).forEach((itemId) => {
+            CryptoZoo.state.shopItemCharges[itemId] = Math.max(
+                0,
+                Math.floor(Number(CryptoZoo.state.shopItemCharges[itemId]) || 0)
+            );
+        });
 
         CryptoZoo.state.offlineBaseHours = Math.max(
             1,
@@ -94,6 +110,31 @@ CryptoZoo.shopSystem = {
         this.ensurePurchaseState();
         CryptoZoo.state.shopPurchases[itemId] =
             this.getOwnedCount(itemId) + Math.max(1, Number(amount) || 1);
+    },
+
+    getItemChargeCount(itemId) {
+        this.ensurePurchaseState();
+        return Math.max(0, Number(CryptoZoo.state.shopItemCharges?.[itemId]) || 0);
+    },
+
+    addItemChargeCount(itemId, amount = 1) {
+        this.ensurePurchaseState();
+
+        const safeAmount = Math.max(1, Math.floor(Number(amount) || 1));
+        CryptoZoo.state.shopItemCharges[itemId] = this.getItemChargeCount(itemId) + safeAmount;
+
+        return CryptoZoo.state.shopItemCharges[itemId];
+    },
+
+    consumeItemChargeCount(itemId, amount = 1) {
+        this.ensurePurchaseState();
+
+        const safeAmount = Math.max(1, Math.floor(Number(amount) || 1));
+        const current = this.getItemChargeCount(itemId);
+        const next = Math.max(0, current - safeAmount);
+
+        CryptoZoo.state.shopItemCharges[itemId] = next;
+        return next;
     },
 
     getMaxAnimalLevel() {
@@ -261,10 +302,15 @@ CryptoZoo.shopSystem = {
             return "Brak boosta czasu";
         }
 
-        const count = CryptoZoo.expeditions?.getTimeBoostChargesCount?.() || 0;
+        const itemId = String(item?.id || "");
+        if (itemId) {
+            this.addItemChargeCount(itemId, 1);
+        }
+
+        const itemCount = itemId ? this.getItemChargeCount(itemId) : 0;
         const label = CryptoZoo.ui?.formatDurationLabel?.(reductionSeconds) || `${reductionSeconds}s`;
 
-        return `+1 boost czasu ekspedycji (${label}) • Ładunki: ${CryptoZoo.formatNumber(count)}`;
+        return `+1 boost czasu ekspedycji (${label}) • Ten item: ${CryptoZoo.formatNumber(itemCount)}`;
     },
 
     applyOfflineBoost() {
