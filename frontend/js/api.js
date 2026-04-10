@@ -106,8 +106,31 @@ window.CryptoZoo.api = {
             window.CRYPTOZOO_API_BASE ||
             "";
 
+        const pageOrigin = String(window.location?.origin || "").replace(/\/+$/, "");
+        const isLocalHost =
+            /localhost|127\.0\.0\.1/i.test(pageOrigin) ||
+            /^file:/i.test(String(window.location?.protocol || ""));
+
         if (fromConfig) {
-            return String(fromConfig).replace(/\/+$/, "");
+            const cleaned = String(fromConfig).replace(/\/+$/, "");
+
+            if (!isLocalHost && pageOrigin) {
+                if (/^https?:\/\/[^/]+:\d+$/i.test(cleaned)) {
+                    return `${pageOrigin}/api`;
+                }
+
+                if (/^https?:\/\/[^/]+$/i.test(cleaned)) {
+                    return `${cleaned}/api`;
+                }
+
+                return cleaned;
+            }
+
+            return cleaned;
+        }
+
+        if (!isLocalHost && pageOrigin) {
+            return `${pageOrigin}/api`;
         }
 
         return "/api";
@@ -757,53 +780,91 @@ window.CryptoZoo.api = {
         });
     },
 
+    isTransientNetworkError(error) {
+        const message = String(error?.message || "").toLowerCase();
+
+        return (
+            message.includes("failed to fetch") ||
+            message.includes("networkerror") ||
+            message.includes("load failed") ||
+            message.includes("the network connection was lost") ||
+            message.includes("network request failed")
+        );
+    },
+
+    wait(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+    },
+
     async request(path, options = {}) {
-        const controller = new AbortController();
-        const timeoutMs = Math.max(1000, Number(options.timeoutMs) || this.requestTimeoutMs);
-        const timeoutId = setTimeout(() => {
-            controller.abort();
-        }, timeoutMs);
+        const retryCount = Math.max(0, Number(options.retryCount ?? 1));
+        const retryDelayMs = Math.max(0, Number(options.retryDelayMs ?? 700));
+        let lastError = null;
 
-        try {
-            const config = {
-                method: options.method || "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    ...(options.headers || {})
-                },
-                ...options,
-                signal: controller.signal
-            };
+        for (let attempt = 0; attempt <= retryCount; attempt += 1) {
+            const controller = new AbortController();
+            const timeoutMs = Math.max(1000, Number(options.timeoutMs) || this.requestTimeoutMs);
+            const timeoutId = setTimeout(() => {
+                controller.abort();
+            }, timeoutMs);
 
-            delete config.timeoutMs;
+            try {
+                const config = {
+                    method: options.method || "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...(options.headers || {})
+                    },
+                    ...options,
+                    signal: controller.signal
+                };
 
-            const response = await fetch(`${this.getApiBase()}${path}`, config);
+                delete config.timeoutMs;
+                delete config.retryCount;
+                delete config.retryDelayMs;
 
-            if (!response.ok) {
-                let errorText = "";
-                try {
-                    errorText = await response.text();
-                } catch (_) {
-                    errorText = "";
+                const response = await fetch(`${this.getApiBase()}${path}`, config);
+
+                if (!response.ok) {
+                    let errorText = "";
+                    try {
+                        errorText = await response.text();
+                    } catch (_) {
+                        errorText = "";
+                    }
+
+                    throw new Error(`HTTP ${response.status}${errorText ? ` - ${errorText}` : ""}`);
                 }
 
-                throw new Error(`HTTP ${response.status}${errorText ? ` - ${errorText}` : ""}`);
-            }
+                const contentType = response.headers.get("content-type") || "";
+                if (contentType.includes("application/json")) {
+                    return response.json();
+                }
 
-            const contentType = response.headers.get("content-type") || "";
-            if (contentType.includes("application/json")) {
-                return response.json();
-            }
+                return null;
+            } catch (error) {
+                if (error?.name === "AbortError") {
+                    lastError = new Error(`Request timeout after ${timeoutMs}ms: ${path}`);
+                } else {
+                    lastError = error;
+                }
 
-            return null;
-        } catch (error) {
-            if (error?.name === "AbortError") {
-                throw new Error(`Request timeout after ${timeoutMs}ms: ${path}`);
+                const canRetry =
+                    attempt < retryCount &&
+                    this.isTransientNetworkError(lastError);
+
+                if (!canRetry) {
+                    throw lastError;
+                }
+
+                console.warn(`Retrying request after transient error: ${path}`, lastError);
+                await this.wait(retryDelayMs);
+            } finally {
+                clearTimeout(timeoutId);
             }
-            throw error;
-        } finally {
-            clearTimeout(timeoutId);
         }
+
+        throw lastError || new Error(`Unknown request failure: ${path}`);
     },
 
     unwrapPlayerResponse(data) {
@@ -977,7 +1038,8 @@ window.CryptoZoo.api = {
                 const response = await this.request("/player/save", {
                     method: "POST",
                     body: JSON.stringify(payload),
-                    timeoutMs: 3500
+                    timeoutMs: 3500,
+                    retryCount: 1
                 });
 
                 const safeResponse = this.unwrapPlayerResponse(response);
@@ -1027,7 +1089,8 @@ window.CryptoZoo.api = {
                 username: this.getUsername(),
                 expeditionId
             }),
-            timeoutMs: 4000
+            timeoutMs: 4000,
+            retryCount: 1
         });
 
         return this.syncPlayerFromResponse(response);
@@ -1040,7 +1103,8 @@ window.CryptoZoo.api = {
                 telegramId: this.getPlayerId(),
                 username: this.getUsername()
             }),
-            timeoutMs: 5000
+            timeoutMs: 5000,
+            retryCount: 1
         });
 
         return this.syncPlayerFromResponse(response);
@@ -1054,7 +1118,8 @@ window.CryptoZoo.api = {
                 username: this.getUsername(),
                 seconds: Math.max(0, Number(seconds) || 0)
             }),
-            timeoutMs: 4000
+            timeoutMs: 4000,
+            retryCount: 1
         });
 
         return this.syncPlayerFromResponse(response);
@@ -1075,7 +1140,8 @@ window.CryptoZoo.api = {
                 amount: safeAmount,
                 source: "ton"
             }),
-            timeoutMs: 5000
+            timeoutMs: 5000,
+            retryCount: 1
         });
     },
 
@@ -1091,7 +1157,8 @@ window.CryptoZoo.api = {
             body: JSON.stringify({
                 depositId: safeDepositId
             }),
-            timeoutMs: 12000
+            timeoutMs: 12000,
+            retryCount: 1
         });
 
         return this.syncPlayerFromResponse(response);
@@ -1103,7 +1170,8 @@ window.CryptoZoo.api = {
             body: JSON.stringify({
                 telegramId: this.getPlayerId()
             }),
-            timeoutMs: 12000
+            timeoutMs: 12000,
+            retryCount: 1
         });
 
         return this.syncPlayerFromResponse(response);
@@ -1112,7 +1180,8 @@ window.CryptoZoo.api = {
     async getPlayerDeposits() {
         return this.request(`/deposit/${this.getPlayerId()}`, {
             method: "GET",
-            timeoutMs: 5000
+            timeoutMs: 5000,
+            retryCount: 1
         });
     },
 
@@ -1135,7 +1204,8 @@ window.CryptoZoo.api = {
                 username: this.getUsername(),
                 tonAddress: safeAddress
             }),
-            timeoutMs: 5000
+            timeoutMs: 5000,
+            retryCount: 1
         });
 
         return this.syncPlayerFromResponse(response);
@@ -1144,7 +1214,8 @@ window.CryptoZoo.api = {
     async getWithdrawWallet() {
         return this.request(`/withdraw/wallet/${this.getPlayerId()}`, {
             method: "GET",
-            timeoutMs: 5000
+            timeoutMs: 5000,
+            retryCount: 1
         });
     },
 
@@ -1162,7 +1233,8 @@ window.CryptoZoo.api = {
                 username: this.getUsername(),
                 amount: safeAmount
             }),
-            timeoutMs: 8000
+            timeoutMs: 8000,
+            retryCount: 1
         });
 
         return this.syncPlayerFromResponse(response);
@@ -1171,7 +1243,8 @@ window.CryptoZoo.api = {
     async loadWithdrawHistory() {
         const response = await this.request(`/withdraw/${this.getPlayerId()}`, {
             method: "GET",
-            timeoutMs: 5000
+            timeoutMs: 5000,
+            retryCount: 1
         });
 
         return Array.isArray(response?.requests) ? response.requests : [];
@@ -1184,7 +1257,8 @@ window.CryptoZoo.api = {
                 telegramId: this.getPlayerId(),
                 username: this.getUsername()
             }),
-            timeoutMs: 5000
+            timeoutMs: 5000,
+            retryCount: 1
         });
 
         return this.syncPlayerFromResponse(response);
@@ -1201,7 +1275,8 @@ window.CryptoZoo.api = {
                 body: JSON.stringify({
                     telegramId: this.getPlayerId()
                 }),
-                timeoutMs: 3000
+                timeoutMs: 3000,
+                retryCount: 1
             });
 
             if (response && typeof response === "object") {
