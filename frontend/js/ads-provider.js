@@ -72,20 +72,57 @@ CryptoZoo.ads = {
     },
 
     normalizeAdResult(result) {
-        if (result === true) return { rewarded: true, raw: result };
-        if (result === false || result == null) return { rewarded: false, raw: result };
+        // Dla Monetag bardzo często samo poprawne zakończenie Promise oznacza sukces,
+        // więc null / undefined traktujemy jako sukces.
+        if (result == null) {
+            return { rewarded: true, raw: result };
+        }
+
+        if (result === true) {
+            return { rewarded: true, raw: result };
+        }
+
+        if (result === false) {
+            return { rewarded: false, raw: result };
+        }
 
         if (typeof result === "string") {
             const value = result.toLowerCase().trim();
-            const rewarded =
-                value.includes("reward") ||
-                value.includes("complete") ||
-                value.includes("completed") ||
-                value.includes("finish") ||
-                value.includes("finished") ||
-                value === "ok" ||
-                value === "success";
-            return { rewarded, raw: result };
+
+            const negativeStates = [
+                "closed",
+                "close",
+                "dismissed",
+                "skipped",
+                "skip",
+                "cancelled",
+                "canceled",
+                "error",
+                "failed"
+            ];
+
+            if (negativeStates.includes(value)) {
+                return { rewarded: false, raw: result };
+            }
+
+            const positiveStates = [
+                "rewarded",
+                "reward",
+                "complete",
+                "completed",
+                "finish",
+                "finished",
+                "ok",
+                "success",
+                "done"
+            ];
+
+            if (positiveStates.includes(value)) {
+                return { rewarded: true, raw: result };
+            }
+
+            // Nieznany string po poprawnym resolve traktujemy jako sukces
+            return { rewarded: true, raw: result };
         }
 
         if (typeof result === "object") {
@@ -95,25 +132,57 @@ CryptoZoo.ads = {
                 result.result ||
                 result.event ||
                 ""
-            ).toLowerCase();
+            ).toLowerCase().trim();
 
-            const rewarded =
+            if (
                 result.rewarded === true ||
                 result.completed === true ||
                 result.complete === true ||
                 result.finished === true ||
                 result.finish === true ||
-                result.done === true ||
-                status === "rewarded" ||
-                status === "completed" ||
-                status === "complete" ||
-                status === "finished" ||
-                status === "success";
+                result.done === true
+            ) {
+                return { rewarded: true, raw: result };
+            }
 
-            return { rewarded, raw: result };
+            const negativeStatuses = [
+                "closed",
+                "close",
+                "dismissed",
+                "skipped",
+                "skip",
+                "cancelled",
+                "canceled",
+                "error",
+                "failed"
+            ];
+
+            if (negativeStatuses.includes(status)) {
+                return { rewarded: false, raw: result };
+            }
+
+            const positiveStatuses = [
+                "rewarded",
+                "reward",
+                "completed",
+                "complete",
+                "finished",
+                "finish",
+                "success",
+                "done",
+                "ok"
+            ];
+
+            if (positiveStatuses.includes(status)) {
+                return { rewarded: true, raw: result };
+            }
+
+            // Jeżeli obiekt przyszedł bez jasnego błędu, też uznajemy sukces
+            return { rewarded: true, raw: result };
         }
 
-        return { rewarded: false, raw: result };
+        // Każdy inny poprawny resolve traktujemy jako sukces
+        return { rewarded: true, raw: result };
     },
 
     async requestOfflineRewardFromBackend() {
@@ -139,6 +208,12 @@ CryptoZoo.ads = {
 
     async syncStateFromBackendReward(result) {
         CryptoZoo.state = CryptoZoo.state || {};
+
+        if (typeof result.player === "object" && result.player) {
+            CryptoZoo.state = CryptoZoo.api?.mergeStates
+                ? CryptoZoo.api.mergeStates(result.player, CryptoZoo.state || {})
+                : { ...CryptoZoo.state, ...result.player };
+        }
 
         if (typeof result.offlineAdsHours === "number") {
             CryptoZoo.state.offlineAdsHours = result.offlineAdsHours;
@@ -168,12 +243,13 @@ CryptoZoo.ads = {
             CryptoZoo.state.offlineBoostActiveUntil = result.offlineBoostActiveUntil;
         }
 
-        if (typeof CryptoZoo.api?.syncPendingDeposits === "function") {
-            // nic tu nie robimy dla ads, ale zostawiamy strukturę spójną z appką
+        if (typeof CryptoZoo.api?.writeLocalState === "function") {
+            CryptoZoo.api.writeLocalState(CryptoZoo.state);
         }
 
         CryptoZoo.gameplay?.recalculateProgress?.();
         CryptoZoo.ui?.renderOfflineInfo?.();
+        CryptoZoo.ui?.render?.();
         this.updateOfflineUi();
     },
 
@@ -223,6 +299,7 @@ CryptoZoo.ads = {
         } finally {
             this.isLoading = false;
             CryptoZoo.ui?.renderOfflineInfo?.();
+            CryptoZoo.ui?.render?.();
             this.updateOfflineUi();
         }
     }
