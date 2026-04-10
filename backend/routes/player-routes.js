@@ -34,6 +34,25 @@ function normalizeBoost(value, fallback = 0) {
     return Math.max(0, Math.min(MAX_EXPEDITION_BOOST, Number(value) || fallback || 0));
 }
 
+function resolveTelegramId(rawTelegramId, bodyTelegramUser) {
+    const directId = safeString(rawTelegramId, "");
+    const userId = safeString(bodyTelegramUser?.id, "");
+    const finalId = directId || userId;
+
+    if (!finalId) {
+        return "";
+    }
+
+    return finalId;
+}
+
+function resolveUsername(rawUsername, bodyTelegramUser) {
+    return safeString(
+        rawUsername,
+        bodyTelegramUser?.username || bodyTelegramUser?.first_name || "Gracz"
+    );
+}
+
 function applyOfflineAdsServerGuard(oldPlayer, safePlayer) {
     const now = Date.now();
 
@@ -62,7 +81,6 @@ function applyOfflineAdsServerGuard(oldPlayer, safePlayer) {
         serverHours + OFFLINE_ADS_HOURS_PER_AD
     );
 
-    // 🔥 Nie pozwól zjechać w dół przez stary frontendowy save.
     const finalOfflineAdsHours = Math.max(
         serverHours,
         Math.min(requestedHours, maxAllowedThisSave)
@@ -145,12 +163,10 @@ function applyMinigamesServerGuard(oldPlayer, safePlayer) {
 
     safePlayer.minigames = {
         ...nextMinigames,
-
         memoryCooldownUntil: Math.max(oldMemoryCooldownUntil, requestedMemoryCooldownUntil),
         tapChallengeCooldownUntil: Math.max(oldTapChallengeCooldownUntil, requestedTapChallengeCooldownUntil),
         animalHuntCooldownUntil: Math.max(oldAnimalHuntCooldownUntil, requestedAnimalHuntCooldownUntil),
         wheelCooldownUntil: Math.max(oldWheelCooldownUntil, requestedWheelCooldownUntil),
-
         extraWheelSpins: Math.min(oldExtraWheelSpins, requestedExtraWheelSpins)
     };
 
@@ -159,9 +175,17 @@ function applyMinigamesServerGuard(oldPlayer, safePlayer) {
 
 router.get("/:telegramId", (req, res) => {
     const db = readDb();
-    const telegramId = safeString(req.params.telegramId, "local-player");
+
+    const telegramId = safeString(req.params.telegramId, "");
     const username = safeString(req.query.username, "Gracz");
     const referrerId = extractReferrerId(req);
+
+    if (!telegramId) {
+        return res.status(400).json({
+            ok: false,
+            error: "Missing telegramId"
+        });
+    }
 
     const player = getPlayerOrCreate(db, telegramId, username);
 
@@ -173,7 +197,10 @@ router.get("/:telegramId", (req, res) => {
     db.players[telegramId] = normalizePlayer(db.players[telegramId] || player);
     writeDb(db);
 
-    return res.json({ player: normalizePlayer(db.players[telegramId]) });
+    return res.json({
+        ok: true,
+        player: normalizePlayer(db.players[telegramId])
+    });
 });
 
 router.post("/save", (req, res) => {
@@ -185,17 +212,16 @@ router.post("/save", (req, res) => {
         req.body?.username
     );
 
-    const telegramId = safeString(
-        req.body?.telegramId,
-        bodyTelegramUser.id || "local-player"
-    );
-
-    const username = safeString(
-        req.body?.username,
-        bodyTelegramUser.username || bodyTelegramUser.first_name || "Gracz"
-    );
-
+    const telegramId = resolveTelegramId(req.body?.telegramId, bodyTelegramUser);
+    const username = resolveUsername(req.body?.username, bodyTelegramUser);
     const referrerId = extractReferrerId(req);
+
+    if (!telegramId) {
+        return res.status(400).json({
+            ok: false,
+            error: "Missing telegramId"
+        });
+    }
 
     const oldPlayer = db.players[telegramId]
         ? normalizePlayer(db.players[telegramId])
