@@ -140,21 +140,21 @@ CryptoZoo.ads = {
     },
 
     cleanupSession() {
-        const s = this.activeSession;
-        if (!s) return;
+        const session = this.activeSession;
+        if (!session) return;
 
-        s.closed = true;
+        session.closed = true;
 
-        if (s.timeoutId) {
-            clearTimeout(s.timeoutId);
+        if (session.timeoutId) {
+            clearTimeout(session.timeoutId);
         }
 
-        if (s.visibilityHandler) {
-            document.removeEventListener("visibilitychange", s.visibilityHandler);
+        if (session.visibilityHandler) {
+            document.removeEventListener("visibilitychange", session.visibilityHandler);
         }
 
-        if (s.focusHandler) {
-            window.removeEventListener("focus", s.focusHandler);
+        if (session.focusHandler) {
+            window.removeEventListener("focus", session.focusHandler);
         }
 
         this.activeSession = null;
@@ -165,7 +165,7 @@ CryptoZoo.ads = {
             startedAt: Date.now(),
             hiddenAtLeastOnce: false,
             regainedFocusAfterHide: false,
-            sdkClosed: false,
+            sdkResolved: false,
             closed: false,
             timeoutId: null,
             visibilityHandler: null,
@@ -192,7 +192,7 @@ CryptoZoo.ads = {
         window.addEventListener("focus", session.focusHandler);
 
         session.timeoutId = setTimeout(() => {
-            session.sdkClosed = true;
+            session.sdkResolved = true;
         }, this.adHardTimeoutMs);
 
         this.activeSession = session;
@@ -215,6 +215,7 @@ CryptoZoo.ads = {
             const finish = () => {
                 if (settled) return;
                 settled = true;
+                session.sdkResolved = true;
                 resolve(true);
             };
 
@@ -225,33 +226,45 @@ CryptoZoo.ads = {
             };
 
             try {
-                const maybePromise = show_10822070({
-                    type: "rewarded",
-                    onClose: () => {
-                        session.sdkClosed = true;
-                        finish();
-                    }
-                });
+                const maybePromise = show_10822070();
 
                 if (maybePromise && typeof maybePromise.then === "function") {
                     maybePromise
                         .then(() => {
-                            session.sdkClosed = true;
                             finish();
                         })
                         .catch((error) => {
                             fail(error instanceof Error ? error : new Error(String(error || "Ad error")));
                         });
+                } else {
+                    const pollStart = Date.now();
+
+                    const poll = () => {
+                        if (settled) return;
+
+                        const elapsed = Date.now() - pollStart;
+                        if (
+                            session.hiddenAtLeastOnce &&
+                            session.regainedFocusAfterHide &&
+                            elapsed >= 1000
+                        ) {
+                            finish();
+                            return;
+                        }
+
+                        if (elapsed >= this.adHardTimeoutMs) {
+                            finish();
+                            return;
+                        }
+
+                        setTimeout(poll, 250);
+                    };
+
+                    poll();
                 }
             } catch (error) {
                 fail(error);
             }
-
-            setTimeout(() => {
-                if (!settled && session.sdkClosed) {
-                    finish();
-                }
-            }, this.adHardTimeoutMs);
         });
     },
 
