@@ -74,96 +74,6 @@ CryptoZoo.ads = {
         return raw.replace(/\/+$/, "");
     },
 
-    normalizeAdResult(result) {
-        if (result === true) {
-            return { rewarded: true, closed: true, raw: result };
-        }
-
-        if (result === false || result == null) {
-            return { rewarded: false, closed: true, raw: result };
-        }
-
-        if (typeof result === "string") {
-            const value = result.toLowerCase().trim();
-
-            const rewardedStates = [
-                "rewarded",
-                "reward",
-                "complete",
-                "completed",
-                "finish",
-                "finished",
-                "success"
-            ];
-
-            const closedStates = [
-                "closed",
-                "close",
-                "dismissed",
-                "skipped",
-                "skip",
-                "cancelled",
-                "canceled",
-                "error",
-                "failed"
-            ];
-
-            return {
-                rewarded: rewardedStates.includes(value),
-                closed: rewardedStates.includes(value) || closedStates.includes(value),
-                raw: result
-            };
-        }
-
-        if (typeof result === "object") {
-            const status = String(
-                result.status ||
-                result.state ||
-                result.result ||
-                result.event ||
-                ""
-            ).toLowerCase().trim();
-
-            const rewarded =
-                result.rewarded === true ||
-                result.completed === true ||
-                result.complete === true ||
-                result.finished === true ||
-                result.finish === true ||
-                [
-                    "rewarded",
-                    "reward",
-                    "completed",
-                    "complete",
-                    "finished",
-                    "finish",
-                    "success"
-                ].includes(status);
-
-            const closed =
-                rewarded ||
-                [
-                    "closed",
-                    "close",
-                    "dismissed",
-                    "skipped",
-                    "skip",
-                    "cancelled",
-                    "canceled",
-                    "error",
-                    "failed"
-                ].includes(status);
-
-            return {
-                rewarded,
-                closed,
-                raw: result
-            };
-        }
-
-        return { rewarded: false, closed: false, raw: result };
-    },
-
     async requestOfflineRewardFromBackend() {
         const res = await fetch(`${this.getApiBase()}/ads/reward-offline`, {
             method: "POST",
@@ -255,7 +165,6 @@ CryptoZoo.ads = {
             startedAt: Date.now(),
             hiddenAtLeastOnce: false,
             regainedFocusAfterHide: false,
-            sdkRewarded: false,
             sdkClosed: false,
             closed: false,
             timeoutId: null,
@@ -283,9 +192,7 @@ CryptoZoo.ads = {
         window.addEventListener("focus", session.focusHandler);
 
         session.timeoutId = setTimeout(() => {
-            if (!session.closed) {
-                session.sdkClosed = true;
-            }
+            session.sdkClosed = true;
         }, this.adHardTimeoutMs);
 
         this.activeSession = session;
@@ -295,28 +202,20 @@ CryptoZoo.ads = {
     shouldGrantReward(session) {
         const watchedMs = Date.now() - Number(session?.startedAt || Date.now());
         const watchedEnough = watchedMs >= this.minWatchTimeMs;
-        const leftAndCameBack =
+        const leftAndReturned =
             session?.hiddenAtLeastOnce && session?.regainedFocusAfterHide;
 
-        if (session?.sdkRewarded) {
-            return true;
-        }
-
-        if (watchedEnough && leftAndCameBack) {
-            return true;
-        }
-
-        return false;
+        return watchedEnough && leftAndReturned;
     },
 
     async openSdkRewardedAd(session) {
         return new Promise((resolve, reject) => {
             let settled = false;
 
-            const finish = (payload = {}) => {
+            const finish = () => {
                 if (settled) return;
                 settled = true;
-                resolve(payload);
+                resolve(true);
             };
 
             const fail = (error) => {
@@ -328,48 +227,21 @@ CryptoZoo.ads = {
             try {
                 const maybePromise = show_10822070({
                     type: "rewarded",
-
-                    onRewarded: (result) => {
-                        session.sdkRewarded = true;
-                        const normalized = this.normalizeAdResult(result);
-                        if (normalized.rewarded) {
-                            session.sdkRewarded = true;
-                        }
-                    },
-
-                    onComplete: (result) => {
-                        session.sdkRewarded = true;
+                    onClose: () => {
                         session.sdkClosed = true;
-                        finish(result);
-                    },
-
-                    onClose: (result) => {
-                        const normalized = this.normalizeAdResult(result);
-                        if (normalized.rewarded) {
-                            session.sdkRewarded = true;
-                        }
-                        session.sdkClosed = true;
-                        finish(result);
-                    },
-
-                    onError: (error) => {
-                        fail(error instanceof Error ? error : new Error(String(error || "Ad error")));
+                        finish();
                     }
                 });
 
                 if (maybePromise && typeof maybePromise.then === "function") {
                     maybePromise
-                        .then((result) => {
-                            const normalized = this.normalizeAdResult(result);
-                            if (normalized.rewarded) {
-                                session.sdkRewarded = true;
-                            }
-                            if (normalized.closed || normalized.rewarded) {
-                                session.sdkClosed = true;
-                                finish(result);
-                            }
+                        .then(() => {
+                            session.sdkClosed = true;
+                            finish();
                         })
-                        .catch(fail);
+                        .catch((error) => {
+                            fail(error instanceof Error ? error : new Error(String(error || "Ad error")));
+                        });
                 }
             } catch (error) {
                 fail(error);
@@ -377,7 +249,7 @@ CryptoZoo.ads = {
 
             setTimeout(() => {
                 if (!settled && session.sdkClosed) {
-                    finish({ status: "closed" });
+                    finish();
                 }
             }, this.adHardTimeoutMs);
         });
@@ -392,7 +264,6 @@ CryptoZoo.ads = {
         }
 
         if (typeof show_10822070 !== "function") {
-            console.error("Monetag function show_10822070 is not loaded");
             CryptoZoo.ui?.showToast?.("Reklama nie jest jeszcze gotowa");
             return false;
         }
@@ -406,9 +277,7 @@ CryptoZoo.ads = {
         try {
             await this.openSdkRewardedAd(session);
 
-            const shouldReward = this.shouldGrantReward(session);
-
-            if (!shouldReward) {
+            if (!this.shouldGrantReward(session)) {
                 CryptoZoo.ui?.showToast?.("Obejrzyj reklamę do końca");
                 return false;
             }
@@ -416,11 +285,9 @@ CryptoZoo.ads = {
             const result = await this.requestOfflineRewardFromBackend();
             await this.syncStateFromBackendReward(result);
 
-            if (result?.message) {
-                CryptoZoo.ui?.showToast?.(result.message);
-            } else {
-                CryptoZoo.ui?.showToast?.("Dodano +2h zarobków offline");
-            }
+            CryptoZoo.ui?.showToast?.(
+                result?.message || "Dodano +2h zarobków offline"
+            );
 
             return true;
         } catch (error) {
