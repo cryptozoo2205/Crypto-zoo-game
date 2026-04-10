@@ -66,13 +66,40 @@ function isDepositPendingLike(deposit) {
     return status === "created" || status === "pending";
 }
 
+function isDepositExpired(deposit) {
+    const expiresAt = Math.max(0, Number(deposit?.expiresAt) || 0);
+
+    if (!expiresAt) {
+        return false;
+    }
+
+    return Date.now() > expiresAt;
+}
+
+function markExpiredDeposits(db) {
+    db.deposits = Array.isArray(db?.deposits) ? db.deposits : [];
+
+    let changed = false;
+
+    db.deposits.forEach((deposit) => {
+        if (isDepositPendingLike(deposit) && isDepositExpired(deposit)) {
+            deposit.status = "expired";
+            deposit.updatedAt = Date.now();
+            changed = true;
+        }
+    });
+
+    return changed;
+}
+
 function getActivePendingDepositsForPlayer(db, telegramId) {
     const deposits = Array.isArray(db?.deposits) ? db.deposits : [];
 
     return deposits.filter(
         (deposit) =>
             String(deposit?.telegramId || "") === String(telegramId || "") &&
-            isDepositPendingLike(deposit)
+            isDepositPendingLike(deposit) &&
+            !isDepositExpired(deposit)
     );
 }
 
@@ -172,7 +199,8 @@ function sanitizeDepositForCreate(deposit) {
         amount: clamp(normalizeRewardNumber(deposit?.amount, 0), 0, MAX_DEPOSIT_AMOUNT),
         status: normalizeDepositStatus(deposit?.status),
         createdAt: Math.max(0, Number(deposit?.createdAt) || Date.now()),
-        updatedAt: Math.max(0, Number(deposit?.updatedAt) || Date.now())
+        updatedAt: Math.max(0, Number(deposit?.updatedAt) || Date.now()),
+        expiresAt: Math.max(0, Number(deposit?.expiresAt) || 0)
     };
 }
 
@@ -213,6 +241,11 @@ router.post("/create", (req, res) => {
 
     db.deposits = Array.isArray(db.deposits) ? db.deposits : [];
 
+    const expiredChanged = markExpiredDeposits(db);
+    if (expiredChanged) {
+        writeDb(db);
+    }
+
     const telegramId = safeString(req.body?.telegramId, "");
     const username = safeString(req.body?.username, "Gracz");
     const source = safeString(req.body?.source, "ton") || "ton";
@@ -234,7 +267,8 @@ router.post("/create", (req, res) => {
     const activePendingDeposits = getActivePendingDepositsForPlayer(db, telegramId);
     if (activePendingDeposits.length >= MAX_ACTIVE_PENDING_DEPOSITS_PER_PLAYER) {
         return res.status(400).json({
-            error: "You already have an active pending deposit"
+            error: "You already have an active pending deposit",
+            activeDeposit: activePendingDeposits[0] || null
         });
     }
 
@@ -281,6 +315,11 @@ router.post("/payment-data", (req, res) => {
     const db = readDb();
 
     db.deposits = Array.isArray(db.deposits) ? db.deposits : [];
+
+    const expiredChanged = markExpiredDeposits(db);
+    if (expiredChanged) {
+        writeDb(db);
+    }
 
     const depositId = safeString(req.body?.depositId, "");
 
@@ -376,6 +415,8 @@ router.post("/confirm", (req, res) => {
     db.deposits = Array.isArray(db.deposits) ? db.deposits : [];
     db.players = db.players && typeof db.players === "object" ? db.players : {};
 
+    const expiredChanged = markExpiredDeposits(db);
+
     const depositId = safeString(req.body?.depositId, "");
     const status = safeString(req.body?.status, "").toLowerCase();
     const note = safeString(req.body?.note, "");
@@ -391,12 +432,18 @@ router.post("/confirm", (req, res) => {
     const deposit = db.deposits.find((d) => String(d.id) === String(depositId));
 
     if (!deposit) {
+        if (expiredChanged) {
+            writeDb(db);
+        }
         return res.status(404).json({ error: "Deposit not found" });
     }
 
     deposit.status = normalizeDepositStatus(deposit.status);
 
     if (deposit.status !== "pending" && deposit.status !== "created") {
+        if (expiredChanged) {
+            writeDb(db);
+        }
         return res.status(400).json({ error: "Already processed" });
     }
 
@@ -430,6 +477,13 @@ router.post("/confirm", (req, res) => {
 
 router.get("/:telegramId", (req, res) => {
     const db = readDb();
+
+    db.deposits = Array.isArray(db.deposits) ? db.deposits : [];
+
+    const expiredChanged = markExpiredDeposits(db);
+    if (expiredChanged) {
+        writeDb(db);
+    }
 
     const telegramId = safeString(req.params.telegramId, "");
 
