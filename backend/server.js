@@ -8,7 +8,7 @@ const fs = require("fs");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 🔐 TRUST PROXY (ważne przy nginx + HTTPS)
+// 🔐 TRUST PROXY
 app.set("trust proxy", 1);
 
 // 📁 Ścieżki
@@ -42,6 +42,15 @@ const rewardRoutes = require("./routes/reward-routes");
 const expeditionRoutes = require("./routes/expedition-routes");
 const adsRoutes = require("./routes/ads-routes");
 
+// ✅ PEWNY HEALTH ENDPOINT
+app.get("/api/health", (req, res) => {
+    return res.status(200).json({
+        ok: true,
+        message: "Crypto Zoo API is running",
+        timestamp: Date.now()
+    });
+});
+
 // 🔥 API ROUTING
 app.use("/api/health", healthRoutes);
 app.use("/api/player", playerRoutes);
@@ -72,7 +81,7 @@ app.use("/api/*", (req, res) => {
     });
 });
 
-// 🌐 FRONTEND FALLBACK (SPA)
+// 🌐 FRONTEND FALLBACK
 app.use((req, res) => {
     if (fs.existsSync(INDEX_PATH)) {
         return res.sendFile(INDEX_PATH);
