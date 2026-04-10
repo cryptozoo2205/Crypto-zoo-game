@@ -1,7 +1,7 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.config = {
-    apiBase: "https://tobi-nonextenuative-alycia.ngrok-free.dev/api",
+    apiBase: "https://cryptozoo.pl/api",
     telegramBotUsername: "cryptzoo_bot",
 
     limits: {
