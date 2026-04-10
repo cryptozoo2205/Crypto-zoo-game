@@ -24,10 +24,34 @@ CryptoZoo.offlineAds = {
     ensureState() {
         CryptoZoo.state = CryptoZoo.state || {};
 
+        const now = this.getNow();
+
         CryptoZoo.state.offlineAdsHours = Math.max(
             0,
             Math.min(this.MAX_HOURS, Number(CryptoZoo.state.offlineAdsHours) || 0)
         );
+
+        CryptoZoo.state.offlineAdsResetAt = Math.max(
+            0,
+            Number(CryptoZoo.state.offlineAdsResetAt) || 0
+        );
+
+        if (CryptoZoo.state.offlineAdsHours <= 0) {
+            CryptoZoo.state.offlineAdsHours = 0;
+            CryptoZoo.state.offlineAdsResetAt = 0;
+            return;
+        }
+
+        if (CryptoZoo.state.offlineAdsResetAt <= 0) {
+            CryptoZoo.state.offlineAdsResetAt =
+                now + CryptoZoo.state.offlineAdsHours * 3600 * 1000;
+            return;
+        }
+
+        if (CryptoZoo.state.offlineAdsResetAt <= now) {
+            CryptoZoo.state.offlineAdsHours = 0;
+            CryptoZoo.state.offlineAdsResetAt = 0;
+        }
     },
 
     getCurrentHours() {
@@ -48,7 +72,11 @@ CryptoZoo.offlineAds = {
 
     getSecondsUntilReset() {
         this.ensureState();
-        return Math.max(0, Math.ceil(this.getCurrentHours() * 3600));
+
+        const resetAt = Number(CryptoZoo.state?.offlineAdsResetAt) || 0;
+        if (resetAt <= 0) return 0;
+
+        return Math.max(0, Math.ceil((resetAt - this.getNow()) / 1000));
     },
 
     getFormattedTimeUntilReset() {
@@ -56,7 +84,8 @@ CryptoZoo.offlineAds = {
     },
 
     getNextResetAt() {
-        return this.getNow() + this.getSecondsUntilReset() * 1000;
+        this.ensureState();
+        return Number(CryptoZoo.state?.offlineAdsResetAt) || 0;
     },
 
     canWatchAd() {
@@ -82,10 +111,13 @@ CryptoZoo.offlineAds = {
 
         if (!this.canWatchAd()) {
             const resetText = this.getFormattedTimeUntilReset();
-            CryptoZoo.ui?.showToast?.(`Osiągnięto limit reklam (${this.MAX_HOURS}h) • Reset za ${resetText}`);
+            CryptoZoo.ui?.showToast?.(
+                `Osiągnięto limit reklam (${this.MAX_HOURS}h) • Reset za ${resetText}`
+            );
             return false;
         }
 
+        const now = this.getNow();
         const current = this.getCurrentHours();
         const remaining = this.getRemainingHours();
         const added = Math.min(this.HOURS_PER_AD, remaining);
@@ -95,7 +127,17 @@ CryptoZoo.offlineAds = {
             Math.min(this.MAX_HOURS, current + added)
         );
 
+        const currentResetAt = Number(CryptoZoo.state.offlineAdsResetAt) || 0;
+
+        if (currentResetAt > now) {
+            CryptoZoo.state.offlineAdsResetAt = currentResetAt + added * 3600 * 1000;
+        } else {
+            CryptoZoo.state.offlineAdsResetAt = now + CryptoZoo.state.offlineAdsHours * 3600 * 1000;
+        }
+
         CryptoZoo.api?.savePlayer?.();
+        CryptoZoo.ui?.renderOfflineInfo?.();
+        CryptoZoo.ads?.updateOfflineUi?.();
 
         const resetText = this.getFormattedTimeUntilReset();
         CryptoZoo.ui?.showToast?.(`+${added}h offline • Reset za ${resetText}`);
