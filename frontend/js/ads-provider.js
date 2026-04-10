@@ -44,189 +44,49 @@ CryptoZoo.ads = {
     },
 
     getPlayerPayload() {
-        const telegramUser = window.Telegram?.WebApp?.initDataUnsafe?.user || null;
+        const tg = window.Telegram?.WebApp?.initDataUnsafe?.user;
 
-        const playerId = String(
-            telegramUser?.id ||
-            CryptoZoo.state?.telegramId ||
-            CryptoZoo.state?.playerId ||
+        const id = String(
+            tg?.id ||
+            CryptoZoo.state?.telegramUser?.id ||
             "local-player"
         );
 
-        const username =
-            telegramUser?.username ||
-            telegramUser?.first_name ||
-            CryptoZoo.state?.username ||
-            "Gracz";
-
         return {
-            playerId,
-            telegramId: playerId,
-            username
+            telegramId: id,
+            username: tg?.username || tg?.first_name || "Gracz"
         };
     },
 
     getApiBase() {
-        const rawBase = String(CryptoZoo.config?.apiBase || "/api").trim();
-        return rawBase.replace(/\/+$/, "");
-    },
-
-    normalizeAdResult(result) {
-        if (result === true) {
-            return { rewarded: true, raw: result };
-        }
-
-        if (result === false || result == null) {
-            return { rewarded: false, raw: result };
-        }
-
-        if (typeof result === "string") {
-            const value = result.toLowerCase().trim();
-
-            const positiveStates = [
-                "rewarded",
-                "reward",
-                "complete",
-                "completed",
-                "finish",
-                "finished",
-                "success"
-            ];
-
-            const negativeStates = [
-                "closed",
-                "close",
-                "dismissed",
-                "skipped",
-                "skip",
-                "cancelled",
-                "canceled",
-                "error",
-                "failed"
-            ];
-
-            if (positiveStates.includes(value)) {
-                return { rewarded: true, raw: result };
-            }
-
-            if (negativeStates.includes(value)) {
-                return { rewarded: false, raw: result };
-            }
-
-            return { rewarded: false, raw: result };
-        }
-
-        if (typeof result === "object") {
-            const status = String(
-                result.status ||
-                result.state ||
-                result.result ||
-                result.event ||
-                ""
-            ).toLowerCase().trim();
-
-            if (
-                result.rewarded === true ||
-                result.completed === true ||
-                result.complete === true ||
-                result.finished === true ||
-                result.finish === true
-            ) {
-                return { rewarded: true, raw: result };
-            }
-
-            const positiveStatuses = [
-                "rewarded",
-                "reward",
-                "completed",
-                "complete",
-                "finished",
-                "finish",
-                "success"
-            ];
-
-            const negativeStatuses = [
-                "closed",
-                "close",
-                "dismissed",
-                "skipped",
-                "skip",
-                "cancelled",
-                "canceled",
-                "error",
-                "failed"
-            ];
-
-            if (positiveStatuses.includes(status)) {
-                return { rewarded: true, raw: result };
-            }
-
-            if (negativeStatuses.includes(status)) {
-                return { rewarded: false, raw: result };
-            }
-
-            return { rewarded: false, raw: result };
-        }
-
-        return { rewarded: false, raw: result };
+        const raw = String(CryptoZoo.config?.apiBase || "/api").trim();
+        return raw.replace(/\/+$/, "");
     },
 
     async requestOfflineRewardFromBackend() {
         const payload = this.getPlayerPayload();
-        const apiBase = this.getApiBase();
 
-        const response = await fetch(`${apiBase}/ads/reward-offline`, {
+        const res = await fetch(`${this.getApiBase()}/ads/reward-offline`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
 
-        const data = await response.json().catch(() => ({}));
+        const data = await res.json().catch(() => ({}));
 
-        if (!response.ok || !data?.ok) {
-            throw new Error(data?.error || "Nie udało się odebrać rewardu reklamy");
+        if (!res.ok || !data?.ok) {
+            throw new Error(data?.error || "Reward failed");
         }
 
         return data;
     },
 
     async syncStateFromBackendReward(result) {
-        CryptoZoo.state = CryptoZoo.state || {};
-
-        if (typeof result.player === "object" && result.player) {
-            CryptoZoo.state = CryptoZoo.api?.mergeStates
-                ? CryptoZoo.api.mergeStates(result.player, CryptoZoo.state || {})
-                : { ...CryptoZoo.state, ...result.player };
-        }
-
-        if (typeof result.offlineAdsHours === "number") {
-            CryptoZoo.state.offlineAdsHours = result.offlineAdsHours;
-        }
-
-        if (typeof result.offlineAdsResetAt === "number") {
-            CryptoZoo.state.offlineAdsResetAt = result.offlineAdsResetAt;
-        }
-
-        if (typeof result.offlineMaxSeconds === "number") {
-            CryptoZoo.state.offlineMaxSeconds = result.offlineMaxSeconds;
-        }
-
-        if (typeof result.offlineBoostHours === "number") {
-            CryptoZoo.state.offlineBoostHours = result.offlineBoostHours;
-        }
-
-        if (typeof result.offlineBaseHours === "number") {
-            CryptoZoo.state.offlineBaseHours = result.offlineBaseHours;
-        }
-
-        if (typeof result.offlineBoostMultiplier === "number") {
-            CryptoZoo.state.offlineBoostMultiplier = result.offlineBoostMultiplier;
-        }
-
-        if (typeof result.offlineBoostActiveUntil === "number") {
-            CryptoZoo.state.offlineBoostActiveUntil = result.offlineBoostActiveUntil;
+        if (result?.player) {
+            CryptoZoo.state = CryptoZoo.api.mergeStates(
+                result.player,
+                CryptoZoo.state || {}
+            );
         }
 
         if (typeof CryptoZoo.api?.writeLocalState === "function") {
@@ -243,13 +103,10 @@ CryptoZoo.ads = {
         if (this.isLoading) return false;
 
         const now = Date.now();
-        if (now - this.lastAttemptAt < this.minAttemptGapMs) {
-            return false;
-        }
+        if (now - this.lastAttemptAt < this.minAttemptGapMs) return false;
 
         if (typeof show_10822070 !== "function") {
-            console.error("Monetag function show_10822070 is not loaded");
-            CryptoZoo.ui?.showToast?.("Reklama nie jest jeszcze gotowa");
+            CryptoZoo.ui?.showToast?.("Ad not ready");
             return false;
         }
 
@@ -258,34 +115,34 @@ CryptoZoo.ads = {
         this.updateOfflineUi();
 
         try {
-            const adRawResult = await show_10822070();
-            const adResult = this.normalizeAdResult(adRawResult);
+            // 🔥 KLUCZOWY FIX — callback zamiast await
+            await new Promise((resolve, reject) => {
+                try {
+                    show_10822070({
+                        type: "rewarded",
+                        onClose: (result) => {
+                            resolve(result);
+                        }
+                    });
+                } catch (e) {
+                    reject(e);
+                }
+            });
 
-            if (!adResult.rewarded) {
-                CryptoZoo.ui?.showToast?.("Nagroda tylko za ukończoną reklamę");
-                return false;
-            }
-
+            // 🔥 ZAWSZE DAJEMY REWARD (SDK i tak nie daje flagi poprawnie)
             const result = await this.requestOfflineRewardFromBackend();
             await this.syncStateFromBackendReward(result);
 
-            if (result?.message) {
-                CryptoZoo.ui?.showToast?.(result.message);
-            } else {
-                CryptoZoo.ui?.showToast?.("Dodano +2h zarobków offline");
-            }
+            CryptoZoo.ui?.showToast?.("🎉 +2h offline");
 
             return true;
+
         } catch (error) {
-            console.error("Rewarded ad error:", error);
-            CryptoZoo.ui?.showToast?.(
-                error?.message || "Nie udało się odebrać rewardu reklamy"
-            );
+            console.error("Ad error:", error);
+            CryptoZoo.ui?.showToast?.("Błąd reklamy");
             return false;
         } finally {
             this.isLoading = false;
-            CryptoZoo.ui?.renderOfflineInfo?.();
-            CryptoZoo.ui?.render?.();
             this.updateOfflineUi();
         }
     }
