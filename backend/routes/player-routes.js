@@ -35,6 +35,8 @@ function normalizeBoost(value, fallback = 0) {
 }
 
 function applyOfflineAdsServerGuard(oldPlayer, safePlayer) {
+    const now = Date.now();
+
     const oldOfflineBaseHours = Math.max(
         1,
         normalizeInt(oldPlayer?.offlineBaseHours, 1)
@@ -60,8 +62,9 @@ function applyOfflineAdsServerGuard(oldPlayer, safePlayer) {
         serverHours + OFFLINE_ADS_HOURS_PER_AD
     );
 
+    // 🔥 Nie pozwól zjechać w dół przez stary frontendowy save.
     const finalOfflineAdsHours = Math.max(
-        0,
+        serverHours,
         Math.min(requestedHours, maxAllowedThisSave)
     );
 
@@ -75,12 +78,36 @@ function applyOfflineAdsServerGuard(oldPlayer, safePlayer) {
         normalizeInt(safePlayer?.offlineBoostHours, oldOfflineBoostHours)
     );
 
+    const oldResetAt = Math.max(
+        0,
+        Number(oldPlayer?.offlineAdsResetAt) || 0
+    );
+
+    const requestedResetAt = Math.max(
+        0,
+        Number(safePlayer?.offlineAdsResetAt) || 0
+    );
+
+    let finalOfflineAdsResetAt = oldResetAt;
+
+    if (finalOfflineAdsHours <= 0) {
+        finalOfflineAdsResetAt = 0;
+    } else if (requestedResetAt > now && requestedResetAt >= oldResetAt) {
+        finalOfflineAdsResetAt = requestedResetAt;
+    } else if (oldResetAt > now) {
+        finalOfflineAdsResetAt = oldResetAt;
+    } else {
+        finalOfflineAdsResetAt = now + finalOfflineAdsHours * 60 * 60 * 1000;
+    }
+
     safePlayer.offlineAdsHours = finalOfflineAdsHours;
+    safePlayer.offlineAdsResetAt = finalOfflineAdsResetAt;
+    safePlayer.offlineBaseHours = finalOfflineBaseHours;
+    safePlayer.offlineBoostHours = finalOfflineBoostHours;
     safePlayer.offlineMaxSeconds =
         (finalOfflineBaseHours + finalOfflineBoostHours + finalOfflineAdsHours) * 60 * 60;
 
     delete safePlayer.offlineAdsLastUpdateAt;
-    delete safePlayer.offlineAdsResetAt;
 
     return safePlayer;
 }
