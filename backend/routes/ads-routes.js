@@ -15,6 +15,22 @@ function normalizeNumber(value, fallback = 0) {
     return Number.isFinite(num) ? num : fallback;
 }
 
+function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+}
+
+function ensurePlayersObject(db) {
+    db.players = db.players && typeof db.players === "object" ? db.players : {};
+    return db.players;
+}
+
+function getTelegramIdFromRequest(req) {
+    return safeString(
+        req.body?.telegramId,
+        req.body?.playerId || "local-player"
+    );
+}
+
 function ensureOfflineAdsState(player) {
     const now = Date.now();
 
@@ -28,9 +44,10 @@ function ensureOfflineAdsState(player) {
         Math.floor(normalizeNumber(player.offlineBoostHours, 0))
     );
 
-    player.offlineAdsHours = Math.max(
+    player.offlineAdsHours = clamp(
+        Math.floor(normalizeNumber(player.offlineAdsHours, 0)),
         0,
-        Math.min(OFFLINE_ADS_MAX_HOURS, normalizeNumber(player.offlineAdsHours, 0))
+        OFFLINE_ADS_MAX_HOURS
     );
 
     player.offlineAdsResetAt = Math.max(
@@ -46,8 +63,6 @@ function ensureOfflineAdsState(player) {
     if (player.offlineAdsHours <= 0) {
         player.offlineAdsHours = 0;
         player.offlineAdsResetAt = 0;
-    } else if (player.offlineAdsResetAt <= 0) {
-        player.offlineAdsResetAt = now + player.offlineAdsHours * 60 * 60 * 1000;
     } else if (player.offlineAdsResetAt <= now) {
         player.offlineAdsHours = 0;
         player.offlineAdsResetAt = 0;
@@ -61,31 +76,61 @@ function ensureOfflineAdsState(player) {
     return player;
 }
 
+function buildSuccessPayload(player, addedHours, now) {
+    return {
+        ok: true,
+        message: `+${addedHours}h offline • Reset za ${Math.max(
+            0,
+            Math.ceil((Math.max(0, Number(player.offlineAdsResetAt) || 0) - now) / 1000)
+        )}s`,
+        offlineAdsHours: player.offlineAdsHours,
+        offlineAdsResetAt: player.offlineAdsResetAt,
+        offlineMaxSeconds: player.offlineMaxSeconds,
+        waitSeconds: MIN_SECONDS_BETWEEN_AD_REWARDS,
+        player
+    };
+}
+
+function buildErrorPayload(player, error, extra = {}) {
+    return {
+        ok: false,
+        error,
+        offlineAdsHours: player.offlineAdsHours,
+        offlineAdsResetAt: player.offlineAdsResetAt,
+        offlineMaxSeconds: player.offlineMaxSeconds,
+        player,
+        ...extra
+    };
+}
+
 router.post("/reward-offline", async (req, res) => {
     try {
         const db = readDb();
-        db.players = db.players && typeof db.players === "object" ? db.players : {};
+        ensurePlayersObject(db);
 
-        const telegramId = safeString(
-            req.body?.playerId,
-            req.body?.telegramId || "local-player"
-        );
-
+        const telegramId = getTelegramIdFromRequest(req);
         const username = safeString(req.body?.username, "Gracz");
 
-        const oldPlayer = db.players[telegramId]
+        if (!telegramId) {
+            return res.status(400).json({
+                ok: false,
+                error: "Missing telegramId"
+            });
+        }
+
+        const existingPlayer = db.players[telegramId]
             ? normalizePlayer(db.players[telegramId])
             : getDefaultPlayer(telegramId, username);
 
-        const player = ensureOfflineAdsState(oldPlayer);
+        const player = ensureOfflineAdsState(existingPlayer);
         const now = Date.now();
 
-        const secondsSinceLastReward = Math.floor(
-            (now - Math.max(0, Number(player.lastOfflineAdRewardAt) || 0)) / 1000
-        );
+        const lastRewardAt = Math.max(0, Number(player.lastOfflineAdRewardAt) || 0);
+        const secondsSinceLastReward =
+            lastRewardAt > 0 ? Math.floor((now - lastRewardAt) / 1000) : Infinity;
 
         if (
-            Number(player.lastOfflineAdRewardAt) > 0 &&
+            lastRewardAt > 0 &&
             secondsSinceLastReward < MIN_SECONDS_BETWEEN_AD_REWARDS
         ) {
             const waitSeconds = Math.max(
@@ -96,43 +141,48 @@ router.post("/reward-offline", async (req, res) => {
             db.players[telegramId] = normalizePlayer(player);
             writeDb(db);
 
-            return res.status(429).json({
-                ok: false,
-                error: `Odczekaj ${waitSeconds}s przed kolejną nagrodą z reklamy`,
-                waitSeconds,
-                offlineAdsHours: player.offlineAdsHours,
-                offlineAdsResetAt: player.offlineAdsResetAt,
-                offlineMaxSeconds: player.offlineMaxSeconds,
-                player: db.players[telegramId]
-            });
+            return res.status(429).json(
+                buildErrorPayload(
+                    db.players[telegramId],
+                    `Odczekaj ${waitSeconds}s przed kolejną nagrodą z reklamy`,
+                    { waitSeconds }
+                )
+            );
         }
 
         if (player.offlineAdsHours >= OFFLINE_ADS_MAX_HOURS) {
             db.players[telegramId] = normalizePlayer(player);
             writeDb(db);
 
-            return res.status(200).json({
-                ok: false,
-                error: `Osiągnięto limit reklam offline • Reset za ${Math.max(0, Math.ceil((player.offlineAdsResetAt - now) / 1000))}s`,
-                offlineAdsHours: player.offlineAdsHours,
-                offlineAdsResetAt: player.offlineAdsResetAt,
-                offlineMaxSeconds: player.offlineMaxSeconds,
-                player: db.players[telegramId]
-            });
+            return res.status(200).json(
+                buildErrorPayload(
+                    db.players[telegramId],
+                    `Osiągnięto limit reklam offline • Reset za ${Math.max(
+                        0,
+                        Math.ceil((Math.max(0, Number(player.offlineAdsResetAt) || 0) - now) / 1000)
+                    )}s`
+                )
+            );
         }
 
-        const remaining = OFFLINE_ADS_MAX_HOURS - player.offlineAdsHours;
+        const previousAdsHours = player.offlineAdsHours;
+        const remaining = Math.max(0, OFFLINE_ADS_MAX_HOURS - previousAdsHours);
         const addedHours = Math.min(OFFLINE_ADS_HOURS_PER_AD, remaining);
 
-        player.offlineAdsHours = Math.max(
+        player.offlineAdsHours = clamp(
+            previousAdsHours + addedHours,
             0,
-            Math.min(OFFLINE_ADS_MAX_HOURS, player.offlineAdsHours + addedHours)
+            OFFLINE_ADS_MAX_HOURS
         );
 
-        if (player.offlineAdsResetAt > now) {
-            player.offlineAdsResetAt += addedHours * 60 * 60 * 1000;
+        if (player.offlineAdsHours > 0) {
+            if (player.offlineAdsResetAt > now && previousAdsHours > 0) {
+                player.offlineAdsResetAt += addedHours * 60 * 60 * 1000;
+            } else {
+                player.offlineAdsResetAt = now + player.offlineAdsHours * 60 * 60 * 1000;
+            }
         } else {
-            player.offlineAdsResetAt = now + player.offlineAdsHours * 60 * 60 * 1000;
+            player.offlineAdsResetAt = 0;
         }
 
         player.lastOfflineAdRewardAt = now;
@@ -144,15 +194,9 @@ router.post("/reward-offline", async (req, res) => {
         db.players[telegramId] = normalizePlayer(player);
         writeDb(db);
 
-        return res.status(200).json({
-            ok: true,
-            message: `+${addedHours}h offline • Reset za ${Math.max(0, Math.ceil((player.offlineAdsResetAt - now) / 1000))}s`,
-            offlineAdsHours: player.offlineAdsHours,
-            offlineAdsResetAt: player.offlineAdsResetAt,
-            offlineMaxSeconds: player.offlineMaxSeconds,
-            waitSeconds: MIN_SECONDS_BETWEEN_AD_REWARDS,
-            player: db.players[telegramId]
-        });
+        return res.status(200).json(
+            buildSuccessPayload(db.players[telegramId], addedHours, now)
+        );
     } catch (error) {
         console.error("ads reward-offline error:", error);
         return res.status(500).json({
