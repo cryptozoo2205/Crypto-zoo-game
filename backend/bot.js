@@ -64,7 +64,6 @@ bot.onText(/\/ping/, (msg) => {
 // STARS TEST PAYMENT
 // =======================
 
-// Test command: sends a Telegram Stars invoice
 bot.onText(/\/stars/, async (msg) => {
     try {
         await bot.sendInvoice(
@@ -72,6 +71,7 @@ bot.onText(/\/stars/, async (msg) => {
             "CryptoZoo Stars Pack",
             "Test purchase for Telegram Stars",
             "stars_test_pack_1",
+            "", // providerToken - pusty dla Stars w tej bibliotece
             "XTR",
             [
                 { label: "Stars Pack", amount: 50 }
@@ -81,13 +81,15 @@ bot.onText(/\/stars/, async (msg) => {
         console.error("sendInvoice error:", error);
         await bot.sendMessage(
             msg.chat.id,
-            "❌ Could not create Telegram Stars payment."
+            `❌ Could not create Telegram Stars payment.\n${error.message || "Unknown error"}`
         );
     }
 });
 
-// Telegram sends this before charging the user.
-// You must answer it quickly or the payment is cancelled.
+// =======================
+// PRE CHECKOUT
+// =======================
+
 bot.on("pre_checkout_query", async (query) => {
     try {
         if (query.invoice_payload !== "stars_test_pack_1") {
@@ -111,7 +113,10 @@ bot.on("pre_checkout_query", async (query) => {
     }
 });
 
-// Successful Stars payment
+// =======================
+// SUCCESSFUL PAYMENT
+// =======================
+
 bot.on("message", async (msg) => {
     try {
         if (!msg.successful_payment) return;
