@@ -656,9 +656,10 @@ window.CryptoZoo.api = {
 
             coins: Math.max(server.coins, local.coins),
             gems: Math.max(server.gems, local.gems),
-            rewardBalance: Math.max(server.rewardBalance, local.rewardBalance),
-            rewardWallet: Math.max(server.rewardWallet, local.rewardWallet),
-            withdrawPending: Math.max(server.withdrawPending, local.withdrawPending),
+
+            rewardBalance: server.rewardBalance,
+            rewardWallet: server.rewardWallet,
+            withdrawPending: server.withdrawPending,
 
             level: Math.max(server.level, local.level),
             xp: Math.max(server.xp, local.xp),
@@ -1254,7 +1255,9 @@ window.CryptoZoo.api = {
                     this.writeLocalState(CryptoZoo.state);
                 }
 
-                this.lastSavedSnapshot = nextSnapshot;
+                this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(
+                    this.getSavePayload()
+                );
                 this.pendingDirty = false;
             } catch (error) {
                 console.warn("SAVE FAIL → local only", error);
