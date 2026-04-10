@@ -72,22 +72,26 @@ CryptoZoo.ads = {
     },
 
     normalizeAdResult(result) {
-        // Dla Monetag bardzo często samo poprawne zakończenie Promise oznacza sukces,
-        // więc null / undefined traktujemy jako sukces.
-        if (result == null) {
-            return { rewarded: true, raw: result };
-        }
-
         if (result === true) {
             return { rewarded: true, raw: result };
         }
 
-        if (result === false) {
+        if (result === false || result == null) {
             return { rewarded: false, raw: result };
         }
 
         if (typeof result === "string") {
             const value = result.toLowerCase().trim();
+
+            const positiveStates = [
+                "rewarded",
+                "reward",
+                "complete",
+                "completed",
+                "finish",
+                "finished",
+                "success"
+            ];
 
             const negativeStates = [
                 "closed",
@@ -101,28 +105,15 @@ CryptoZoo.ads = {
                 "failed"
             ];
 
-            if (negativeStates.includes(value)) {
-                return { rewarded: false, raw: result };
-            }
-
-            const positiveStates = [
-                "rewarded",
-                "reward",
-                "complete",
-                "completed",
-                "finish",
-                "finished",
-                "ok",
-                "success",
-                "done"
-            ];
-
             if (positiveStates.includes(value)) {
                 return { rewarded: true, raw: result };
             }
 
-            // Nieznany string po poprawnym resolve traktujemy jako sukces
-            return { rewarded: true, raw: result };
+            if (negativeStates.includes(value)) {
+                return { rewarded: false, raw: result };
+            }
+
+            return { rewarded: false, raw: result };
         }
 
         if (typeof result === "object") {
@@ -139,11 +130,20 @@ CryptoZoo.ads = {
                 result.completed === true ||
                 result.complete === true ||
                 result.finished === true ||
-                result.finish === true ||
-                result.done === true
+                result.finish === true
             ) {
                 return { rewarded: true, raw: result };
             }
+
+            const positiveStatuses = [
+                "rewarded",
+                "reward",
+                "completed",
+                "complete",
+                "finished",
+                "finish",
+                "success"
+            ];
 
             const negativeStatuses = [
                 "closed",
@@ -157,32 +157,18 @@ CryptoZoo.ads = {
                 "failed"
             ];
 
-            if (negativeStatuses.includes(status)) {
-                return { rewarded: false, raw: result };
-            }
-
-            const positiveStatuses = [
-                "rewarded",
-                "reward",
-                "completed",
-                "complete",
-                "finished",
-                "finish",
-                "success",
-                "done",
-                "ok"
-            ];
-
             if (positiveStatuses.includes(status)) {
                 return { rewarded: true, raw: result };
             }
 
-            // Jeżeli obiekt przyszedł bez jasnego błędu, też uznajemy sukces
-            return { rewarded: true, raw: result };
+            if (negativeStatuses.includes(status)) {
+                return { rewarded: false, raw: result };
+            }
+
+            return { rewarded: false, raw: result };
         }
 
-        // Każdy inny poprawny resolve traktujemy jako sukces
-        return { rewarded: true, raw: result };
+        return { rewarded: false, raw: result };
     },
 
     async requestOfflineRewardFromBackend() {
@@ -276,7 +262,7 @@ CryptoZoo.ads = {
             const adResult = this.normalizeAdResult(adRawResult);
 
             if (!adResult.rewarded) {
-                CryptoZoo.ui?.showToast?.("Nagroda tylko za obejrzenie całej reklamy");
+                CryptoZoo.ui?.showToast?.("Nagroda tylko za ukończoną reklamę");
                 return false;
             }
 
