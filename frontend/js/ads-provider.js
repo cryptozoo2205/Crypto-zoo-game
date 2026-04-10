@@ -5,6 +5,9 @@ CryptoZoo.ads = {
     lastAttemptAt: 0,
     minAttemptGapMs: 2500,
 
+    // 🔥 anti-cheat (min czas oglądania)
+    minWatchTimeMs: 12000,
+
     updateOfflineUi() {
         const btnEl = document.getElementById("watchOfflineAdBtn");
         if (!btnEl) return;
@@ -64,12 +67,10 @@ CryptoZoo.ads = {
     },
 
     async requestOfflineRewardFromBackend() {
-        const payload = this.getPlayerPayload();
-
         const res = await fetch(`${this.getApiBase()}/ads/reward-offline`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(this.getPlayerPayload())
         });
 
         const data = await res.json().catch(() => ({}));
@@ -89,9 +90,7 @@ CryptoZoo.ads = {
             );
         }
 
-        if (typeof CryptoZoo.api?.writeLocalState === "function") {
-            CryptoZoo.api.writeLocalState(CryptoZoo.state);
-        }
+        CryptoZoo.api?.writeLocalState?.(CryptoZoo.state);
 
         CryptoZoo.gameplay?.recalculateProgress?.();
         CryptoZoo.ui?.renderOfflineInfo?.();
@@ -114,22 +113,30 @@ CryptoZoo.ads = {
         this.isLoading = true;
         this.updateOfflineUi();
 
+        // 🔥 start pomiaru czasu
+        const startTime = Date.now();
+
         try {
-            // 🔥 KLUCZOWY FIX — callback zamiast await
             await new Promise((resolve, reject) => {
                 try {
                     show_10822070({
                         type: "rewarded",
-                        onClose: (result) => {
-                            resolve(result);
-                        }
+                        onClose: () => resolve()
                     });
                 } catch (e) {
                     reject(e);
                 }
             });
 
-            // 🔥 ZAWSZE DAJEMY REWARD (SDK i tak nie daje flagi poprawnie)
+            const watchedMs = Date.now() - startTime;
+
+            // 🔥 jeśli zamknął za szybko → brak rewardu
+            if (watchedMs < this.minWatchTimeMs) {
+                CryptoZoo.ui?.showToast?.("❌ Obejrzyj reklamę do końca");
+                return false;
+            }
+
+            // ✅ reward dopiero tutaj
             const result = await this.requestOfflineRewardFromBackend();
             await this.syncStateFromBackendReward(result);
 
