@@ -71,7 +71,7 @@ bot.onText(/\/stars/, async (msg) => {
             "CryptoZoo Stars Pack",
             "Test purchase for Telegram Stars",
             "stars_test_pack_1",
-            "", // providerToken - pusty dla Stars w tej bibliotece
+            "", // providerToken pusty dla Stars w tej bibliotece
             "XTR",
             [
                 { label: "Stars Pack", amount: 50 }
@@ -138,7 +138,7 @@ bot.on("message", async (msg) => {
         ) {
             await bot.sendMessage(
                 msg.chat.id,
-                "✅ Payment received! Test Stars pack was purchased successfully."
+                "✅ Payment received! +500 gems (TEST)"
             );
         } else {
             await bot.sendMessage(
