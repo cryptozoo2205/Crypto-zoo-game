@@ -149,47 +149,17 @@ CryptoZoo.ads = {
             clearTimeout(session.timeoutId);
         }
 
-        if (session.visibilityHandler) {
-            document.removeEventListener("visibilitychange", session.visibilityHandler);
-        }
-
-        if (session.focusHandler) {
-            window.removeEventListener("focus", session.focusHandler);
-        }
-
         this.activeSession = null;
     },
 
     startAdSession() {
         const session = {
             startedAt: Date.now(),
-            hiddenAtLeastOnce: false,
-            regainedFocusAfterHide: false,
+            sdkClosed: false,
             sdkResolved: false,
-            closed: false,
             timeoutId: null,
-            visibilityHandler: null,
-            focusHandler: null
+            closed: false
         };
-
-        session.visibilityHandler = () => {
-            if (document.visibilityState === "hidden") {
-                session.hiddenAtLeastOnce = true;
-            }
-
-            if (document.visibilityState === "visible" && session.hiddenAtLeastOnce) {
-                session.regainedFocusAfterHide = true;
-            }
-        };
-
-        session.focusHandler = () => {
-            if (session.hiddenAtLeastOnce) {
-                session.regainedFocusAfterHide = true;
-            }
-        };
-
-        document.addEventListener("visibilitychange", session.visibilityHandler);
-        window.addEventListener("focus", session.focusHandler);
 
         session.timeoutId = setTimeout(() => {
             session.sdkResolved = true;
@@ -199,24 +169,116 @@ CryptoZoo.ads = {
         return session;
     },
 
-    shouldGrantReward(session) {
+    normalizeSdkResult(result) {
+        if (result === true) {
+            return { rewarded: true, closed: true };
+        }
+
+        if (result === false || result == null) {
+            return { rewarded: false, closed: true };
+        }
+
+        if (typeof result === "string") {
+            const value = result.toLowerCase().trim();
+
+            if ([
+                "rewarded",
+                "reward",
+                "complete",
+                "completed",
+                "finish",
+                "finished",
+                "success"
+            ].includes(value)) {
+                return { rewarded: true, closed: true };
+            }
+
+            if ([
+                "closed",
+                "close",
+                "dismissed",
+                "skipped",
+                "skip",
+                "cancelled",
+                "canceled",
+                "error",
+                "failed"
+            ].includes(value)) {
+                return { rewarded: false, closed: true };
+            }
+
+            return { rewarded: false, closed: false };
+        }
+
+        if (typeof result === "object") {
+            const status = String(
+                result.status ||
+                result.state ||
+                result.result ||
+                result.event ||
+                ""
+            ).toLowerCase().trim();
+
+            const rewarded =
+                result.rewarded === true ||
+                result.completed === true ||
+                result.complete === true ||
+                result.finished === true ||
+                result.finish === true ||
+                [
+                    "rewarded",
+                    "reward",
+                    "complete",
+                    "completed",
+                    "finish",
+                    "finished",
+                    "success"
+                ].includes(status);
+
+            const closed =
+                rewarded ||
+                [
+                    "closed",
+                    "close",
+                    "dismissed",
+                    "skipped",
+                    "skip",
+                    "cancelled",
+                    "canceled",
+                    "error",
+                    "failed"
+                ].includes(status);
+
+            return { rewarded, closed };
+        }
+
+        return { rewarded: false, closed: false };
+    },
+
+    shouldGrantReward(session, sdkResult) {
         const watchedMs = Date.now() - Number(session?.startedAt || Date.now());
         const watchedEnough = watchedMs >= this.minWatchTimeMs;
-        const leftAndReturned =
-            session?.hiddenAtLeastOnce && session?.regainedFocusAfterHide;
 
-        return watchedEnough && leftAndReturned;
+        if (sdkResult?.rewarded) {
+            return true;
+        }
+
+        if (sdkResult?.closed && watchedEnough) {
+            return true;
+        }
+
+        return false;
     },
 
     async openSdkRewardedAd(session) {
         return new Promise((resolve, reject) => {
             let settled = false;
 
-            const finish = () => {
+            const finish = (result) => {
                 if (settled) return;
                 settled = true;
                 session.sdkResolved = true;
-                resolve(true);
+                resolve(result);
             };
 
             const fail = (error) => {
@@ -226,45 +288,34 @@ CryptoZoo.ads = {
             };
 
             try {
-                const maybePromise = show_10822070();
+                const maybePromise = show_10822070({
+                    type: "rewarded",
+                    onClose: (result) => {
+                        session.sdkClosed = true;
+                        finish(result);
+                    }
+                });
 
                 if (maybePromise && typeof maybePromise.then === "function") {
                     maybePromise
-                        .then(() => {
-                            finish();
+                        .then((result) => {
+                            session.sdkClosed = true;
+                            finish(result);
                         })
                         .catch((error) => {
                             fail(error instanceof Error ? error : new Error(String(error || "Ad error")));
                         });
-                } else {
-                    const pollStart = Date.now();
-
-                    const poll = () => {
-                        if (settled) return;
-
-                        const elapsed = Date.now() - pollStart;
-                        if (
-                            session.hiddenAtLeastOnce &&
-                            session.regainedFocusAfterHide &&
-                            elapsed >= 1000
-                        ) {
-                            finish();
-                            return;
-                        }
-
-                        if (elapsed >= this.adHardTimeoutMs) {
-                            finish();
-                            return;
-                        }
-
-                        setTimeout(poll, 250);
-                    };
-
-                    poll();
                 }
             } catch (error) {
                 fail(error);
             }
+
+            setTimeout(() => {
+                if (!settled) {
+                    session.sdkClosed = true;
+                    finish({ status: "closed" });
+                }
+            }, this.adHardTimeoutMs);
         });
     },
 
@@ -288,9 +339,10 @@ CryptoZoo.ads = {
         const session = this.startAdSession();
 
         try {
-            await this.openSdkRewardedAd(session);
+            const rawResult = await this.openSdkRewardedAd(session);
+            const sdkResult = this.normalizeSdkResult(rawResult);
 
-            if (!this.shouldGrantReward(session)) {
+            if (!this.shouldGrantReward(session, sdkResult)) {
                 CryptoZoo.ui?.showToast?.("Obejrzyj reklamę do końca");
                 return false;
             }
