@@ -208,6 +208,7 @@ window.CryptoZoo.api = {
             zooIncome: 0,
 
             expeditionBoost: 0,
+            expeditionBoostActiveUntil: 0,
 
             dailyExpeditionBoost: {
                 activeUntil: 0,
@@ -283,6 +284,68 @@ window.CryptoZoo.api = {
         return value && typeof value === "object" && !Array.isArray(value) ? value : {};
     },
 
+    normalizeDepositItem(raw) {
+        const item = this.normalizeObject(raw);
+
+        return {
+            ...item,
+            id: String(item.id || item._id || item.depositId || ""),
+            depositId: String(item.depositId || item.id || item._id || ""),
+            txHash: String(item.txHash || item.hash || ""),
+            telegramId: String(item.telegramId || ""),
+            username: String(item.username || ""),
+            amount: this.normalizeNumber(item.amount, 0, 0),
+            gemsAmount: this.normalizeNumber(item.gemsAmount, 0, 0),
+            expeditionBoostAmount: this.normalizeNumber(item.expeditionBoostAmount, 0, 0),
+            expeditionBoostDurationMs: this.normalizeNumber(item.expeditionBoostDurationMs, 0, 0),
+            paymentComment: String(item.paymentComment || ""),
+            walletAddress: String(item.walletAddress || ""),
+            source: String(item.source || ""),
+            asset: String(item.asset || item.currency || "TON"),
+            currency: String(item.currency || item.asset || "TON"),
+            network: String(item.network || "TON"),
+            status: String(item.status || "").toLowerCase() || "created",
+            note: String(item.note || ""),
+            createdAt: this.normalizeNumber(item.createdAt, 0, 0),
+            updatedAt: this.normalizeNumber(item.updatedAt, 0, 0),
+            approvedAt: this.normalizeNumber(item.approvedAt, 0, 0),
+            expiresAt: this.normalizeNumber(item.expiresAt, 0, 0)
+        };
+    },
+
+    normalizeDepositsList(value) {
+        return this.normalizeArray(value)
+            .map((item) => this.normalizeDepositItem(item))
+            .sort((a, b) => {
+                const timeA = Math.max(
+                    Number(a.updatedAt || 0),
+                    Number(a.createdAt || 0),
+                    Number(a.approvedAt || 0)
+                );
+                const timeB = Math.max(
+                    Number(b.updatedAt || 0),
+                    Number(b.createdAt || 0),
+                    Number(b.approvedAt || 0)
+                );
+                return timeB - timeA;
+            });
+    },
+
+    isDepositPendingLike(deposit) {
+        const status = String(deposit?.status || "").toLowerCase();
+        return status === "created" || status === "pending";
+    },
+
+    isDepositExpired(deposit) {
+        const expiresAt = Math.max(0, Number(deposit?.expiresAt) || 0);
+
+        if (!expiresAt) {
+            return false;
+        }
+
+        return Date.now() > expiresAt;
+    },
+
     normalizeState(raw) {
         const base = this.getDefaultState();
         const data = this.normalizeObject(raw);
@@ -334,6 +397,11 @@ window.CryptoZoo.api = {
             zooIncome: this.normalizeNumber(data.zooIncome, base.zooIncome, 0),
 
             expeditionBoost: this.normalizeNumber(data.expeditionBoost, base.expeditionBoost, 0),
+            expeditionBoostActiveUntil: this.normalizeNumber(
+                data.expeditionBoostActiveUntil,
+                base.expeditionBoostActiveUntil,
+                0
+            ),
 
             dailyExpeditionBoost: {
                 activeUntil: this.normalizeNumber(
@@ -403,7 +471,11 @@ window.CryptoZoo.api = {
             offlineBaseHours,
             offlineBoostHours,
             offlineAdsHours,
-            offlineAdsResetAt: this.normalizeNumber(data.offlineAdsResetAt, base.offlineAdsResetAt, 0),
+            offlineAdsResetAt: this.normalizeNumber(
+                data.offlineAdsResetAt,
+                base.offlineAdsResetAt,
+                0
+            ),
             offlineMaxSeconds,
             offlineBoostMultiplier: this.normalizeNumber(
                 data.offlineBoostMultiplier,
@@ -417,10 +489,10 @@ window.CryptoZoo.api = {
             ),
             offlineBoost: this.normalizeNumber(data.offlineBoost, base.offlineBoost, 1),
 
-            depositHistory: this.normalizeArray(
+            depositHistory: this.normalizeDepositsList(
                 data.depositHistory || data.depositsHistory || data.paymentHistory
             ),
-            deposits: this.normalizeArray(data.deposits),
+            deposits: this.normalizeDepositsList(data.deposits),
             transactions: this.normalizeArray(data.transactions),
             withdrawHistory: this.normalizeArray(data.withdrawHistory),
             payoutHistory: this.normalizeArray(data.payoutHistory),
@@ -434,12 +506,24 @@ window.CryptoZoo.api = {
             profile: this.normalizeObject(data.profile),
             stats: this.normalizeObject(data.stats),
 
-            lastDailyRewardAt: this.normalizeNumber(data.lastDailyRewardAt, base.lastDailyRewardAt, 0),
+            lastDailyRewardAt: this.normalizeNumber(
+                data.lastDailyRewardAt,
+                base.lastDailyRewardAt,
+                0
+            ),
             dailyRewardStreak: Math.max(
                 0,
-                Math.floor(this.normalizeNumber(data.dailyRewardStreak, base.dailyRewardStreak, 0))
+                Math.floor(
+                    this.normalizeNumber(
+                        data.dailyRewardStreak,
+                        base.dailyRewardStreak,
+                        0
+                    )
+                )
             ),
-            dailyRewardClaimDayKey: String(data.dailyRewardClaimDayKey || base.dailyRewardClaimDayKey || ""),
+            dailyRewardClaimDayKey: String(
+                data.dailyRewardClaimDayKey || base.dailyRewardClaimDayKey || ""
+            ),
 
             lastLogin: this.normalizeNumber(data.lastLogin, Date.now(), 0),
             updatedAt: this.normalizeNumber(data.updatedAt, Date.now(), 0)
@@ -461,7 +545,10 @@ window.CryptoZoo.api = {
 
     writeLocalState(state) {
         try {
-            localStorage.setItem(this.getStorageKey(), JSON.stringify(this.normalizeState(state)));
+            localStorage.setItem(
+                this.getStorageKey(),
+                JSON.stringify(this.normalizeState(state))
+            );
         } catch (error) {
             console.warn("Local save write failed:", error);
         }
@@ -475,36 +562,83 @@ window.CryptoZoo.api = {
         }
     },
 
+    getItemIdentity(item, index = 0) {
+        if (item && typeof item === "object") {
+            return String(
+                item.id ||
+                    item._id ||
+                    item.txId ||
+                    item.hash ||
+                    item.paymentId ||
+                    item.depositId ||
+                    item.txHash ||
+                    item.createdAt ||
+                    `obj-${index}-${JSON.stringify(item)}`
+            );
+        }
+
+        return `primitive-${index}-${String(item)}`;
+    },
+
     mergeUniqueByKey(primaryArr, secondaryArr) {
         const a = this.normalizeArray(primaryArr);
         const b = this.normalizeArray(secondaryArr);
         const map = new Map();
 
         [...b, ...a].forEach((item, index) => {
-            if (item && typeof item === "object") {
-                const key =
-                    item.id ||
-                    item._id ||
-                    item.txId ||
-                    item.hash ||
-                    item.paymentId ||
-                    item.depositId ||
-                    item.createdAt ||
-                    item.timestamp ||
-                    `obj-${index}-${JSON.stringify(item)}`;
+            const key = this.getItemIdentity(item, index);
 
-                if (!map.has(String(key))) {
-                    map.set(String(key), item);
-                }
-            } else {
-                const key = `primitive-${index}-${String(item)}`;
-                if (!map.has(key)) {
-                    map.set(key, item);
-                }
+            if (!map.has(key)) {
+                map.set(key, item);
             }
         });
 
         return Array.from(map.values());
+    },
+
+    mergeDeposits(primaryArr, secondaryArr) {
+        const a = this.normalizeDepositsList(primaryArr);
+        const b = this.normalizeDepositsList(secondaryArr);
+        const map = new Map();
+
+        [...b, ...a].forEach((item, index) => {
+            const key = this.getItemIdentity(item, index);
+            const existing = map.get(key);
+
+            if (!existing) {
+                map.set(key, item);
+                return;
+            }
+
+            const existingUpdatedAt = Math.max(
+                Number(existing.updatedAt || 0),
+                Number(existing.createdAt || 0),
+                Number(existing.approvedAt || 0)
+            );
+            const nextUpdatedAt = Math.max(
+                Number(item.updatedAt || 0),
+                Number(item.createdAt || 0),
+                Number(item.approvedAt || 0)
+            );
+
+            if (nextUpdatedAt >= existingUpdatedAt) {
+                map.set(key, item);
+            }
+        });
+
+        return Array.from(map.values()).sort((x, y) => {
+            const timeX = Math.max(
+                Number(x.updatedAt || 0),
+                Number(x.createdAt || 0),
+                Number(x.approvedAt || 0)
+            );
+            const timeY = Math.max(
+                Number(y.updatedAt || 0),
+                Number(y.createdAt || 0),
+                Number(y.approvedAt || 0)
+            );
+            return timeY - timeX;
+        });
     },
 
     mergeStates(serverRaw, localRaw) {
@@ -532,6 +666,10 @@ window.CryptoZoo.api = {
             coinsPerClick: Math.max(server.coinsPerClick, local.coinsPerClick),
             zooIncome: Math.max(server.zooIncome, local.zooIncome),
             expeditionBoost: Math.max(server.expeditionBoost, local.expeditionBoost),
+            expeditionBoostActiveUntil: Math.max(
+                server.expeditionBoostActiveUntil || 0,
+                local.expeditionBoostActiveUntil || 0
+            ),
 
             dailyExpeditionBoost: {
                 activeUntil: Math.max(
@@ -633,11 +771,26 @@ window.CryptoZoo.api = {
                 )
             },
 
-            offlineBaseHours: Math.max(server.offlineBaseHours || 1, local.offlineBaseHours || 1),
-            offlineBoostHours: Math.max(server.offlineBoostHours || 0, local.offlineBoostHours || 0),
-            offlineAdsHours: Math.max(server.offlineAdsHours || 0, local.offlineAdsHours || 0),
-            offlineAdsResetAt: Math.max(server.offlineAdsResetAt || 0, local.offlineAdsResetAt || 0),
-            offlineMaxSeconds: Math.max(server.offlineMaxSeconds || 3600, local.offlineMaxSeconds || 3600),
+            offlineBaseHours: Math.max(
+                server.offlineBaseHours || 1,
+                local.offlineBaseHours || 1
+            ),
+            offlineBoostHours: Math.max(
+                server.offlineBoostHours || 0,
+                local.offlineBoostHours || 0
+            ),
+            offlineAdsHours: Math.max(
+                server.offlineAdsHours || 0,
+                local.offlineAdsHours || 0
+            ),
+            offlineAdsResetAt: Math.max(
+                server.offlineAdsResetAt || 0,
+                local.offlineAdsResetAt || 0
+            ),
+            offlineMaxSeconds: Math.max(
+                server.offlineMaxSeconds || 3600,
+                local.offlineMaxSeconds || 3600
+            ),
             offlineBoostMultiplier: Math.max(
                 server.offlineBoostMultiplier || 1,
                 local.offlineBoostMultiplier || 1
@@ -648,16 +801,37 @@ window.CryptoZoo.api = {
             ),
             offlineBoost: Math.max(server.offlineBoost || 1, local.offlineBoost || 1),
 
-            depositHistory: this.mergeUniqueByKey(local.depositHistory, server.depositHistory),
-            deposits: this.mergeUniqueByKey(local.deposits, server.deposits),
-            transactions: this.mergeUniqueByKey(local.transactions, server.transactions),
-            withdrawHistory: this.mergeUniqueByKey(local.withdrawHistory, server.withdrawHistory),
-            payoutHistory: this.mergeUniqueByKey(local.payoutHistory, server.payoutHistory),
+            depositHistory: this.mergeDeposits(
+                local.depositHistory,
+                server.depositHistory
+            ),
+            deposits: this.mergeDeposits(local.deposits, server.deposits),
+            transactions: this.mergeUniqueByKey(
+                local.transactions,
+                server.transactions
+            ),
+            withdrawHistory: this.mergeUniqueByKey(
+                local.withdrawHistory,
+                server.withdrawHistory
+            ),
+            payoutHistory: this.mergeUniqueByKey(
+                local.payoutHistory,
+                server.payoutHistory
+            ),
             referrals: this.mergeUniqueByKey(local.referrals, server.referrals),
-            referralHistory: this.mergeUniqueByKey(local.referralHistory, server.referralHistory),
+            referralHistory: this.mergeUniqueByKey(
+                local.referralHistory,
+                server.referralHistory
+            ),
 
-            lastDailyRewardAt: Math.max(server.lastDailyRewardAt || 0, local.lastDailyRewardAt || 0),
-            dailyRewardStreak: Math.max(server.dailyRewardStreak || 0, local.dailyRewardStreak || 0),
+            lastDailyRewardAt: Math.max(
+                server.lastDailyRewardAt || 0,
+                local.lastDailyRewardAt || 0
+            ),
+            dailyRewardStreak: Math.max(
+                server.dailyRewardStreak || 0,
+                local.dailyRewardStreak || 0
+            ),
             dailyRewardClaimDayKey:
                 String(local.dailyRewardClaimDayKey || "") ||
                 String(server.dailyRewardClaimDayKey || ""),
@@ -691,6 +865,7 @@ window.CryptoZoo.api = {
             zooIncome: state.zooIncome,
 
             expeditionBoost: state.expeditionBoost,
+            expeditionBoostActiveUntil: state.expeditionBoostActiveUntil,
             dailyExpeditionBoost: state.dailyExpeditionBoost,
             expeditionStats: state.expeditionStats,
 
@@ -746,6 +921,7 @@ window.CryptoZoo.api = {
             coinsPerClick: payload.coinsPerClick,
             zooIncome: payload.zooIncome,
             expeditionBoost: payload.expeditionBoost,
+            expeditionBoostActiveUntil: payload.expeditionBoostActiveUntil,
             dailyExpeditionBoost: payload.dailyExpeditionBoost,
             expeditionStats: payload.expeditionStats,
             shopPurchases: payload.shopPurchases,
@@ -803,7 +979,10 @@ window.CryptoZoo.api = {
 
         for (let attempt = 0; attempt <= retryCount; attempt += 1) {
             const controller = new AbortController();
-            const timeoutMs = Math.max(1000, Number(options.timeoutMs) || this.requestTimeoutMs);
+            const timeoutMs = Math.max(
+                1000,
+                Number(options.timeoutMs) || this.requestTimeoutMs
+            );
             const timeoutId = setTimeout(() => {
                 controller.abort();
             }, timeoutMs);
@@ -833,7 +1012,9 @@ window.CryptoZoo.api = {
                         errorText = "";
                     }
 
-                    throw new Error(`HTTP ${response.status}${errorText ? ` - ${errorText}` : ""}`);
+                    throw new Error(
+                        `HTTP ${response.status}${errorText ? ` - ${errorText}` : ""}`
+                    );
                 }
 
                 const contentType = response.headers.get("content-type") || "";
@@ -850,8 +1031,7 @@ window.CryptoZoo.api = {
                 }
 
                 const canRetry =
-                    attempt < retryCount &&
-                    this.isTransientNetworkError(lastError);
+                    attempt < retryCount && this.isTransientNetworkError(lastError);
 
                 if (!canRetry) {
                     throw lastError;
@@ -868,15 +1048,31 @@ window.CryptoZoo.api = {
     },
 
     unwrapPlayerResponse(data) {
-        if (data && typeof data === "object" && data.player && typeof data.player === "object") {
+        if (!data || typeof data !== "object") {
+            return null;
+        }
+
+        if (data.player && typeof data.player === "object") {
             return data.player;
         }
-        return data;
+
+        if (
+            typeof data.coins === "number" ||
+            typeof data.level === "number" ||
+            Array.isArray(data.deposits) ||
+            Array.isArray(data.depositHistory)
+        ) {
+            return data;
+        }
+
+        return null;
     },
 
     syncPlayerFromResponse(response, fallbackState = null) {
         if (this.testResetMode) {
-            const current = this.normalizeState(CryptoZoo.state || fallbackState || this.getDefaultState());
+            const current = this.normalizeState(
+                CryptoZoo.state || fallbackState || this.getDefaultState()
+            );
             current.telegramUser = this.getTelegramUser();
             current.updatedAt = Date.now();
             current.lastLogin = Date.now();
@@ -891,10 +1087,13 @@ window.CryptoZoo.api = {
             return response;
         }
 
-        const playerPart = this.unwrapPlayerResponse(response?.player || response);
+        const playerPart = this.unwrapPlayerResponse(response);
 
         if (playerPart && typeof playerPart === "object") {
-            CryptoZoo.state = this.mergeStates(playerPart, CryptoZoo.state || fallbackState || {});
+            CryptoZoo.state = this.mergeStates(
+                playerPart,
+                CryptoZoo.state || fallbackState || {}
+            );
             this.writeLocalState(CryptoZoo.state);
 
             const payload = this.getSavePayload();
@@ -1045,7 +1244,10 @@ window.CryptoZoo.api = {
                 const safeResponse = this.unwrapPlayerResponse(response);
 
                 if (safeResponse && typeof safeResponse === "object") {
-                    CryptoZoo.state = this.mergeStates(safeResponse, CryptoZoo.state || payload);
+                    CryptoZoo.state = this.mergeStates(
+                        safeResponse,
+                        CryptoZoo.state || payload
+                    );
                     this.writeLocalState(CryptoZoo.state);
                 } else {
                     CryptoZoo.state = this.normalizeState(CryptoZoo.state || payload);
@@ -1132,7 +1334,7 @@ window.CryptoZoo.api = {
             throw new Error("Invalid deposit amount");
         }
 
-        return this.request("/deposit/create", {
+        const response = await this.request("/deposit/create", {
             method: "POST",
             body: JSON.stringify({
                 telegramId: this.getPlayerId(),
@@ -1143,6 +1345,32 @@ window.CryptoZoo.api = {
             timeoutMs: 5000,
             retryCount: 1
         });
+
+        const createdDeposit = this.normalizeDepositItem(response?.deposit || {});
+        const currentState = this.normalizeState(CryptoZoo.state || {});
+
+        if (createdDeposit.id) {
+            currentState.deposits = this.mergeDeposits(
+                [createdDeposit],
+                currentState.deposits
+            );
+
+            const historyEntry = {
+                ...createdDeposit,
+                depositId: createdDeposit.depositId || createdDeposit.id
+            };
+
+            currentState.depositHistory = this.mergeDeposits(
+                [historyEntry],
+                currentState.depositHistory
+            );
+
+            currentState.updatedAt = Date.now();
+            CryptoZoo.state = this.normalizeState(currentState);
+            this.writeLocalState(CryptoZoo.state);
+        }
+
+        return response;
     },
 
     async verifyDepositById(depositId) {
@@ -1187,7 +1415,24 @@ window.CryptoZoo.api = {
 
     async loadDepositsHistory() {
         const response = await this.getPlayerDeposits();
-        return Array.isArray(response?.deposits) ? response.deposits : [];
+        const deposits = this.normalizeDepositsList(response?.deposits);
+
+        if (deposits.length) {
+            const currentState = this.normalizeState(CryptoZoo.state || {});
+            currentState.deposits = this.mergeDeposits(
+                deposits,
+                currentState.deposits
+            );
+            currentState.depositHistory = this.mergeDeposits(
+                deposits,
+                currentState.depositHistory
+            );
+            currentState.updatedAt = Date.now();
+            CryptoZoo.state = this.normalizeState(currentState);
+            this.writeLocalState(CryptoZoo.state);
+        }
+
+        return deposits;
     },
 
     async setWithdrawWallet(tonAddress) {
@@ -1266,7 +1511,9 @@ window.CryptoZoo.api = {
 
     async syncPendingDeposits(forceReload = false) {
         if (this.testResetMode) {
-            return this.normalizeState(CryptoZoo.state || this.readLocalState() || this.getDefaultState());
+            return this.normalizeState(
+                CryptoZoo.state || this.readLocalState() || this.getDefaultState()
+            );
         }
 
         try {
@@ -1279,9 +1526,26 @@ window.CryptoZoo.api = {
                 retryCount: 1
             });
 
-            if (response && typeof response === "object") {
+            const playerPart = this.unwrapPlayerResponse(response);
+            if (playerPart && typeof playerPart === "object") {
                 this.syncPlayerFromResponse(response);
             }
+
+            const depositsResponse = await this.getPlayerDeposits();
+            const deposits = this.normalizeDepositsList(depositsResponse?.deposits);
+
+            const currentState = this.normalizeState(CryptoZoo.state || {});
+            currentState.deposits = this.mergeDeposits(
+                deposits,
+                currentState.deposits
+            );
+            currentState.depositHistory = this.mergeDeposits(
+                deposits,
+                currentState.depositHistory
+            );
+
+            CryptoZoo.state = this.normalizeState(currentState);
+            this.writeLocalState(CryptoZoo.state);
 
             if (forceReload) {
                 await this.loadPlayer();
@@ -1290,7 +1554,9 @@ window.CryptoZoo.api = {
             return CryptoZoo.state;
         } catch (error) {
             console.warn("Deposit sync failed", error);
-            return this.normalizeState(CryptoZoo.state || this.readLocalState() || {});
+            return this.normalizeState(
+                CryptoZoo.state || this.readLocalState() || {}
+            );
         }
     }
 };
