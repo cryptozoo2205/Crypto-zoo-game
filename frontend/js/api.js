@@ -608,7 +608,7 @@ window.CryptoZoo.api = {
                 ...local.stats
             },
 
-            expedition: local.expedition || server.expedition || null,
+            expedition: server.expedition || null,
 
             minigames: {
                 wheelCooldownUntil: Math.max(
