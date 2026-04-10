@@ -8,12 +8,26 @@ const fs = require("fs");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// 🔐 TRUST PROXY (ważne przy nginx + HTTPS)
+app.set("trust proxy", 1);
+
 // 📁 Ścieżki
 const FRONTEND_DIR = path.join(__dirname, "../frontend");
 const INDEX_PATH = path.join(FRONTEND_DIR, "index.html");
 
-// 🧠 Middleware
-app.use(cors());
+// 🧠 MIDDLEWARE
+app.use(
+    cors({
+        origin: [
+            "https://cryptozoo.pl",
+            "https://www.cryptozoo.pl",
+            "https://web.telegram.org",
+            "https://t.me"
+        ],
+        credentials: true
+    })
+);
+
 app.use(express.json({ limit: "1mb" }));
 
 // 📦 ROUTES
@@ -40,24 +54,26 @@ app.use("/api/reward", rewardRoutes);
 app.use("/api/expedition", expeditionRoutes);
 app.use("/api/ads", adsRoutes);
 
-// 🖼️ STATIC FILES
+// 🖼️ STATIC FRONTEND
 if (fs.existsSync(FRONTEND_DIR)) {
-    console.log("Frontend found:", FRONTEND_DIR);
+    console.log("✅ Frontend found:", FRONTEND_DIR);
 
     app.use(express.static(FRONTEND_DIR));
     app.use("/assets", express.static(path.join(FRONTEND_DIR, "assets")));
 } else {
-    console.warn("Frontend NOT found:", FRONTEND_DIR);
+    console.warn("❌ Frontend NOT found:", FRONTEND_DIR);
 }
 
-// 🧠 FALLBACK
-app.use((req, res) => {
-    if (req.path.startsWith("/api/")) {
-        return res.status(404).json({
-            error: "API route not found"
-        });
-    }
+// 📡 API 404
+app.use("/api/*", (req, res) => {
+    return res.status(404).json({
+        error: "API route not found",
+        path: req.originalUrl
+    });
+});
 
+// 🌐 FRONTEND FALLBACK (SPA)
+app.use((req, res) => {
     if (fs.existsSync(INDEX_PATH)) {
         return res.sendFile(INDEX_PATH);
     }
@@ -65,10 +81,19 @@ app.use((req, res) => {
     return res.status(200).send("Backend działa, ale frontend nie znaleziony");
 });
 
+// ❌ GLOBAL ERROR HANDLER
+app.use((err, req, res, next) => {
+    console.error("🔥 SERVER ERROR:", err);
+
+    return res.status(500).json({
+        error: "Internal server error"
+    });
+});
+
 // 🟢 START
 app.listen(PORT, () => {
     console.log("🚀 Crypto Zoo backend running");
-    console.log("PORT:", PORT);
-    console.log("FRONTEND_DIR:", FRONTEND_DIR, fs.existsSync(FRONTEND_DIR));
-    console.log("INDEX_PATH:", INDEX_PATH, fs.existsSync(INDEX_PATH));
+    console.log("🌍 PORT:", PORT);
+    console.log("📁 FRONTEND_DIR:", FRONTEND_DIR, fs.existsSync(FRONTEND_DIR));
+    console.log("📄 INDEX_PATH:", INDEX_PATH, fs.existsSync(INDEX_PATH));
 });
