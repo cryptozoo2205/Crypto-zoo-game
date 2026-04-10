@@ -2,6 +2,8 @@ window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.ads = {
     isLoading: false,
+    lastAttemptAt: 0,
+    minAttemptGapMs: 2500,
 
     updateOfflineUi() {
         const btnEl = document.getElementById("watchOfflineAdBtn");
@@ -69,6 +71,51 @@ CryptoZoo.ads = {
         return rawBase.replace(/\/+$/, "");
     },
 
+    normalizeAdResult(result) {
+        if (result === true) return { rewarded: true, raw: result };
+        if (result === false || result == null) return { rewarded: false, raw: result };
+
+        if (typeof result === "string") {
+            const value = result.toLowerCase().trim();
+            const rewarded =
+                value.includes("reward") ||
+                value.includes("complete") ||
+                value.includes("completed") ||
+                value.includes("finish") ||
+                value.includes("finished") ||
+                value === "ok" ||
+                value === "success";
+            return { rewarded, raw: result };
+        }
+
+        if (typeof result === "object") {
+            const status = String(
+                result.status ||
+                result.state ||
+                result.result ||
+                result.event ||
+                ""
+            ).toLowerCase();
+
+            const rewarded =
+                result.rewarded === true ||
+                result.completed === true ||
+                result.complete === true ||
+                result.finished === true ||
+                result.finish === true ||
+                result.done === true ||
+                status === "rewarded" ||
+                status === "completed" ||
+                status === "complete" ||
+                status === "finished" ||
+                status === "success";
+
+            return { rewarded, raw: result };
+        }
+
+        return { rewarded: false, raw: result };
+    },
+
     async requestOfflineRewardFromBackend() {
         const payload = this.getPlayerPayload();
         const apiBase = this.getApiBase();
@@ -90,8 +137,53 @@ CryptoZoo.ads = {
         return data;
     },
 
+    async syncStateFromBackendReward(result) {
+        CryptoZoo.state = CryptoZoo.state || {};
+
+        if (typeof result.offlineAdsHours === "number") {
+            CryptoZoo.state.offlineAdsHours = result.offlineAdsHours;
+        }
+
+        if (typeof result.offlineAdsResetAt === "number") {
+            CryptoZoo.state.offlineAdsResetAt = result.offlineAdsResetAt;
+        }
+
+        if (typeof result.offlineMaxSeconds === "number") {
+            CryptoZoo.state.offlineMaxSeconds = result.offlineMaxSeconds;
+        }
+
+        if (typeof result.offlineBoostHours === "number") {
+            CryptoZoo.state.offlineBoostHours = result.offlineBoostHours;
+        }
+
+        if (typeof result.offlineBaseHours === "number") {
+            CryptoZoo.state.offlineBaseHours = result.offlineBaseHours;
+        }
+
+        if (typeof result.offlineBoostMultiplier === "number") {
+            CryptoZoo.state.offlineBoostMultiplier = result.offlineBoostMultiplier;
+        }
+
+        if (typeof result.offlineBoostActiveUntil === "number") {
+            CryptoZoo.state.offlineBoostActiveUntil = result.offlineBoostActiveUntil;
+        }
+
+        if (typeof CryptoZoo.api?.syncPendingDeposits === "function") {
+            // nic tu nie robimy dla ads, ale zostawiamy strukturę spójną z appką
+        }
+
+        CryptoZoo.gameplay?.recalculateProgress?.();
+        CryptoZoo.ui?.renderOfflineInfo?.();
+        this.updateOfflineUi();
+    },
+
     async showRewardedAd() {
         if (this.isLoading) return false;
+
+        const now = Date.now();
+        if (now - this.lastAttemptAt < this.minAttemptGapMs) {
+            return false;
+        }
 
         if (typeof show_10822070 !== "function") {
             console.error("Monetag function show_10822070 is not loaded");
@@ -99,26 +191,26 @@ CryptoZoo.ads = {
             return false;
         }
 
+        this.lastAttemptAt = now;
         this.isLoading = true;
         this.updateOfflineUi();
 
         try {
-            await show_10822070();
+            const adRawResult = await show_10822070();
+            const adResult = this.normalizeAdResult(adRawResult);
 
-            const result = await this.requestOfflineRewardFromBackend();
-
-            CryptoZoo.state = CryptoZoo.state || {};
-
-            if (typeof result.offlineAdsHours === "number") {
-                CryptoZoo.state.offlineAdsHours = result.offlineAdsHours;
+            if (!adResult.rewarded) {
+                CryptoZoo.ui?.showToast?.("Nagroda tylko za obejrzenie całej reklamy");
+                return false;
             }
 
-            CryptoZoo.gameplay?.recalculateProgress?.();
-            CryptoZoo.ui?.renderOfflineInfo?.();
-            this.updateOfflineUi();
+            const result = await this.requestOfflineRewardFromBackend();
+            await this.syncStateFromBackendReward(result);
 
             if (result?.message) {
                 CryptoZoo.ui?.showToast?.(result.message);
+            } else {
+                CryptoZoo.ui?.showToast?.("Dodano +2h zarobków offline");
             }
 
             return true;
