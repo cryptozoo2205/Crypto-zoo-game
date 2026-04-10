@@ -8,8 +8,6 @@ CryptoZoo.ads = {
     minWatchTimeMs: 12000,
     adHardTimeoutMs: 90000,
 
-    activeSession: null,
-
     updateOfflineUi() {
         const btnEl = document.getElementById("watchOfflineAdBtn");
         if (!btnEl) return;
@@ -139,184 +137,32 @@ CryptoZoo.ads = {
         this.updateOfflineUi();
     },
 
-    cleanupSession() {
-        const session = this.activeSession;
-        if (!session) return;
+    async openAdWithoutEvents() {
+        const startedAt = Date.now();
 
-        session.closed = true;
-
-        if (session.timeoutId) {
-            clearTimeout(session.timeoutId);
+        if (typeof show_10822070 !== "function") {
+            throw new Error("Reklama nie jest jeszcze gotowa");
         }
 
-        this.activeSession = null;
-    },
+        const maybePromise = show_10822070();
 
-    startAdSession() {
-        const session = {
-            startedAt: Date.now(),
-            sdkClosed: false,
-            sdkResolved: false,
-            timeoutId: null,
-            closed: false
-        };
-
-        session.timeoutId = setTimeout(() => {
-            session.sdkResolved = true;
-        }, this.adHardTimeoutMs);
-
-        this.activeSession = session;
-        return session;
-    },
-
-    normalizeSdkResult(result) {
-        if (result === true) {
-            return { rewarded: true, closed: true };
-        }
-
-        if (result === false || result == null) {
-            return { rewarded: false, closed: true };
-        }
-
-        if (typeof result === "string") {
-            const value = result.toLowerCase().trim();
-
-            if ([
-                "rewarded",
-                "reward",
-                "complete",
-                "completed",
-                "finish",
-                "finished",
-                "success"
-            ].includes(value)) {
-                return { rewarded: true, closed: true };
-            }
-
-            if ([
-                "closed",
-                "close",
-                "dismissed",
-                "skipped",
-                "skip",
-                "cancelled",
-                "canceled",
-                "error",
-                "failed"
-            ].includes(value)) {
-                return { rewarded: false, closed: true };
-            }
-
-            return { rewarded: false, closed: false };
-        }
-
-        if (typeof result === "object") {
-            const status = String(
-                result.status ||
-                result.state ||
-                result.result ||
-                result.event ||
-                ""
-            ).toLowerCase().trim();
-
-            const rewarded =
-                result.rewarded === true ||
-                result.completed === true ||
-                result.complete === true ||
-                result.finished === true ||
-                result.finish === true ||
-                [
-                    "rewarded",
-                    "reward",
-                    "complete",
-                    "completed",
-                    "finish",
-                    "finished",
-                    "success"
-                ].includes(status);
-
-            const closed =
-                rewarded ||
-                [
-                    "closed",
-                    "close",
-                    "dismissed",
-                    "skipped",
-                    "skip",
-                    "cancelled",
-                    "canceled",
-                    "error",
-                    "failed"
-                ].includes(status);
-
-            return { rewarded, closed };
-        }
-
-        return { rewarded: false, closed: false };
-    },
-
-    shouldGrantReward(session, sdkResult) {
-        const watchedMs = Date.now() - Number(session?.startedAt || Date.now());
-        const watchedEnough = watchedMs >= this.minWatchTimeMs;
-
-        if (sdkResult?.rewarded) {
-            return true;
-        }
-
-        if (sdkResult?.closed && watchedEnough) {
-            return true;
-        }
-
-        return false;
-    },
-
-    async openSdkRewardedAd(session) {
-        return new Promise((resolve, reject) => {
-            let settled = false;
-
-            const finish = (result) => {
-                if (settled) return;
-                settled = true;
-                session.sdkResolved = true;
-                resolve(result);
-            };
-
-            const fail = (error) => {
-                if (settled) return;
-                settled = true;
-                reject(error);
-            };
-
+        if (maybePromise && typeof maybePromise.then === "function") {
             try {
-                const maybePromise = show_10822070({
-                    type: "rewarded",
-                    onClose: (result) => {
-                        session.sdkClosed = true;
-                        finish(result);
-                    }
-                });
-
-                if (maybePromise && typeof maybePromise.then === "function") {
-                    maybePromise
-                        .then((result) => {
-                            session.sdkClosed = true;
-                            finish(result);
-                        })
-                        .catch((error) => {
-                            fail(error instanceof Error ? error : new Error(String(error || "Ad error")));
-                        });
-                }
+                await Promise.race([
+                    maybePromise,
+                    new Promise((resolve) => setTimeout(resolve, this.adHardTimeoutMs))
+                ]);
             } catch (error) {
-                fail(error);
+                throw error instanceof Error ? error : new Error(String(error || "Ad error"));
             }
+        } else {
+            await new Promise((resolve) => {
+                setTimeout(resolve, this.minWatchTimeMs);
+            });
+        }
 
-            setTimeout(() => {
-                if (!settled) {
-                    session.sdkClosed = true;
-                    finish({ status: "closed" });
-                }
-            }, this.adHardTimeoutMs);
-        });
+        const watchedMs = Date.now() - startedAt;
+        return watchedMs;
     },
 
     async showRewardedAd() {
@@ -336,13 +182,10 @@ CryptoZoo.ads = {
         this.isLoading = true;
         this.updateOfflineUi();
 
-        const session = this.startAdSession();
-
         try {
-            const rawResult = await this.openSdkRewardedAd(session);
-            const sdkResult = this.normalizeSdkResult(rawResult);
+            const watchedMs = await this.openAdWithoutEvents();
 
-            if (!this.shouldGrantReward(session, sdkResult)) {
+            if (watchedMs < this.minWatchTimeMs) {
                 CryptoZoo.ui?.showToast?.("Obejrzyj reklamę do końca");
                 return false;
             }
@@ -362,7 +205,6 @@ CryptoZoo.ads = {
             );
             return false;
         } finally {
-            this.cleanupSession();
             this.isLoading = false;
             CryptoZoo.ui?.renderOfflineInfo?.();
             CryptoZoo.ui?.render?.();
