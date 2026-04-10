@@ -208,7 +208,7 @@ function applyApprovedDepositToPlayer(player, deposit) {
    CREATE DEPOSIT
 ========================= */
 
-router.post("/api/deposit/create", (req, res) => {
+router.post("/create", (req, res) => {
     const db = readDb();
 
     db.deposits = Array.isArray(db.deposits) ? db.deposits : [];
@@ -277,7 +277,7 @@ router.post("/api/deposit/create", (req, res) => {
    GET PAYMENT DATA
 ========================= */
 
-router.post("/api/deposit/payment-data", (req, res) => {
+router.post("/payment-data", (req, res) => {
     const db = readDb();
 
     db.deposits = Array.isArray(db.deposits) ? db.deposits : [];
@@ -306,7 +306,7 @@ router.post("/api/deposit/payment-data", (req, res) => {
    VERIFY SINGLE DEPOSIT
 ========================= */
 
-router.post("/api/deposit/verify", async (req, res) => {
+router.post("/verify", async (req, res) => {
     try {
         const depositId = safeString(req.body?.depositId, "");
 
@@ -340,7 +340,7 @@ router.post("/api/deposit/verify", async (req, res) => {
    VERIFY PLAYER PENDING DEPOSITS
 ========================= */
 
-router.post("/api/deposit/verify-player", async (req, res) => {
+router.post("/verify-player", async (req, res) => {
     try {
         const telegramId = safeString(req.body?.telegramId, "");
 
@@ -369,7 +369,7 @@ router.post("/api/deposit/verify-player", async (req, res) => {
    CONFIRM DEPOSIT (ADMIN / BOT)
 ========================= */
 
-router.post("/api/deposit/confirm", (req, res) => {
+router.post("/confirm", (req, res) => {
     if (!requireAdmin(req, res)) return;
 
     const db = readDb();
@@ -428,7 +428,7 @@ router.post("/api/deposit/confirm", (req, res) => {
    LIST
 ========================= */
 
-router.get("/api/deposit/:telegramId", (req, res) => {
+router.get("/:telegramId", (req, res) => {
     const db = readDb();
 
     const telegramId = safeString(req.params.telegramId, "");
