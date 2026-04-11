@@ -300,9 +300,14 @@ CryptoZoo.uiSettings = {
 
             withdrawBtn.disabled = !canOpenWithdraw;
             withdrawBtn.style.opacity = canOpenWithdraw ? "1" : "0.5";
-            withdrawBtn.textContent = canOpenWithdraw
-                ? "Open Withdraw"
-                : "Min withdraw 20";
+
+            if (withdrawPending > 0) {
+                withdrawBtn.textContent = "Masz aktywny withdraw";
+            } else if (rewardWallet < 20) {
+                withdrawBtn.textContent = "Min withdraw 20";
+            } else {
+                withdrawBtn.textContent = "Open Withdraw";
+            }
         }
 
         const depositBtn = document.getElementById("settingsCreateDepositBtn");
