@@ -12,7 +12,7 @@ CryptoZoo.gameplay = {
     baseOfflineHours: 0.25,
     maxOfflineHoursWithoutAds: 4,
     maxOfflineBoostHoursFromShop: 0,
-    maxOfflineAdsHours: 12,
+    maxOfflineAdsHours: 6,
 
     dailyRewardCooldownMs: 24 * 60 * 60 * 1000,
     dailyRewardMaxStreak: 7,
@@ -442,7 +442,7 @@ CryptoZoo.gameplay = {
         return false;
     },
 
-    addOfflineAdHours(hours = 2) {
+    addOfflineAdHours(hours = 1) {
         const added = CryptoZoo.offlineAds?.addHours?.(hours);
 
         if (!added) {
