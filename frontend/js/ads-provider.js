@@ -19,7 +19,7 @@ CryptoZoo.ads = {
 
         const maxAds = Math.max(
             0,
-            Number(CryptoZoo.offlineAds?.getMaxHours?.() || 12)
+            Number(CryptoZoo.offlineAds?.getMaxHours?.() || 6)
         );
 
         const resetSeconds = Math.max(
@@ -43,7 +43,7 @@ CryptoZoo.ads = {
         }
 
         btnEl.disabled = false;
-        btnEl.textContent = `📺 +2h • ${adsHours}/${maxAds}h`;
+        btnEl.textContent = `📺 +1h • ${adsHours}/${maxAds}h`;
     },
 
     getPlayerPayload() {
@@ -194,7 +194,7 @@ CryptoZoo.ads = {
             await this.syncStateFromBackendReward(result);
 
             CryptoZoo.ui?.showToast?.(
-                result?.message || "Dodano +2h zarobków offline"
+                result?.message || "Dodano +1h zarobków offline"
             );
 
             return true;
