@@ -9,41 +9,7 @@ CryptoZoo.ads = {
     adHardTimeoutMs: 90000,
 
     updateOfflineUi() {
-        const btnEl = document.getElementById("watchOfflineAdBtn");
-        if (!btnEl) return;
-
-        const adsHours = Math.max(
-            0,
-            Number(CryptoZoo.gameplay?.getOfflineAdsHours?.() || 0)
-        );
-
-        const maxAds = Math.max(
-            0,
-            Number(CryptoZoo.offlineAds?.getMaxHours?.() || 6)
-        );
-
-        const resetSeconds = Math.max(
-            0,
-            Number(CryptoZoo.offlineAds?.getSecondsUntilReset?.() || 0)
-        );
-
-        const resetText =
-            CryptoZoo.ui?.formatTimeLeft?.(resetSeconds) || "00:00:00";
-
-        if (this.isLoading) {
-            btnEl.disabled = true;
-            btnEl.textContent = "⏳ Ładowanie...";
-            return;
-        }
-
-        if (adsHours >= maxAds) {
-            btnEl.disabled = true;
-            btnEl.textContent = `📺 MAX • ${resetText}`;
-            return;
-        }
-
-        btnEl.disabled = false;
-        btnEl.textContent = `📺 +1h • ${adsHours}/${maxAds}h`;
+        CryptoZoo.ui?.renderOfflineInfo?.();
     },
 
     getPlayerPayload() {
@@ -134,7 +100,6 @@ CryptoZoo.ads = {
         CryptoZoo.gameplay?.recalculateProgress?.();
         CryptoZoo.ui?.renderOfflineInfo?.();
         CryptoZoo.ui?.render?.();
-        this.updateOfflineUi();
     },
 
     async openAdWithoutEvents() {
@@ -161,8 +126,7 @@ CryptoZoo.ads = {
             });
         }
 
-        const watchedMs = Date.now() - startedAt;
-        return watchedMs;
+        return Date.now() - startedAt;
     },
 
     async showRewardedAd() {
@@ -208,7 +172,6 @@ CryptoZoo.ads = {
             this.isLoading = false;
             CryptoZoo.ui?.renderOfflineInfo?.();
             CryptoZoo.ui?.render?.();
-            this.updateOfflineUi();
         }
     }
 };
