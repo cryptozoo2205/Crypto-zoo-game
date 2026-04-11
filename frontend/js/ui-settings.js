@@ -16,6 +16,9 @@ CryptoZoo.uiSettings = {
     financeSectionOpen: false,
 
     depositAmounts: [1, 3, 5, 10],
+    tonWalletAddress: "",
+    tonWalletLoading: false,
+    tonWalletSaving: false,
 
     getDefaultSettings() {
         return {
@@ -77,32 +80,6 @@ CryptoZoo.uiSettings = {
         }
 
         return `${safeDays} ${this.t("days", "dni")}`;
-    },
-
-    formatDateTime(value) {
-        const ts = Math.max(0, Number(value) || 0);
-        if (!ts) return "";
-
-        try {
-            return new Date(ts).toLocaleString();
-        } catch (error) {
-            return "";
-        }
-    },
-
-    formatTimeLeftMs(ms) {
-        const safeMs = Math.max(0, Number(ms) || 0);
-        const totalSeconds = Math.ceil(safeMs / 1000);
-
-        const hours = Math.floor(totalSeconds / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
-        const seconds = totalSeconds % 60;
-
-        const hh = String(hours).padStart(2, "0");
-        const mm = String(minutes).padStart(2, "0");
-        const ss = String(seconds).padStart(2, "0");
-
-        return `${hh}:${mm}:${ss}`;
     },
 
     getDepositBonusMeta(amount) {
@@ -175,11 +152,29 @@ CryptoZoo.uiSettings = {
         return this.getRewardUsdLabel(this.getWithdrawNetReward(rewardAmount));
     },
 
+    getCurrentTonWalletAddress() {
+        const stateWallet = String(CryptoZoo.state?.tonAddress || "").trim();
+        const localWallet = String(this.tonWalletAddress || "").trim();
+        return localWallet || stateWallet || "";
+    },
+
+    hasTonWalletAddress() {
+        return this.getCurrentTonWalletAddress().length > 0;
+    },
+
     getWithdrawAvailability() {
         const rewardWallet = this.getRewardWallet();
         const withdrawPending = this.getWithdrawPending();
         const level = this.getPlayerLevel();
         const accountAgeMs = this.getAccountAgeMs();
+        const tonWalletAddress = this.getCurrentTonWalletAddress();
+
+        if (!tonWalletAddress) {
+            return {
+                ok: false,
+                reason: this.t("setTonWalletFirst", "Najpierw ustaw adres TON wallet")
+            };
+        }
 
         if (rewardWallet < this.minWithdrawReward) {
             return {
@@ -217,141 +212,6 @@ CryptoZoo.uiSettings = {
 
     canWithdraw() {
         return this.getWithdrawAvailability().ok;
-    },
-
-    normalizeDepositItem(raw) {
-        const item = raw && typeof raw === "object" ? raw : {};
-
-        return {
-            ...item,
-            id: String(item.id || item._id || item.depositId || ""),
-            depositId: String(item.depositId || item.id || item._id || ""),
-            amount: Number(item.amount) || 0,
-            gemsAmount: Math.max(0, Number(item.gemsAmount) || 0),
-            expeditionBoostAmount: Math.max(0, Number(item.expeditionBoostAmount) || 0),
-            expeditionBoostDurationMs: Math.max(0, Number(item.expeditionBoostDurationMs) || 0),
-            paymentComment: String(item.paymentComment || ""),
-            txHash: String(item.txHash || item.hash || ""),
-            status: String(item.status || "created").toLowerCase(),
-            note: String(item.note || ""),
-            createdAt: Math.max(0, Number(item.createdAt) || 0),
-            updatedAt: Math.max(0, Number(item.updatedAt) || 0),
-            approvedAt: Math.max(0, Number(item.approvedAt) || 0),
-            expiresAt: Math.max(0, Number(item.expiresAt) || 0),
-            asset: String(item.asset || item.currency || "TON"),
-            currency: String(item.currency || item.asset || "TON")
-        };
-    },
-
-    getAllKnownDeposits() {
-        const history = Array.isArray(this.depositsHistory) ? this.depositsHistory : [];
-        const stateDeposits = Array.isArray(CryptoZoo.state?.deposits) ? CryptoZoo.state.deposits : [];
-        const stateDepositHistory = Array.isArray(CryptoZoo.state?.depositHistory)
-            ? CryptoZoo.state.depositHistory
-            : [];
-
-        const map = new Map();
-
-        [...history, ...stateDeposits, ...stateDepositHistory].forEach((entry, index) => {
-            const item = this.normalizeDepositItem(entry);
-            const key =
-                item.id ||
-                item.depositId ||
-                item.paymentComment ||
-                item.txHash ||
-                `deposit-${index}-${item.createdAt}`;
-
-            const existing = map.get(key);
-
-            if (!existing) {
-                map.set(key, item);
-                return;
-            }
-
-            const existingUpdated = Math.max(
-                Number(existing.updatedAt || 0),
-                Number(existing.createdAt || 0),
-                Number(existing.approvedAt || 0)
-            );
-            const nextUpdated = Math.max(
-                Number(item.updatedAt || 0),
-                Number(item.createdAt || 0),
-                Number(item.approvedAt || 0)
-            );
-
-            if (nextUpdated >= existingUpdated) {
-                map.set(key, item);
-            }
-        });
-
-        return Array.from(map.values()).sort((a, b) => {
-            const timeA = Math.max(
-                Number(a.updatedAt || 0),
-                Number(a.createdAt || 0),
-                Number(a.approvedAt || 0)
-            );
-            const timeB = Math.max(
-                Number(b.updatedAt || 0),
-                Number(b.createdAt || 0),
-                Number(b.approvedAt || 0)
-            );
-            return timeB - timeA;
-        });
-    },
-
-    isPendingDepositStatus(status) {
-        const safe = String(status || "").toLowerCase();
-        return safe === "created" || safe === "pending";
-    },
-
-    isDepositExpired(deposit) {
-        const expiresAt = Math.max(0, Number(deposit?.expiresAt) || 0);
-
-        if (!expiresAt) {
-            return false;
-        }
-
-        return Date.now() > expiresAt;
-    },
-
-    isDepositActive(deposit) {
-        if (!deposit) return false;
-        return this.isPendingDepositStatus(deposit.status) && !this.isDepositExpired(deposit);
-    },
-
-    getActivePendingDeposit() {
-        const deposits = this.getAllKnownDeposits();
-        return deposits.find((deposit) => this.isDepositActive(deposit)) || null;
-    },
-
-    getDepositAvailability() {
-        const activeDeposit = this.getActivePendingDeposit();
-
-        if (activeDeposit) {
-            const remainingMs = Math.max(
-                0,
-                Number(activeDeposit.expiresAt || 0) - Date.now()
-            );
-
-            return {
-                ok: false,
-                activeDeposit,
-                reason:
-                    remainingMs > 0
-                        ? `${this.t("activeDepositExists", "Masz już aktywny deposit")} • ${this.formatTimeLeftMs(remainingMs)}`
-                        : this.t("activeDepositExists", "Masz już aktywny deposit")
-            };
-        }
-
-        return {
-            ok: true,
-            activeDeposit: null,
-            reason: ""
-        };
-    },
-
-    canCreateDeposit() {
-        return this.getDepositAvailability().ok;
     },
 
     getSettings() {
@@ -439,10 +299,240 @@ CryptoZoo.uiSettings = {
     },
 
     getSelectedDepositAmount() {
-        const amount = Number(
-            CryptoZoo.depositBind?.selectedAmount || this.depositAmounts[1] || 3
-        );
+        const amount = Number(CryptoZoo.depositBind?.selectedAmount || this.depositAmounts[1] || 3);
         return amount > 0 ? amount : 3;
+    },
+
+    getPlayerPayload() {
+        const tg = window.Telegram?.WebApp?.initDataUnsafe?.user;
+        const telegramId = String(
+            tg?.id ||
+                CryptoZoo.state?.telegramUser?.id ||
+                CryptoZoo.state?.telegramId ||
+                CryptoZoo.state?.playerId ||
+                ""
+        ).trim();
+
+        return {
+            telegramId,
+            username: tg?.username || tg?.first_name || CryptoZoo.state?.username || "Gracz"
+        };
+    },
+
+    getApiBase() {
+        const raw = String(
+            CryptoZoo.config?.apiBase ||
+                CryptoZoo.api?.getApiBase?.() ||
+                "/api"
+        ).trim();
+
+        return raw.replace(/\/+$/, "");
+    },
+
+    getWithdrawWalletGetUrl(telegramId) {
+        return `${this.getApiBase()}/withdraw/wallet/${encodeURIComponent(String(telegramId || "").trim())}`;
+    },
+
+    getWithdrawWalletSetUrl() {
+        return `${this.getApiBase()}/withdraw/set-wallet`;
+    },
+
+    async loadTonWallet() {
+        const payload = this.getPlayerPayload();
+
+        if (!payload.telegramId) {
+            return "";
+        }
+
+        this.tonWalletLoading = true;
+
+        try {
+            const response = await fetch(this.getWithdrawWalletGetUrl(payload.telegramId), {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok || !data?.ok) {
+                throw new Error(data?.error || "Nie udało się pobrać TON wallet");
+            }
+
+            this.tonWalletAddress = String(data?.tonAddress || "").trim();
+
+            CryptoZoo.state = CryptoZoo.state || {};
+            CryptoZoo.state.tonAddress = this.tonWalletAddress;
+
+            const input = document.getElementById("settingsTonWalletInput");
+            if (input && document.activeElement !== input) {
+                input.value = this.tonWalletAddress;
+            }
+
+            return this.tonWalletAddress;
+        } catch (error) {
+            console.error("Load TON wallet error:", error);
+            return "";
+        } finally {
+            this.tonWalletLoading = false;
+            this.renderTonWalletSection();
+            this.refreshSettingsModalData();
+        }
+    },
+
+    async saveTonWallet() {
+        if (this.tonWalletSaving) return false;
+
+        const payload = this.getPlayerPayload();
+        const input = document.getElementById("settingsTonWalletInput");
+        const tonAddress = String(input?.value || this.tonWalletAddress || "").trim();
+
+        if (!payload.telegramId) {
+            CryptoZoo.ui?.showToast?.(this.t("missingTelegramId", "Brak telegramId"));
+            return false;
+        }
+
+        if (!tonAddress) {
+            CryptoZoo.ui?.showToast?.(this.t("enterTonWallet", "Wpisz adres TON wallet"));
+            return false;
+        }
+
+        this.tonWalletSaving = true;
+        this.renderTonWalletSection();
+
+        try {
+            const response = await fetch(this.getWithdrawWalletSetUrl(), {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    telegramId: payload.telegramId,
+                    username: payload.username,
+                    tonAddress
+                })
+            });
+
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok || !data?.ok) {
+                throw new Error(data?.error || "Nie udało się zapisać TON wallet");
+            }
+
+            this.tonWalletAddress = String(data?.tonAddress || tonAddress).trim();
+
+            CryptoZoo.state = CryptoZoo.state || {};
+            CryptoZoo.state.tonAddress = this.tonWalletAddress;
+
+            if (input) {
+                input.value = this.tonWalletAddress;
+            }
+
+            CryptoZoo.ui?.showToast?.(this.t("tonWalletSaved", "TON wallet zapisany"));
+            this.refreshSettingsModalData();
+            return true;
+        } catch (error) {
+            console.error("Save TON wallet error:", error);
+            CryptoZoo.ui?.showToast?.(error?.message || this.t("tonWalletSaveError", "Błąd zapisu TON wallet"));
+            return false;
+        } finally {
+            this.tonWalletSaving = false;
+            this.renderTonWalletSection();
+        }
+    },
+
+    renderTonWalletSection() {
+        const financeContent = document.getElementById("settingsFinanceContent");
+        if (!financeContent) return;
+
+        let section = document.getElementById("settingsTonWalletSection");
+
+        if (!section) {
+            section = document.createElement("div");
+            section.id = "settingsTonWalletSection";
+            section.className = "profile-boost-row";
+            section.style.marginTop = "12px";
+
+            const depositsHistoryRow = document.getElementById("settingsDepositsHistoryList")?.closest(".profile-boost-row");
+            if (depositsHistoryRow) {
+                financeContent.insertBefore(section, depositsHistoryRow);
+            } else {
+                financeContent.appendChild(section);
+            }
+        }
+
+        const currentWallet = this.getCurrentTonWalletAddress();
+        const buttonLabel = this.tonWalletSaving
+            ? this.t("savingTonWallet", "Zapisywanie...")
+            : this.t("saveTonWallet", "Zapisz TON wallet");
+
+        const currentWalletText = currentWallet
+            ? currentWallet
+            : this.t("noTonWalletSaved", "Brak zapisanego adresu TON wallet");
+
+        section.innerHTML = `
+            <div class="profile-boost-left" style="width:100%;">
+                <div class="profile-boost-label">${this.t("tonWalletForWithdraw", "TON wallet do wypłat")}</div>
+
+                <div style="margin-top:10px;">
+                    <input
+                        id="settingsTonWalletInput"
+                        type="text"
+                        inputmode="text"
+                        autocomplete="off"
+                        spellcheck="false"
+                        placeholder="${this.t("enterTonWalletPlaceholder", "Wpisz adres TON wallet")}"
+                        value="${currentWallet.replace(/"/g, "&quot;")}"
+                        style="
+                            width:100%;
+                            min-height:48px;
+                            padding:12px 14px;
+                            border-radius:14px;
+                            border:1px solid rgba(255,255,255,0.12);
+                            background:rgba(255,255,255,0.04);
+                            color:#ffffff;
+                            font-size:14px;
+                            font-weight:700;
+                            box-sizing:border-box;
+                            outline:none;
+                        "
+                    >
+                </div>
+
+                <div
+                    id="settingsTonWalletCurrent"
+                    style="
+                        margin-top:8px;
+                        padding:10px 12px;
+                        border-radius:12px;
+                        background:rgba(255,255,255,0.03);
+                        border:1px solid rgba(255,255,255,0.08);
+                        color:rgba(255,255,255,0.76);
+                        font-size:12px;
+                        line-height:1.45;
+                        word-break:break-all;
+                    "
+                >${currentWalletText}</div>
+
+                <button
+                    id="settingsSaveTonWalletBtn"
+                    class="profile-close-btn"
+                    type="button"
+                    style="margin-top:10px;"
+                    ${this.tonWalletSaving ? "disabled" : ""}
+                >${buttonLabel}</button>
+            </div>
+        `;
+
+        const saveBtn = document.getElementById("settingsSaveTonWalletBtn");
+        if (saveBtn && !saveBtn.dataset.bound) {
+            saveBtn.dataset.bound = "1";
+            saveBtn.addEventListener("click", () => {
+                CryptoZoo.audio?.play?.("click");
+                this.saveTonWallet();
+            });
+        }
     },
 
     renderDepositAmountOptions() {
@@ -452,20 +542,16 @@ CryptoZoo.uiSettings = {
         CryptoZoo.depositBind = CryptoZoo.depositBind || {};
 
         const selectedAmount = this.getSelectedDepositAmount();
-        const depositAvailability = this.getDepositAvailability();
-        const disableSelection = !depositAvailability.ok;
 
-        wrap.innerHTML = this.depositAmounts
-            .map((amount) => {
-                const isActive = amount === selectedAmount;
-                const bonus = this.getDepositBonusMeta(amount);
+        wrap.innerHTML = this.depositAmounts.map((amount) => {
+            const isActive = amount === selectedAmount;
+            const bonus = this.getDepositBonusMeta(amount);
 
-                return `
+            return `
                 <button
                     type="button"
                     class="deposit-amount-btn${isActive ? " active" : ""}"
                     data-amount="${amount}"
-                    ${disableSelection ? "disabled" : ""}
                     style="
                         width:100%;
                         padding:14px 16px;
@@ -476,12 +562,11 @@ CryptoZoo.uiSettings = {
                         font-weight:900;
                         font-size:14px;
                         box-shadow:${isActive ? "0 10px 24px rgba(255,190,0,0.14)" : "none"};
-                        cursor:${disableSelection ? "not-allowed" : "pointer"};
+                        cursor:pointer;
                         display:block;
                         text-align:left;
                         appearance:none;
                         -webkit-appearance:none;
-                        opacity:${disableSelection ? "0.55" : "1"};
                     "
                 >
                     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
@@ -508,16 +593,11 @@ CryptoZoo.uiSettings = {
                     }
                 </button>
             `;
-            })
-            .join("");
+        }).join("");
 
         const buttons = wrap.querySelectorAll(".deposit-amount-btn");
         buttons.forEach((btn) => {
             btn.addEventListener("click", () => {
-                if (btn.disabled) {
-                    return;
-                }
-
                 const amount = Number(btn.dataset.amount) || 1;
 
                 CryptoZoo.depositBind = CryptoZoo.depositBind || {};
@@ -591,44 +671,9 @@ CryptoZoo.uiSettings = {
         }
 
         if (rewardWalletDescEl) {
-            const depositAvailability = this.getDepositAvailability();
-
             rewardWalletDescEl.textContent = "";
             rewardWalletDescEl.innerHTML = "";
             rewardWalletDescEl.style.display = "none";
-
-            if (depositAvailability.activeDeposit) {
-                const activeDeposit = depositAvailability.activeDeposit;
-                const expiresLabel = activeDeposit.expiresAt
-                    ? this.formatDateTime(activeDeposit.expiresAt)
-                    : "";
-                const remainingMs = Math.max(
-                    0,
-                    Number(activeDeposit.expiresAt || 0) - Date.now()
-                );
-
-                rewardWalletDescEl.style.display = "block";
-                rewardWalletDescEl.innerHTML = `
-                    <div style="margin-top:8px;font-size:12px;line-height:1.45;color:rgba(255,255,255,0.78);">
-                        <div>${this.t("activeDepositExists", "Masz już aktywny deposit")}: ${this.format(activeDeposit.amount).toFixed(3)} TON</div>
-                        ${
-                            activeDeposit.paymentComment
-                                ? `<div style="margin-top:4px;">${this.t("paymentComment", "Komentarz płatności")}: ${activeDeposit.paymentComment}</div>`
-                                : ``
-                        }
-                        ${
-                            remainingMs > 0
-                                ? `<div style="margin-top:4px;">${this.t("timeLeft", "Pozostało")}: ${this.formatTimeLeftMs(remainingMs)}</div>`
-                                : ``
-                        }
-                        ${
-                            expiresLabel
-                                ? `<div style="margin-top:4px;">${this.t("expiresAt", "Wygasa")}: ${expiresLabel}</div>`
-                                : ``
-                        }
-                    </div>
-                `;
-            }
         }
 
         const transferBtn = document.getElementById("settingsTransferRewardBtn");
@@ -651,7 +696,7 @@ CryptoZoo.uiSettings = {
             withdrawBtn.style.opacity = can ? "1" : "0.5";
             withdrawBtn.textContent = can
                 ? `${this.t("withdrawRequest", "Withdraw Request")} (${netReward.toFixed(3)} • ${this.getWithdrawNetUsdLabel(rewardWallet)})`
-                : `${this.t("minWithdraw", "Min withdraw")} ${this.minWithdrawReward}`;
+                : availability.reason || `${this.t("minWithdraw", "Min withdraw")} ${this.minWithdrawReward}`;
         }
 
         if (withdrawHintEl) {
@@ -672,17 +717,14 @@ CryptoZoo.uiSettings = {
         const depositBtn = document.getElementById("settingsCreateDepositBtn");
         if (depositBtn) {
             const selectedAmount = this.getSelectedDepositAmount();
-            const depositAvailability = this.getDepositAvailability();
-
-            depositBtn.disabled = !depositAvailability.ok;
-            depositBtn.style.opacity = depositAvailability.ok ? "1" : "0.5";
-            depositBtn.textContent = depositAvailability.ok
-                ? `${this.t("createDeposit", "Stwórz deposit")} (${selectedAmount} TON)`
-                : depositAvailability.reason || this.t("activeDepositExists", "Masz już aktywny deposit");
+            depositBtn.disabled = false;
+            depositBtn.style.opacity = "1";
+            depositBtn.textContent = `${this.t("createDeposit", "Stwórz deposit")} (${selectedAmount} TON)`;
         }
 
         this.renderDepositAmountOptions();
         this.renderFinanceSectionToggle();
+        this.renderTonWalletSection();
         this.renderWithdrawHistory();
         this.renderDepositsHistory();
     },
@@ -743,7 +785,9 @@ CryptoZoo.uiSettings = {
 
         try {
             const response = await CryptoZoo.api.transferRewardToWallet();
-            const transferredAmount = Number(response?.transferredAmount || rewardBalance);
+            const transferredAmount = Number(
+                response?.transferredAmount || rewardBalance
+            );
 
             CryptoZoo.ui?.showToast?.(
                 `${this.t("transferredToWallet", "Przeniesiono do wallet")}: ${transferredAmount.toFixed(3)}`
@@ -785,46 +829,22 @@ CryptoZoo.uiSettings = {
 
             return true;
         } catch (e) {
-            CryptoZoo.ui?.showToast?.(
-                e.message || this.t("withdrawCreateError", "Błąd withdraw")
-            );
+            CryptoZoo.ui?.showToast?.(e.message || this.t("withdrawCreateError", "Błąd withdraw"));
             return false;
         }
     },
 
     async createDeposit() {
         const amount = this.getSelectedDepositAmount();
-        const availabilityBefore = this.getDepositAvailability();
-
-        if (!availabilityBefore.ok) {
-            CryptoZoo.ui?.showToast?.(
-                availabilityBefore.reason || this.t("activeDepositExists", "Masz już aktywny deposit")
-            );
-            this.refreshSettingsModalData();
-            return false;
-        }
 
         try {
             if (!CryptoZoo.depositUI?.createDeposit) {
                 throw new Error("Deposit UI not loaded");
             }
 
-            await CryptoZoo.api.syncPendingDeposits?.(false);
-            await this.loadDepositsHistory();
-
-            const availabilityAfterSync = this.getDepositAvailability();
-            if (!availabilityAfterSync.ok) {
-                CryptoZoo.ui?.showToast?.(
-                    availabilityAfterSync.reason || this.t("activeDepositExists", "Masz już aktywny deposit")
-                );
-                this.refreshSettingsModalData();
-                return false;
-            }
-
             const success = await CryptoZoo.depositUI.createDeposit(amount);
 
             if (success) {
-                await CryptoZoo.api.syncPendingDeposits?.(false);
                 await this.loadDepositsHistory();
                 this.refreshSettingsModalData();
             }
@@ -832,9 +852,7 @@ CryptoZoo.uiSettings = {
             return success;
         } catch (e) {
             console.error("Create deposit error:", e);
-            CryptoZoo.ui?.showToast?.(
-                e.message || this.t("depositCreateError", "Błąd depozytu")
-            );
+            CryptoZoo.ui?.showToast?.(e.message || this.t("depositCreateError", "Błąd depozytu"));
             return false;
         }
     },
@@ -871,15 +889,19 @@ CryptoZoo.uiSettings = {
         el.innerHTML = this.withdrawHistory
             .map((w) => {
                 const grossReward = this.format(
-                    w.grossRewardAmount ?? w.rewardAmount ?? w.amount
+                    w.grossRewardAmount ??
+                        w.rewardAmount ??
+                        w.amount
                 );
 
                 const feeReward = this.format(
-                    w.feeRewardAmount ?? this.getWithdrawFeeAmount(grossReward)
+                    w.feeRewardAmount ??
+                        this.getWithdrawFeeAmount(grossReward)
                 );
 
                 const netReward = this.format(
-                    w.netRewardAmount ?? this.getWithdrawNetReward(grossReward)
+                    w.netRewardAmount ??
+                        this.getWithdrawNetReward(grossReward)
                 );
 
                 const status = String(w.status || "pending");
@@ -902,16 +924,13 @@ CryptoZoo.uiSettings = {
 
         try {
             const list = await CryptoZoo.api.loadDepositsHistory?.();
-            this.depositsHistory = Array.isArray(list)
-                ? list.map((item) => this.normalizeDepositItem(item))
-                : [];
+            this.depositsHistory = Array.isArray(list) ? list : [];
         } catch (e) {
             this.depositsHistory = [];
         }
 
         this.depositsHistoryLoading = false;
         this.renderDepositsHistory();
-        this.refreshSettingsModalData();
     },
 
     renderDepositsHistory() {
@@ -929,27 +948,13 @@ CryptoZoo.uiSettings = {
         }
 
         el.innerHTML = this.depositsHistory
-            .map((rawDeposit) => {
-                const d = this.normalizeDepositItem(rawDeposit);
+            .map((d) => {
                 const gemsAmount = Math.max(0, Number(d.gemsAmount) || 0);
                 const expeditionBoostAmount = Math.max(0, Number(d.expeditionBoostAmount) || 0);
                 const boostPercent = Math.round(expeditionBoostAmount * 100);
                 const durationMs = Math.max(0, Number(d.expeditionBoostDurationMs) || 0);
-                const durationDays =
-                    durationMs > 0
-                        ? Math.max(1, Math.round(durationMs / (24 * 60 * 60 * 1000)))
-                        : 0;
-
-                const isActive = this.isDepositActive(d);
-                const isExpired = this.isDepositExpired(d);
-                const statusLabel = isActive
-                    ? this.t("activeDeposit", "Aktywny deposit")
-                    : isExpired && this.isPendingDepositStatus(d.status)
-                      ? this.t("expired", "expired")
-                      : d.status;
-
-                const remainingMs = isActive
-                    ? Math.max(0, Number(d.expiresAt || 0) - Date.now())
+                const durationDays = durationMs > 0
+                    ? Math.max(1, Math.round(durationMs / (24 * 60 * 60 * 1000)))
                     : 0;
 
                 return `
@@ -958,9 +963,7 @@ CryptoZoo.uiSettings = {
                         ${gemsAmount > 0 ? `<div style="margin-top:4px;">+${CryptoZoo.formatNumber(gemsAmount)} gem</div>` : ``}
                         ${boostPercent > 0 ? `<div style="margin-top:4px;">+${boostPercent}% ${this.t("expeditionBoost", "boost ekspedycji")}</div>` : ``}
                         ${durationDays > 0 ? `<div style="margin-top:4px;">${this.formatDaysLabel(durationDays)}</div>` : ``}
-                        ${d.paymentComment ? `<div style="margin-top:4px;">${this.t("paymentComment", "Komentarz płatności")}: ${d.paymentComment}</div>` : ``}
-                        ${remainingMs > 0 ? `<div style="margin-top:4px;">${this.t("timeLeft", "Pozostało")}: ${this.formatTimeLeftMs(remainingMs)}</div>` : ``}
-                        <div style="margin-top:4px;">${statusLabel}</div>
+                        <div style="margin-top:4px;">${d.status}</div>
                     </div>
                 `;
             })
@@ -968,8 +971,9 @@ CryptoZoo.uiSettings = {
     },
 
     toggleFinanceSection(forceValue = null) {
-        this.financeSectionOpen =
-            typeof forceValue === "boolean" ? forceValue : !this.financeSectionOpen;
+        this.financeSectionOpen = typeof forceValue === "boolean"
+            ? forceValue
+            : !this.financeSectionOpen;
 
         this.renderFinanceSectionToggle();
     },
@@ -985,10 +989,7 @@ CryptoZoo.uiSettings = {
         }
 
         if (btn) {
-            btn.setAttribute(
-                "aria-expanded",
-                this.financeSectionOpen ? "true" : "false"
-            );
+            btn.setAttribute("aria-expanded", this.financeSectionOpen ? "true" : "false");
         }
 
         if (arrow) {
@@ -1011,7 +1012,7 @@ CryptoZoo.uiSettings = {
         modal.classList.remove("hidden");
 
         Promise.all([
-            CryptoZoo.api?.syncPendingDeposits?.(false),
+            this.loadTonWallet(),
             this.loadWithdrawHistory(),
             this.loadDepositsHistory()
         ]).catch(() => {});
@@ -1139,5 +1140,6 @@ CryptoZoo.uiSettings = {
         }
 
         this.bindFaqButtons();
+        this.renderTonWalletSection();
     }
 };
