@@ -9,13 +9,17 @@ CryptoZoo.depositUI = {
     verifyTimeoutId: null,
     resumeEventsBound: false,
 
+    tonConnectUI: null,
+    tonWalletAddress: "",
+    tonConnectInitialized: false,
+
     getTelegramWebApp() {
         return window.Telegram?.WebApp || null;
     },
 
-    toNano(amount) {
+    toNanoString(amount) {
         const safeAmount = Math.max(0, Number(amount) || 0);
-        return Math.floor(safeAmount * 1000000000);
+        return String(Math.round(safeAmount * 1000000000));
     },
 
     stopEvent(event) {
@@ -118,22 +122,93 @@ CryptoZoo.depositUI = {
         }
     },
 
-    buildTonkeeperUniversalLink({ address, amount, comment }) {
-        const safeAddress = String(address || "").trim();
-        const safeComment = String(comment || "").trim();
-        const nanoAmount = this.toNano(amount);
+    getManifestUrl() {
+        const origin = String(window.location?.origin || "").replace(/\/+$/, "");
+        return `${origin}/tonconnect-manifest.json`;
+    },
 
-        if (!safeAddress) {
-            return "";
+    getTonConnectButtonEl() {
+        return document.getElementById("tonConnectButton");
+    },
+
+    getTonConnectStatusEl() {
+        return document.getElementById("tonConnectStatus");
+    },
+
+    getPayWithTonBtn() {
+        return document.getElementById("settingsPayWithTonBtn");
+    },
+
+    shortenAddress(address) {
+        const safe = String(address || "").trim();
+        if (safe.length <= 14) return safe;
+        return `${safe.slice(0, 6)}...${safe.slice(-6)}`;
+    },
+
+    isWalletConnected() {
+        return !!(this.tonConnectUI?.wallet?.account?.address || this.tonWalletAddress);
+    },
+
+    updateTonConnectUi() {
+        const statusEl = this.getTonConnectStatusEl();
+        const payBtn = this.getPayWithTonBtn();
+
+        const connectedAddress =
+            String(this.tonConnectUI?.wallet?.account?.address || this.tonWalletAddress || "").trim();
+
+        if (connectedAddress) {
+            this.tonWalletAddress = connectedAddress;
         }
 
-        let link = `https://app.tonkeeper.com/transfer/${encodeURIComponent(safeAddress)}?amount=${nanoAmount}`;
-
-        if (safeComment) {
-            link += `&text=${encodeURIComponent(safeComment)}`;
+        if (statusEl) {
+            statusEl.textContent = connectedAddress
+                ? `Connected: ${this.shortenAddress(connectedAddress)}`
+                : "Wallet not connected";
         }
 
-        return link;
+        if (payBtn) {
+            const canPay = this.isWalletConnected() && !!this.currentDepositData && !this.isOpeningWallet;
+            payBtn.disabled = !canPay;
+            payBtn.textContent = this.isOpeningWallet ? "Processing..." : "Pay with TON";
+        }
+    },
+
+    async initTonConnect() {
+        if (this.tonConnectInitialized) {
+            this.updateTonConnectUi();
+            return;
+        }
+
+        this.tonConnectInitialized = true;
+
+        try {
+            if (typeof window.TON_CONNECT_UI === "undefined" && typeof window.TonConnectUI === "undefined") {
+                console.warn("TonConnect UI SDK not found");
+                this.updateTonConnectUi();
+                return;
+            }
+
+            const TonConnectUIClass = window.TON_CONNECT_UI?.TonConnectUI || window.TonConnectUI;
+            const buttonRootId = "tonConnectButton";
+
+            this.tonConnectUI = new TonConnectUIClass({
+                manifestUrl: this.getManifestUrl(),
+                buttonRootId
+            });
+
+            if (typeof this.tonConnectUI.onStatusChange === "function") {
+                this.tonConnectUI.onStatusChange((wallet) => {
+                    this.tonWalletAddress = String(wallet?.account?.address || "").trim();
+                    this.updateTonConnectUi();
+                });
+            }
+
+            this.tonWalletAddress = String(this.tonConnectUI?.wallet?.account?.address || "").trim();
+            this.updateTonConnectUi();
+        } catch (error) {
+            console.error("TonConnect init error:", error);
+            this.updateTonConnectUi();
+        }
     },
 
     ensureModal() {
@@ -156,7 +231,7 @@ CryptoZoo.depositUI = {
 
                     <div class="profile-user-meta">
                         <div class="profile-name">Deposit TON</div>
-                        <div class="profile-subtitle">Skopiuj dane, wyślij TON i wróć do gry</div>
+                        <div class="profile-subtitle">Podłącz wallet i potwierdź płatność</div>
                     </div>
                 </div>
 
@@ -187,7 +262,7 @@ CryptoZoo.depositUI = {
 
                 <div class="profile-boost-row" style="margin-top:12px;">
                     <div class="profile-boost-left" style="width:100%;">
-                        <div class="profile-boost-label">Adres portfela</div>
+                        <div class="profile-boost-label">Adres odbiorcy</div>
                         <div
                             id="depositPaymentAddress"
                             class="profile-boost-value"
@@ -199,7 +274,7 @@ CryptoZoo.depositUI = {
                     </div>
                 </div>
 
-                <div class="profile-boost-row" style="margin-top:12px;">
+                <div id="depositPaymentCommentWrap" class="profile-boost-row hidden" style="margin-top:12px; display:none;">
                     <div class="profile-boost-left" style="width:100%;">
                         <div class="profile-boost-label">Komentarz transakcji</div>
                         <div
@@ -215,19 +290,19 @@ CryptoZoo.depositUI = {
 
                 <div class="profile-boost-row" style="margin-top:12px;">
                     <div class="profile-boost-left" style="width:100%;">
-                        <div class="profile-boost-label">Ważne</div>
+                        <div class="profile-boost-label">Płatność</div>
                         <div class="profile-boost-value" style="margin-top:6px; font-size:13px; line-height:1.5;">
-                            Wyślij dokładną kwotę i dokładnie ten komentarz. Po powrocie do gry system sam sprawdzi wpłatę.
+                            Kliknij „Zapłać TON”, potwierdź transakcję w wallet i wróć do gry. System sam sprawdzi wpłatę.
                         </div>
                     </div>
                 </div>
 
                 <button id="depositCopyAllBtn" class="profile-close-btn" type="button" style="margin-top:12px;">
-                    Kopiuj wszystko
+                    Kopiuj dane płatności
                 </button>
 
                 <button id="depositOpenWalletBtn" class="profile-close-btn" type="button">
-                    Otwórz portfel
+                    Zapłać TON
                 </button>
 
                 <button id="depositVerifyBtn" class="profile-close-btn" type="button">
@@ -257,6 +332,7 @@ CryptoZoo.depositUI = {
         const copyAllBtn = document.getElementById("depositCopyAllBtn");
         const openWalletBtn = document.getElementById("depositOpenWalletBtn");
         const verifyBtn = document.getElementById("depositVerifyBtn");
+        const payBtn = this.getPayWithTonBtn();
 
         if (modal && !modal.dataset.boundModal) {
             modal.dataset.boundModal = "1";
@@ -335,17 +411,15 @@ CryptoZoo.depositUI = {
 
                 const address = this.currentDepositData?.address || "";
                 const amount = Number(this.currentDepositData?.amount || 0).toFixed(3);
-                const comment = this.currentDepositData?.comment || "";
                 const bonusText = String(this.currentDepositData?.bonusText || "").trim();
 
                 const fullText = [
                     `AMOUNT: ${amount} TON`,
                     `ADDRESS: ${address}`,
-                    `COMMENT: ${comment}`,
                     bonusText ? `BONUS: ${bonusText}` : ""
                 ].filter(Boolean).join("\n");
 
-                await this.copy(fullText, "Skopiowano wszystko");
+                await this.copy(fullText, "Skopiowano dane płatności");
             });
         }
 
@@ -366,6 +440,15 @@ CryptoZoo.depositUI = {
                 await this.verifyCurrentDeposit(false);
             });
         }
+
+        if (payBtn && !payBtn.dataset.bound) {
+            payBtn.dataset.bound = "1";
+            payBtn.addEventListener("click", async (event) => {
+                this.stopEvent(event);
+                CryptoZoo.audio?.play?.("click");
+                await this.openWallet();
+            });
+        }
     },
 
     fillModalData() {
@@ -373,6 +456,7 @@ CryptoZoo.depositUI = {
         const bonusEl = document.getElementById("depositPaymentBonus");
         const addressEl = document.getElementById("depositPaymentAddress");
         const commentEl = document.getElementById("depositPaymentComment");
+        const commentWrap = document.getElementById("depositPaymentCommentWrap");
 
         const amount = Number(this.currentDepositData?.amount || 0);
         const address = String(this.currentDepositData?.address || "");
@@ -394,12 +478,18 @@ CryptoZoo.depositUI = {
         if (commentEl) {
             commentEl.textContent = comment || "-";
         }
+
+        if (commentWrap) {
+            const shouldShowComment = !!comment;
+            commentWrap.style.display = shouldShowComment ? "" : "none";
+        }
     },
 
     showDepositModal() {
         const modal = this.ensureModal();
         this.fillModalData();
         modal.classList.remove("hidden");
+        this.updateTonConnectUi();
     },
 
     closeDepositModal() {
@@ -457,10 +547,7 @@ CryptoZoo.depositUI = {
         }
 
         CryptoZoo.ui?.render?.();
-        CryptoZoo.ui?.renderProfile?.();
-        CryptoZoo.ui?.renderWithdrawHistory?.();
-        CryptoZoo.ui?.renderDepositHistory?.();
-        CryptoZoo.ui?.renderDepositsHistory?.();
+        CryptoZoo.uiSettings?.refreshSettingsModalData?.();
 
         if (successMessage) {
             CryptoZoo.ui?.showToast?.(successMessage);
@@ -472,7 +559,7 @@ CryptoZoo.depositUI = {
             return false;
         }
 
-        if (!CryptoZoo.api?.verifyDepositById || !CryptoZoo.api?.verifyPendingDepositsForPlayer) {
+        if (!CryptoZoo.api?.verifyDepositById && !CryptoZoo.api?.verifyPendingDepositsForPlayer) {
             return false;
         }
 
@@ -482,9 +569,9 @@ CryptoZoo.depositUI = {
             let result = null;
             const depositId = String(this.currentDepositData?.depositId || "").trim();
 
-            if (depositId) {
+            if (depositId && CryptoZoo.api?.verifyDepositById) {
                 result = await CryptoZoo.api.verifyDepositById(depositId);
-            } else {
+            } else if (CryptoZoo.api?.verifyPendingDepositsForPlayer) {
                 result = await CryptoZoo.api.verifyPendingDepositsForPlayer();
             }
 
@@ -500,6 +587,8 @@ CryptoZoo.depositUI = {
                 this.stopVerifyWatcher();
                 await this.refreshPlayerAndUi("✅ Depozyt zatwierdzony, bonus dodany");
                 this.closeDepositModal();
+                this.currentDepositData = null;
+                this.updateTonConnectUi();
                 return true;
             }
 
@@ -535,46 +624,51 @@ CryptoZoo.depositUI = {
         }
 
         this.isOpeningWallet = true;
+        this.updateTonConnectUi();
 
         try {
+            if (!this.tonConnectUI) {
+                throw new Error("TonConnect not initialized");
+            }
+
+            if (!this.isWalletConnected()) {
+                await this.tonConnectUI.openModal();
+                this.updateTonConnectUi();
+
+                if (!this.isWalletConnected()) {
+                    throw new Error("Najpierw podłącz wallet");
+                }
+            }
+
             const address = String(this.currentDepositData?.address || "").trim();
             const amount = Number(this.currentDepositData?.amount || 0);
-            const comment = String(this.currentDepositData?.comment || "").trim();
 
             if (!address || amount <= 0) {
                 throw new Error("Brak danych płatności");
             }
 
-            const universalLink = this.buildTonkeeperUniversalLink({
-                address,
-                amount,
-                comment
-            });
-
-            if (!universalLink) {
-                throw new Error("Nie udało się zbudować linku płatności");
-            }
-
-            const tg = this.getTelegramWebApp();
+            const tx = {
+                validUntil: Math.floor(Date.now() / 1000) + 600,
+                messages: [
+                    {
+                        address,
+                        amount: this.toNanoString(amount)
+                    }
+                ]
+            };
 
             this.startVerifyWatcher();
+            await this.tonConnectUI.sendTransaction(tx);
 
-            if (tg?.openLink) {
-                tg.openLink(universalLink);
-            } else {
-                window.open(universalLink, "_blank");
-            }
-
-            CryptoZoo.ui?.showToast?.("Po wysłaniu TON wróć do gry — system sprawdzi wpłatę");
+            CryptoZoo.ui?.showToast?.("Transakcja wysłana. System sprawdza wpłatę...");
             return true;
         } catch (error) {
-            console.error("Open wallet error:", error);
-            CryptoZoo.ui?.showToast?.(error.message || "Nie udało się otworzyć portfela");
+            console.error("TON payment error:", error);
+            CryptoZoo.ui?.showToast?.(error?.message || "Nie udało się otworzyć płatności");
             return false;
         } finally {
-            setTimeout(() => {
-                this.isOpeningWallet = false;
-            }, 800);
+            this.isOpeningWallet = false;
+            this.updateTonConnectUi();
         }
     },
 
@@ -598,15 +692,13 @@ CryptoZoo.depositUI = {
 
             const result = await CryptoZoo.api.createDepositWithPayment(safeAmount);
             const deposit = result?.deposit || null;
-            const paymentRaw = result?.payment || null;
-            const payment = paymentRaw?.payment || paymentRaw;
+            const payment = result?.payment || null;
 
             if (!deposit || !payment) {
                 throw new Error("Deposit payment data missing");
             }
 
             const receiverAddress = String(payment.receiverAddress || "").trim();
-            const paymentComment = String(payment.paymentComment || "").trim();
             const paymentAmount = Number(payment.amount || safeAmount) || safeAmount;
 
             if (!receiverAddress) {
@@ -617,15 +709,16 @@ CryptoZoo.depositUI = {
             const bonusText = this.formatBonusText(bonusMeta);
 
             this.currentDepositData = {
-                depositId: String(deposit.id || ""),
+                depositId: String(deposit.id || payment.depositId || ""),
                 address: receiverAddress,
                 amount: paymentAmount,
-                comment: paymentComment,
+                comment: "",
                 bonusText
             };
 
             this.bindResumeEvents();
             this.showDepositModal();
+            this.updateTonConnectUi();
 
             const toastMessage = bonusText
                 ? `Deposit ${paymentAmount.toFixed(3)} TON utworzony • ${bonusText}`
@@ -645,5 +738,27 @@ CryptoZoo.depositUI = {
         } finally {
             this.isCreatingDeposit = false;
         }
+    },
+
+    async createAndPaySelectedDeposit() {
+        const selectedAmount =
+            Number(CryptoZoo.uiDeposit?.selectedAmount) ||
+            Number(CryptoZoo.uiSettings?.selectedDepositAmount) ||
+            1;
+
+        const created = await this.createDeposit(selectedAmount);
+
+        if (!created) {
+            return false;
+        }
+
+        return this.openWallet();
+    },
+
+    async init() {
+        this.bindResumeEvents();
+        this.ensureModal();
+        await this.initTonConnect();
+        this.updateTonConnectUi();
     }
 };
