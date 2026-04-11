@@ -33,6 +33,30 @@ CryptoZoo.offline = {
         return safeValue;
     },
 
+    normalizeAdsHoursFromResetAt() {
+        const now = Date.now();
+        const resetAt = this.normalizeTimestamp(CryptoZoo.state?.offlineAdsResetAt);
+
+        if (!resetAt || resetAt <= now) {
+            CryptoZoo.state.offlineAdsHours = 0;
+            CryptoZoo.state.offlineAdsResetAt = 0;
+            return 0;
+        }
+
+        const remainingSeconds = Math.max(0, Math.floor((resetAt - now) / 1000));
+        const remainingHoursPrecise = remainingSeconds / 3600;
+
+        CryptoZoo.state.offlineAdsHours = Math.max(
+            0,
+            Math.min(
+                Number(CryptoZoo.gameplay?.getMaxOfflineAdsHours?.() || 12),
+                Number(remainingHoursPrecise.toFixed(6))
+            )
+        );
+
+        return CryptoZoo.state.offlineAdsHours;
+    },
+
     normalizeState() {
         CryptoZoo.state = CryptoZoo.state || {};
 
@@ -46,14 +70,6 @@ CryptoZoo.offline = {
         CryptoZoo.state.offlineBaseHours = forcedBaseHours;
         CryptoZoo.state.offlineBoostHours = 0;
 
-        CryptoZoo.state.offlineAdsHours = Math.max(
-            0,
-            Math.min(
-                Number(CryptoZoo.gameplay?.getMaxOfflineAdsHours?.() || 12),
-                Math.floor(Number(CryptoZoo.state?.offlineAdsHours) || 0)
-            )
-        );
-
         CryptoZoo.state.offlineAdsResetAt = Math.max(
             0,
             this.normalizeTimestamp(CryptoZoo.state?.offlineAdsResetAt)
@@ -63,13 +79,28 @@ CryptoZoo.offline = {
         CryptoZoo.state.offlineBoostMultiplier = 1;
         CryptoZoo.state.offlineBoost = 1;
 
-        if (
-            CryptoZoo.state.offlineAdsHours <= 0 ||
-            (
-                CryptoZoo.state.offlineAdsResetAt > 0 &&
-                CryptoZoo.state.offlineAdsResetAt <= Date.now()
-            )
-        ) {
+        if (CryptoZoo.state.offlineAdsResetAt > 0) {
+            this.normalizeAdsHoursFromResetAt();
+        } else {
+            const rawHours = Math.max(
+                0,
+                Math.min(
+                    Number(CryptoZoo.gameplay?.getMaxOfflineAdsHours?.() || 12),
+                    Number(CryptoZoo.state?.offlineAdsHours) || 0
+                )
+            );
+
+            CryptoZoo.state.offlineAdsHours = Number(rawHours.toFixed(6));
+
+            if (CryptoZoo.state.offlineAdsHours > 0) {
+                CryptoZoo.state.offlineAdsResetAt =
+                    Date.now() + CryptoZoo.state.offlineAdsHours * 3600 * 1000;
+            } else {
+                CryptoZoo.state.offlineAdsResetAt = 0;
+            }
+        }
+
+        if (CryptoZoo.state.offlineAdsHours <= 0) {
             CryptoZoo.state.offlineAdsHours = 0;
             CryptoZoo.state.offlineAdsResetAt = 0;
         }
@@ -138,12 +169,15 @@ CryptoZoo.offline = {
     },
 
     getAdsOfflineSeconds() {
-        const adsHours = Math.max(
-            0,
-            Math.floor(Number(CryptoZoo.state?.offlineAdsHours) || 0)
-        );
+        const now = Date.now();
+        const resetAt = this.normalizeTimestamp(CryptoZoo.state?.offlineAdsResetAt);
 
-        return adsHours * 3600;
+        if (resetAt > now) {
+            return Math.max(0, Math.floor((resetAt - now) / 1000));
+        }
+
+        const adsHours = Math.max(0, Number(CryptoZoo.state?.offlineAdsHours) || 0);
+        return Math.floor(adsHours * 3600);
     },
 
     getMaxSeconds() {
@@ -214,15 +248,11 @@ CryptoZoo.offline = {
         const consumedFromAds = Math.min(adsSeconds, remainingAfterBase);
         const adsSecondsLeft = Math.max(0, adsSeconds - consumedFromAds);
 
-        CryptoZoo.state.offlineAdsHours = Math.max(
-            0,
-            Math.ceil(adsSecondsLeft / 3600)
-        );
-
-        if (CryptoZoo.state.offlineAdsHours <= 0) {
+        if (adsSecondsLeft <= 0) {
             CryptoZoo.state.offlineAdsHours = 0;
             CryptoZoo.state.offlineAdsResetAt = 0;
         } else {
+            CryptoZoo.state.offlineAdsHours = Number((adsSecondsLeft / 3600).toFixed(6));
             CryptoZoo.state.offlineAdsResetAt = Date.now() + adsSecondsLeft * 1000;
         }
 
