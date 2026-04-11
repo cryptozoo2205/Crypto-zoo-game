@@ -6,8 +6,8 @@ const { normalizePlayer, getDefaultPlayer } = require("../services/player-servic
 
 const router = express.Router();
 
-const OFFLINE_ADS_MAX_HOURS = 12;
-const OFFLINE_ADS_HOURS_PER_AD = 2;
+const OFFLINE_ADS_MAX_HOURS = 6;
+const OFFLINE_ADS_HOURS_PER_AD = 1;
 const MIN_SECONDS_BETWEEN_AD_REWARDS = 45;
 
 function normalizeNumber(value, fallback = 0) {
@@ -45,7 +45,7 @@ function ensureOfflineAdsState(player) {
     );
 
     player.offlineAdsHours = clamp(
-        Math.floor(normalizeNumber(player.offlineAdsHours, 0)),
+        normalizeNumber(player.offlineAdsHours, 0),
         0,
         OFFLINE_ADS_MAX_HOURS
     );
@@ -60,12 +60,23 @@ function ensureOfflineAdsState(player) {
         normalizeNumber(player.lastOfflineAdRewardAt, 0)
     );
 
-    if (player.offlineAdsHours <= 0) {
+    if (player.offlineAdsResetAt > 0 && player.offlineAdsResetAt <= now) {
         player.offlineAdsHours = 0;
         player.offlineAdsResetAt = 0;
-    } else if (player.offlineAdsResetAt <= now) {
-        player.offlineAdsHours = 0;
+    }
+
+    if (player.offlineAdsResetAt > now) {
+        const remainingHours = Math.max(0, (player.offlineAdsResetAt - now) / (60 * 60 * 1000));
+        player.offlineAdsHours = clamp(
+            Number(remainingHours.toFixed(6)),
+            0,
+            OFFLINE_ADS_MAX_HOURS
+        );
+    } else if (player.offlineAdsHours > 0) {
+        player.offlineAdsResetAt = now + player.offlineAdsHours * 60 * 60 * 1000;
+    } else {
         player.offlineAdsResetAt = 0;
+        player.offlineAdsHours = 0;
     }
 
     player.offlineMaxSeconds =
@@ -165,22 +176,20 @@ router.post("/reward-offline", async (req, res) => {
             );
         }
 
-        const previousAdsHours = player.offlineAdsHours;
+        const previousAdsHours = Math.max(0, Number(player.offlineAdsHours) || 0);
         const remaining = Math.max(0, OFFLINE_ADS_MAX_HOURS - previousAdsHours);
         const addedHours = Math.min(OFFLINE_ADS_HOURS_PER_AD, remaining);
 
         player.offlineAdsHours = clamp(
-            previousAdsHours + addedHours,
+            Number((previousAdsHours + addedHours).toFixed(6)),
             0,
             OFFLINE_ADS_MAX_HOURS
         );
 
-        if (player.offlineAdsHours > 0) {
-            if (player.offlineAdsResetAt > now && previousAdsHours > 0) {
-                player.offlineAdsResetAt += addedHours * 60 * 60 * 1000;
-            } else {
-                player.offlineAdsResetAt = now + player.offlineAdsHours * 60 * 60 * 1000;
-            }
+        if (player.offlineAdsResetAt > now && previousAdsHours > 0) {
+            player.offlineAdsResetAt += addedHours * 60 * 60 * 1000;
+        } else if (player.offlineAdsHours > 0) {
+            player.offlineAdsResetAt = now + player.offlineAdsHours * 60 * 60 * 1000;
         } else {
             player.offlineAdsResetAt = 0;
         }
