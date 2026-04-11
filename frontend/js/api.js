@@ -394,21 +394,6 @@ window.CryptoZoo.api = {
             });
     },
 
-    isDepositPendingLike(deposit) {
-        const status = String(deposit?.status || "").toLowerCase();
-        return status === "created" || status === "pending";
-    },
-
-    isDepositExpired(deposit) {
-        const expiresAt = Math.max(0, Number(deposit?.expiresAt) || 0);
-
-        if (!expiresAt) {
-            return false;
-        }
-
-        return Date.now() > expiresAt;
-    },
-
     normalizeState(raw) {
         const base = this.getDefaultState();
         const data = this.normalizeObject(raw);
@@ -1659,4 +1644,4 @@ window.CryptoZoo.api = {
             );
         }
     }
-};
+}; zrobiłem ze wiem że to api kto to pomylił sam sobie zadaj pytanie I napisz co zmienić w nim konkretnie reszta niech zostanie bo poprawiłem co mówiłeś w env i pm2 restart zrobiłem problem może być w tych api??
