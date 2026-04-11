@@ -32,7 +32,6 @@ CryptoZoo.gameplay = {
 
     enableTapEffects: true,
 
-    // ================= ANTI AUTO-CLICK =================
     tapAntiCheatEnabled: true,
     maxAcceptedTapsPerSecond: 18,
     maxAcceptedTapBurst: 3,
@@ -243,7 +242,8 @@ CryptoZoo.gameplay = {
             lastDailyRewardAt: 0,
             dailyRewardStreak: 0,
             playTimeSeconds: 0,
-            lastAwardedLevel: 1
+            lastAwardedLevel: 1,
+            offlineAdsResetAt: 0
         };
 
         Object.keys(defaults).forEach((key) => {
@@ -301,8 +301,13 @@ CryptoZoo.gameplay = {
             0,
             Math.min(
                 this.getMaxOfflineAdsHours(),
-                Math.floor(Number(CryptoZoo.state.offlineAdsHours) || 0)
+                Number(CryptoZoo.state.offlineAdsHours) || 0
             )
+        );
+
+        CryptoZoo.state.offlineAdsResetAt = Math.max(
+            0,
+            Number(CryptoZoo.state.offlineAdsResetAt) || 0
         );
 
         CryptoZoo.state.offlineMaxSeconds = this.getOfflineMaxSeconds();
@@ -405,11 +410,18 @@ CryptoZoo.gameplay = {
     },
 
     getOfflineAdsHours() {
+        const resetAt = Math.max(0, Number(CryptoZoo.state?.offlineAdsResetAt) || 0);
+        const now = Date.now();
+
+        if (resetAt > now) {
+            return Math.max(0, Number(((resetAt - now) / 3600000).toFixed(6)) || 0);
+        }
+
         return Math.max(
             0,
             Math.min(
                 this.getMaxOfflineAdsHours(),
-                Math.floor(Number(CryptoZoo.state?.offlineAdsHours) || 0)
+                Number(CryptoZoo.state?.offlineAdsHours) || 0
             )
         );
     },
