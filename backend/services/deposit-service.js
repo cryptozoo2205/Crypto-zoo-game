@@ -1,6 +1,6 @@
 const { normalizeRewardNumber, safeString } = require("../utils/helpers");
 
-const TON_RECEIVER_WALLET = "UQBTjBORP2cXRNE_hakpG-2DZlBn0uUWME8tKhi7HCcynER5";
+const TON_RECEIVER_WALLET = "";
 const MAX_EXPEDITION_BOOST = 1.0;
 const MAX_EXPEDITION_BOOST_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_DEPOSIT_AMOUNT = 100000;
@@ -86,8 +86,13 @@ function createDeposit({
     const id = `dp_${now}_${randomPart}`;
     const paymentComment = `CRYPTOZOO_${id}`;
     const safeAmount = clampDepositAmount(amount);
-    const gemsAmount = Math.max(0, Math.min(MAX_GEMS_FROM_DEPOSIT, Number(getDepositGemsAmount(safeAmount)) || 0));
-    const expeditionBoostAmount = clampExpeditionBoost(getDepositExpeditionBoostAmount(safeAmount));
+    const gemsAmount = Math.max(
+        0,
+        Math.min(MAX_GEMS_FROM_DEPOSIT, Number(getDepositGemsAmount(safeAmount)) || 0)
+    );
+    const expeditionBoostAmount = clampExpeditionBoost(
+        getDepositExpeditionBoostAmount(safeAmount)
+    );
     const expeditionBoostDurationMs = Math.min(
         MAX_EXPEDITION_BOOST_DURATION_MS,
         Math.max(0, Number(getDepositExpeditionBoostDurationMs(safeAmount)) || 0)
@@ -120,9 +125,7 @@ function createDeposit({
 }
 
 function buildDepositPaymentData(deposit) {
-    const receiverAddress =
-        process.env.TON_DEPOSIT_WALLET ||
-        TON_RECEIVER_WALLET;
+    const receiverAddress = process.env.TON_WALLET_ADDRESS || TON_RECEIVER_WALLET;
 
     return {
         depositId: String(deposit?.id || ""),
