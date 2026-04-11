@@ -2,7 +2,8 @@ const { readDb, writeDb } = require("../db/db");
 const { normalizePlayer } = require("./player-service");
 const {
     applyPaidWithdrawToPlayer,
-    markWithdrawAsPaid
+    markWithdrawAsPaid,
+    syncPlayerWithdrawPendingFromRequests
 } = require("./withdraw-service");
 const {
     isAutoPayoutEnabled,
@@ -67,6 +68,8 @@ async function processSingleWithdraw(db, withdrawRequest) {
         return { ok: false, error: "Player not found" };
     }
 
+    syncPlayerWithdrawPendingFromRequests(db, player);
+
     const payoutResult = await sendTonPayout(withdrawRequest);
 
     const appliedPlayer = applyPaidWithdrawToPlayer(player, withdrawRequest);
@@ -128,9 +131,18 @@ async function tickWithdrawPayoutWorker() {
 
     try {
         const db = ensureWithdrawCollections(readDb());
+
+        Object.keys(db.players || {}).forEach((telegramId) => {
+            if (!db.players[telegramId]) return;
+            const player = normalizePlayer(db.players[telegramId]);
+            syncPlayerWithdrawPendingFromRequests(db, player);
+            db.players[telegramId] = normalizePlayer(player);
+        });
+
         const pendingRequests = getPendingWithdrawRequests(db);
 
         if (!pendingRequests.length) {
+            writeDb(db);
             return;
         }
 
@@ -156,6 +168,8 @@ async function tickWithdrawPayoutWorker() {
         }
 
         if (changed) {
+            writeDb(db);
+        } else {
             writeDb(db);
         }
     } finally {
