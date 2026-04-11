@@ -59,11 +59,11 @@ router.post("/set-wallet", (req, res) => {
     const tonAddress = sanitizeTonAddress(req.body?.tonAddress || req.body?.address);
 
     if (!telegramId) {
-        return res.status(400).json({ error: "Missing telegramId" });
+        return res.status(400).json({ ok: false, error: "Missing telegramId" });
     }
 
     if (!tonAddress) {
-        return res.status(400).json({ error: "Missing tonAddress" });
+        return res.status(400).json({ ok: false, error: "Missing tonAddress" });
     }
 
     const player = getPlayerOrCreate(db, telegramId, username);
@@ -85,15 +85,16 @@ router.get("/wallet/:telegramId", (req, res) => {
     const telegramId = safeString(req.params.telegramId, "");
 
     if (!telegramId) {
-        return res.status(400).json({ error: "Missing telegramId" });
+        return res.status(400).json({ ok: false, error: "Missing telegramId" });
     }
 
     const player = getPlayerOrCreate(db, telegramId, "Gracz");
+    const safePlayer = normalizePlayer(player);
 
     return res.json({
         ok: true,
-        tonAddress: sanitizeTonAddress(player.tonAddress),
-        player: normalizePlayer(player)
+        tonAddress: sanitizeTonAddress(safePlayer.tonAddress),
+        player: safePlayer
     });
 });
 
@@ -103,40 +104,46 @@ router.post("/request", async (req, res) => {
     const telegramId = safeString(req.body?.telegramId, "");
     const username = safeString(req.body?.username, "Gracz");
     const rawAmount = normalizeRewardNumber(req.body?.amount, 0);
+    const providedTonAddress = sanitizeTonAddress(req.body?.tonAddress || req.body?.address);
 
     if (!telegramId) {
-        return res.status(400).json({ error: "Missing telegramId" });
+        return res.status(400).json({ ok: false, error: "Missing telegramId" });
     }
 
-    const amount = clamp(rawAmount, 0, LIMITS.MAX_WITHDRAW);
+    const amount = clamp(
+        rawAmount,
+        0,
+        Number.isFinite(Number(LIMITS?.MAX_WITHDRAW)) ? Number(LIMITS.MAX_WITHDRAW) : 100000
+    );
 
     if (amount <= 0) {
-        return res.status(400).json({ error: "Invalid withdraw amount" });
+        return res.status(400).json({ ok: false, error: "Invalid withdraw amount" });
     }
 
     if (amount < MIN_WITHDRAW_REWARD) {
         return res.status(400).json({
+            ok: false,
             error: `Minimum withdraw is ${MIN_WITHDRAW_REWARD.toFixed(3)} reward`
         });
     }
 
-    if (amount > LIMITS.MAX_WITHDRAW) {
+    if (Number.isFinite(Number(LIMITS?.MAX_WITHDRAW)) && amount > Number(LIMITS.MAX_WITHDRAW)) {
         return res.status(400).json({
-            error: `Maximum withdraw is ${LIMITS.MAX_WITHDRAW.toFixed(3)} reward`
+            ok: false,
+            error: `Maximum withdraw is ${Number(LIMITS.MAX_WITHDRAW).toFixed(3)} reward`
         });
     }
 
     const player = getPlayerOrCreate(db, telegramId, username);
 
-    if (!sanitizeTonAddress(player.tonAddress)) {
-        return res.status(400).json({
-            error: "Set TON wallet first"
-        });
+    if (providedTonAddress) {
+        player.tonAddress = providedTonAddress;
     }
 
     const pendingRequests = getPendingWithdrawsForPlayer(db, telegramId);
     if (pendingRequests.length > 0) {
         return res.status(400).json({
+            ok: false,
             error: "You already have a pending withdraw request"
         });
     }
@@ -144,9 +151,11 @@ router.post("/request", async (req, res) => {
     const latestRequest = getLatestWithdrawForPlayer(db, telegramId);
     if (
         latestRequest &&
-        Date.now() - Number(latestRequest.createdAt || 0) < LIMITS.WITHDRAW_COOLDOWN_MS
+        String(latestRequest.status || "").toLowerCase() === "pending" &&
+        Date.now() - Number(latestRequest.createdAt || 0) < Number(LIMITS?.WITHDRAW_COOLDOWN_MS || 0)
     ) {
         return res.status(400).json({
+            ok: false,
             error: "Withdraw cooldown active, try again later"
         });
     }
@@ -154,6 +163,7 @@ router.post("/request", async (req, res) => {
     const validation = validateWithdrawRequest(db, player, amount);
     if (!validation.ok) {
         return res.status(400).json({
+            ok: false,
             error: validation.error
         });
     }
@@ -195,8 +205,8 @@ router.get("/:telegramId", (req, res) => {
     const telegramId = String(req.params.telegramId || "");
 
     const requests = db.withdrawRequests
-        .filter((item) => String(item.telegramId || "") === telegramId)
-        .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+        .filter((item) => String(item?.telegramId || "") === telegramId)
+        .sort((a, b) => Number(b?.createdAt || 0) - Number(a?.createdAt || 0));
 
     return res.json({
         ok: true,
@@ -215,21 +225,21 @@ router.post("/update", async (req, res) => {
     const payoutTxHash = sanitizeTxHash(req.body?.payoutTxHash);
 
     if (!requestId) {
-        return res.status(400).json({ error: "Missing requestId" });
+        return res.status(400).json({ ok: false, error: "Missing requestId" });
     }
 
     if (!["paid", "rejected"].includes(nextStatus)) {
-        return res.status(400).json({ error: "Invalid status" });
+        return res.status(400).json({ ok: false, error: "Invalid status" });
     }
 
     const request = findWithdrawById(db, requestId);
 
     if (!request) {
-        return res.status(404).json({ error: "Withdraw request not found" });
+        return res.status(404).json({ ok: false, error: "Withdraw request not found" });
     }
 
     if (String(request.status || "pending").toLowerCase() !== "pending") {
-        return res.status(400).json({ error: "Request already processed" });
+        return res.status(400).json({ ok: false, error: "Request already processed" });
     }
 
     const player = getPlayerOrCreate(db, request.telegramId, request.username);
@@ -237,24 +247,24 @@ router.post("/update", async (req, res) => {
     if (nextStatus === "paid") {
         const updatedPlayer = applyPaidWithdrawToPlayer(player, request);
         if (!updatedPlayer) {
-            return res.status(400).json({ error: "Withdraw paid apply failed" });
+            return res.status(400).json({ ok: false, error: "Withdraw paid apply failed" });
         }
 
         const updatedRequest = markWithdrawAsPaid(request, note, payoutTxHash);
         if (!updatedRequest) {
-            return res.status(400).json({ error: "Withdraw mark paid failed" });
+            return res.status(400).json({ ok: false, error: "Withdraw mark paid failed" });
         }
     }
 
     if (nextStatus === "rejected") {
         const updatedPlayer = applyRejectedWithdrawToPlayer(player, request);
         if (!updatedPlayer) {
-            return res.status(400).json({ error: "Withdraw reject apply failed" });
+            return res.status(400).json({ ok: false, error: "Withdraw reject apply failed" });
         }
 
         const updatedRequest = markWithdrawAsRejected(request, note);
         if (!updatedRequest) {
-            return res.status(400).json({ error: "Withdraw mark rejected failed" });
+            return res.status(400).json({ ok: false, error: "Withdraw mark rejected failed" });
         }
     }
 
