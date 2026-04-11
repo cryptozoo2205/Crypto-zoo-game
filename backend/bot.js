@@ -206,7 +206,7 @@ Build your own zoo, go on expeditions and earn rewards directly in Telegram.
 
     await bot.sendPhoto(
         msg.chat.id,
-        "https://i.imgur.com/5QZ7qQy.png",
+        "https://imgur.com/a/pSNhvNU",
         {
             caption,
             parse_mode: "Markdown",
