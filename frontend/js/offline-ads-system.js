@@ -1,8 +1,8 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.offlineAds = {
-    MAX_HOURS: 12,
-    HOURS_PER_AD: 2,
+    MAX_HOURS: 6,
+    HOURS_PER_AD: 1,
 
     getNow() {
         return Date.now();
@@ -132,7 +132,8 @@ CryptoZoo.offlineAds = {
         if (currentResetAt > now) {
             CryptoZoo.state.offlineAdsResetAt = currentResetAt + added * 3600 * 1000;
         } else {
-            CryptoZoo.state.offlineAdsResetAt = now + CryptoZoo.state.offlineAdsHours * 3600 * 1000;
+            CryptoZoo.state.offlineAdsResetAt =
+                now + CryptoZoo.state.offlineAdsHours * 3600 * 1000;
         }
 
         CryptoZoo.api?.savePlayer?.();
