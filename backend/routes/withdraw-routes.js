@@ -51,7 +51,7 @@ function sanitizeTxHash(value) {
     return safeString(value, "").trim().slice(0, MAX_TX_HASH_LENGTH);
 }
 
-router.post("/api/withdraw/set-wallet", (req, res) => {
+router.post("/set-wallet", (req, res) => {
     const db = ensureWithdrawCollections(readDb());
 
     const telegramId = safeString(req.body?.telegramId, "");
@@ -80,7 +80,7 @@ router.post("/api/withdraw/set-wallet", (req, res) => {
     });
 });
 
-router.get("/api/withdraw/wallet/:telegramId", (req, res) => {
+router.get("/wallet/:telegramId", (req, res) => {
     const db = ensureWithdrawCollections(readDb());
     const telegramId = safeString(req.params.telegramId, "");
 
@@ -97,7 +97,7 @@ router.get("/api/withdraw/wallet/:telegramId", (req, res) => {
     });
 });
 
-router.post("/api/withdraw/request", async (req, res) => {
+router.post("/request", async (req, res) => {
     const db = ensureWithdrawCollections(readDb());
 
     const telegramId = safeString(req.body?.telegramId, "");
@@ -190,7 +190,7 @@ router.post("/api/withdraw/request", async (req, res) => {
     });
 });
 
-router.get("/api/withdraw/:telegramId", (req, res) => {
+router.get("/:telegramId", (req, res) => {
     const db = ensureWithdrawCollections(readDb());
     const telegramId = String(req.params.telegramId || "");
 
@@ -198,13 +198,13 @@ router.get("/api/withdraw/:telegramId", (req, res) => {
         .filter((item) => String(item.telegramId || "") === telegramId)
         .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
 
-    res.json({
+    return res.json({
         ok: true,
         requests
     });
 });
 
-router.post("/api/withdraw/update", async (req, res) => {
+router.post("/update", async (req, res) => {
     if (!requireAdmin(req, res)) return;
 
     const db = ensureWithdrawCollections(readDb());
@@ -235,13 +235,27 @@ router.post("/api/withdraw/update", async (req, res) => {
     const player = getPlayerOrCreate(db, request.telegramId, request.username);
 
     if (nextStatus === "paid") {
-        applyPaidWithdrawToPlayer(player, request);
-        markWithdrawAsPaid(request, note, payoutTxHash);
+        const updatedPlayer = applyPaidWithdrawToPlayer(player, request);
+        if (!updatedPlayer) {
+            return res.status(400).json({ error: "Withdraw paid apply failed" });
+        }
+
+        const updatedRequest = markWithdrawAsPaid(request, note, payoutTxHash);
+        if (!updatedRequest) {
+            return res.status(400).json({ error: "Withdraw mark paid failed" });
+        }
     }
 
     if (nextStatus === "rejected") {
-        applyRejectedWithdrawToPlayer(player, request);
-        markWithdrawAsRejected(request, note);
+        const updatedPlayer = applyRejectedWithdrawToPlayer(player, request);
+        if (!updatedPlayer) {
+            return res.status(400).json({ error: "Withdraw reject apply failed" });
+        }
+
+        const updatedRequest = markWithdrawAsRejected(request, note);
+        if (!updatedRequest) {
+            return res.status(400).json({ error: "Withdraw mark rejected failed" });
+        }
     }
 
     db.players[player.telegramId] = normalizePlayer(player);
