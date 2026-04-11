@@ -34,6 +34,24 @@ function getNow() {
     return Date.now();
 }
 
+function getMaxRewardWallet() {
+    return Number.isFinite(Number(LIMITS?.MAX_REWARD_WALLET))
+        ? Number(LIMITS.MAX_REWARD_WALLET)
+        : 1_000_000_000;
+}
+
+function getMaxWithdrawPending() {
+    return Number.isFinite(Number(LIMITS?.MAX_WITHDRAW_PENDING))
+        ? Number(LIMITS.MAX_WITHDRAW_PENDING)
+        : 1_000_000_000;
+}
+
+function getMaxWithdrawAmount() {
+    return Number.isFinite(Number(LIMITS?.MAX_WITHDRAW))
+        ? Number(LIMITS.MAX_WITHDRAW)
+        : 100_000;
+}
+
 function logSuspiciousWithdraw(message, payload = {}) {
     try {
         console.warn("[withdraw-guard]", message, payload);
@@ -171,6 +189,31 @@ function findWithdrawById(db, withdrawId) {
     return list.find((item) => String(item?.id || "") === String(withdrawId || "")) || null;
 }
 
+function syncPlayerWithdrawPendingFromRequests(db, player) {
+    if (!player || typeof player !== "object") {
+        return player;
+    }
+
+    const pendingRequests = getPendingWithdrawsForPlayer(db, player.telegramId);
+    const pendingTotal = normalizeRewardNumber(
+        pendingRequests.reduce((sum, item) => {
+            return sum + normalizeRewardNumber(
+                item?.grossRewardAmount ?? item?.rewardAmount ?? item?.amount,
+                0
+            );
+        }, 0),
+        0
+    );
+
+    player.withdrawPending = clamp(
+        pendingTotal,
+        0,
+        getMaxWithdrawPending()
+    );
+
+    return player;
+}
+
 function validateWithdrawRequest(db, player, amount) {
     const safeAmount = normalizeRewardNumber(amount, 0);
 
@@ -180,6 +223,8 @@ function validateWithdrawRequest(db, player, amount) {
             error: "Player not found"
         };
     }
+
+    syncPlayerWithdrawPendingFromRequests(db, player);
 
     if (safeAmount <= 0) {
         return {
@@ -195,7 +240,7 @@ function validateWithdrawRequest(db, player, amount) {
         };
     }
 
-    if (safeAmount > normalizeRewardNumber(LIMITS?.MAX_WITHDRAW, 100000)) {
+    if (safeAmount > getMaxWithdrawAmount()) {
         return {
             ok: false,
             error: "Withdraw amount too high"
@@ -234,14 +279,6 @@ function validateWithdrawRequest(db, player, amount) {
         };
     }
 
-    const withdrawPending = getPlayerWithdrawPending(player);
-    if (withdrawPending > 0) {
-        return {
-            ok: false,
-            error: "You already have a pending withdraw"
-        };
-    }
-
     const pendingRequests = getPendingWithdrawsForPlayer(db, player.telegramId);
     if (pendingRequests.length > 0) {
         return {
@@ -262,7 +299,7 @@ function validateWithdrawRequest(db, player, amount) {
         usdAmount: getWithdrawUsdAmount(getWithdrawNetAmount(safeAmount)),
         level,
         rewardWallet,
-        withdrawPending,
+        withdrawPending: getPlayerWithdrawPending(player),
         accountAgeMs
     };
 }
@@ -278,7 +315,7 @@ function applyCreateWithdrawToPlayer(player, amount) {
             0
         ),
         0,
-        LIMITS.MAX_REWARD_WALLET
+        getMaxRewardWallet()
     );
 
     player.withdrawPending = clamp(
@@ -287,7 +324,7 @@ function applyCreateWithdrawToPlayer(player, amount) {
             0
         ),
         0,
-        LIMITS.MAX_WITHDRAW_PENDING
+        getMaxWithdrawPending()
     );
 
     player.updatedAt = getNow();
@@ -368,7 +405,7 @@ function applyPaidWithdrawToPlayer(player, withdrawRequest) {
             0
         ),
         0,
-        LIMITS.MAX_WITHDRAW_PENDING
+        getMaxWithdrawPending()
     );
 
     player.updatedAt = getNow();
@@ -389,7 +426,7 @@ function applyRejectedWithdrawToPlayer(player, withdrawRequest) {
             0
         ),
         0,
-        LIMITS.MAX_WITHDRAW_PENDING
+        getMaxWithdrawPending()
     );
 
     player.rewardWallet = clamp(
@@ -398,7 +435,7 @@ function applyRejectedWithdrawToPlayer(player, withdrawRequest) {
             0
         ),
         0,
-        LIMITS.MAX_REWARD_WALLET
+        getMaxRewardWallet()
     );
 
     player.updatedAt = getNow();
@@ -483,6 +520,7 @@ module.exports = {
     getPendingWithdrawsForPlayer,
     getLatestWithdrawForPlayer,
     findWithdrawById,
+    syncPlayerWithdrawPendingFromRequests,
 
     getPlayerCreatedAtMs,
     getPlayerAccountAgeMs,
