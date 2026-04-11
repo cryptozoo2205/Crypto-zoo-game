@@ -317,6 +317,27 @@ CryptoZoo.ui = {
         return `${safe}s`;
     },
 
+    formatHoursShort(hoursValue) {
+        const safeHours = Math.max(0, Number(hoursValue) || 0);
+        const totalSeconds = Math.max(0, Math.floor(safeHours * 3600));
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+        if (hours > 0 && minutes > 0) {
+            return `${hours}h ${minutes}m`;
+        }
+
+        if (hours > 0) {
+            return `${hours}h`;
+        }
+
+        if (minutes > 0) {
+            return `${minutes}m`;
+        }
+
+        return "0m";
+    },
+
     bindClick(id, handler) {
         const el = document.getElementById(id);
         if (el) {
@@ -340,7 +361,7 @@ CryptoZoo.ui = {
 
     getOfflineAdRewardHours() {
         const value = Number(CryptoZoo.offlineAds?.HOURS_PER_AD);
-        return Number.isFinite(value) && value > 0 ? value : 2;
+        return Number.isFinite(value) && value > 0 ? value : 1;
     },
 
     renderOfflineInfo() {
@@ -357,7 +378,7 @@ CryptoZoo.ui = {
 
         const maxAds = Math.max(
             0,
-            Number(CryptoZoo.offlineAds?.getMaxHours?.() || 12)
+            Number(CryptoZoo.offlineAds?.getMaxHours?.() || 6)
         );
 
         const remainingHours = Math.max(0, maxAds - adsHours);
@@ -371,8 +392,11 @@ CryptoZoo.ui = {
         const rewardHours = this.getOfflineAdRewardHours();
         const canWatchAd = !!CryptoZoo.offlineAds?.canWatchAd?.();
 
-        mainText.textContent = `Reklamy: ${CryptoZoo.formatNumber(adsHours)}/${CryptoZoo.formatNumber(maxAds)}h`;
-        subText.textContent = `Zostało: ${CryptoZoo.formatNumber(remainingHours)}h • Reset za: ${resetText}`;
+        const adsHoursLabel = this.formatHoursShort(adsHours);
+        const remainingHoursLabel = this.formatHoursShort(remainingHours);
+
+        mainText.textContent = `Reklamy: ${adsHoursLabel} / ${CryptoZoo.formatNumber(maxAds)}h`;
+        subText.textContent = `Zostało: ${remainingHoursLabel} • Reset za: ${resetText}`;
 
         if (CryptoZoo.ads?.isLoading) {
             adBtn.disabled = true;
@@ -387,7 +411,7 @@ CryptoZoo.ui = {
         }
 
         adBtn.disabled = false;
-        adBtn.textContent = `📺 +${CryptoZoo.formatNumber(rewardHours)}h • ${CryptoZoo.formatNumber(adsHours)}/${CryptoZoo.formatNumber(maxAds)}`;
+        adBtn.textContent = `📺 +${CryptoZoo.formatNumber(rewardHours)}h • ${adsHoursLabel} / ${CryptoZoo.formatNumber(maxAds)}h`;
     },
 
     ensureOfflineInfoTimerRunning() {
