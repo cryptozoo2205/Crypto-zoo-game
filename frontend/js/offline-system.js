@@ -49,7 +49,7 @@ CryptoZoo.offline = {
         CryptoZoo.state.offlineAdsHours = Math.max(
             0,
             Math.min(
-                Number(CryptoZoo.gameplay?.getMaxOfflineAdsHours?.() || 12),
+                Number(CryptoZoo.gameplay?.getMaxOfflineAdsHours?.() || 6),
                 Number(remainingHoursPrecise.toFixed(6))
             )
         );
@@ -85,7 +85,7 @@ CryptoZoo.offline = {
             const rawHours = Math.max(
                 0,
                 Math.min(
-                    Number(CryptoZoo.gameplay?.getMaxOfflineAdsHours?.() || 12),
+                    Number(CryptoZoo.gameplay?.getMaxOfflineAdsHours?.() || 6),
                     Number(CryptoZoo.state?.offlineAdsHours) || 0
                 )
             );
