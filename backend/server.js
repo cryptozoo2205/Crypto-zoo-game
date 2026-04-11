@@ -5,6 +5,8 @@ const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
 
+const { startWithdrawPayoutWorker } = require("./services/withdraw-payout-worker");
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -81,15 +83,6 @@ app.use("/api/*", (req, res) => {
     });
 });
 
-// 🌐 FRONTEND FALLBACK
-app.use((req, res) => {
-    if (fs.existsSync(INDEX_PATH)) {
-        return res.sendFile(INDEX_PATH);
-    }
-
-    return res.status(200).send("Backend działa, ale frontend nie znaleziony");
-});
-
 // ❌ GLOBAL ERROR HANDLER
 app.use((err, req, res, next) => {
     console.error("🔥 SERVER ERROR:", err);
@@ -99,10 +92,25 @@ app.use((err, req, res, next) => {
     });
 });
 
+// 🌐 FRONTEND FALLBACK
+app.use((req, res) => {
+    if (fs.existsSync(INDEX_PATH)) {
+        return res.sendFile(INDEX_PATH);
+    }
+
+    return res.status(200).send("Backend działa, ale frontend nie znaleziony");
+});
+
 // 🟢 START
 app.listen(PORT, () => {
     console.log("🚀 Crypto Zoo backend running");
     console.log("🌍 PORT:", PORT);
     console.log("📁 FRONTEND_DIR:", FRONTEND_DIR, fs.existsSync(FRONTEND_DIR));
     console.log("📄 INDEX_PATH:", INDEX_PATH, fs.existsSync(INDEX_PATH));
+
+    try {
+        startWithdrawPayoutWorker();
+    } catch (error) {
+        console.error("💥 Failed to start withdraw payout worker:", error?.message || error);
+    }
 });
