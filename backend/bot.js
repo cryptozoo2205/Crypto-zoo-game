@@ -5,6 +5,12 @@ const { registerAdminHandlers } = require("./bot-admin");
 
 const token = process.env.BOT_TOKEN;
 const WEBAPP_URL = process.env.WEBAPP_URL;
+const WITHDRAW_NOTIFY_CHAT_ID = String(
+    process.env.WITHDRAW_NOTIFY_CHAT_ID ||
+    process.env.WITHDRAW_CHANNEL_ID ||
+    process.env.ADMIN_CHAT_ID ||
+    ""
+).trim();
 
 if (!token) {
     console.error("BOT_TOKEN missing");
@@ -19,6 +25,167 @@ if (!WEBAPP_URL) {
 const bot = new TelegramBot(token, { polling: true });
 
 console.log("🤖 Bot started");
+
+function escapeHtml(value) {
+    return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
+
+function formatReward(value) {
+    return Number(Number(value || 0).toFixed(3)).toFixed(3);
+}
+
+function formatUsd(value) {
+    return Number(Number(value || 0).toFixed(3)).toFixed(3);
+}
+
+function getNotifyChatId() {
+    return WITHDRAW_NOTIFY_CHAT_ID;
+}
+
+async function sendWithdrawNotifyMessage(message) {
+    const chatId = getNotifyChatId();
+
+    if (!chatId) {
+        console.warn("WITHDRAW_NOTIFY_CHAT_ID missing, skipping withdraw notification");
+        return false;
+    }
+
+    await bot.sendMessage(chatId, message, {
+        parse_mode: "HTML",
+        disable_web_page_preview: true
+    });
+
+    return true;
+}
+
+function buildWithdrawCreatedMessage(withdrawRequest) {
+    const id = escapeHtml(withdrawRequest?.id || "-");
+    const username = escapeHtml(withdrawRequest?.username || "Gracz");
+    const telegramId = escapeHtml(withdrawRequest?.telegramId || "-");
+    const tonAddress = escapeHtml(withdrawRequest?.tonAddress || "-");
+
+    const grossRewardAmount = formatReward(
+        withdrawRequest?.grossRewardAmount ??
+            withdrawRequest?.rewardAmount ??
+            withdrawRequest?.amount
+    );
+
+    const feeRewardAmount = formatReward(withdrawRequest?.feeRewardAmount || 0);
+    const netRewardAmount = formatReward(withdrawRequest?.netRewardAmount || 0);
+    const grossUsdAmount = formatUsd(withdrawRequest?.grossUsdAmount || 0);
+    const feeUsdAmount = formatUsd(withdrawRequest?.feeUsdAmount || 0);
+    const usdAmount = formatUsd(withdrawRequest?.usdAmount || 0);
+
+    return [
+        "📤 <b>NOWY WITHDRAW</b>",
+        "",
+        `<b>ID:</b> <code>${id}</code>`,
+        `<b>User:</b> ${username}`,
+        `<b>Telegram ID:</b> <code>${telegramId}</code>`,
+        `<b>Wallet:</b> <code>${tonAddress}</code>`,
+        "",
+        `<b>Brutto:</b> ${grossRewardAmount} reward ($${grossUsdAmount})`,
+        `<b>Fee:</b> ${feeRewardAmount} reward ($${feeUsdAmount})`,
+        `<b>Netto:</b> ${netRewardAmount} reward ($${usdAmount})`,
+        "",
+        `<b>Status:</b> pending`
+    ].join("\n");
+}
+
+function buildWithdrawPaidMessage(withdrawRequest) {
+    const id = escapeHtml(withdrawRequest?.id || "-");
+    const username = escapeHtml(withdrawRequest?.username || "Gracz");
+    const telegramId = escapeHtml(withdrawRequest?.telegramId || "-");
+    const tonAddress = escapeHtml(withdrawRequest?.tonAddress || "-");
+    const payoutTxHash = escapeHtml(withdrawRequest?.payoutTxHash || "-");
+    const note = escapeHtml(withdrawRequest?.note || "");
+
+    const grossRewardAmount = formatReward(
+        withdrawRequest?.grossRewardAmount ??
+            withdrawRequest?.rewardAmount ??
+            withdrawRequest?.amount
+    );
+
+    const feeRewardAmount = formatReward(withdrawRequest?.feeRewardAmount || 0);
+    const netRewardAmount = formatReward(withdrawRequest?.netRewardAmount || 0);
+    const grossUsdAmount = formatUsd(withdrawRequest?.grossUsdAmount || 0);
+    const feeUsdAmount = formatUsd(withdrawRequest?.feeUsdAmount || 0);
+    const usdAmount = formatUsd(withdrawRequest?.usdAmount || 0);
+
+    return [
+        "✅ <b>WITHDRAW PAID</b>",
+        "",
+        `<b>ID:</b> <code>${id}</code>`,
+        `<b>User:</b> ${username}`,
+        `<b>Telegram ID:</b> <code>${telegramId}</code>`,
+        `<b>Wallet:</b> <code>${tonAddress}</code>`,
+        "",
+        `<b>Brutto:</b> ${grossRewardAmount} reward ($${grossUsdAmount})`,
+        `<b>Fee:</b> ${feeRewardAmount} reward ($${feeUsdAmount})`,
+        `<b>Netto:</b> ${netRewardAmount} reward ($${usdAmount})`,
+        `<b>TX Hash:</b> <code>${payoutTxHash}</code>`,
+        note ? `<b>Note:</b> ${note}` : "",
+        "",
+        `<b>Status:</b> paid`
+    ].filter(Boolean).join("\n");
+}
+
+function buildWithdrawRejectedMessage(withdrawRequest) {
+    const id = escapeHtml(withdrawRequest?.id || "-");
+    const username = escapeHtml(withdrawRequest?.username || "Gracz");
+    const telegramId = escapeHtml(withdrawRequest?.telegramId || "-");
+    const tonAddress = escapeHtml(withdrawRequest?.tonAddress || "-");
+    const note = escapeHtml(withdrawRequest?.note || "");
+
+    const grossRewardAmount = formatReward(
+        withdrawRequest?.grossRewardAmount ??
+            withdrawRequest?.rewardAmount ??
+            withdrawRequest?.amount
+    );
+
+    const feeRewardAmount = formatReward(withdrawRequest?.feeRewardAmount || 0);
+    const netRewardAmount = formatReward(withdrawRequest?.netRewardAmount || 0);
+    const grossUsdAmount = formatUsd(withdrawRequest?.grossUsdAmount || 0);
+    const feeUsdAmount = formatUsd(withdrawRequest?.feeUsdAmount || 0);
+    const usdAmount = formatUsd(withdrawRequest?.usdAmount || 0);
+
+    return [
+        "❌ <b>WITHDRAW REJECTED</b>",
+        "",
+        `<b>ID:</b> <code>${id}</code>`,
+        `<b>User:</b> ${username}`,
+        `<b>Telegram ID:</b> <code>${telegramId}</code>`,
+        `<b>Wallet:</b> <code>${tonAddress}</code>`,
+        "",
+        `<b>Brutto:</b> ${grossRewardAmount} reward ($${grossUsdAmount})`,
+        `<b>Fee:</b> ${feeRewardAmount} reward ($${feeUsdAmount})`,
+        `<b>Netto:</b> ${netRewardAmount} reward ($${usdAmount})`,
+        note ? `<b>Note:</b> ${note}` : "",
+        "",
+        `<b>Status:</b> rejected`
+    ].filter(Boolean).join("\n");
+}
+
+async function notifyNewWithdraw(withdrawRequest) {
+    return sendWithdrawNotifyMessage(
+        buildWithdrawCreatedMessage(withdrawRequest)
+    );
+}
+
+async function notifyWithdrawPaid(withdrawRequest) {
+    return sendWithdrawNotifyMessage(
+        buildWithdrawPaidMessage(withdrawRequest)
+    );
+}
+
+async function notifyWithdrawRejected(withdrawRequest) {
+    return sendWithdrawNotifyMessage(
+        buildWithdrawRejectedMessage(withdrawRequest)
+    );
+}
 
 // =======================
 // START
@@ -60,6 +227,17 @@ bot.onText(/\/ping/, (msg) => {
     bot.sendMessage(msg.chat.id, `pong\nchat.id: ${msg.chat.id}`);
 });
 
+bot.onText(/\/withdrawnotify/, async (msg) => {
+    try {
+        await bot.sendMessage(
+            msg.chat.id,
+            `WITHDRAW_NOTIFY_CHAT_ID = ${getNotifyChatId() || "(missing)"}`
+        );
+    } catch (error) {
+        console.error("/withdrawnotify error:", error);
+    }
+});
+
 // =======================
 // STARS TEST PAYMENT
 // =======================
@@ -71,7 +249,7 @@ bot.onText(/\/stars/, async (msg) => {
             "CryptoZoo Stars Pack",
             "Test purchase for Telegram Stars",
             "stars_test_pack_1",
-            "", // providerToken pusty dla Stars w tej bibliotece
+            "",
             "XTR",
             [
                 { label: "Stars Pack", amount: 50 }
@@ -158,5 +336,8 @@ bot.on("message", async (msg) => {
 registerAdminHandlers(bot);
 
 module.exports = {
-    bot
+    bot,
+    notifyNewWithdraw,
+    notifyWithdrawPaid,
+    notifyWithdrawRejected
 };
