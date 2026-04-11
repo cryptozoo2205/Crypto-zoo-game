@@ -42,36 +42,12 @@ CryptoZoo.uiWithdraw = {
         return Number((Number(CryptoZoo.state?.withdrawPending) || 0).toFixed(3));
     },
 
-    getPlayerLevel() {
-        return Math.max(1, Math.floor(Number(CryptoZoo.state?.level) || 1));
+    getWalletInput() {
+        return document.getElementById("withdrawTonWalletInput");
     },
 
-    getPlayerCreatedAtMs() {
-        return Math.max(
-            0,
-            Number(CryptoZoo.state?.createdAt) ||
-            Number(CryptoZoo.state?.registeredAt) ||
-            Number(CryptoZoo.state?.firstSeenAt) ||
-            Number(CryptoZoo.state?.joinedAt) ||
-            0
-        );
-    },
-
-    getAccountAgeMs() {
-        const createdAt = this.getPlayerCreatedAtMs();
-        if (!createdAt) return 0;
-        return Math.max(0, Date.now() - createdAt);
-    },
-
-    getWithdrawFeeAmount(rewardAmount) {
-        const reward = Math.max(0, Number(rewardAmount) || 0);
-        return Number((reward * this.withdrawFeePercent).toFixed(3));
-    },
-
-    getWithdrawNetAmount(rewardAmount) {
-        const reward = Math.max(0, Number(rewardAmount) || 0);
-        const fee = this.getWithdrawFeeAmount(reward);
-        return Number(Math.max(0, reward - fee).toFixed(3));
+    getAmountInput() {
+        return document.getElementById("withdrawAmountInput");
     },
 
     getCurrentWalletAddress() {
@@ -90,22 +66,30 @@ CryptoZoo.uiWithdraw = {
         return `${this.getApiBase()}/withdraw/set-wallet`;
     },
 
-    getWalletInput() {
-        return document.getElementById("withdrawTonWalletInput");
+    getWithdrawRequestUrl() {
+        return `${this.getApiBase()}/withdraw/request`;
+    },
+
+    getSelectedAmount() {
+        const inputValue = Number(this.getAmountInput()?.value || 0);
+        return Number.isFinite(inputValue) ? Number(inputValue.toFixed(3)) : 0;
+    },
+
+    getWithdrawFeeAmount(rewardAmount) {
+        const reward = Math.max(0, Number(rewardAmount) || 0);
+        return Number((reward * this.withdrawFeePercent).toFixed(3));
+    },
+
+    getWithdrawNetAmount(rewardAmount) {
+        const reward = Math.max(0, Number(rewardAmount) || 0);
+        const fee = this.getWithdrawFeeAmount(reward);
+        return Number(Math.max(0, reward - fee).toFixed(3));
     },
 
     getAvailability() {
         const rewardWallet = this.getRewardWallet();
         const withdrawPending = this.getWithdrawPending();
-        const level = this.getPlayerLevel();
-        const accountAgeMs = this.getAccountAgeMs();
-
-        if (rewardWallet < this.minWithdrawReward) {
-            return {
-                ok: false,
-                reason: `Min withdraw ${this.minWithdrawReward}`
-            };
-        }
+        const amount = this.getSelectedAmount();
 
         if (withdrawPending > 0) {
             return {
@@ -114,17 +98,31 @@ CryptoZoo.uiWithdraw = {
             };
         }
 
-        if (level < 7) {
+        if (rewardWallet < this.minWithdrawReward) {
             return {
                 ok: false,
-                reason: "Wymagany poziom 7"
+                reason: `Min withdraw ${this.minWithdrawReward}`
             };
         }
 
-        if (accountAgeMs < 24 * 60 * 60 * 1000) {
+        if (amount <= 0) {
             return {
                 ok: false,
-                reason: "Konto musi mieć minimum 24h"
+                reason: "Wpisz kwotę wypłaty"
+            };
+        }
+
+        if (amount < this.minWithdrawReward) {
+            return {
+                ok: false,
+                reason: `Min withdraw ${this.minWithdrawReward}`
+            };
+        }
+
+        if (amount > rewardWallet) {
+            return {
+                ok: false,
+                reason: "Kwota większa niż Wallet"
             };
         }
 
@@ -132,6 +130,98 @@ CryptoZoo.uiWithdraw = {
             ok: true,
             reason: ""
         };
+    },
+
+    ensureAmountUi() {
+        const modal = document.getElementById("withdrawModal");
+        if (!modal) return;
+
+        if (document.getElementById("withdrawAmountWrap")) {
+            return;
+        }
+
+        const walletInput = document.getElementById("withdrawTonWalletInput");
+        const walletRow = walletInput?.closest(".profile-boost-row");
+        if (!walletRow) return;
+
+        const amountRow = document.createElement("div");
+        amountRow.id = "withdrawAmountWrap";
+        amountRow.className = "profile-boost-row";
+        amountRow.style.marginTop = "12px";
+
+        amountRow.innerHTML = `
+            <div class="profile-boost-left" style="width:100%;">
+                <div class="profile-boost-label">Kwota reward do wypłaty</div>
+                <input
+                    id="withdrawAmountInput"
+                    class="withdraw-wallet-input"
+                    type="number"
+                    inputmode="decimal"
+                    min="${this.minWithdrawReward}"
+                    step="0.001"
+                    placeholder="Wpisz kwotę"
+                >
+
+                <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+                    <button id="withdrawQuickMinBtn" class="profile-close-btn" type="button" style="margin:0;">MIN</button>
+                    <button id="withdrawQuickHalfBtn" class="profile-close-btn" type="button" style="margin:0;">50%</button>
+                    <button id="withdrawQuickMaxBtn" class="profile-close-btn" type="button" style="margin:0;">MAX</button>
+                </div>
+            </div>
+        `;
+
+        walletRow.parentNode.insertBefore(amountRow, walletRow);
+
+        const amountInput = document.getElementById("withdrawAmountInput");
+        if (amountInput && !amountInput.dataset.bound) {
+            amountInput.dataset.bound = "1";
+            amountInput.addEventListener("input", () => {
+                this.render();
+            });
+        }
+
+        const minBtn = document.getElementById("withdrawQuickMinBtn");
+        if (minBtn && !minBtn.dataset.bound) {
+            minBtn.dataset.bound = "1";
+            minBtn.addEventListener("click", () => {
+                CryptoZoo.audio?.play?.("click");
+                const input = this.getAmountInput();
+                if (input) {
+                    input.value = this.minWithdrawReward.toFixed(3);
+                }
+                this.render();
+            });
+        }
+
+        const halfBtn = document.getElementById("withdrawQuickHalfBtn");
+        if (halfBtn && !halfBtn.dataset.bound) {
+            halfBtn.dataset.bound = "1";
+            halfBtn.addEventListener("click", () => {
+                CryptoZoo.audio?.play?.("click");
+                const input = this.getAmountInput();
+                if (input) {
+                    const value = Math.max(
+                        this.minWithdrawReward,
+                        Number((this.getRewardWallet() / 2).toFixed(3))
+                    );
+                    input.value = value.toFixed(3);
+                }
+                this.render();
+            });
+        }
+
+        const maxBtn = document.getElementById("withdrawQuickMaxBtn");
+        if (maxBtn && !maxBtn.dataset.bound) {
+            maxBtn.dataset.bound = "1";
+            maxBtn.addEventListener("click", () => {
+                CryptoZoo.audio?.play?.("click");
+                const input = this.getAmountInput();
+                if (input) {
+                    input.value = this.getRewardWallet().toFixed(3);
+                }
+                this.render();
+            });
+        }
     },
 
     async loadWallet() {
@@ -236,8 +326,14 @@ CryptoZoo.uiWithdraw = {
             return false;
         }
 
-        const input = this.getWalletInput();
-        const tonAddress = String(input?.value || "").trim();
+        const payload = this.getPlayerPayload();
+        const tonAddress = String(this.getWalletInput()?.value || "").trim();
+        const amount = this.getSelectedAmount();
+
+        if (!payload.telegramId) {
+            CryptoZoo.ui?.showToast?.("Brak telegramId");
+            return false;
+        }
 
         if (!tonAddress) {
             CryptoZoo.ui?.showToast?.("Wpisz adres TON wallet");
@@ -252,18 +348,41 @@ CryptoZoo.uiWithdraw = {
             }
         }
 
-        if (!CryptoZoo.api?.createWithdrawRequest) {
-            CryptoZoo.ui?.showToast?.("createWithdrawRequest not available");
-            return false;
-        }
-
         this.isRequestingWithdraw = true;
         this.render();
 
         try {
-            await CryptoZoo.api.createWithdrawRequest(this.getRewardWallet());
+            const response = await fetch(this.getWithdrawRequestUrl(), {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    telegramId: payload.telegramId,
+                    username: payload.username,
+                    tonAddress,
+                    amount
+                })
+            });
+
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok || !data?.ok) {
+                throw new Error(data?.error || "Błąd withdraw");
+            }
+
+            if (data?.player) {
+                CryptoZoo.state = CryptoZoo.api?.mergeStates
+                    ? CryptoZoo.api.mergeStates(data.player, CryptoZoo.state || {})
+                    : { ...(CryptoZoo.state || {}), ...data.player };
+            }
+
+            if (typeof CryptoZoo.api?.writeLocalState === "function") {
+                CryptoZoo.api.writeLocalState(CryptoZoo.state);
+            }
 
             CryptoZoo.ui?.showToast?.("Withdraw utworzony");
+            CryptoZoo.uiSettings?.loadWithdrawHistory?.();
             CryptoZoo.uiSettings?.refreshSettingsModalData?.();
             CryptoZoo.ui?.render?.();
             this.close();
@@ -286,12 +405,12 @@ CryptoZoo.uiWithdraw = {
         const helpEl = document.getElementById("withdrawHelpText");
         const confirmBtn = document.getElementById("confirmWithdrawBtn");
 
-        const rewardWallet = this.getRewardWallet();
-        const fee = this.getWithdrawFeeAmount(rewardWallet);
-        const net = this.getWithdrawNetAmount(rewardWallet);
+        const amount = this.getSelectedAmount();
+        const fee = this.getWithdrawFeeAmount(amount);
+        const net = this.getWithdrawNetAmount(amount);
         const availability = this.getAvailability();
 
-        if (grossEl) grossEl.textContent = rewardWallet.toFixed(3);
+        if (grossEl) grossEl.textContent = amount.toFixed(3);
         if (feeEl) feeEl.textContent = fee.toFixed(3);
         if (netEl) netEl.textContent = net.toFixed(3);
 
@@ -299,7 +418,7 @@ CryptoZoo.uiWithdraw = {
             if (!availability.ok) {
                 helpEl.textContent = availability.reason;
             } else {
-                helpEl.textContent = "Withdraw używa środków z Wallet. Wpisz adres TON wallet i potwierdź wypłatę.";
+                helpEl.textContent = `Dostępne w Wallet: ${this.getRewardWallet().toFixed(3)} • Wpisz kwotę i adres TON wallet.`;
             }
         }
 
@@ -321,6 +440,20 @@ CryptoZoo.uiWithdraw = {
         const modal = document.getElementById("withdrawModal");
         if (!modal) return;
 
+        this.ensureAmountUi();
+
+        const amountInput = this.getAmountInput();
+        if (amountInput) {
+            const defaultAmount = Math.max(
+                0,
+                Number(
+                    Math.min(this.getRewardWallet(), this.minWithdrawReward).toFixed(3)
+                )
+            );
+
+            amountInput.value = defaultAmount > 0 ? defaultAmount.toFixed(3) : "";
+        }
+
         modal.classList.remove("hidden");
         this.render();
         await this.loadWallet();
@@ -335,6 +468,8 @@ CryptoZoo.uiWithdraw = {
     },
 
     bind() {
+        this.ensureAmountUi();
+
         const closeBtn = document.getElementById("closeWithdrawBtn");
         if (closeBtn && !closeBtn.dataset.bound) {
             closeBtn.dataset.bound = "1";
@@ -361,10 +496,18 @@ CryptoZoo.uiWithdraw = {
             });
         }
 
-        const input = this.getWalletInput();
-        if (input && !input.dataset.bound) {
-            input.dataset.bound = "1";
-            input.addEventListener("input", () => {
+        const walletInput = this.getWalletInput();
+        if (walletInput && !walletInput.dataset.bound) {
+            walletInput.dataset.bound = "1";
+            walletInput.addEventListener("input", () => {
+                this.render();
+            });
+        }
+
+        const amountInput = this.getAmountInput();
+        if (amountInput && !amountInput.dataset.boundFinal) {
+            amountInput.dataset.boundFinal = "1";
+            amountInput.addEventListener("input", () => {
                 this.render();
             });
         }
