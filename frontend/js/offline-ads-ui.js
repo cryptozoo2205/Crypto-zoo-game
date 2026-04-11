@@ -6,7 +6,7 @@ CryptoZoo.offlineAdsUI = {
 
     getRewardHours() {
         const value = Number(CryptoZoo.offlineAds?.HOURS_PER_AD);
-        return Number.isFinite(value) && value > 0 ? value : 2;
+        return Number.isFinite(value) && value > 0 ? value : 1;
     },
 
     getButton() {
