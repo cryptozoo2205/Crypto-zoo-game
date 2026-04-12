@@ -196,6 +196,15 @@
             font-size: 12px;
             line-height: 1.5;
         }
+
+        .profile-box-subvalue {
+            margin-top: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.68);
+            line-height: 1.2;
+            min-height: 14px;
+        }
     </style>
 </head>
 <body>
@@ -382,16 +391,19 @@
                 <div class="profile-box">
                     <div class="profile-box-label" id="langProfileReward">Reward</div>
                     <div class="profile-box-value" id="profileRewardBalance">0</div>
+                    <div class="profile-box-subvalue" id="profileRewardBalanceUsd"></div>
                 </div>
 
                 <div class="profile-box">
                     <div class="profile-box-label" id="langProfileWallet">Wallet</div>
                     <div class="profile-box-value" id="profileRewardWallet">0</div>
+                    <div class="profile-box-subvalue" id="profileRewardWalletUsd"></div>
                 </div>
 
                 <div class="profile-box">
                     <div class="profile-box-label" id="langProfilePending">Pending</div>
                     <div class="profile-box-value" id="profileWithdrawPending">0</div>
+                    <div class="profile-box-subvalue" id="profileWithdrawPendingUsd"></div>
                 </div>
             </div>
 
@@ -534,16 +546,19 @@
                         <div class="profile-box">
                             <div class="profile-box-label">Reward</div>
                             <div class="profile-box-value" id="settingsRewardBalance">0.000</div>
+                            <div class="profile-box-subvalue" id="settingsRewardBalanceUsd"></div>
                         </div>
 
                         <div class="profile-box">
                             <div class="profile-box-label">Wallet</div>
                             <div class="profile-box-value" id="settingsRewardWallet">0.000</div>
+                            <div class="profile-box-subvalue" id="settingsRewardWalletUsd"></div>
                         </div>
 
                         <div class="profile-box">
                             <div class="profile-box-label">Pending</div>
                             <div class="profile-box-value" id="settingsWithdrawPending">0.000</div>
+                            <div class="profile-box-subvalue" id="settingsWithdrawPendingUsd"></div>
                         </div>
                     </div>
 
