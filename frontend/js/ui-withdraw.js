@@ -50,6 +50,10 @@ CryptoZoo.uiWithdraw = {
         return document.getElementById("withdrawAmountInput");
     },
 
+    getSaveWalletBtn() {
+        return document.getElementById("saveWithdrawWalletBtn");
+    },
+
     getCurrentWalletAddress() {
         return String(
             this.walletAddress ||
@@ -171,6 +175,19 @@ CryptoZoo.uiWithdraw = {
         `;
 
         walletRow.parentNode.insertBefore(amountRow, walletRow);
+
+        const walletActionsWrap = document.createElement("div");
+        walletActionsWrap.id = "withdrawWalletActionsWrap";
+        walletActionsWrap.className = "profile-boost-row";
+        walletActionsWrap.style.marginTop = "12px";
+        walletActionsWrap.innerHTML = `
+            <div class="profile-boost-left" style="width:100%;">
+                <button id="saveWithdrawWalletBtn" class="profile-close-btn" type="button" style="margin:0;">
+                    Zapisz wallet
+                </button>
+            </div>
+        `;
+        walletRow.parentNode.insertBefore(walletActionsWrap, walletRow.nextSibling);
 
         const amountInput = document.getElementById("withdrawAmountInput");
         if (amountInput && !amountInput.dataset.bound) {
@@ -301,10 +318,22 @@ CryptoZoo.uiWithdraw = {
             CryptoZoo.state = CryptoZoo.state || {};
             CryptoZoo.state.tonAddress = this.walletAddress;
 
+            if (data?.player) {
+                CryptoZoo.state = CryptoZoo.api?.mergeStates
+                    ? CryptoZoo.api.mergeStates(data.player, CryptoZoo.state || {})
+                    : { ...(CryptoZoo.state || {}), ...data.player };
+            }
+
             if (input) {
                 input.value = this.walletAddress;
             }
 
+            if (typeof CryptoZoo.api?.writeLocalState === "function") {
+                CryptoZoo.api.writeLocalState(CryptoZoo.state);
+            }
+
+            CryptoZoo.uiSettings?.refreshSettingsModalData?.();
+            CryptoZoo.ui?.render?.();
             CryptoZoo.ui?.showToast?.("TON wallet zapisany");
             return true;
         } catch (error) {
@@ -404,6 +433,7 @@ CryptoZoo.uiWithdraw = {
         const netEl = document.getElementById("withdrawNetValue");
         const helpEl = document.getElementById("withdrawHelpText");
         const confirmBtn = document.getElementById("confirmWithdrawBtn");
+        const saveBtn = this.getSaveWalletBtn();
 
         const amount = this.getSelectedAmount();
         const fee = this.getWithdrawFeeAmount(amount);
@@ -415,11 +445,22 @@ CryptoZoo.uiWithdraw = {
         if (netEl) netEl.textContent = net.toFixed(3);
 
         if (helpEl) {
-            if (!availability.ok) {
-                helpEl.textContent = availability.reason;
+            const hasWalletInput = !!String(this.getWalletInput()?.value || this.getCurrentWalletAddress() || "").trim();
+
+            if (!hasWalletInput) {
+                helpEl.textContent = "Wpisz i zapisz adres TON wallet.";
+            } else if (!availability.ok) {
+                helpEl.textContent = `${availability.reason}. Adres wallet możesz zapisać niezależnie od wypłaty.`;
             } else {
                 helpEl.textContent = `Dostępne w Wallet: ${this.getRewardWallet().toFixed(3)} • Wpisz kwotę i adres TON wallet.`;
             }
+        }
+
+        if (saveBtn) {
+            const hasWalletInput = !!String(this.getWalletInput()?.value || "").trim();
+            saveBtn.disabled = !hasWalletInput || this.isSavingWallet || this.isRequestingWithdraw;
+            saveBtn.style.opacity = saveBtn.disabled ? "0.5" : "1";
+            saveBtn.textContent = this.isSavingWallet ? "Zapisywanie..." : "Zapisz wallet";
         }
 
         if (confirmBtn) {
@@ -493,6 +534,15 @@ CryptoZoo.uiWithdraw = {
             confirmBtn.addEventListener("click", () => {
                 CryptoZoo.audio?.play?.("click");
                 this.confirmWithdraw();
+            });
+        }
+
+        const saveBtn = this.getSaveWalletBtn();
+        if (saveBtn && !saveBtn.dataset.bound) {
+            saveBtn.dataset.bound = "1";
+            saveBtn.addEventListener("click", () => {
+                CryptoZoo.audio?.play?.("click");
+                this.saveWallet();
             });
         }
 
