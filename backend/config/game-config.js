@@ -9,8 +9,8 @@ const LIMITS = {
     MAX_WITHDRAW_PENDING: 100000,
 
     // 🔒 HARD ANTI-CHEAT (mini gry + nagrody)
-    MAX_COINS_GAIN_PER_SAVE: 5e7, // było 5e9 → za dużo (70k exploit przechodził)
-    MAX_GEMS_GAIN_PER_SAVE: 25,   // było 500 → za dużo jak na minigry
+    MAX_COINS_GAIN_PER_SAVE: 5e7,
+    MAX_GEMS_GAIN_PER_SAVE: 25,
     MAX_LEVEL_GAIN_PER_SAVE: 3,
     MAX_XP_GAIN_PER_SAVE: 5e6,
 
@@ -85,9 +85,9 @@ const EXPEDITIONS_CONFIG = {
         name: "Crystal River",
         duration: 900,
         baseDuration: 900,
-        baseCoins: 320,
-        startCostCoins: 250,
-        gemChance: 0.015,
+        baseCoins: 350,
+        startCostCoins: 260,
+        gemChance: 0.016,
         rareChance: 0.13,
         epicChance: 0.015,
         unlockLevel: 3
@@ -97,11 +97,11 @@ const EXPEDITIONS_CONFIG = {
         name: "Golden Volcano",
         duration: 1800,
         baseDuration: 1800,
-        baseCoins: 900,
-        startCostCoins: 750,
-        gemChance: 0.02,
-        rareChance: 0.14,
-        epicChance: 0.02,
+        baseCoins: 1050,
+        startCostCoins: 780,
+        gemChance: 0.022,
+        rareChance: 0.145,
+        epicChance: 0.022,
         unlockLevel: 5
     },
     canyon: {
@@ -109,11 +109,11 @@ const EXPEDITIONS_CONFIG = {
         name: "Sunstone Canyon",
         duration: 3600,
         baseDuration: 3600,
-        baseCoins: 2400,
-        startCostCoins: 2000,
-        gemChance: 0.025,
-        rareChance: 0.15,
-        epicChance: 0.025,
+        baseCoins: 2900,
+        startCostCoins: 2100,
+        gemChance: 0.028,
+        rareChance: 0.155,
+        epicChance: 0.028,
         unlockLevel: 7
     },
     glacier: {
@@ -121,11 +121,11 @@ const EXPEDITIONS_CONFIG = {
         name: "Frozen Glacier",
         duration: 7200,
         baseDuration: 7200,
-        baseCoins: 5800,
-        startCostCoins: 5000,
-        gemChance: 0.03,
-        rareChance: 0.16,
-        epicChance: 0.03,
+        baseCoins: 7600,
+        startCostCoins: 5200,
+        gemChance: 0.035,
+        rareChance: 0.165,
+        epicChance: 0.035,
         unlockLevel: 10
     },
     jungle: {
@@ -133,11 +133,11 @@ const EXPEDITIONS_CONFIG = {
         name: "Emerald Jungle",
         duration: 14400,
         baseDuration: 14400,
-        baseCoins: 13800,
-        startCostCoins: 12000,
-        gemChance: 0.04,
-        rareChance: 0.17,
-        epicChance: 0.04,
+        baseCoins: 19000,
+        startCostCoins: 12800,
+        gemChance: 0.045,
+        rareChance: 0.175,
+        epicChance: 0.045,
         unlockLevel: 14
     },
     temple: {
@@ -145,11 +145,11 @@ const EXPEDITIONS_CONFIG = {
         name: "Ancient Temple",
         duration: 28800,
         baseDuration: 28800,
-        baseCoins: 32000,
-        startCostCoins: 28000,
-        gemChance: 0.05,
-        rareChance: 0.18,
-        epicChance: 0.05,
+        baseCoins: 47000,
+        startCostCoins: 29500,
+        gemChance: 0.058,
+        rareChance: 0.185,
+        epicChance: 0.058,
         unlockLevel: 18
     },
     oasis: {
@@ -157,11 +157,11 @@ const EXPEDITIONS_CONFIG = {
         name: "Royal Oasis",
         duration: 43200,
         baseDuration: 43200,
-        baseCoins: 68000,
-        startCostCoins: 60000,
-        gemChance: 0.06,
-        rareChance: 0.19,
-        epicChance: 0.06,
+        baseCoins: 104000,
+        startCostCoins: 63000,
+        gemChance: 0.072,
+        rareChance: 0.195,
+        epicChance: 0.072,
         unlockLevel: 22
     },
     kingdom: {
@@ -169,11 +169,11 @@ const EXPEDITIONS_CONFIG = {
         name: "Lost Beast Kingdom",
         duration: 86400,
         baseDuration: 86400,
-        baseCoins: 145000,
-        startCostCoins: 125000,
-        gemChance: 0.07,
-        rareChance: 0.20,
-        epicChance: 0.07,
+        baseCoins: 235000,
+        startCostCoins: 132000,
+        gemChance: 0.09,
+        rareChance: 0.21,
+        epicChance: 0.09,
         unlockLevel: 28
     }
 };
