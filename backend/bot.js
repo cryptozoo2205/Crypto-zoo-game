@@ -187,12 +187,25 @@ async function notifyWithdrawRejected(withdrawRequest) {
     );
 }
 
+function buildWebAppUrlFromStartMessage(msg) {
+    const rawText = String(msg?.text || "").trim();
+    const startParam = rawText.split(/\s+/)[1] || "";
+    const safeStartParam = encodeURIComponent(String(startParam || "").trim());
+
+    if (!safeStartParam) {
+        return String(WEBAPP_URL);
+    }
+
+    const separator = String(WEBAPP_URL).includes("?") ? "&" : "?";
+    return `${WEBAPP_URL}${separator}start=${safeStartParam}`;
+}
+
 // =======================
 // START
 // =======================
 
-bot.onText(/\/start/, async (msg) => {
-    const url = `${WEBAPP_URL}`;
+bot.onText(/\/start(?:\s+(.+))?/, async (msg) => {
+    const url = buildWebAppUrlFromStartMessage(msg);
 
     const caption = `🦁 *Crypto Zoo*
 
@@ -206,7 +219,7 @@ Build your own zoo, go on expeditions and earn rewards directly in Telegram.
 
     await bot.sendPhoto(
         msg.chat.id,
-        "https://imgur.com/a/pSNhvNU",
+        "https://i.imgur.com/5QZ7qQy.png",
         {
             caption,
             parse_mode: "Markdown",
