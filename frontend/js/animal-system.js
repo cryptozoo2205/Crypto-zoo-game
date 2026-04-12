@@ -87,33 +87,34 @@ CryptoZoo.animalsSystem = {
     getRequiredPlayerLevelForUpgrade(type, currentAnimalLevel = 1) {
         const baseUnlockLevel = this.getRequiredPlayerLevel(type);
         const safeAnimalLevel = Math.max(1, Math.floor(Number(currentAnimalLevel) || 1));
-        return baseUnlockLevel + Math.floor((safeAnimalLevel - 1) / 2);
+
+        // 🔥 mocniejsza blokada progresu
+        return baseUnlockLevel + Math.floor((safeAnimalLevel - 1) * 0.75);
     },
 
+    // ======================
+    // 🔥 HARD BUY SCALING
+    // ======================
     getBuyGrowth(type) {
         const tierIndex = this.getAnimalTierIndex(type);
 
         const growthByTier = [
-            1.32,  // monkey
-            1.31,  // panda
-            1.30,  // lion
-            1.29,  // tiger
-            1.28,  // elephant
-            1.27,  // giraffe
-            1.26,  // zebra
-            1.25,  // hippo
-            1.24,  // penguin
-            1.235, // bear
-            1.23,  // crocodile
-            1.225, // kangaroo
-            1.22   // wolf
+            1.42,
+            1.41,
+            1.40,
+            1.39,
+            1.38,
+            1.37,
+            1.36,
+            1.35,
+            1.34,
+            1.335,
+            1.33,
+            1.325,
+            1.32
         ];
 
-        if (tierIndex < growthByTier.length) {
-            return growthByTier[tierIndex];
-        }
-
-        return 1.24;
+        return growthByTier[tierIndex] || 1.35;
     },
 
     getBuyCost(type) {
@@ -126,14 +127,14 @@ CryptoZoo.animalsSystem = {
         const ownedCount = Math.max(0, Math.floor(Number(animal.count) || 0));
         const growth = this.getBuyGrowth(type);
 
-        const rawCost = baseCost * Math.pow(growth, ownedCount);
-        const safeCost = Math.floor(rawCost);
+        let cost = baseCost * Math.pow(growth, ownedCount);
 
-        if (!Number.isFinite(safeCost) || safeCost < 1) {
-            return 1;
+        // 🔥 late game dodatkowy mnożnik
+        if (ownedCount > 10) {
+            cost *= 1 + ((ownedCount - 10) * 0.15);
         }
 
-        return safeCost;
+        return Math.floor(cost);
     },
 
     buy(type) {
@@ -165,11 +166,10 @@ CryptoZoo.animalsSystem = {
             return false;
         }
 
-        CryptoZoo.state.coins = Math.max(0, currentCoins - buyCost);
-        animal.count = Math.min(maxOwned, animal.count + 1);
-        CryptoZoo.state.lastLogin = Date.now();
+        CryptoZoo.state.coins -= buyCost;
+        animal.count++;
 
-        CryptoZoo.dailyMissions?.recordSpendCoins?.(buyCost);
+        CryptoZoo.state.lastLogin = Date.now();
 
         CryptoZoo.gameplay?.persistAndRender?.();
 
@@ -181,6 +181,9 @@ CryptoZoo.animalsSystem = {
         return true;
     },
 
+    // ======================
+    // 🔥 HARD UPGRADE COST
+    // ======================
     getUpgradeCost(type) {
         const config = CryptoZoo.config?.animals?.[type];
         const animal = this.ensureAnimalState(type);
@@ -192,18 +195,18 @@ CryptoZoo.animalsSystem = {
         const count = Math.max(0, Math.floor(Number(animal.count) || 0));
         const tierIndex = this.getAnimalTierIndex(type);
 
-        const levelMultiplier = Math.pow(1.65, level - 1);
-        const countMultiplier = 1 + (count * 0.045);
-        const tierMultiplier = 1 + (tierIndex * 0.12);
+        let cost =
+            baseCost *
+            Math.pow(1.85, level - 1) *
+            (1 + count * 0.08) *
+            (1 + tierIndex * 0.18);
 
-        const rawCost = baseCost * 0.95 * levelMultiplier * countMultiplier * tierMultiplier;
-        const safeCost = Math.floor(rawCost);
-
-        if (!Number.isFinite(safeCost) || safeCost < 1) {
-            return 1;
+        // 🔥 hard wall high lvl
+        if (level > 10) {
+            cost *= Math.pow(1.4, level - 10);
         }
 
-        return safeCost;
+        return Math.floor(cost);
     },
 
     upgrade(type) {
@@ -242,11 +245,10 @@ CryptoZoo.animalsSystem = {
             return false;
         }
 
-        CryptoZoo.state.coins = Math.max(0, currentCoins - cost);
-        animal.level = Math.min(maxLevel, animal.level + 1);
-        CryptoZoo.state.lastLogin = Date.now();
+        CryptoZoo.state.coins -= cost;
+        animal.level++;
 
-        CryptoZoo.dailyMissions?.recordSpendCoins?.(cost);
+        CryptoZoo.state.lastLogin = Date.now();
 
         CryptoZoo.gameplay?.persistAndRender?.();
 
