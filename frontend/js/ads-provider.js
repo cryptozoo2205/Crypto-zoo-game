@@ -2,8 +2,6 @@ window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.ads = {
     isLoading: false,
-    lastAttemptAt: 0,
-    minAttemptGapMs: 2500,
 
     minWatchTimeMs: 12000,
     adHardTimeoutMs: 90000,
@@ -132,17 +130,11 @@ CryptoZoo.ads = {
     async showRewardedAd() {
         if (this.isLoading) return false;
 
-        const now = Date.now();
-        if (now - this.lastAttemptAt < this.minAttemptGapMs) {
-            return false;
-        }
-
         if (typeof show_10822070 !== "function") {
             CryptoZoo.ui?.showToast?.("Reklama nie jest jeszcze gotowa");
             return false;
         }
 
-        this.lastAttemptAt = now;
         this.isLoading = true;
         this.updateOfflineUi();
 
