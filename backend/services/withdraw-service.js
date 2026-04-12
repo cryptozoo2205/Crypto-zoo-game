@@ -29,6 +29,7 @@ const WITHDRAW_FEE_PERCENT = Math.max(
 const MAX_TON_ADDRESS_LENGTH = 128;
 const MAX_NOTE_LENGTH = 500;
 const MAX_TX_HASH_LENGTH = 256;
+const PROCESSING_LOCK_MS = 2 * 60 * 1000;
 
 function getNow() {
     return Date.now();
@@ -129,6 +130,16 @@ function getWithdrawUsdAmount(amount) {
     );
 }
 
+function normalizeWithdrawStatus(value) {
+    const safe = safeString(value, "pending").toLowerCase();
+
+    if (["pending", "processing", "paid", "rejected", "failed"].includes(safe)) {
+        return safe;
+    }
+
+    return "pending";
+}
+
 function createWithdrawRequest({ telegramId, username, amount, tonAddress }) {
     const safeAmount = normalizeRewardNumber(amount, 0);
     const feeAmount = getWithdrawFeeAmount(safeAmount);
@@ -157,6 +168,7 @@ function createWithdrawRequest({ telegramId, username, amount, tonAddress }) {
         createdAt: now,
         updatedAt: now,
         processedAt: 0,
+        processingStartedAt: 0,
         note: "",
         payoutTxHash: "",
         payoutError: ""
@@ -169,7 +181,9 @@ function getPendingWithdrawsForPlayer(db, telegramId) {
     return list.filter(
         (item) =>
             String(item?.telegramId || "") === String(telegramId || "") &&
-            String(item?.status || "pending").toLowerCase() === "pending"
+            ["pending", "processing"].includes(
+                normalizeWithdrawStatus(item?.status)
+            )
     );
 }
 
@@ -349,8 +363,8 @@ function validateWithdrawProcessing(player, withdrawRequest) {
         };
     }
 
-    const status = safeString(withdrawRequest?.status, "pending").toLowerCase();
-    if (status !== "pending") {
+    const status = normalizeWithdrawStatus(withdrawRequest?.status);
+    if (!["pending", "processing"].includes(status)) {
         return {
             ok: false,
             error: "Withdraw request already processed"
@@ -442,13 +456,32 @@ function applyRejectedWithdrawToPlayer(player, withdrawRequest) {
     return player;
 }
 
+function markWithdrawAsProcessing(withdrawRequest, note = "") {
+    if (!withdrawRequest || typeof withdrawRequest !== "object") {
+        return null;
+    }
+
+    const currentStatus = normalizeWithdrawStatus(withdrawRequest.status);
+    if (currentStatus !== "pending") {
+        return null;
+    }
+
+    withdrawRequest.status = "processing";
+    withdrawRequest.note = sanitizeNote(note);
+    withdrawRequest.updatedAt = getNow();
+    withdrawRequest.processingStartedAt = getNow();
+    withdrawRequest.payoutError = "";
+
+    return withdrawRequest;
+}
+
 function markWithdrawAsPaid(withdrawRequest, note = "", payoutTxHash = "") {
     if (!withdrawRequest || typeof withdrawRequest !== "object") {
         return null;
     }
 
-    const currentStatus = safeString(withdrawRequest.status, "pending").toLowerCase();
-    if (currentStatus !== "pending") {
+    const currentStatus = normalizeWithdrawStatus(withdrawRequest.status);
+    if (!["pending", "processing"].includes(currentStatus)) {
         logSuspiciousWithdraw("mark_paid_non_pending", {
             withdrawId: withdrawRequest?.id,
             status: currentStatus
@@ -464,6 +497,7 @@ function markWithdrawAsPaid(withdrawRequest, note = "", payoutTxHash = "") {
     withdrawRequest.payoutError = "";
     withdrawRequest.updatedAt = getNow();
     withdrawRequest.processedAt = getNow();
+    withdrawRequest.processingStartedAt = 0;
 
     return withdrawRequest;
 }
@@ -473,8 +507,8 @@ function markWithdrawAsRejected(withdrawRequest, note = "") {
         return null;
     }
 
-    const currentStatus = safeString(withdrawRequest.status, "pending").toLowerCase();
-    if (currentStatus !== "pending") {
+    const currentStatus = normalizeWithdrawStatus(withdrawRequest.status);
+    if (!["pending", "processing"].includes(currentStatus)) {
         logSuspiciousWithdraw("mark_rejected_non_pending", {
             withdrawId: withdrawRequest?.id,
             status: currentStatus
@@ -486,8 +520,69 @@ function markWithdrawAsRejected(withdrawRequest, note = "") {
     withdrawRequest.note = sanitizeNote(note);
     withdrawRequest.updatedAt = getNow();
     withdrawRequest.processedAt = getNow();
+    withdrawRequest.processingStartedAt = 0;
 
     return withdrawRequest;
+}
+
+function markWithdrawAsFailed(withdrawRequest, errorMessage = "") {
+    if (!withdrawRequest || typeof withdrawRequest !== "object") {
+        return null;
+    }
+
+    withdrawRequest.status = "failed";
+    withdrawRequest.payoutError = safeString(errorMessage, "").slice(0, 500);
+    withdrawRequest.updatedAt = getNow();
+    withdrawRequest.processingStartedAt = 0;
+
+    return withdrawRequest;
+}
+
+function releaseWithdrawToPending(withdrawRequest, errorMessage = "") {
+    if (!withdrawRequest || typeof withdrawRequest !== "object") {
+        return null;
+    }
+
+    withdrawRequest.status = "pending";
+    withdrawRequest.payoutError = safeString(errorMessage, "").slice(0, 500);
+    withdrawRequest.updatedAt = getNow();
+    withdrawRequest.processingStartedAt = 0;
+
+    return withdrawRequest;
+}
+
+function isWithdrawLocked(withdrawRequest) {
+    if (!withdrawRequest || typeof withdrawRequest !== "object") {
+        return false;
+    }
+
+    if (normalizeWithdrawStatus(withdrawRequest.status) !== "processing") {
+        return false;
+    }
+
+    const startedAt = Math.max(0, Number(withdrawRequest.processingStartedAt) || 0);
+    if (!startedAt) {
+        return false;
+    }
+
+    return getNow() - startedAt < PROCESSING_LOCK_MS;
+}
+
+function getNextPendingWithdraw(db) {
+    const list = Array.isArray(db?.withdrawRequests) ? db.withdrawRequests : [];
+
+    const candidates = list
+        .filter((item) => {
+            const status = normalizeWithdrawStatus(item?.status);
+
+            if (status === "pending") return true;
+            if (status === "processing" && !isWithdrawLocked(item)) return true;
+
+            return false;
+        })
+        .sort((a, b) => Number(a?.createdAt || 0) - Number(b?.createdAt || 0));
+
+    return candidates[0] || null;
 }
 
 function requireAdmin(req, res) {
@@ -515,10 +610,12 @@ module.exports = {
     MIN_WITHDRAW_LEVEL,
     MIN_ACCOUNT_AGE_MS,
     WITHDRAW_FEE_PERCENT,
+    PROCESSING_LOCK_MS,
 
     createWithdrawRequest,
     getPendingWithdrawsForPlayer,
     getLatestWithdrawForPlayer,
+    getNextPendingWithdraw,
     findWithdrawById,
     syncPlayerWithdrawPendingFromRequests,
 
@@ -533,14 +630,19 @@ module.exports = {
     getWithdrawFeeAmount,
     getWithdrawNetAmount,
     getWithdrawGrossAmount,
+    normalizeWithdrawStatus,
+    isWithdrawLocked,
 
     validateWithdrawRequest,
     validateWithdrawProcessing,
     applyCreateWithdrawToPlayer,
     applyPaidWithdrawToPlayer,
     applyRejectedWithdrawToPlayer,
+    markWithdrawAsProcessing,
     markWithdrawAsPaid,
     markWithdrawAsRejected,
+    markWithdrawAsFailed,
+    releaseWithdrawToPending,
 
     requireAdmin
 };
