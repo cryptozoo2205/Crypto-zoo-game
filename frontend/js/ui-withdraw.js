@@ -90,6 +90,35 @@ CryptoZoo.uiWithdraw = {
         return Number(Math.max(0, reward - fee).toFixed(3));
     },
 
+    formatRewardAmount(value) {
+        return Number((Number(value) || 0).toFixed(3)).toFixed(3);
+    },
+
+    formatUsdAmount(rewardValue) {
+        if (typeof CryptoZoo.formatUsd === "function") {
+            return CryptoZoo.formatUsd(rewardValue);
+        }
+
+        const rate = Number(CryptoZoo.config?.rewardToUsdRate || 0);
+        const usd = (Number(rewardValue) || 0) * rate;
+        return "$" + usd.toFixed(2);
+    },
+
+    setSummaryValue(element, rewardValue, extraClassName = "") {
+        if (!element) return;
+
+        const rewardText = this.formatRewardAmount(rewardValue);
+        const usdText = this.formatUsdAmount(rewardValue);
+        const safeClass = String(extraClassName || "").trim();
+
+        element.innerHTML = `
+            <div>${rewardText}</div>
+            <div class="withdraw-usd-subvalue${safeClass ? ` ${safeClass}` : ""}" style="font-size:12px; opacity:0.72; margin-top:4px;">
+                ${usdText}
+            </div>
+        `;
+    },
+
     getAvailability() {
         const rewardWallet = this.getRewardWallet();
         const withdrawPending = this.getWithdrawPending();
@@ -406,6 +435,14 @@ CryptoZoo.uiWithdraw = {
                     : { ...(CryptoZoo.state || {}), ...data.player };
             }
 
+            if (data?.payoutConfig) {
+                CryptoZoo.state = CryptoZoo.state || {};
+                CryptoZoo.state.payoutConfig = {
+                    ...(CryptoZoo.state.payoutConfig || {}),
+                    ...data.payoutConfig
+                };
+            }
+
             if (typeof CryptoZoo.api?.writeLocalState === "function") {
                 CryptoZoo.api.writeLocalState(CryptoZoo.state);
             }
@@ -440,9 +477,9 @@ CryptoZoo.uiWithdraw = {
         const net = this.getWithdrawNetAmount(amount);
         const availability = this.getAvailability();
 
-        if (grossEl) grossEl.textContent = amount.toFixed(3);
-        if (feeEl) feeEl.textContent = fee.toFixed(3);
-        if (netEl) netEl.textContent = net.toFixed(3);
+        this.setSummaryValue(grossEl, amount);
+        this.setSummaryValue(feeEl, fee, "withdraw-usd-fee");
+        this.setSummaryValue(netEl, net, "withdraw-usd-net");
 
         if (helpEl) {
             const hasWalletInput = !!String(this.getWalletInput()?.value || this.getCurrentWalletAddress() || "").trim();
@@ -452,7 +489,8 @@ CryptoZoo.uiWithdraw = {
             } else if (!availability.ok) {
                 helpEl.textContent = `${availability.reason}. Adres wallet możesz zapisać niezależnie od wypłaty.`;
             } else {
-                helpEl.textContent = `Dostępne w Wallet: ${this.getRewardWallet().toFixed(3)} • Wpisz kwotę i adres TON wallet.`;
+                helpEl.textContent =
+                    `Dostępne w Wallet: ${this.getRewardWallet().toFixed(3)} (${this.formatUsdAmount(this.getRewardWallet())}) • Wpisz kwotę i adres TON wallet.`;
             }
         }
 
