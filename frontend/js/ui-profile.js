@@ -207,6 +207,46 @@ CryptoZoo.uiProfile = {
         };
     },
 
+    getStateReferralsFallback() {
+        const stateReferrals = Array.isArray(CryptoZoo.state?.referrals) ? CryptoZoo.state.referrals : [];
+
+        return stateReferrals
+            .map((entry) => ({
+                telegramId: String(entry?.telegramId || "").trim(),
+                username: String(entry?.username || "Gracz").trim(),
+                firstName: String(entry?.firstName || "").trim(),
+                createdAt: Math.max(0, Number(entry?.createdAt) || 0),
+                activated: !!entry?.activated,
+                activatedAt: Math.max(0, Number(entry?.activatedAt) || 0)
+            }))
+            .filter((entry) => !!entry.telegramId);
+    },
+
+    normalizeReferralEntries(entries = []) {
+        const seen = new Set();
+
+        return (Array.isArray(entries) ? entries : [])
+            .map((entry) => ({
+                telegramId: String(entry?.telegramId || "").trim(),
+                username: String(entry?.username || "Gracz").trim(),
+                firstName: String(entry?.firstName || "").trim(),
+                createdAt: Math.max(0, Number(entry?.createdAt) || 0),
+                activated: !!entry?.activated,
+                activatedAt: Math.max(0, Number(entry?.activatedAt) || 0)
+            }))
+            .filter((entry) => {
+                if (!entry.telegramId) return false;
+                if (seen.has(entry.telegramId)) return false;
+                seen.add(entry.telegramId);
+                return true;
+            })
+            .sort((a, b) => {
+                const timeA = Math.max(0, Number(a.createdAt) || 0);
+                const timeB = Math.max(0, Number(b.createdAt) || 0);
+                return timeB - timeA;
+            });
+    },
+
     buildReferralLink() {
         const data = this.referralsData || {};
         const backendLink = String(data.referralLink || "").trim();
@@ -398,29 +438,49 @@ CryptoZoo.uiProfile = {
         this.referralsLoading = true;
         this.renderReferralsSection();
 
+        const stateFallbackReferrals = this.getStateReferralsFallback();
+
         try {
             const result = await CryptoZoo.api.request(`/referrals/${encodeURIComponent(telegramId)}`, {
                 method: "GET"
             });
 
+            const backendReferrals = this.normalizeReferralEntries(result?.referrals || []);
+            const finalReferrals = backendReferrals.length
+                ? backendReferrals
+                : stateFallbackReferrals;
+
+            const finalCount = Math.max(
+                0,
+                Number(result?.referralsCount) || 0,
+                backendReferrals.length,
+                stateFallbackReferrals.length
+            );
+
             this.referralsData = {
-                referralsCount: Math.max(0, Number(result?.referralsCount) || 0),
-                referredBy: String(result?.referredBy || ""),
-                referralCode: String(result?.referralCode || telegramId),
+                referralsCount: finalCount,
+                referredBy: String(result?.referredBy || CryptoZoo.state?.referredBy || ""),
+                referralCode: String(result?.referralCode || CryptoZoo.state?.referralCode || telegramId),
                 referralLinkCode: String(result?.referralLinkCode || `ref_${telegramId}`),
                 referralLink: String(result?.referralLink || ""),
                 referralRewards: result?.referralRewards || fallbackRewards,
-                referrals: Array.isArray(result?.referrals) ? result.referrals : []
+                referrals: finalReferrals
             };
         } catch (e) {
+            const fallbackReferrals = this.normalizeReferralEntries(stateFallbackReferrals);
+
             this.referralsData = {
-                referralsCount: 0,
-                referredBy: "",
-                referralCode: telegramId,
+                referralsCount: Math.max(
+                    0,
+                    Number(CryptoZoo.state?.referralsCount) || 0,
+                    fallbackReferrals.length
+                ),
+                referredBy: String(CryptoZoo.state?.referredBy || ""),
+                referralCode: String(CryptoZoo.state?.referralCode || telegramId),
                 referralLinkCode: `ref_${telegramId}`,
                 referralLink: "",
                 referralRewards: fallbackRewards,
-                referrals: []
+                referrals: fallbackReferrals
             };
         }
 
@@ -495,7 +555,7 @@ CryptoZoo.uiProfile = {
         rewardsEl.style.whiteSpace = "pre-line";
         rewardsEl.textContent = rewardsText;
 
-        const referrals = Array.isArray(data.referrals) ? data.referrals : [];
+        const referrals = this.normalizeReferralEntries(data.referrals || []);
         if (!referrals.length) {
             listEl.innerHTML = `<div>${isPl ? "Brak zaproszonych" : "No invited players"}</div>`;
             return;
