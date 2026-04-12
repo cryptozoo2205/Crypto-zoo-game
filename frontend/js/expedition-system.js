@@ -5,7 +5,9 @@ CryptoZoo.expeditions = {
 
     DAILY_REWARD_FREE_CAP: 0.08,
     DAILY_REWARD_PREMIUM_CAP: 0.25,
-    BASE_REWARD_PER_HOUR: 0.0025,
+    BASE_REWARD_PER_HOUR: 0.02,
+    MIN_REWARD_PREVIEW: 0.001,
+    MAX_REWARD_PER_EXPEDITION: 0.03,
 
     getAll() {
         return Array.isArray(CryptoZoo.config?.expeditions)
@@ -234,9 +236,16 @@ CryptoZoo.expeditions = {
         }
 
         const expedition = CryptoZoo.state.expedition;
+        const configExpedition = this.getById(expedition.id);
 
         expedition.id = String(expedition.id || "");
-        expedition.name = String(expedition.name || "Expedition");
+        expedition.name = String(
+            expedition.name ||
+            configExpedition?.nameEn ||
+            configExpedition?.namePl ||
+            configExpedition?.name ||
+            "Expedition"
+        );
 
         expedition.startTime = Math.max(0, Number(expedition.startTime) || 0);
         expedition.endTime = Math.max(0, Number(expedition.endTime) || 0);
@@ -244,6 +253,8 @@ CryptoZoo.expeditions = {
         expedition.baseDuration = Math.max(
             60,
             Number(expedition.baseDuration) ||
+            Number(configExpedition?.baseDuration) ||
+            Number(configExpedition?.duration) ||
             Number(expedition.duration) ||
             60
         );
@@ -251,6 +262,7 @@ CryptoZoo.expeditions = {
         expedition.duration = Math.max(
             60,
             Number(expedition.duration) ||
+            Number(configExpedition?.duration) ||
             expedition.baseDuration ||
             60
         );
@@ -266,7 +278,6 @@ CryptoZoo.expeditions = {
         expedition.selectedAnimals = this.normalizeSelectedAnimals(expedition.selectedAnimals);
         expedition.startCostCoins = Math.max(0, Math.floor(Number(expedition.startCostCoins) || 0));
         expedition.rewardBalance = Math.max(0, Number(expedition.rewardBalance) || 0);
-
         expedition.claimed = Boolean(expedition.claimed);
         expedition.collectedAt = Math.max(0, Number(expedition.collectedAt) || 0);
 
@@ -349,12 +360,27 @@ CryptoZoo.expeditions = {
     },
 
     getUnlockRequirement(expedition) {
-        if (!expedition) return 1;
-        return Math.max(1, Number(expedition.unlockLevel) || 1);
+        const configExpedition = this.getById(expedition?.id);
+        return Math.max(
+            1,
+            Math.floor(Number(configExpedition?.unlockLevel) || Number(expedition?.unlockLevel) || 1)
+        );
     },
 
     getStartCostCoins(expedition) {
-        return Math.max(0, Math.floor(Number(expedition?.startCostCoins) || 0));
+        const configExpedition = this.getById(expedition?.id);
+        return Math.max(
+            0,
+            Math.floor(Number(configExpedition?.startCostCoins) || Number(expedition?.startCostCoins) || 0)
+        );
+    },
+
+    getBaseCoinsReward(expedition) {
+        const configExpedition = this.getById(expedition?.id);
+        return Math.max(
+            0,
+            Math.floor(Number(configExpedition?.baseCoins) || Number(expedition?.baseCoins) || 0)
+        );
     },
 
     getCurrentCoins() {
@@ -394,7 +420,6 @@ CryptoZoo.expeditions = {
         }
 
         const boostLevel = Math.max(0, Number(CryptoZoo.state?.expeditionBoost) || 0);
-
         return 1 + Math.min(0.15, boostLevel * 0.15);
     },
 
@@ -408,29 +433,45 @@ CryptoZoo.expeditions = {
         return baseMultiplier * dailyMultiplier;
     },
 
-    getEffectiveDurationSeconds(expeditionConfig) {
+    getEffectiveDurationSeconds(expedition) {
+        const configExpedition = this.getById(expedition?.id);
+
         return Math.max(
             60,
-            Number(expeditionConfig?.baseDuration) ||
-            Number(expeditionConfig?.duration) ||
+            Number(configExpedition?.baseDuration) ||
+            Number(configExpedition?.duration) ||
+            Number(expedition?.baseDuration) ||
+            Number(expedition?.duration) ||
             60
         );
     },
 
     getEffectiveRareChance(expedition) {
-        const baseRareChance = Math.max(0, Number(expedition?.rareChance) || 0);
+        const configExpedition = this.getById(expedition?.id);
+        const baseRareChance = Math.max(
+            0,
+            Number(configExpedition?.rareChance) || Number(expedition?.rareChance) || 0
+        );
         const bonus = this.getRareChanceBonus();
         return Math.min(0.32, baseRareChance + bonus);
     },
 
     getEffectiveEpicChance(expedition) {
-        const baseEpicChance = Math.max(0, Number(expedition?.epicChance) || 0);
+        const configExpedition = this.getById(expedition?.id);
+        const baseEpicChance = Math.max(
+            0,
+            Number(configExpedition?.epicChance) || Number(expedition?.epicChance) || 0
+        );
         const bonus = this.getEpicChanceBonus();
         return Math.min(0.10, baseEpicChance + bonus);
     },
 
     getEffectiveGemChance(expedition, rewardRarity = "common") {
-        const baseGemChance = Math.max(0, Number(expedition?.gemChance) || 0);
+        const configExpedition = this.getById(expedition?.id);
+        const baseGemChance = Math.max(
+            0,
+            Number(configExpedition?.gemChance) || Number(expedition?.gemChance) || 0
+        );
 
         let chance = baseGemChance;
         if (rewardRarity === "rare") chance += 0.008;
@@ -470,13 +511,7 @@ CryptoZoo.expeditions = {
     calculateRewardBalancePreview(expedition) {
         if (!expedition) return 0;
 
-        const durationSeconds = Math.max(
-            60,
-            Number(expedition.baseDuration) ||
-            Number(expedition.duration) ||
-            60
-        );
-
+        const durationSeconds = this.getEffectiveDurationSeconds(expedition);
         const hours = durationSeconds / 3600;
         const tierMultiplier = this.getRewardTierMultiplier(expedition);
 
@@ -490,8 +525,11 @@ CryptoZoo.expeditions = {
 
         let reward = hours * this.BASE_REWARD_PER_HOUR * tierMultiplier * rarityMultiplier * boostMultiplier;
 
-        // preview ma być tylko podglądem — bez zapisu i bez ruszania capa
-        reward = Math.min(reward, 0.03);
+        if (reward > 0 && reward < this.MIN_REWARD_PREVIEW) {
+            reward = this.MIN_REWARD_PREVIEW;
+        }
+
+        reward = Math.min(reward, this.MAX_REWARD_PER_EXPEDITION);
 
         return Number(reward.toFixed(3));
     },
@@ -503,7 +541,7 @@ CryptoZoo.expeditions = {
     finalizeRewardBalanceAmount(expedition) {
         let reward = this.calculateRewardBalancePreview(expedition);
         reward = this.applyRewardDiminishing(reward);
-        reward = Math.min(reward, 0.03);
+        reward = Math.min(reward, this.MAX_REWARD_PER_EXPEDITION);
         reward = this.applyRewardCap(reward);
 
         return Number(reward.toFixed(3));
@@ -657,7 +695,6 @@ CryptoZoo.expeditions = {
 
             let rewardBalance = Math.max(0, Number(rewards.rewardBalance) || 0);
 
-            // fallback gdy backend nie zwraca rewardBalance
             if (rewardBalance <= 0) {
                 rewardBalance = this.finalizeRewardBalanceAmount(expedition);
 
