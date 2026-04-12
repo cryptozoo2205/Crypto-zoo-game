@@ -15,6 +15,10 @@ const {
 
 const router = express.Router();
 
+
+// =======================
+// APPLY REFERRAL
+// =======================
 router.post("/apply", (req, res) => {
     const db = readDb();
 
@@ -31,6 +35,10 @@ router.post("/apply", (req, res) => {
     }
 
     const player = getPlayerOrCreate(db, telegramId, username);
+
+    // 🔥 DEBUG LOG
+    console.log("REF APPLY:", referralCode, "->", telegramId);
+
     const applied = applyReferralIfPossible(db, player, referralCode);
 
     db.players[telegramId] = normalizePlayer(db.players[telegramId] || player);
@@ -43,6 +51,10 @@ router.post("/apply", (req, res) => {
     });
 });
 
+
+// =======================
+// GET REFERRALS DATA
+// =======================
 router.get("/referrals/:telegramId", (req, res) => {
     const db = readDb();
     const telegramId = safeString(req.params.telegramId, "");
@@ -83,5 +95,41 @@ router.get("/referrals/:telegramId", (req, res) => {
         referrals: normalizeReferrals(safePlayer.referrals)
     });
 });
+
+
+// =======================
+// 🔥 TEST REF (BEZ TELEGRAMA)
+// =======================
+router.get("/test", (req, res) => {
+    const db = readDb();
+
+    const referrerId = "TEST_REF_1";
+    const newUserId = "TEST_REF_2";
+
+    db.players = db.players || {};
+
+    const referrer = getPlayerOrCreate(db, referrerId, "Referrer");
+    const newUser = getPlayerOrCreate(db, newUserId, "NewUser");
+
+    // reset żeby można było testować wiele razy
+    newUser.referredBy = null;
+
+    console.log("TEST REF:", referrerId, "->", newUserId);
+
+    const applied = applyReferralIfPossible(db, newUser, referrerId);
+
+    db.players[referrerId] = normalizePlayer(referrer);
+    db.players[newUserId] = normalizePlayer(newUser);
+
+    writeDb(db);
+
+    return res.json({
+        ok: true,
+        applied,
+        referrer: db.players[referrerId],
+        newUser: db.players[newUserId]
+    });
+});
+
 
 module.exports = router;
