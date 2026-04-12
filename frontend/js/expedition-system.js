@@ -3,6 +3,10 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.expeditions = {
     collectInProgress: false,
 
+    DAILY_REWARD_FREE_CAP: 0.08,
+    DAILY_REWARD_PREMIUM_CAP: 0.25,
+    BASE_REWARD_PER_HOUR: 0.0025,
+
     getAll() {
         return Array.isArray(CryptoZoo.config?.expeditions)
             ? CryptoZoo.config.expeditions
@@ -75,6 +79,77 @@ CryptoZoo.expeditions = {
         );
     },
 
+    ensureRewardDailyState() {
+        CryptoZoo.state = CryptoZoo.state || {};
+        CryptoZoo.state.rewardDaily = CryptoZoo.state.rewardDaily || {};
+
+        if (typeof CryptoZoo.state.rewardBalance !== "number") {
+            CryptoZoo.state.rewardBalance = Number(CryptoZoo.state.rewardBalance) || 0;
+        }
+    },
+
+    getTodayRewardKey() {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, "0");
+        const d = String(now.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
+    },
+
+    getDailyRewardCap() {
+        const isPremium = Boolean(CryptoZoo.state?.isPremium);
+        return isPremium ? this.DAILY_REWARD_PREMIUM_CAP : this.DAILY_REWARD_FREE_CAP;
+    },
+
+    getTodayRewardEarned() {
+        this.ensureRewardDailyState();
+        const key = this.getTodayRewardKey();
+        return Math.max(0, Number(CryptoZoo.state.rewardDaily[key]) || 0);
+    },
+
+    getRemainingDailyRewardCap() {
+        const cap = this.getDailyRewardCap();
+        const earned = this.getTodayRewardEarned();
+        return Math.max(0, Number((cap - earned).toFixed(3)));
+    },
+
+    applyRewardDiminishing(amount) {
+        const safeAmount = Math.max(0, Number(amount) || 0);
+        const todayEarned = this.getTodayRewardEarned();
+
+        if (todayEarned >= 0.06) {
+            return safeAmount * 0.25;
+        }
+
+        if (todayEarned >= 0.04) {
+            return safeAmount * 0.5;
+        }
+
+        return safeAmount;
+    },
+
+    applyRewardCap(amount) {
+        this.ensureRewardDailyState();
+
+        const safeAmount = Math.max(0, Number(amount) || 0);
+        if (safeAmount <= 0) {
+            return 0;
+        }
+
+        const key = this.getTodayRewardKey();
+        const current = this.getTodayRewardEarned();
+        const cap = this.getDailyRewardCap();
+
+        if (current >= cap) {
+            return 0;
+        }
+
+        const allowed = Math.min(safeAmount, cap - current);
+        CryptoZoo.state.rewardDaily[key] = Number((current + allowed).toFixed(3));
+
+        return Number(allowed.toFixed(3));
+    },
+
     ensureExpeditionStats() {
         CryptoZoo.state = CryptoZoo.state || {};
         CryptoZoo.state.expeditionStats = CryptoZoo.state.expeditionStats || {
@@ -125,6 +200,8 @@ CryptoZoo.expeditions = {
             CryptoZoo.state.expeditionBoost = 0;
             CryptoZoo.state.expeditionBoostActiveUntil = 0;
         }
+
+        this.ensureRewardDailyState();
     },
 
     normalizeSelectedAnimals(selectedAnimals) {
@@ -188,6 +265,7 @@ CryptoZoo.expeditions = {
         expedition.rewardGems = Math.max(0, Math.floor(Number(expedition.rewardGems) || 0));
         expedition.selectedAnimals = this.normalizeSelectedAnimals(expedition.selectedAnimals);
         expedition.startCostCoins = Math.max(0, Math.floor(Number(expedition.startCostCoins) || 0));
+        expedition.rewardBalance = Math.max(0, Number(expedition.rewardBalance) || 0);
 
         expedition.claimed = Boolean(expedition.claimed);
         expedition.collectedAt = Math.max(0, Number(expedition.collectedAt) || 0);
@@ -317,7 +395,7 @@ CryptoZoo.expeditions = {
 
         const boostLevel = Math.max(0, Number(CryptoZoo.state?.expeditionBoost) || 0);
 
-        return 1 + Math.min(0.2, boostLevel * 0.2);
+        return 1 + Math.min(0.15, boostLevel * 0.15);
     },
 
     getTotalExpeditionRewardMultiplier() {
@@ -342,23 +420,23 @@ CryptoZoo.expeditions = {
     getEffectiveRareChance(expedition) {
         const baseRareChance = Math.max(0, Number(expedition?.rareChance) || 0);
         const bonus = this.getRareChanceBonus();
-        return Math.min(0.45, baseRareChance + bonus);
+        return Math.min(0.32, baseRareChance + bonus);
     },
 
     getEffectiveEpicChance(expedition) {
         const baseEpicChance = Math.max(0, Number(expedition?.epicChance) || 0);
         const bonus = this.getEpicChanceBonus();
-        return Math.min(0.18, baseEpicChance + bonus);
+        return Math.min(0.10, baseEpicChance + bonus);
     },
 
     getEffectiveGemChance(expedition, rewardRarity = "common") {
         const baseGemChance = Math.max(0, Number(expedition?.gemChance) || 0);
 
         let chance = baseGemChance;
-        if (rewardRarity === "rare") chance += 0.012;
-        if (rewardRarity === "epic") chance += 0.03;
+        if (rewardRarity === "rare") chance += 0.008;
+        if (rewardRarity === "epic") chance += 0.018;
 
-        return Math.min(0.10, chance);
+        return Math.min(0.06, chance);
     },
 
     rollRewardRarity(expedition) {
@@ -376,14 +454,14 @@ CryptoZoo.expeditions = {
 
         const tierMap = {
             forest: 1.00,
-            river: 1.02,
-            volcano: 1.04,
-            canyon: 1.07,
-            glacier: 1.10,
-            jungle: 1.13,
-            temple: 1.17,
-            oasis: 1.21,
-            kingdom: 1.26
+            river: 1.01,
+            volcano: 1.03,
+            canyon: 1.05,
+            glacier: 1.08,
+            jungle: 1.11,
+            temple: 1.14,
+            oasis: 1.18,
+            kingdom: 1.22
         };
 
         return Number(tierMap[expeditionId]) || 1.00;
@@ -405,13 +483,16 @@ CryptoZoo.expeditions = {
         const rarity = this.normalizeRewardRarity(expedition.rewardRarity);
         let rarityMultiplier = 1;
 
-        if (rarity === "rare") rarityMultiplier = 1.18;
-        if (rarity === "epic") rarityMultiplier = 1.42;
+        if (rarity === "rare") rarityMultiplier = 1.10;
+        if (rarity === "epic") rarityMultiplier = 1.22;
 
         const boostMultiplier = this.getTotalExpeditionRewardMultiplier();
 
-        let reward = hours * 0.012 * tierMultiplier * rarityMultiplier * boostMultiplier;
-        reward = Math.min(reward, 0.45);
+        let reward = hours * this.BASE_REWARD_PER_HOUR * tierMultiplier * rarityMultiplier * boostMultiplier;
+
+        reward = this.applyRewardDiminishing(reward);
+        reward = Math.min(reward, 0.03);
+        reward = this.applyRewardCap(reward);
 
         return Number(reward.toFixed(3));
     },
