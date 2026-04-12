@@ -120,6 +120,16 @@ CryptoZoo.uiSettings = {
         return Number((Number(v) || 0).toFixed(3));
     },
 
+    formatUsdAmount(rewardValue) {
+        if (typeof CryptoZoo.formatUsd === "function") {
+            return CryptoZoo.formatUsd(rewardValue);
+        }
+
+        const rate = Number(CryptoZoo.config?.rewardToUsdRate || 0);
+        const usd = (Number(rewardValue) || 0) * rate;
+        return "$" + usd.toFixed(2);
+    },
+
     getDepositBonusMeta(amount) {
         const safeAmount = Number(amount) || 0;
 
@@ -268,6 +278,10 @@ CryptoZoo.uiSettings = {
         const rewardWalletEl = document.getElementById("settingsRewardWallet");
         const withdrawPendingEl = document.getElementById("settingsWithdrawPending");
 
+        const rewardBalanceUsdEl = document.getElementById("settingsRewardBalanceUsd");
+        const rewardWalletUsdEl = document.getElementById("settingsRewardWalletUsd");
+        const withdrawPendingUsdEl = document.getElementById("settingsWithdrawPendingUsd");
+
         const rewardBalance = this.getRewardBalance();
         const rewardWallet = this.getRewardWallet();
         const withdrawPending = this.getWithdrawPending();
@@ -282,6 +296,18 @@ CryptoZoo.uiSettings = {
 
         if (withdrawPendingEl) {
             withdrawPendingEl.textContent = this.format(withdrawPending).toFixed(3);
+        }
+
+        if (rewardBalanceUsdEl) {
+            rewardBalanceUsdEl.textContent = this.formatUsdAmount(rewardBalance);
+        }
+
+        if (rewardWalletUsdEl) {
+            rewardWalletUsdEl.textContent = this.formatUsdAmount(rewardWallet);
+        }
+
+        if (withdrawPendingUsdEl) {
+            withdrawPendingUsdEl.textContent = this.formatUsdAmount(withdrawPending);
         }
 
         const transferBtn = document.getElementById("settingsTransferRewardBtn");
@@ -458,10 +484,12 @@ CryptoZoo.uiSettings = {
                 );
 
                 const status = String(w.status || "pending");
+                const usdText = this.formatUsdAmount(grossReward);
 
                 return `
                     <div style="padding:10px;border:1px solid rgba(255,255,255,0.1);border-radius:10px;margin-bottom:8px;">
                         <div>${grossReward.toFixed(3)} reward</div>
+                        <div style="margin-top:4px; font-size:12px; color:rgba(255,255,255,0.68);">${usdText}</div>
                         <div style="margin-top:4px;">${status}</div>
                     </div>
                 `;
