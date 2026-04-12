@@ -467,7 +467,7 @@ CryptoZoo.expeditions = {
         return Number(tierMap[expeditionId]) || 1.00;
     },
 
-    getRewardBalanceAmount(expedition) {
+    calculateRewardBalancePreview(expedition) {
         if (!expedition) return 0;
 
         const durationSeconds = Math.max(
@@ -490,6 +490,18 @@ CryptoZoo.expeditions = {
 
         let reward = hours * this.BASE_REWARD_PER_HOUR * tierMultiplier * rarityMultiplier * boostMultiplier;
 
+        // preview ma być tylko podglądem — bez zapisu i bez ruszania capa
+        reward = Math.min(reward, 0.03);
+
+        return Number(reward.toFixed(3));
+    },
+
+    getRewardBalanceAmount(expedition) {
+        return this.calculateRewardBalancePreview(expedition);
+    },
+
+    finalizeRewardBalanceAmount(expedition) {
+        let reward = this.calculateRewardBalancePreview(expedition);
         reward = this.applyRewardDiminishing(reward);
         reward = Math.min(reward, 0.03);
         reward = this.applyRewardCap(reward);
@@ -642,7 +654,20 @@ CryptoZoo.expeditions = {
 
             const coins = Math.max(0, Number(rewards.coins) || 0);
             const gems = Math.max(0, Number(rewards.gems) || 0);
-            const rewardBalance = Math.max(0, Number(rewards.rewardBalance) || 0);
+
+            let rewardBalance = Math.max(0, Number(rewards.rewardBalance) || 0);
+
+            // fallback gdy backend nie zwraca rewardBalance
+            if (rewardBalance <= 0) {
+                rewardBalance = this.finalizeRewardBalanceAmount(expedition);
+
+                if (rewardBalance > 0) {
+                    CryptoZoo.state.rewardBalance = Number(
+                        ((Number(CryptoZoo.state.rewardBalance) || 0) + rewardBalance).toFixed(3)
+                    );
+                    CryptoZoo.api?.savePlayer?.();
+                }
+            }
 
             CryptoZoo.audio?.play?.("win");
             CryptoZoo.gameplay?.recalculateProgress?.();
