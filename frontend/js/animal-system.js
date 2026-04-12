@@ -48,14 +48,14 @@ CryptoZoo.animalsSystem = {
     getMaxOwned() {
         return Math.max(
             1,
-            Math.floor(Number(CryptoZoo.config?.limits?.maxOwnedPerAnimal) || 50)
+            Math.floor(Number(CryptoZoo.config?.limits?.maxOwnedPerAnimal) || 20)
         );
     },
 
     getMaxLevel() {
         return Math.max(
             1,
-            Math.floor(Number(CryptoZoo.config?.limits?.maxLevelPerAnimal) || 100)
+            Math.floor(Number(CryptoZoo.config?.limits?.maxLevelPerAnimal) || 25)
         );
     },
 
@@ -79,30 +79,41 @@ CryptoZoo.animalsSystem = {
         return index >= 0 ? index : 0;
     },
 
+    getRequiredPlayerLevel(type) {
+        const config = CryptoZoo.config?.animals?.[type];
+        return Math.max(1, Math.floor(Number(config?.unlockLevel) || 1));
+    },
+
+    getRequiredPlayerLevelForUpgrade(type, currentAnimalLevel = 1) {
+        const baseUnlockLevel = this.getRequiredPlayerLevel(type);
+        const safeAnimalLevel = Math.max(1, Math.floor(Number(currentAnimalLevel) || 1));
+        return baseUnlockLevel + Math.floor((safeAnimalLevel - 1) / 2);
+    },
+
     getBuyGrowth(type) {
         const tierIndex = this.getAnimalTierIndex(type);
 
         const growthByTier = [
-            1.20,  // monkey
-            1.185, // panda
-            1.17,  // lion
-            1.16,  // tiger
-            1.155, // elephant
-            1.15,  // giraffe
-            1.145, // zebra
-            1.14,  // hippo
-            1.135, // penguin
-            1.13,  // bear
-            1.125, // crocodile
-            1.12,  // kangaroo
-            1.115  // wolf
+            1.32,  // monkey
+            1.31,  // panda
+            1.30,  // lion
+            1.29,  // tiger
+            1.28,  // elephant
+            1.27,  // giraffe
+            1.26,  // zebra
+            1.25,  // hippo
+            1.24,  // penguin
+            1.235, // bear
+            1.23,  // crocodile
+            1.225, // kangaroo
+            1.22   // wolf
         ];
 
         if (tierIndex < growthByTier.length) {
             return growthByTier[tierIndex];
         }
 
-        return 1.12;
+        return 1.24;
     },
 
     getBuyCost(type) {
@@ -131,6 +142,13 @@ CryptoZoo.animalsSystem = {
 
         const animal = this.ensureAnimalState(type);
         const maxOwned = this.getMaxOwned();
+        const playerLevel = Math.max(1, Math.floor(Number(CryptoZoo.state?.level) || 1));
+        const requiredLevel = this.getRequiredPlayerLevel(type);
+
+        if (playerLevel < requiredLevel) {
+            CryptoZoo.ui?.showToast?.(`Wymagany lvl ${requiredLevel}`);
+            return false;
+        }
 
         if (animal.count >= maxOwned) {
             CryptoZoo.ui?.showToast?.("Osiągnięto limit zwierząt");
@@ -174,11 +192,11 @@ CryptoZoo.animalsSystem = {
         const count = Math.max(0, Math.floor(Number(animal.count) || 0));
         const tierIndex = this.getAnimalTierIndex(type);
 
-        const levelMultiplier = Math.pow(1.42, level - 1);
-        const countMultiplier = 1 + Math.min(0.75, count * 0.015);
-        const tierMultiplier = 0.85 + tierIndex * 0.08;
+        const levelMultiplier = Math.pow(1.65, level - 1);
+        const countMultiplier = 1 + (count * 0.045);
+        const tierMultiplier = 1 + (tierIndex * 0.12);
 
-        const rawCost = baseCost * 0.75 * levelMultiplier * countMultiplier * tierMultiplier;
+        const rawCost = baseCost * 0.95 * levelMultiplier * countMultiplier * tierMultiplier;
         const safeCost = Math.floor(rawCost);
 
         if (!Number.isFinite(safeCost) || safeCost < 1) {
@@ -203,6 +221,14 @@ CryptoZoo.animalsSystem = {
 
         if (animal.level >= maxLevel) {
             CryptoZoo.ui?.showToast?.("Max level osiągnięty");
+            return false;
+        }
+
+        const playerLevel = Math.max(1, Math.floor(Number(CryptoZoo.state?.level) || 1));
+        const requiredPlayerLevel = this.getRequiredPlayerLevelForUpgrade(type, animal.level);
+
+        if (playerLevel < requiredPlayerLevel) {
+            CryptoZoo.ui?.showToast?.(`Wymagany lvl ${requiredPlayerLevel}`);
             return false;
         }
 
