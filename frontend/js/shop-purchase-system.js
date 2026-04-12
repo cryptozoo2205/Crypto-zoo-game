@@ -2,7 +2,7 @@ window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.shopSystem = {
     DAILY_EXPEDITION_BOOST_COOLDOWN: 24 * 60 * 60 * 1000,
-    DAILY_EXPEDITION_BOOST_VALUE: 0.15, // ↓ było 0.25
+    DAILY_EXPEDITION_BOOST_VALUE: 0.12, // ↓ jeszcze niżej (było 0.15)
 
     getItemById(itemId) {
         const items = CryptoZoo.config?.shopItems || [];
@@ -75,7 +75,7 @@ CryptoZoo.shopSystem = {
         CryptoZoo.dailyMissions?.recordSpendCoins?.(price);
     },
 
-    // 🔥 NAJWAŻNIEJSZE — NERF GLOBAL INCOME BOOST
+    // 🔥 HARD NERF — KONIEC SNOWBALLA
     applyIncomeUpgrade(item) {
         const incomeBonus = Math.max(1, Number(item?.incomeBonus) || 1);
         const animals = CryptoZoo.state?.animals || {};
@@ -91,8 +91,9 @@ CryptoZoo.shopSystem = {
 
             const currentLevel = Math.max(1, Number(animal?.level) || 1);
 
-            // 🔥 ZAMIAST +lvl → mały boost (max +2)
-            const safeBonus = Math.min(2, incomeBonus);
+            // 🔥 NAJWAŻNIEJSZE:
+            // zamiast +2 / +4 → tylko +1 MAX
+            const safeBonus = 1;
 
             const nextLevel = Math.min(maxLevel, currentLevel + safeBonus);
 
@@ -108,16 +109,20 @@ CryptoZoo.shopSystem = {
             return "Brak zwierząt";
         }
 
-        return `Mały boost income`;
+        return `+1 lvl (soft boost)`;
     },
 
+    // 🔥 lekki nerf click (ważne!)
     applyClickUpgrade(item) {
         const bonus = Math.max(1, Number(item?.clickValueBonus) || 1);
 
-        CryptoZoo.state.coinsPerClick =
-            Math.max(1, Number(CryptoZoo.state?.coinsPerClick) || 1) + bonus;
+        // ↓ ograniczamy scaling clicka
+        const safeBonus = Math.min(2, bonus);
 
-        return `+${CryptoZoo.formatNumber(bonus)} click`;
+        CryptoZoo.state.coinsPerClick =
+            Math.max(1, Number(CryptoZoo.state?.coinsPerClick) || 1) + safeBonus;
+
+        return `+${CryptoZoo.formatNumber(safeBonus)} click`;
     },
 
     applyExpeditionRewardUpgrade() {
@@ -127,7 +132,7 @@ CryptoZoo.shopSystem = {
         }
 
         this.applyDailyBoost();
-        return "+15% expedition";
+        return "+12% expedition";
     },
 
     applyItemEffect(item) {
