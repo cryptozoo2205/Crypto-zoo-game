@@ -10,6 +10,7 @@ window.CryptoZoo.api = {
     initialized: false,
     initPromise: null,
     lifecycleBound: false,
+    ensurePlayerPromise: null,
 
     saveInProgress: false,
     saveQueued: false,
@@ -1249,6 +1250,78 @@ window.CryptoZoo.api = {
         return response;
     },
 
+    async ensurePlayerPersistedOnBackend() {
+        if (this.testResetMode) {
+            const telegramUser = await this.getTelegramUser();
+            CryptoZoo.state = this.normalizeState(
+                CryptoZoo.state ||
+                    this.readLocalState(telegramUser.id) ||
+                    this.getDefaultState(telegramUser)
+            );
+            CryptoZoo.state.telegramUser = telegramUser;
+            CryptoZoo.state.updatedAt = Date.now();
+            CryptoZoo.state.lastLogin = Date.now();
+            this.writeLocalState(CryptoZoo.state, telegramUser.id);
+            return CryptoZoo.state;
+        }
+
+        if (this.ensurePlayerPromise) {
+            return this.ensurePlayerPromise;
+        }
+
+        this.ensurePlayerPromise = (async () => {
+            const telegramUser = await this.getTelegramUser();
+            const telegramId = String(telegramUser.id);
+            const localRaw = this.readLocalState(telegramId);
+
+            CryptoZoo.state = this.normalizeState(
+                CryptoZoo.state || localRaw || this.getDefaultState(telegramUser)
+            );
+            CryptoZoo.state.telegramUser = telegramUser;
+            CryptoZoo.state.updatedAt = Date.now();
+            CryptoZoo.state.lastLogin = Date.now();
+
+            this.writeLocalState(CryptoZoo.state, telegramId);
+
+            const payload = await this.getSavePayload();
+            const response = await this.request("/player/save", {
+                method: "POST",
+                body: JSON.stringify(payload),
+                timeoutMs: 5000,
+                retryCount: 1
+            });
+
+            const playerPart = this.unwrapPlayerResponse(response);
+
+            if (playerPart && typeof playerPart === "object") {
+                CryptoZoo.state = this.mergeStates(
+                    playerPart,
+                    CryptoZoo.state || payload
+                );
+            } else {
+                CryptoZoo.state = this.normalizeState(CryptoZoo.state || payload);
+            }
+
+            CryptoZoo.state.telegramUser = telegramUser;
+            CryptoZoo.state.updatedAt = Date.now();
+            CryptoZoo.state.lastLogin = Date.now();
+
+            this.writeLocalState(CryptoZoo.state, telegramId);
+
+            const freshPayload = await this.getSavePayload();
+            this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(freshPayload);
+            this.pendingDirty = false;
+
+            return CryptoZoo.state;
+        })();
+
+        try {
+            return await this.ensurePlayerPromise;
+        } finally {
+            this.ensurePlayerPromise = null;
+        }
+    },
+
     async loadPlayer() {
         const telegramUser = await this.getTelegramUser();
         const telegramId = String(telegramUser.id);
@@ -1494,6 +1567,8 @@ window.CryptoZoo.api = {
     },
 
     async createDepositWithPayment(amount) {
+        await this.ensurePlayerPersistedOnBackend();
+
         const safeAmount = Number((Math.max(0, Number(amount) || 0)).toFixed(3));
 
         if (safeAmount <= 0) {
@@ -1562,6 +1637,8 @@ window.CryptoZoo.api = {
     },
 
     async verifyPendingDepositsForPlayer() {
+        await this.ensurePlayerPersistedOnBackend();
+
         const response = await this.request("/deposit/verify-player", {
             method: "POST",
             body: JSON.stringify({
@@ -1575,6 +1652,8 @@ window.CryptoZoo.api = {
     },
 
     async getPlayerDeposits() {
+        await this.ensurePlayerPersistedOnBackend();
+
         return this.request(`/deposit/${await this.getPlayerId()}`, {
             method: "GET",
             timeoutMs: 5000,
@@ -1608,6 +1687,8 @@ window.CryptoZoo.api = {
     },
 
     async setWithdrawWallet(tonAddress) {
+        await this.ensurePlayerPersistedOnBackend();
+
         const safeAddress = String(tonAddress || "").trim();
 
         if (!safeAddress) {
@@ -1629,6 +1710,8 @@ window.CryptoZoo.api = {
     },
 
     async getWithdrawWallet() {
+        await this.ensurePlayerPersistedOnBackend();
+
         return this.request(`/withdraw/wallet/${await this.getPlayerId()}`, {
             method: "GET",
             timeoutMs: 5000,
@@ -1637,6 +1720,8 @@ window.CryptoZoo.api = {
     },
 
     async createWithdrawRequest(amount) {
+        await this.ensurePlayerPersistedOnBackend();
+
         const safeAmount = Number((Math.max(0, Number(amount) || 0)).toFixed(3));
 
         if (safeAmount <= 0) {
@@ -1658,6 +1743,8 @@ window.CryptoZoo.api = {
     },
 
     async loadWithdrawHistory() {
+        await this.ensurePlayerPersistedOnBackend();
+
         const response = await this.request(`/withdraw/${await this.getPlayerId()}`, {
             method: "GET",
             timeoutMs: 5000,
@@ -1668,6 +1755,8 @@ window.CryptoZoo.api = {
     },
 
     async transferRewardToWallet() {
+        await this.ensurePlayerPersistedOnBackend();
+
         const response = await this.request("/reward/transfer-to-wallet", {
             method: "POST",
             body: JSON.stringify({
@@ -1690,6 +1779,8 @@ window.CryptoZoo.api = {
         }
 
         try {
+            await this.ensurePlayerPersistedOnBackend();
+
             const response = await this.request("/deposit/verify-player", {
                 method: "POST",
                 body: JSON.stringify({
