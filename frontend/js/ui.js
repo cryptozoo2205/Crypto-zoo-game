@@ -394,24 +394,25 @@ CryptoZoo.ui = {
 
         const adsHoursLabel = this.formatHoursShort(adsHours);
         const remainingHoursLabel = this.formatHoursShort(remainingHours);
+        const nextHoursLabel = this.formatHoursShort(Math.min(maxAds, adsHours + rewardHours));
 
-        mainText.textContent = `Reklamy: ${adsHoursLabel} / ${CryptoZoo.formatNumber(maxAds)}h`;
-        subText.textContent = `Zostało: ${remainingHoursLabel} • Reset za: ${resetText}`;
+        mainText.textContent = `Reklamy offline: ${adsHoursLabel} / ${CryptoZoo.formatNumber(maxAds)}h`;
+        subText.textContent = `Możesz dodać jeszcze: ${remainingHoursLabel} • Reset za: ${resetText}`;
 
         if (CryptoZoo.ads?.isLoading) {
             adBtn.disabled = true;
-            adBtn.textContent = "⏳ Ładowanie...";
+            adBtn.textContent = "⏳ Ładowanie reklamy...";
             return;
         }
 
         if (!canWatchAd) {
             adBtn.disabled = true;
-            adBtn.textContent = `📺 MAX • ${resetText}`;
+            adBtn.textContent = `📺 Limit osiągnięty • Reset ${resetText}`;
             return;
         }
 
         adBtn.disabled = false;
-        adBtn.textContent = `📺 +${CryptoZoo.formatNumber(rewardHours)}h • ${adsHoursLabel} / ${CryptoZoo.formatNumber(maxAds)}h`;
+        adBtn.textContent = `📺 Oglądaj reklamę: +${CryptoZoo.formatNumber(rewardHours)}h • Będzie: ${nextHoursLabel}`;
     },
 
     ensureOfflineInfoTimerRunning() {
