@@ -316,7 +316,8 @@ CryptoZoo.expeditions = {
         }
 
         const boostLevel = Math.max(0, Number(CryptoZoo.state?.expeditionBoost) || 0);
-        return 1 + boostLevel;
+
+        return 1 + Math.min(0.2, boostLevel * 0.2);
     },
 
     getTotalExpeditionRewardMultiplier() {
@@ -341,23 +342,23 @@ CryptoZoo.expeditions = {
     getEffectiveRareChance(expedition) {
         const baseRareChance = Math.max(0, Number(expedition?.rareChance) || 0);
         const bonus = this.getRareChanceBonus();
-        return Math.min(0.80, baseRareChance + bonus);
+        return Math.min(0.45, baseRareChance + bonus);
     },
 
     getEffectiveEpicChance(expedition) {
         const baseEpicChance = Math.max(0, Number(expedition?.epicChance) || 0);
         const bonus = this.getEpicChanceBonus();
-        return Math.min(0.35, baseEpicChance + bonus);
+        return Math.min(0.18, baseEpicChance + bonus);
     },
 
     getEffectiveGemChance(expedition, rewardRarity = "common") {
         const baseGemChance = Math.max(0, Number(expedition?.gemChance) || 0);
 
         let chance = baseGemChance;
-        if (rewardRarity === "rare") chance += 0.02;
-        if (rewardRarity === "epic") chance += 0.05;
+        if (rewardRarity === "rare") chance += 0.012;
+        if (rewardRarity === "epic") chance += 0.03;
 
-        return Math.min(0.16, chance);
+        return Math.min(0.10, chance);
     },
 
     rollRewardRarity(expedition) {
@@ -375,14 +376,14 @@ CryptoZoo.expeditions = {
 
         const tierMap = {
             forest: 1.00,
-            river: 1.03,
-            volcano: 1.06,
-            canyon: 1.10,
-            glacier: 1.14,
-            jungle: 1.18,
-            temple: 1.22,
-            oasis: 1.26,
-            kingdom: 1.30
+            river: 1.02,
+            volcano: 1.04,
+            canyon: 1.07,
+            glacier: 1.10,
+            jungle: 1.13,
+            temple: 1.17,
+            oasis: 1.21,
+            kingdom: 1.26
         };
 
         return Number(tierMap[expeditionId]) || 1.00;
@@ -404,13 +405,13 @@ CryptoZoo.expeditions = {
         const rarity = this.normalizeRewardRarity(expedition.rewardRarity);
         let rarityMultiplier = 1;
 
-        if (rarity === "rare") rarityMultiplier = 1.35;
-        if (rarity === "epic") rarityMultiplier = 1.90;
+        if (rarity === "rare") rarityMultiplier = 1.18;
+        if (rarity === "epic") rarityMultiplier = 1.42;
 
         const boostMultiplier = this.getTotalExpeditionRewardMultiplier();
 
-        let reward = hours * 0.024 * tierMultiplier * rarityMultiplier * boostMultiplier;
-        reward = Math.min(reward, 1.5);
+        let reward = hours * 0.012 * tierMultiplier * rarityMultiplier * boostMultiplier;
+        reward = Math.min(reward, 0.45);
 
         return Number(reward.toFixed(3));
     },
