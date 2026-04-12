@@ -15,6 +15,23 @@ function normalizeArray(value) {
     return Array.isArray(value) ? value : [];
 }
 
+function normalizeReferrals(value) {
+    return normalizeArray(value)
+        .map((entry) => {
+            const safeEntry = normalizeObject(entry);
+
+            return {
+                telegramId: safeString(safeEntry.telegramId, ""),
+                username: safeString(safeEntry.username, "Gracz"),
+                firstName: safeString(safeEntry.firstName, ""),
+                createdAt: Math.max(0, normalizeNumber(safeEntry.createdAt, 0)),
+                activated: Boolean(safeEntry.activated),
+                activatedAt: Math.max(0, normalizeNumber(safeEntry.activatedAt, 0))
+            };
+        })
+        .filter((entry) => !!entry.telegramId);
+}
+
 function normalizeAnimal(value) {
     const obj = normalizeObject(value);
 
@@ -309,7 +326,7 @@ function normalizePlayer(input) {
         referredBy: safeString(safeInput.referredBy, base.referredBy),
         referralCode: safeString(safeInput.referralCode, base.referralCode),
         referralsCount: Math.max(0, normalizeNumber(safeInput.referralsCount, base.referralsCount)),
-        referrals: normalizeArray(safeInput.referrals),
+        referrals: normalizeReferrals(safeInput.referrals),
         referralHistory: normalizeArray(safeInput.referralHistory),
         referralWelcomeBonusClaimed: Boolean(safeInput.referralWelcomeBonusClaimed),
         referralActivated: Boolean(safeInput.referralActivated),
@@ -415,5 +432,6 @@ function getPlayerOrCreate(db, telegramId, username = "Gracz", telegramUser = nu
 module.exports = {
     getDefaultPlayer,
     normalizePlayer,
-    getPlayerOrCreate
+    getPlayerOrCreate,
+    normalizeReferrals
 };
