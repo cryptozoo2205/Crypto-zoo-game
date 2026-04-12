@@ -198,6 +198,15 @@ CryptoZoo.gameplay = {
         };
 
         const animals = CryptoZoo.config?.animals || {};
+        const maxOwnedPerAnimal = Math.max(
+            1,
+            Math.floor(Number(CryptoZoo.config?.limits?.maxOwnedPerAnimal) || 20)
+        );
+        const maxLevelPerAnimal = Math.max(
+            1,
+            Math.floor(Number(CryptoZoo.config?.limits?.maxLevelPerAnimal) || 25)
+        );
+
         Object.keys(animals).forEach((type) => {
             if (!CryptoZoo.state.animals[type] || typeof CryptoZoo.state.animals[type] !== "object") {
                 CryptoZoo.state.animals[type] = { count: 0, level: 1 };
@@ -205,12 +214,18 @@ CryptoZoo.gameplay = {
 
             CryptoZoo.state.animals[type].count = Math.max(
                 0,
-                Math.floor(Number(CryptoZoo.state.animals[type].count) || 0)
+                Math.min(
+                    maxOwnedPerAnimal,
+                    Math.floor(Number(CryptoZoo.state.animals[type].count) || 0)
+                )
             );
 
             CryptoZoo.state.animals[type].level = Math.max(
                 1,
-                Math.floor(Number(CryptoZoo.state.animals[type].level) || 1)
+                Math.min(
+                    maxLevelPerAnimal,
+                    Math.floor(Number(CryptoZoo.state.animals[type].level) || 1)
+                )
             );
 
             if (CryptoZoo.state.animals[type].count <= 0) {
@@ -701,13 +716,19 @@ CryptoZoo.gameplay = {
         }
     },
 
+    getTapXpGain(amount = 1) {
+        const safeAmount = Math.max(1, Math.floor(Number(amount) || 1));
+        return safeAmount;
+    },
+
     handleTap(amount = 1) {
         const safeAmount = Math.max(1, Math.floor(Number(amount) || 1));
         const valuePerTap = this.getEffectiveCoinsPerClick();
         const totalCoins = valuePerTap * safeAmount;
+        const totalXp = this.getTapXpGain(safeAmount);
 
         CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + totalCoins;
-        CryptoZoo.state.xp = (Number(CryptoZoo.state.xp) || 0) + safeAmount;
+        CryptoZoo.state.xp = (Number(CryptoZoo.state.xp) || 0) + totalXp;
         CryptoZoo.state.lastLogin = Date.now();
 
         this.recalculateLevel();
@@ -809,15 +830,20 @@ CryptoZoo.gameplay = {
         return CryptoZoo.offline?.applyEarnings?.();
     },
 
+    getAnimalIncomeMultiplier(level = 1) {
+        const safeLevel = Math.max(1, Math.floor(Number(level) || 1));
+        return 1 + ((safeLevel - 1) * 0.12);
+    },
+
     recalculateZooIncome() {
         const animals = CryptoZoo.config?.animals || {};
         const maxOwnedPerAnimal = Math.max(
             1,
-            Number(CryptoZoo.config?.limits?.maxOwnedPerAnimal) || 50
+            Number(CryptoZoo.config?.limits?.maxOwnedPerAnimal) || 20
         );
         const maxLevelPerAnimal = Math.max(
             1,
-            Number(CryptoZoo.config?.limits?.maxLevelPerAnimal) || 100
+            Number(CryptoZoo.config?.limits?.maxLevelPerAnimal) || 25
         );
 
         let total = 0;
@@ -841,7 +867,7 @@ CryptoZoo.gameplay = {
             CryptoZoo.state.animals[type].count = count;
             CryptoZoo.state.animals[type].level = level;
 
-            total += count * level * baseIncome;
+            total += count * baseIncome * this.getAnimalIncomeMultiplier(level);
         });
 
         CryptoZoo.state.zooIncome = Math.max(0, Math.floor(total));
@@ -849,13 +875,17 @@ CryptoZoo.gameplay = {
     },
 
     getLevelRequirement(level) {
-        const safeLevel = Math.max(1, Number(level) || 1);
+        const safeLevel = Math.max(1, Math.floor(Number(level) || 1));
 
-        if (safeLevel <= 5) {
-            return 55 + safeLevel * 30;
+        if (safeLevel <= 3) {
+            return 70 + safeLevel * 35;
         }
 
-        return Math.floor(95 * Math.pow(safeLevel, 1.24));
+        if (safeLevel <= 10) {
+            return Math.floor(180 * Math.pow(safeLevel, 1.38));
+        }
+
+        return Math.floor(260 * Math.pow(safeLevel, 1.62));
     },
 
     getLevelProgressData() {
@@ -883,15 +913,15 @@ CryptoZoo.gameplay = {
         const safeLevel = Math.max(1, Number(level) || 1);
 
         const rewardTable = {
-            2: { coins: 25, gems: 0 },
-            3: { coins: 45, gems: 0 },
-            4: { coins: 70, gems: 0 },
-            5: { coins: 100, gems: 0 },
-            6: { coins: 140, gems: 0 },
-            7: { coins: 190, gems: 0 },
-            8: { coins: 250, gems: 0 },
-            9: { coins: 320, gems: 0 },
-            10: { coins: 400, gems: 1 }
+            2: { coins: 20, gems: 0 },
+            3: { coins: 35, gems: 0 },
+            4: { coins: 55, gems: 0 },
+            5: { coins: 80, gems: 0 },
+            6: { coins: 110, gems: 0 },
+            7: { coins: 145, gems: 0 },
+            8: { coins: 185, gems: 0 },
+            9: { coins: 230, gems: 0 },
+            10: { coins: 280, gems: 1 }
         };
 
         if (rewardTable[safeLevel]) {
@@ -899,8 +929,8 @@ CryptoZoo.gameplay = {
         }
 
         return {
-            coins: Math.floor(40 * Math.pow(safeLevel, 1.35)),
-            gems: safeLevel % 10 === 0 ? 1 : 0
+            coins: Math.floor(28 * Math.pow(safeLevel, 1.22)),
+            gems: safeLevel % 15 === 0 ? 1 : 0
         };
     },
 
