@@ -78,6 +78,46 @@ CryptoZoo.uiProfile = {
         return this.getFallbackAvatarUrl();
     },
 
+    getRewardToUsdRate() {
+        const possibleRate =
+            CryptoZoo.state?.payoutConfig?.rewardToUsdRate ??
+            CryptoZoo.state?.withdrawConfig?.rewardToUsdRate ??
+            CryptoZoo.state?.rewardToUsdRate ??
+            CryptoZoo.config?.rewardToUsdRate ??
+            CryptoZoo.config?.withdrawRateUsd ??
+            CryptoZoo.withdraw?.payoutConfig?.rewardToUsdRate ??
+            CryptoZoo.uiWithdraw?.payoutConfig?.rewardToUsdRate;
+
+        const rate = Number(possibleRate);
+
+        if (!Number.isFinite(rate) || rate <= 0) {
+            return 0;
+        }
+
+        return rate;
+    },
+
+    formatUsd(amount) {
+        const num = Number(amount);
+
+        if (!Number.isFinite(num) || num <= 0) {
+            return "~ $0.00";
+        }
+
+        return `~ $${num.toFixed(2)}`;
+    },
+
+    getUsdTextFromRewardAmount(amount) {
+        const rate = this.getRewardToUsdRate();
+
+        if (!rate) {
+            return "";
+        }
+
+        const usdValue = Number(amount || 0) * rate;
+        return this.formatUsd(usdValue);
+    },
+
     applyAvatarToElement(element, avatarUrl) {
         if (!element) return;
 
@@ -283,6 +323,14 @@ CryptoZoo.uiProfile = {
             Math.max(0, Number(boxes.epic) || 0) +
             Math.max(0, Number(boxes.legendary) || 0);
 
+        const rewardBalance = this.format(this.getRewardBalance()).toFixed(3);
+        const rewardWallet = this.format(this.getRewardWallet()).toFixed(3);
+        const withdrawPending = this.format(this.getWithdrawPending()).toFixed(3);
+
+        const rewardBalanceUsd = this.getUsdTextFromRewardAmount(this.getRewardBalance());
+        const rewardWalletUsd = this.getUsdTextFromRewardAmount(this.getRewardWallet());
+        const withdrawPendingUsd = this.getUsdTextFromRewardAmount(this.getWithdrawPending());
+
         const setText = (id, value) => {
             const el = document.getElementById(id);
             if (el) el.textContent = value;
@@ -291,9 +339,14 @@ CryptoZoo.uiProfile = {
         setText("profileAnimalsTotal", CryptoZoo.formatNumber?.(animalsTotal) || String(animalsTotal));
         setText("profileSpeciesUnlocked", CryptoZoo.formatNumber?.(speciesUnlocked) || String(speciesUnlocked));
         setText("profileBoxesTotal", CryptoZoo.formatNumber?.(boxesTotal) || String(boxesTotal));
-        setText("profileRewardBalance", this.format(this.getRewardBalance()).toFixed(3));
-        setText("profileRewardWallet", this.format(this.getRewardWallet()).toFixed(3));
-        setText("profileWithdrawPending", this.format(this.getWithdrawPending()).toFixed(3));
+
+        setText("profileRewardBalance", rewardBalance);
+        setText("profileRewardWallet", rewardWallet);
+        setText("profileWithdrawPending", withdrawPending);
+
+        setText("profileRewardBalanceUsd", rewardBalanceUsd);
+        setText("profileRewardWalletUsd", rewardWalletUsd);
+        setText("profileWithdrawPendingUsd", withdrawPendingUsd);
 
         const rankingText = this.getProfileRankingText();
         this.setFirstExistingText(
@@ -517,9 +570,17 @@ CryptoZoo.uiProfile = {
         const elWallet = document.getElementById("profileRewardWallet");
         const elPending = document.getElementById("profileWithdrawPending");
 
+        const elBalanceUsd = document.getElementById("profileRewardBalanceUsd");
+        const elWalletUsd = document.getElementById("profileRewardWalletUsd");
+        const elPendingUsd = document.getElementById("profileWithdrawPendingUsd");
+
         if (elBalance) elBalance.textContent = this.format(balance).toFixed(3);
         if (elWallet) elWallet.textContent = this.format(wallet).toFixed(3);
         if (elPending) elPending.textContent = this.format(pending).toFixed(3);
+
+        if (elBalanceUsd) elBalanceUsd.textContent = this.getUsdTextFromRewardAmount(balance);
+        if (elWalletUsd) elWalletUsd.textContent = this.getUsdTextFromRewardAmount(wallet);
+        if (elPendingUsd) elPendingUsd.textContent = this.getUsdTextFromRewardAmount(pending);
 
         this.renderProfileHeaderOnly();
         this.renderProfileStats();
