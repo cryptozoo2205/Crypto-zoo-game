@@ -11,7 +11,7 @@ function registerSupportHandlers(bot) {
         try {
             await bot.sendMessage(
                 msg.chat.id,
-                "👋 Witaj w Crypto Zoo Support!\n\nOpisz swój problem, a odpowiemy jak najszybciej."
+                "Witaj w Crypto Zoo Support!\n\nOpisz swój problem, a odpowiemy najszybciej jak się da."
             );
         } catch (error) {
             console.error("support /start error:", error);
@@ -23,9 +23,9 @@ function registerSupportHandlers(bot) {
             if (!msg || !msg.text) return;
             if (msg.text.startsWith("/")) return;
 
-            const userId = String(msg.from?.id || msg.chat?.id || "");
+            const userId = String(msg.from?.id || msg.chat?.id || "").trim();
             const username = msg.from?.username ? `@${msg.from.username}` : "brak";
-            const firstName = msg.from?.first_name || "Użytkownik";
+            const firstName = String(msg.from?.first_name || "Użytkownik").trim();
             const text = String(msg.text || "").trim();
 
             if (!userId || !text) return;
@@ -33,7 +33,7 @@ function registerSupportHandlers(bot) {
             if (ADMIN_CHAT_ID) {
                 await bot.sendMessage(
                     ADMIN_CHAT_ID,
-                    `📩 SUPPORT\n\n👤 ID: ${userId}\n📛 Username: ${username}\n🧾 Imię: ${firstName}\n\n💬 Wiadomość:\n${text}\n\n✏️ Odpowiedz:\n/reply ${userId} Twoja odpowiedź`
+                    `SUPPORT\n\nID: ${userId}\nUsername: ${username}\nImię: ${firstName}\n\nWiadomość:\n${text}`
                 );
             }
 
@@ -66,33 +66,44 @@ function registerSupportHandlers(bot) {
             if (firstSpaceIndex === -1) {
                 await bot.sendMessage(
                     msg.chat.id,
-                    "❌ Użycie: /reply userId wiadomość"
+                    "Użycie:\n/reply USER_ID treść wiadomości"
                 );
                 return;
             }
 
-            const userId = raw.slice(0, firstSpaceIndex).trim();
+            const targetUserId = raw.slice(0, firstSpaceIndex).trim();
             const replyText = raw.slice(firstSpaceIndex + 1).trim();
 
-            if (!userId || !replyText) {
+            if (!targetUserId || !replyText) {
                 await bot.sendMessage(
                     msg.chat.id,
-                    "❌ Użycie: /reply userId wiadomość"
+                    "Użycie:\n/reply USER_ID treść wiadomości"
                 );
                 return;
             }
 
             await bot.sendMessage(
-                userId,
-                `💬 Odpowiedź supportu:\n\n${replyText}`
+                targetUserId,
+                `📩 Odpowiedź supportu Crypto Zoo:\n\n${replyText}`
             );
 
-            await bot.sendMessage(msg.chat.id, "✅ Wysłano odpowiedź.");
+            await bot.sendMessage(
+                msg.chat.id,
+                `✅ Odpowiedź wysłana do ${targetUserId}`
+            );
         } catch (error) {
-            console.error("support reply error:", error);
-            await bot.sendMessage(msg.chat.id, "❌ Nie udało się wysłać.");
+            console.error("support /reply error:", error);
+
+            try {
+                await bot.sendMessage(
+                    msg.chat.id,
+                    "❌ Nie udało się wysłać odpowiedzi."
+                );
+            } catch (_) {}
         }
     });
 }
 
-module.exports = { registerSupportHandlers };
+module.exports = {
+    registerSupportHandlers
+};
