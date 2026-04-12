@@ -240,6 +240,88 @@ window.CryptoZoo.api = {
         return String(tg.username || tg.first_name || "Gracz");
     },
 
+    getTelegramStartParam() {
+        try {
+            return String(window.Telegram?.WebApp?.initDataUnsafe?.start_param || "").trim();
+        } catch (error) {
+            console.warn("getTelegramStartParam failed:", error);
+            return "";
+        }
+    },
+
+    getUrlStartParam() {
+        try {
+            const params = new URLSearchParams(window.location.search || "");
+            return String(
+                params.get("start") ||
+                params.get("startapp") ||
+                params.get("ref") ||
+                ""
+            ).trim();
+        } catch (error) {
+            console.warn("getUrlStartParam failed:", error);
+            return "";
+        }
+    },
+
+    getReferralCodeFromRaw(rawValue) {
+        const safe = String(rawValue || "").trim();
+        if (!safe) return "";
+
+        if (safe.startsWith("ref_")) {
+            return safe.slice(4).trim();
+        }
+
+        return safe;
+    },
+
+    getReferralCode() {
+        const telegramStart = this.getTelegramStartParam();
+        const urlStart = this.getUrlStartParam();
+
+        return this.getReferralCodeFromRaw(telegramStart || urlStart);
+    },
+
+    async applyReferralIfNeeded() {
+        const telegramId = await this.getPlayerId();
+        const username = await this.getUsername();
+        const referralCode = this.getReferralCode();
+
+        if (!telegramId || !referralCode) {
+            return null;
+        }
+
+        if (String(telegramId) === String(referralCode)) {
+            return null;
+        }
+
+        const localKey = `cryptozoo_ref_applied_${telegramId}`;
+        const alreadyApplied = String(localStorage.getItem(localKey) || "").trim();
+
+        if (alreadyApplied === referralCode) {
+            return null;
+        }
+
+        try {
+            const response = await this.request("/referrals/apply", {
+                method: "POST",
+                body: JSON.stringify({
+                    telegramId,
+                    username,
+                    referralCode
+                }),
+                timeoutMs: 5000,
+                retryCount: 1
+            });
+
+            localStorage.setItem(localKey, referralCode);
+            return response;
+        } catch (error) {
+            console.warn("Referral apply failed:", error);
+            return null;
+        }
+    },
+
     getDefaultState(telegramUser = null) {
         const now = Date.now();
         const safeTelegramUser =
@@ -1218,6 +1300,17 @@ window.CryptoZoo.api = {
             CryptoZoo.state = this.getDefaultState(telegramUser);
         }
 
+        try {
+            const referralResponse = await this.applyReferralIfNeeded();
+            const referralPlayer = this.unwrapPlayerResponse(referralResponse);
+
+            if (referralPlayer && typeof referralPlayer === "object") {
+                CryptoZoo.state = this.mergeStates(referralPlayer, CryptoZoo.state || {});
+            }
+        } catch (error) {
+            console.warn("Referral apply during loadPlayer failed:", error);
+        }
+
         CryptoZoo.state.telegramUser = telegramUser;
 
         this.writeLocalState(CryptoZoo.state, telegramId);
@@ -1644,4 +1737,4 @@ window.CryptoZoo.api = {
             );
         }
     }
-}; zrobiłem ze wiem że to api kto to pomylił sam sobie zadaj pytanie I napisz co zmienić w nim konkretnie reszta niech zostanie bo poprawiłem co mówiłeś w env i pm2 restart zrobiłem problem może być w tych api??
+};
