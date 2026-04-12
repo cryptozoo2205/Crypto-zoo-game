@@ -5,9 +5,9 @@ CryptoZoo.expeditions = {
 
     DAILY_REWARD_FREE_CAP: 0.08,
     DAILY_REWARD_PREMIUM_CAP: 0.25,
-    BASE_REWARD_PER_HOUR: 0.02,
+    BASE_REWARD_PER_HOUR: 0.01,
     MIN_REWARD_PREVIEW: 0.001,
-    MAX_REWARD_PER_EXPEDITION: 0.06,
+    MAX_REWARD_PER_EXPEDITION: 0.08,
 
     getAll() {
         return Array.isArray(CryptoZoo.config?.expeditions)
