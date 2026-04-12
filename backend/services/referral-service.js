@@ -131,10 +131,22 @@ function ensureReferralRecordOnReferrer(referrer, player) {
     return referrer;
 }
 
-function canAssignReferrer(db, player, rawReferrerId, sanitizeReferrerId) {
+function sanitizeReferrerId(rawReferrerId) {
+    const safe = safeString(rawReferrerId, "").trim();
+
+    if (!safe) return "";
+
+    if (safe.startsWith("ref_")) {
+        return safe.slice(4).trim();
+    }
+
+    return safe;
+}
+
+function canAssignReferrer(db, player, rawReferrerId) {
     const playerId = getPlayerId(player);
     const currentReferrerId = getReferrerId(player);
-    const referrerId = sanitizeReferrerId ? sanitizeReferrerId(rawReferrerId) : safeString(rawReferrerId, "");
+    const referrerId = sanitizeReferrerId(rawReferrerId);
 
     if (!playerId || !referrerId) {
         return { ok: false, reason: "missing_data" };
@@ -167,14 +179,14 @@ function canAssignReferrer(db, player, rawReferrerId, sanitizeReferrerId) {
     };
 }
 
-function applyReferralIfPossible(db, player, rawReferrerId, sanitizeReferrerId) {
+function applyReferralIfPossible(db, player, rawReferrerId) {
     if (!player) return false;
 
     const safePlayer = normalizePlayer(player);
     ensureReferralCode(safePlayer);
     ensureReferralFlags(safePlayer);
 
-    const check = canAssignReferrer(db, safePlayer, rawReferrerId, sanitizeReferrerId);
+    const check = canAssignReferrer(db, safePlayer, rawReferrerId);
     if (!check.ok) {
         db.players[safePlayer.telegramId] = normalizePlayer(safePlayer);
         return false;
@@ -182,7 +194,7 @@ function applyReferralIfPossible(db, player, rawReferrerId, sanitizeReferrerId) 
 
     const referrer = normalizePlayer(check.referrer);
 
-    safePlayer.referredBy = referrer.telegramId;
+    safePlayer.referredBy = check.referrerId;
 
     ensureReferralRecordOnReferrer(referrer, safePlayer);
 
