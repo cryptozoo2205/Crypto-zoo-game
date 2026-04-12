@@ -57,7 +57,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/health", healthRoutes);
 app.use("/api/player", playerRoutes);
 app.use("/api/ranking", rankingRoutes);
-app.use("/api", referralRoutes);
+app.use("/api/referrals", referralRoutes);
 app.use("/api/withdraw", withdrawRoutes);
 app.use("/api/deposit", depositRoutes);
 app.use("/api/deposit-verifier", depositVerifierRoutes);
