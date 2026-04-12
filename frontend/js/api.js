@@ -395,8 +395,15 @@ window.CryptoZoo.api = {
             transactions: [],
             withdrawHistory: [],
             payoutHistory: [],
+
+            referredBy: "",
+            referralCode: "",
+            referralsCount: 0,
             referrals: [],
             referralHistory: [],
+            referralWelcomeBonusClaimed: false,
+            referralActivated: false,
+            referralActivationBonusClaimed: false,
 
             missions: {},
             dailyMissions: {},
@@ -428,6 +435,25 @@ window.CryptoZoo.api = {
 
     normalizeObject(value) {
         return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+    },
+
+    normalizeReferralEntry(raw) {
+        const item = this.normalizeObject(raw);
+
+        return {
+            telegramId: String(item.telegramId || ""),
+            username: String(item.username || "Gracz"),
+            firstName: String(item.firstName || ""),
+            createdAt: this.normalizeNumber(item.createdAt, 0, 0),
+            activated: Boolean(item.activated),
+            activatedAt: this.normalizeNumber(item.activatedAt, 0, 0)
+        };
+    },
+
+    normalizeReferralsList(value) {
+        return this.normalizeArray(value)
+            .map((item) => this.normalizeReferralEntry(item))
+            .filter((item) => !!item.telegramId);
     },
 
     normalizeDepositItem(raw) {
@@ -627,8 +653,19 @@ window.CryptoZoo.api = {
             transactions: this.normalizeArray(data.transactions),
             withdrawHistory: this.normalizeArray(data.withdrawHistory),
             payoutHistory: this.normalizeArray(data.payoutHistory),
-            referrals: this.normalizeArray(data.referrals),
+
+            referredBy: String(data.referredBy || base.referredBy || ""),
+            referralCode: String(data.referralCode || base.referralCode || ""),
+            referralsCount: this.normalizeNumber(
+                data.referralsCount,
+                base.referralsCount,
+                0
+            ),
+            referrals: this.normalizeReferralsList(data.referrals),
             referralHistory: this.normalizeArray(data.referralHistory),
+            referralWelcomeBonusClaimed: Boolean(data.referralWelcomeBonusClaimed),
+            referralActivated: Boolean(data.referralActivated),
+            referralActivationBonusClaimed: Boolean(data.referralActivationBonusClaimed),
 
             missions: this.normalizeObject(data.missions),
             dailyMissions: this.normalizeObject(data.dailyMissions),
@@ -713,6 +750,7 @@ window.CryptoZoo.api = {
                     item.paymentId ||
                     item.depositId ||
                     item.txHash ||
+                    item.telegramId ||
                     item.createdAt ||
                     `obj-${index}-${JSON.stringify(item)}`
             );
@@ -960,11 +998,27 @@ window.CryptoZoo.api = {
                 local.payoutHistory,
                 server.payoutHistory
             ),
+
+            referredBy: String(server.referredBy || local.referredBy || ""),
+            referralCode: String(server.referralCode || local.referralCode || ""),
+            referralsCount: Math.max(
+                Number(server.referralsCount || 0),
+                Number(local.referralsCount || 0)
+            ),
             referrals: this.mergeUniqueByKey(local.referrals, server.referrals),
             referralHistory: this.mergeUniqueByKey(
                 local.referralHistory,
                 server.referralHistory
             ),
+            referralWelcomeBonusClaimed:
+                Boolean(server.referralWelcomeBonusClaimed) ||
+                Boolean(local.referralWelcomeBonusClaimed),
+            referralActivated:
+                Boolean(server.referralActivated) ||
+                Boolean(local.referralActivated),
+            referralActivationBonusClaimed:
+                Boolean(server.referralActivationBonusClaimed) ||
+                Boolean(local.referralActivationBonusClaimed),
 
             lastDailyRewardAt: Math.max(
                 server.lastDailyRewardAt || 0,
@@ -1032,8 +1086,15 @@ window.CryptoZoo.api = {
             transactions: state.transactions,
             withdrawHistory: state.withdrawHistory,
             payoutHistory: state.payoutHistory,
+
+            referredBy: state.referredBy,
+            referralCode: state.referralCode,
+            referralsCount: state.referralsCount,
             referrals: state.referrals,
             referralHistory: state.referralHistory,
+            referralWelcomeBonusClaimed: state.referralWelcomeBonusClaimed,
+            referralActivated: state.referralActivated,
+            referralActivationBonusClaimed: state.referralActivationBonusClaimed,
 
             missions: state.missions,
             dailyMissions: state.dailyMissions,
@@ -1085,8 +1146,14 @@ window.CryptoZoo.api = {
             transactions: payload.transactions,
             withdrawHistory: payload.withdrawHistory,
             payoutHistory: payload.payoutHistory,
+            referredBy: payload.referredBy,
+            referralCode: payload.referralCode,
+            referralsCount: payload.referralsCount,
             referrals: payload.referrals,
             referralHistory: payload.referralHistory,
+            referralWelcomeBonusClaimed: payload.referralWelcomeBonusClaimed,
+            referralActivated: payload.referralActivated,
+            referralActivationBonusClaimed: payload.referralActivationBonusClaimed,
             missions: payload.missions,
             dailyMissions: payload.dailyMissions,
             boosts: payload.boosts,
@@ -1203,7 +1270,9 @@ window.CryptoZoo.api = {
             typeof data.coins === "number" ||
             typeof data.level === "number" ||
             Array.isArray(data.deposits) ||
-            Array.isArray(data.depositHistory)
+            Array.isArray(data.depositHistory) ||
+            typeof data.referralsCount === "number" ||
+            typeof data.referralCode === "string"
         ) {
             return data;
         }
