@@ -89,12 +89,15 @@ router.get("/wallet/:telegramId", (req, res) => {
     }
 
     const player = getPlayerOrCreate(db, telegramId, "Gracz");
-    const safePlayer = normalizePlayer(player);
+    player.updatedAt = Date.now();
+
+    db.players[telegramId] = normalizePlayer(player);
+    writeDb(db);
 
     return res.json({
         ok: true,
-        tonAddress: sanitizeTonAddress(safePlayer.tonAddress),
-        player: safePlayer
+        tonAddress: sanitizeTonAddress(db.players[telegramId].tonAddress),
+        player: db.players[telegramId]
     });
 });
 
