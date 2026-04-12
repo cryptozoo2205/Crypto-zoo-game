@@ -8,7 +8,7 @@ const router = express.Router();
 
 const OFFLINE_ADS_MAX_HOURS = 6;
 const OFFLINE_ADS_HOURS_PER_AD = 1;
-const MIN_SECONDS_BETWEEN_AD_REWARDS = 45;
+const MIN_SECONDS_BETWEEN_AD_REWARDS = 0;
 
 function normalizeNumber(value, fallback = 0) {
     const num = Number(value);
@@ -90,14 +90,11 @@ function ensureOfflineAdsState(player) {
 function buildSuccessPayload(player, addedHours, now) {
     return {
         ok: true,
-        message: `+${addedHours}h offline • Reset za ${Math.max(
-            0,
-            Math.ceil((Math.max(0, Number(player.offlineAdsResetAt) || 0) - now) / 1000)
-        )}s`,
+        message: `Dodano +${addedHours}h zarobków offline`,
         offlineAdsHours: player.offlineAdsHours,
         offlineAdsResetAt: player.offlineAdsResetAt,
         offlineMaxSeconds: player.offlineMaxSeconds,
-        waitSeconds: MIN_SECONDS_BETWEEN_AD_REWARDS,
+        waitSeconds: 0,
         player
     };
 }
@@ -136,31 +133,6 @@ router.post("/reward-offline", async (req, res) => {
         const player = ensureOfflineAdsState(existingPlayer);
         const now = Date.now();
 
-        const lastRewardAt = Math.max(0, Number(player.lastOfflineAdRewardAt) || 0);
-        const secondsSinceLastReward =
-            lastRewardAt > 0 ? Math.floor((now - lastRewardAt) / 1000) : Infinity;
-
-        if (
-            lastRewardAt > 0 &&
-            secondsSinceLastReward < MIN_SECONDS_BETWEEN_AD_REWARDS
-        ) {
-            const waitSeconds = Math.max(
-                0,
-                MIN_SECONDS_BETWEEN_AD_REWARDS - secondsSinceLastReward
-            );
-
-            db.players[telegramId] = normalizePlayer(player);
-            writeDb(db);
-
-            return res.status(429).json(
-                buildErrorPayload(
-                    db.players[telegramId],
-                    `Odczekaj ${waitSeconds}s przed kolejną nagrodą z reklamy`,
-                    { waitSeconds }
-                )
-            );
-        }
-
         if (player.offlineAdsHours >= OFFLINE_ADS_MAX_HOURS) {
             db.players[telegramId] = normalizePlayer(player);
             writeDb(db);
@@ -168,10 +140,7 @@ router.post("/reward-offline", async (req, res) => {
             return res.status(200).json(
                 buildErrorPayload(
                     db.players[telegramId],
-                    `Osiągnięto limit reklam offline • Reset za ${Math.max(
-                        0,
-                        Math.ceil((Math.max(0, Number(player.offlineAdsResetAt) || 0) - now) / 1000)
-                    )}s`
+                    `Osiągnięto limit reklam offline`
                 )
             );
         }
