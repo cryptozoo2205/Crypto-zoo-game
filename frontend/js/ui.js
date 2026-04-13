@@ -394,25 +394,24 @@ CryptoZoo.ui = {
 
         const adsHoursLabel = this.formatHoursShort(adsHours);
         const remainingHoursLabel = this.formatHoursShort(remainingHours);
-        const nextHoursLabel = this.formatHoursShort(Math.min(maxAds, adsHours + rewardHours));
 
-        mainText.textContent = `Reklamy offline: ${adsHoursLabel} / ${CryptoZoo.formatNumber(maxAds)}h`;
-        subText.textContent = `Możesz dodać jeszcze: ${remainingHoursLabel} • Reset za: ${resetText}`;
+        mainText.textContent = `Offline: ${adsHoursLabel}/${CryptoZoo.formatNumber(maxAds)}h`;
+        subText.textContent = `+${remainingHoursLabel} • ${resetText}`;
 
         if (CryptoZoo.ads?.isLoading) {
             adBtn.disabled = true;
-            adBtn.textContent = "⏳ Ładowanie reklamy...";
+            adBtn.textContent = "⏳ Reklama...";
             return;
         }
 
         if (!canWatchAd) {
             adBtn.disabled = true;
-            adBtn.textContent = `📺 Limit osiągnięty • Reset ${resetText}`;
+            adBtn.textContent = `📺 Limit • ${resetText}`;
             return;
         }
 
         adBtn.disabled = false;
-        adBtn.textContent = `📺 Oglądaj reklamę: +${CryptoZoo.formatNumber(rewardHours)}h • Będzie: ${nextHoursLabel}`;
+        adBtn.textContent = `📺 +${CryptoZoo.formatNumber(rewardHours)}h`;
     },
 
     ensureOfflineInfoTimerRunning() {
@@ -452,17 +451,14 @@ CryptoZoo.ui = {
         const canClaim = CryptoZoo.dailyReward?.canClaim?.() || false;
         const timeLeftMs = Math.max(0, Number(CryptoZoo.dailyReward?.getTimeLeftMs?.()) || 0);
         const timeLeftSeconds = Math.ceil(timeLeftMs / 1000);
-
-        const rewardCoins = Math.max(0, Number(CryptoZoo.dailyReward?.getCoinsAmount?.()) || 0);
-        const rewardGems = Math.max(0, Number(CryptoZoo.dailyReward?.getGemsAmount?.()) || 0);
         const displayDay = this.getDailyRewardDisplayDay();
-        const streakLabel = `${this.t("day", "Day")} ${displayDay}`;
 
         titleEl.textContent = this.t("dailyReward", "Daily Reward");
-        subtitleEl.style.whiteSpace = "normal";
-        subtitleEl.style.wordBreak = "break-word";
-        subtitleEl.style.overflowWrap = "anywhere";
-        subtitleEl.style.lineHeight = "1.35";
+
+        subtitleEl.style.whiteSpace = "";
+        subtitleEl.style.wordBreak = "";
+        subtitleEl.style.overflowWrap = "";
+        subtitleEl.style.lineHeight = "";
 
         if (!isUnlocked) {
             const unlockSeconds = Math.max(
@@ -470,21 +466,18 @@ CryptoZoo.ui = {
                 Number(CryptoZoo.dailyReward?.getRemainingUnlockSeconds?.()) || 0
             );
 
-            subtitleEl.textContent = `${this.t("unlockIn", "Unlock in")} ${this.formatTimeLeft(unlockSeconds)}`;
+            subtitleEl.textContent = `🔒 ${this.formatTimeLeft(unlockSeconds)}`;
             iconEl.textContent = "🔒";
             return;
         }
 
         if (canClaim) {
-            subtitleEl.textContent =
-                rewardGems > 0
-                    ? `${streakLabel} • ${this.t("ready", "READY")} • ${CryptoZoo.formatNumber(rewardCoins)} ${this.t("coins", "coins")} + ${CryptoZoo.formatNumber(rewardGems)} ${this.t("gem", "gem")}`
-                    : `${streakLabel} • ${this.t("ready", "READY")} • ${CryptoZoo.formatNumber(rewardCoins)} ${this.t("coins", "coins")}`;
+            subtitleEl.textContent = `${this.t("day", "Day")} ${displayDay} • ${this.t("ready", "READY")}`;
             iconEl.textContent = "🎁";
             return;
         }
 
-        subtitleEl.textContent = `${streakLabel} • ${this.t("nextRewardIn", "Next reward in")} ${this.formatTimeLeft(timeLeftSeconds)}`;
+        subtitleEl.textContent = `${this.t("day", "Day")} ${displayDay} • ${this.formatTimeLeft(timeLeftSeconds)}`;
         iconEl.textContent = "⏳";
     },
 
