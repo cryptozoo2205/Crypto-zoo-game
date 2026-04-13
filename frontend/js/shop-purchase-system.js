@@ -2,7 +2,7 @@ window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.shopSystem = {
     DAILY_EXPEDITION_BOOST_COOLDOWN: 24 * 60 * 60 * 1000,
-    DAILY_EXPEDITION_BOOST_VALUE: 0.12, // ↓ jeszcze niżej (było 0.15)
+    DAILY_EXPEDITION_BOOST_VALUE: 0.12,
 
     getItemById(itemId) {
         const items = CryptoZoo.config?.shopItems || [];
@@ -20,24 +20,17 @@ CryptoZoo.shopSystem = {
         };
     },
 
-    isDailyBoostActive() {
-        return (Number(CryptoZoo.state?.dailyExpeditionBoost?.activeUntil) || 0) > Date.now();
-    },
+    async saveNow() {
+        CryptoZoo.state.lastLogin = Date.now();
 
-    canBuyDailyBoost() {
-        const last = Number(CryptoZoo.state?.dailyExpeditionBoost?.lastPurchaseAt) || 0;
-        return Date.now() - last >= this.DAILY_EXPEDITION_BOOST_COOLDOWN;
-    },
+        CryptoZoo.gameplay?.recalculateProgress?.();
+        CryptoZoo.gameplay?.requestRender?.(true);
 
-    getDailyBoostMultiplier() {
-        return this.isDailyBoostActive() ? 1 + this.DAILY_EXPEDITION_BOOST_VALUE : 1;
-    },
-
-    applyDailyBoost() {
-        CryptoZoo.state.dailyExpeditionBoost.activeUntil =
-            Date.now() + this.DAILY_EXPEDITION_BOOST_COOLDOWN;
-
-        CryptoZoo.state.dailyExpeditionBoost.lastPurchaseAt = Date.now();
+        try {
+            await CryptoZoo.api?.flushSave?.(true);
+        } catch (e) {
+            console.error("SHOP SAVE FAIL:", e);
+        }
     },
 
     getOwnedCount(itemId) {
@@ -60,8 +53,7 @@ CryptoZoo.shopSystem = {
     },
 
     canAfford(item) {
-        const price = this.getScaledCoinPrice(item);
-        return (Number(CryptoZoo.state?.coins) || 0) >= price;
+        return (Number(CryptoZoo.state?.coins) || 0) >= this.getScaledCoinPrice(item);
     },
 
     spendPrice(item) {
@@ -75,9 +67,7 @@ CryptoZoo.shopSystem = {
         CryptoZoo.dailyMissions?.recordSpendCoins?.(price);
     },
 
-    // 🔥 HARD NERF — KONIEC SNOWBALLA
     applyIncomeUpgrade(item) {
-        const incomeBonus = Math.max(1, Number(item?.incomeBonus) || 1);
         const animals = CryptoZoo.state?.animals || {};
         const maxLevel = Math.max(1, Number(CryptoZoo.config?.limits?.maxLevelPerAnimal) || 25);
 
@@ -85,53 +75,44 @@ CryptoZoo.shopSystem = {
 
         Object.keys(animals).forEach((type) => {
             const animal = animals[type];
-            const count = Math.max(0, Number(animal?.count) || 0);
-
-            if (count <= 0) return;
+            if ((Number(animal?.count) || 0) <= 0) return;
 
             const currentLevel = Math.max(1, Number(animal?.level) || 1);
-
-            // 🔥 NAJWAŻNIEJSZE:
-            // zamiast +2 / +4 → tylko +1 MAX
-            const safeBonus = 1;
-
-            const nextLevel = Math.min(maxLevel, currentLevel + safeBonus);
+            const nextLevel = Math.min(maxLevel, currentLevel + 1);
 
             if (nextLevel > currentLevel) {
                 animal.level = nextLevel;
-                affected += 1;
+                affected++;
             }
         });
 
         CryptoZoo.gameplay?.recalculateProgress?.();
 
-        if (affected <= 0) {
-            return "Brak zwierząt";
-        }
-
-        return `+1 lvl (soft boost)`;
+        return affected > 0 ? "+1 lvl (soft boost)" : "Brak zwierząt";
     },
 
-    // 🔥 lekki nerf click (ważne!)
     applyClickUpgrade(item) {
-        const bonus = Math.max(1, Number(item?.clickValueBonus) || 1);
-
-        // ↓ ograniczamy scaling clicka
-        const safeBonus = Math.min(2, bonus);
+        const bonus = Math.min(2, Math.max(1, Number(item?.clickValueBonus) || 1));
 
         CryptoZoo.state.coinsPerClick =
-            Math.max(1, Number(CryptoZoo.state?.coinsPerClick) || 1) + safeBonus;
+            Math.max(1, Number(CryptoZoo.state?.coinsPerClick) || 1) + bonus;
 
-        return `+${CryptoZoo.formatNumber(safeBonus)} click`;
+        return `+${CryptoZoo.formatNumber(bonus)} click`;
     },
 
     applyExpeditionRewardUpgrade() {
-        if (!this.canBuyDailyBoost()) {
+        const last = Number(CryptoZoo.state?.dailyExpeditionBoost?.lastPurchaseAt) || 0;
+
+        if (Date.now() - last < this.DAILY_EXPEDITION_BOOST_COOLDOWN) {
             CryptoZoo.ui?.showToast?.("Boost raz na 24h");
             return "Cooldown";
         }
 
-        this.applyDailyBoost();
+        CryptoZoo.state.dailyExpeditionBoost.activeUntil =
+            Date.now() + this.DAILY_EXPEDITION_BOOST_COOLDOWN;
+
+        CryptoZoo.state.dailyExpeditionBoost.lastPurchaseAt = Date.now();
+
         return "+12% expedition";
     },
 
@@ -145,7 +126,7 @@ CryptoZoo.shopSystem = {
         return "Kupiono";
     },
 
-    purchase(itemId) {
+    async purchase(itemId) {
         const item = this.getItemById(itemId);
 
         if (!item) {
@@ -154,23 +135,17 @@ CryptoZoo.shopSystem = {
         }
 
         if (!this.canAfford(item)) {
-            const price = this.getScaledCoinPrice(item);
-            CryptoZoo.ui?.showToast?.(`Brakuje ${CryptoZoo.formatNumber(price)}`);
+            CryptoZoo.ui?.showToast?.(`Brakuje ${CryptoZoo.formatNumber(this.getScaledCoinPrice(item))}`);
             return false;
         }
 
         const resultText = this.applyItemEffect(item);
-
         if (resultText === "Cooldown") return false;
 
         this.spendPrice(item);
         this.addOwnedCount(item.id, 1);
 
-        CryptoZoo.state.lastLogin = Date.now();
-
-        CryptoZoo.gameplay?.recalculateProgress?.();
-        CryptoZoo.ui?.render?.();
-        CryptoZoo.api?.savePlayer?.();
+        await this.saveNow();
 
         CryptoZoo.ui?.showToast?.(resultText);
         return true;
@@ -184,10 +159,12 @@ CryptoZoo.shopSystem = {
             if (!btn || btn.dataset.bound === "1") return;
 
             btn.dataset.bound = "1";
-            btn.onclick = () => {
+            btn.onclick = async () => {
                 CryptoZoo.audio?.play?.("click");
-                this.purchase(item.id);
+                await this.purchase(item.id);
             };
         });
     }
 };
+EOF
+pm2 restart all
