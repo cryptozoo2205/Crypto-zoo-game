@@ -286,7 +286,7 @@ CryptoZoo.gameplay = {
         );
 
         CryptoZoo.state.level = Math.max(1, Math.floor(Number(CryptoZoo.state.level) || 1));
-        CryptoZoo.state.xp = Math.max(0, Number(CryptoZoo.state.xp) || 0);
+        CryptoZoo.state.xp = Math.max(0, Math.floor(Number(CryptoZoo.state.xp) || 0));
         CryptoZoo.state.coinsPerClick = Math.max(
             1,
             Math.floor(
@@ -521,7 +521,7 @@ CryptoZoo.gameplay = {
 
     getLevelRequirement(level) {
         const safeLevel = Math.max(1, Math.floor(Number(level) || 1));
-        return 100 + ((safeLevel - 1) * 100);
+        return Math.floor(100 * Math.pow(safeLevel, 1.35));
     },
 
     getTotalXpRequiredForLevel(level) {
@@ -532,11 +532,11 @@ CryptoZoo.gameplay = {
             total += this.getLevelRequirement(currentLevel);
         }
 
-        return total;
+        return Math.floor(total);
     },
 
     getLevelProgressDataForXp(xpValue) {
-        const xp = Math.max(0, Number(xpValue) || 0);
+        const xp = Math.max(0, Math.floor(Number(xpValue) || 0));
 
         let level = 1;
         let req = this.getLevelRequirement(level);
@@ -560,7 +560,7 @@ CryptoZoo.gameplay = {
         CryptoZoo.state = CryptoZoo.state || {};
 
         const savedLevel = Math.max(1, Math.floor(Number(CryptoZoo.state.level) || 1));
-        const savedXp = Math.max(0, Number(CryptoZoo.state.xp) || 0);
+        const savedXp = Math.max(0, Math.floor(Number(CryptoZoo.state.xp) || 0));
         const progressFromXp = this.getLevelProgressDataForXp(savedXp);
 
         if (savedLevel > progressFromXp.level) {
@@ -573,6 +573,7 @@ CryptoZoo.gameplay = {
             return;
         }
 
+        CryptoZoo.state.xp = Math.floor(savedXp);
         CryptoZoo.state.level = progressFromXp.level;
 
         if ((Number(CryptoZoo.state.lastAwardedLevel) || 1) > CryptoZoo.state.level) {
@@ -800,7 +801,8 @@ CryptoZoo.gameplay = {
 
     getTapXpGain(amount = 1) {
         const safeAmount = Math.max(1, Math.floor(Number(amount) || 1));
-        return safeAmount;
+        const multiplier = Math.max(1, Number(this.getBoost2xMultiplier()) || 1);
+        return safeAmount * 0.5 * multiplier;
     },
 
     handleTap(amount = 1) {
@@ -810,7 +812,7 @@ CryptoZoo.gameplay = {
         const totalXp = this.getTapXpGain(safeAmount);
 
         CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + totalCoins;
-        CryptoZoo.state.xp = (Number(CryptoZoo.state.xp) || 0) + totalXp;
+        CryptoZoo.state.xp = Math.max(0, Number(CryptoZoo.state.xp) || 0) + totalXp;
         CryptoZoo.state.lastLogin = Date.now();
 
         this.recalculateLevel();
