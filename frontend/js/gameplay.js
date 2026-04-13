@@ -376,6 +376,8 @@ CryptoZoo.gameplay = {
             Number(CryptoZoo.offlineAds?.getNextResetAt?.() || CryptoZoo.state.offlineAdsResetAt || 0)
         );
 
+        this.normalizeProgressionState();
+
         CryptoZoo.state.offlineMaxSeconds = this.getOfflineMaxSeconds();
 
         this.normalizeBoostState();
@@ -515,6 +517,67 @@ CryptoZoo.gameplay = {
 
     normalizeOfflineBoostState() {
         return CryptoZoo.offline?.normalizeState?.() || false;
+    },
+
+    getLevelRequirement(level) {
+        const safeLevel = Math.max(1, Math.floor(Number(level) || 1));
+        return 100 + ((safeLevel - 1) * 100);
+    },
+
+    getTotalXpRequiredForLevel(level) {
+        const safeLevel = Math.max(1, Math.floor(Number(level) || 1));
+        let total = 0;
+
+        for (let currentLevel = 1; currentLevel < safeLevel; currentLevel += 1) {
+            total += this.getLevelRequirement(currentLevel);
+        }
+
+        return total;
+    },
+
+    getLevelProgressDataForXp(xpValue) {
+        const xp = Math.max(0, Number(xpValue) || 0);
+
+        let level = 1;
+        let req = this.getLevelRequirement(level);
+        let used = 0;
+
+        while (xp >= used + req) {
+            used += req;
+            level += 1;
+            req = this.getLevelRequirement(level);
+        }
+
+        return {
+            level,
+            currentXp: Math.max(0, xp - used),
+            requiredXp: req,
+            totalUsedXp: used
+        };
+    },
+
+    normalizeProgressionState() {
+        CryptoZoo.state = CryptoZoo.state || {};
+
+        const savedLevel = Math.max(1, Math.floor(Number(CryptoZoo.state.level) || 1));
+        const savedXp = Math.max(0, Number(CryptoZoo.state.xp) || 0);
+        const progressFromXp = this.getLevelProgressDataForXp(savedXp);
+
+        if (savedLevel > progressFromXp.level) {
+            CryptoZoo.state.xp = this.getTotalXpRequiredForLevel(savedLevel);
+            CryptoZoo.state.level = savedLevel;
+            CryptoZoo.state.lastAwardedLevel = Math.max(
+                1,
+                Math.floor(Number(CryptoZoo.state.lastAwardedLevel) || savedLevel)
+            );
+            return;
+        }
+
+        CryptoZoo.state.level = progressFromXp.level;
+
+        if ((Number(CryptoZoo.state.lastAwardedLevel) || 1) > CryptoZoo.state.level) {
+            CryptoZoo.state.lastAwardedLevel = CryptoZoo.state.level;
+        }
     },
 
     isAnyBlockingModalOpen() {
@@ -897,30 +960,8 @@ CryptoZoo.gameplay = {
         return CryptoZoo.state.zooIncome;
     },
 
-    getLevelRequirement(level) {
-        const safeLevel = Math.max(1, Math.floor(Number(level) || 1));
-        return 100 + ((safeLevel - 1) * 100);
-    },
-
     getLevelProgressData() {
-        const xp = Math.max(0, Number(CryptoZoo.state?.xp) || 0);
-
-        let level = 1;
-        let req = this.getLevelRequirement(level);
-        let used = 0;
-
-        while (xp >= used + req) {
-            used += req;
-            level += 1;
-            req = this.getLevelRequirement(level);
-        }
-
-        return {
-            level,
-            currentXp: Math.max(0, xp - used),
-            requiredXp: req,
-            totalUsedXp: used
-        };
+        return this.getLevelProgressDataForXp(CryptoZoo.state?.xp);
     },
 
     getLevelReward(level) {
