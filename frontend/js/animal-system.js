@@ -1,4 +1,3 @@
-cd /root/cryptozoo/frontend/js && rm -f animals-system.js && cat > animals-system.js <<'EOF'
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.animalsSystem = {
