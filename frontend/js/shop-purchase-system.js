@@ -167,4 +167,3 @@ CryptoZoo.shopSystem = {
     }
 };
 EOF
-pm2 restart all

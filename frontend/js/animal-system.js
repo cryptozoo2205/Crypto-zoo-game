@@ -95,19 +95,19 @@ CryptoZoo.animalsSystem = {
         const tierIndex = this.getAnimalTierIndex(type);
 
         const growthByTier = [
-            1.42,
-            1.41,
-            1.40,
-            1.39,
-            1.38,
-            1.37,
-            1.36,
-            1.35,
-            1.34,
-            1.335,
-            1.33,
-            1.325,
-            1.32
+            1.55,
+            1.54,
+            1.53,
+            1.52,
+            1.51,
+            1.50,
+            1.49,
+            1.48,
+            1.47,
+            1.465,
+            1.46,
+            1.455,
+            1.45
         ];
 
         return growthByTier[tierIndex] || 1.35;
@@ -127,6 +127,10 @@ CryptoZoo.animalsSystem = {
 
         if (ownedCount > 10) {
             cost *= 1 + ((ownedCount - 10) * 0.15);
+        }
+
+        if (type === "monkey" && ownedCount > 15) {
+            cost *= 1 + ((ownedCount - 15) * 0.35);
         }
 
         return Math.floor(cost);
@@ -199,7 +203,7 @@ CryptoZoo.animalsSystem = {
 
         let cost =
             baseCost *
-            Math.pow(1.85, level - 1) *
+            Math.pow(1.65, level - 1) *
             (1 + count * 0.08) *
             (1 + tierIndex * 0.18);
 
@@ -259,5 +263,3 @@ CryptoZoo.animalsSystem = {
         return true;
     }
 };
-EOF
-pm2 restart all

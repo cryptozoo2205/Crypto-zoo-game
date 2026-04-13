@@ -52,19 +52,19 @@ const REFERRAL_REWARDS = {
 };
 
 const ANIMALS_CONFIG = {
-    monkey: { baseIncome: 1 },
-    panda: { baseIncome: 5 },
-    lion: { baseIncome: 14 },
-    tiger: { baseIncome: 36 },
-    elephant: { baseIncome: 90 },
-    giraffe: { baseIncome: 220 },
-    zebra: { baseIncome: 520 },
-    hippo: { baseIncome: 1200 },
-    penguin: { baseIncome: 2700 },
-    bear: { baseIncome: 6000 },
-    crocodile: { baseIncome: 13200 },
-    kangaroo: { baseIncome: 29000 },
-    wolf: { baseIncome: 64000 }
+    monkey: { baseIncome: 1, buyCost: 120 },
+    panda: { baseIncome: 4, buyCost: 520 },
+    lion: { baseIncome: 11, buyCost: 2200 },
+    tiger: { baseIncome: 26, buyCost: 9000 },
+    elephant: { baseIncome: 62, buyCost: 22000 },
+    giraffe: { baseIncome: 145, buyCost: 52000 },
+    zebra: { baseIncome: 320, buyCost: 120000 },
+    hippo: { baseIncome: 700, buyCost: 270000 },
+    penguin: { baseIncome: 1500, buyCost: 600000 },
+    bear: { baseIncome: 3200, buyCost: 1300000 },
+    crocodile: { baseIncome: 6800, buyCost: 2900000 },
+    kangaroo: { baseIncome: 14500, buyCost: 6400000 },
+    wolf: { baseIncome: 30000, buyCost: 14000000 }
 };
 
 const EXPEDITIONS_CONFIG = {
