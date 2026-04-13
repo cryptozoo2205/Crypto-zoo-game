@@ -1,3 +1,4 @@
+cd /root/cryptozoo/frontend/js && rm -f animals-system.js && cat > animals-system.js <<'EOF'
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.animalsSystem = {
@@ -9,16 +10,16 @@ CryptoZoo.animalsSystem = {
             const upgradeBtn = document.getElementById(`upgrade-${type}-btn`);
 
             if (buyBtn) {
-                buyBtn.onclick = () => {
+                buyBtn.onclick = async () => {
                     CryptoZoo.audio?.play?.("click");
-                    this.buy(type);
+                    await this.buy(type);
                 };
             }
 
             if (upgradeBtn) {
-                upgradeBtn.onclick = () => {
+                upgradeBtn.onclick = async () => {
                     CryptoZoo.audio?.play?.("click");
-                    this.upgrade(type);
+                    await this.upgrade(type);
                 };
             }
         });
@@ -88,13 +89,9 @@ CryptoZoo.animalsSystem = {
         const baseUnlockLevel = this.getRequiredPlayerLevel(type);
         const safeAnimalLevel = Math.max(1, Math.floor(Number(currentAnimalLevel) || 1));
 
-        // 🔥 mocniejsza blokada progresu
         return baseUnlockLevel + Math.floor((safeAnimalLevel - 1) * 0.75);
     },
 
-    // ======================
-    // 🔥 HARD BUY SCALING
-    // ======================
     getBuyGrowth(type) {
         const tierIndex = this.getAnimalTierIndex(type);
 
@@ -129,7 +126,6 @@ CryptoZoo.animalsSystem = {
 
         let cost = baseCost * Math.pow(growth, ownedCount);
 
-        // 🔥 late game dodatkowy mnożnik
         if (ownedCount > 10) {
             cost *= 1 + ((ownedCount - 10) * 0.15);
         }
@@ -137,7 +133,19 @@ CryptoZoo.animalsSystem = {
         return Math.floor(cost);
     },
 
-    buy(type) {
+    async saveNow() {
+        CryptoZoo.state.lastLogin = Date.now();
+        CryptoZoo.gameplay?.recalculateProgress?.();
+        CryptoZoo.gameplay?.requestRender?.(true);
+
+        try {
+            await CryptoZoo.api?.flushSave?.(true);
+        } catch (error) {
+            console.error("Immediate animal save failed:", error);
+        }
+    },
+
+    async buy(type) {
         const config = CryptoZoo.config?.animals?.[type];
         if (!config) return false;
 
@@ -166,12 +174,10 @@ CryptoZoo.animalsSystem = {
             return false;
         }
 
-        CryptoZoo.state.coins -= buyCost;
-        animal.count++;
+        CryptoZoo.state.coins = Math.max(0, currentCoins - buyCost);
+        animal.count += 1;
 
-        CryptoZoo.state.lastLogin = Date.now();
-
-        CryptoZoo.gameplay?.persistAndRender?.();
+        await this.saveNow();
 
         const animalName = this.getLocalizedAnimalName(type, config);
         CryptoZoo.ui?.showToast?.(
@@ -181,9 +187,6 @@ CryptoZoo.animalsSystem = {
         return true;
     },
 
-    // ======================
-    // 🔥 HARD UPGRADE COST
-    // ======================
     getUpgradeCost(type) {
         const config = CryptoZoo.config?.animals?.[type];
         const animal = this.ensureAnimalState(type);
@@ -201,7 +204,6 @@ CryptoZoo.animalsSystem = {
             (1 + count * 0.08) *
             (1 + tierIndex * 0.18);
 
-        // 🔥 hard wall high lvl
         if (level > 10) {
             cost *= Math.pow(1.4, level - 10);
         }
@@ -209,7 +211,7 @@ CryptoZoo.animalsSystem = {
         return Math.floor(cost);
     },
 
-    upgrade(type) {
+    async upgrade(type) {
         const config = CryptoZoo.config?.animals?.[type];
         if (!config) return false;
 
@@ -245,12 +247,10 @@ CryptoZoo.animalsSystem = {
             return false;
         }
 
-        CryptoZoo.state.coins -= cost;
-        animal.level++;
+        CryptoZoo.state.coins = Math.max(0, currentCoins - cost);
+        animal.level += 1;
 
-        CryptoZoo.state.lastLogin = Date.now();
-
-        CryptoZoo.gameplay?.persistAndRender?.();
+        await this.saveNow();
 
         const animalName = this.getLocalizedAnimalName(type, config);
         CryptoZoo.ui?.showToast?.(
@@ -260,3 +260,5 @@ CryptoZoo.animalsSystem = {
         return true;
     }
 };
+EOF
+pm2 restart all
