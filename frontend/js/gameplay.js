@@ -325,8 +325,6 @@ CryptoZoo.gameplay = {
             Number(CryptoZoo.state.offlineAdsResetAt) || 0
         );
 
-        CryptoZoo.state.offlineMaxSeconds = this.getOfflineMaxSeconds();
-
         CryptoZoo.state.offlineBoostMultiplier = Math.max(
             1,
             Number(CryptoZoo.state.offlineBoostMultiplier) || 1
@@ -364,6 +362,21 @@ CryptoZoo.gameplay = {
         CryptoZoo.expeditions?.ensureExpeditionStats?.();
         CryptoZoo.expeditions?.ensureActiveExpeditionShape?.();
         CryptoZoo.offlineAds?.ensureState?.();
+
+        CryptoZoo.state.offlineAdsHours = Math.max(
+            0,
+            Math.min(
+                this.getMaxOfflineAdsHours(),
+                Number(CryptoZoo.offlineAds?.getCurrentHours?.() || 0)
+            )
+        );
+
+        CryptoZoo.state.offlineAdsResetAt = Math.max(
+            0,
+            Number(CryptoZoo.offlineAds?.getNextResetAt?.() || CryptoZoo.state.offlineAdsResetAt || 0)
+        );
+
+        CryptoZoo.state.offlineMaxSeconds = this.getOfflineMaxSeconds();
 
         this.normalizeBoostState();
         this.normalizeOfflineBoostState();
@@ -425,20 +438,18 @@ CryptoZoo.gameplay = {
     },
 
     getOfflineAdsHours() {
-        const resetAt = Math.max(0, Number(CryptoZoo.state?.offlineAdsResetAt) || 0);
-        const now = Date.now();
+        CryptoZoo.offlineAds?.ensureState?.();
 
-        if (resetAt > now) {
-            return Math.max(0, Number(((resetAt - now) / 3600000).toFixed(6)) || 0);
-        }
+        const currentHours = Number(CryptoZoo.offlineAds?.getCurrentHours?.() || 0);
+        const safeHours = Math.max(0, Math.min(this.getMaxOfflineAdsHours(), currentHours));
 
-        return Math.max(
+        CryptoZoo.state.offlineAdsHours = safeHours;
+        CryptoZoo.state.offlineAdsResetAt = Math.max(
             0,
-            Math.min(
-                this.getMaxOfflineAdsHours(),
-                Number(CryptoZoo.state?.offlineAdsHours) || 0
-            )
+            Number(CryptoZoo.offlineAds?.getNextResetAt?.() || 0)
         );
+
+        return safeHours;
     },
 
     getOfflineHoursWithoutAds() {
@@ -464,12 +475,20 @@ CryptoZoo.gameplay = {
             return false;
         }
 
+        CryptoZoo.state.offlineAdsHours = this.getOfflineAdsHours();
         CryptoZoo.state.offlineMaxSeconds = this.getOfflineMaxSeconds();
         return true;
     },
 
     grantOfflineAdReward() {
-        return CryptoZoo.offlineAds?.grantAdReward?.() || false;
+        const granted = CryptoZoo.offlineAds?.grantAdReward?.() || false;
+
+        if (granted) {
+            CryptoZoo.state.offlineAdsHours = this.getOfflineAdsHours();
+            CryptoZoo.state.offlineMaxSeconds = this.getOfflineMaxSeconds();
+        }
+
+        return granted;
     },
 
     normalizeBoostTimestamp(value) {
@@ -984,7 +1003,11 @@ CryptoZoo.gameplay = {
         this.recalculateZooIncome();
         this.recalculateLevel();
         CryptoZoo.state.offlineBoostHours = 0;
+
+        CryptoZoo.offlineAds?.ensureState?.();
+        CryptoZoo.state.offlineAdsHours = this.getOfflineAdsHours();
         CryptoZoo.state.offlineMaxSeconds = this.getOfflineMaxSeconds();
+
         this.normalizeBoostState();
         this.normalizeOfflineBoostState();
         CryptoZoo.expeditions?.ensureExpeditionStats?.();
@@ -1013,6 +1036,7 @@ CryptoZoo.gameplay = {
 
             if (this.activeScreen === "game") {
                 CryptoZoo.ui?.renderDailyRewardStatus?.();
+                CryptoZoo.ui?.renderOfflineInfo?.();
             }
         }, 1000);
     },
