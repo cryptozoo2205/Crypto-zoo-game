@@ -30,6 +30,7 @@ CryptoZoo.dailyReward = {
 
         this.syncFirstUnlockState();
         this.ensureFirstUnlockTimerStarted();
+        this.normalizeClaimState();
         this.startTimer();
     },
 
@@ -38,22 +39,23 @@ CryptoZoo.dailyReward = {
         this.timerStarted = true;
 
         setInterval(() => {
-            this.syncFirstUnlockState();
-            this.ensureFirstUnlockTimerStarted();
-            CryptoZoo.ui?.renderDailyRewardStatus?.();
+            this.tick();
         }, 1000);
 
         document.addEventListener("visibilitychange", () => {
-            this.syncFirstUnlockState();
-            this.ensureFirstUnlockTimerStarted();
-            CryptoZoo.ui?.renderDailyRewardStatus?.();
+            this.tick();
         });
 
         window.addEventListener("focus", () => {
-            this.syncFirstUnlockState();
-            this.ensureFirstUnlockTimerStarted();
-            CryptoZoo.ui?.renderDailyRewardStatus?.();
+            this.tick();
         });
+    },
+
+    tick() {
+        this.syncFirstUnlockState();
+        this.ensureFirstUnlockTimerStarted();
+        this.normalizeClaimState();
+        CryptoZoo.ui?.renderDailyRewardStatus?.();
     },
 
     isVisibleAndPlayable() {
@@ -87,9 +89,19 @@ CryptoZoo.dailyReward = {
         }
 
         const startedAt = this.getFirstUnlockStartedAt();
+        const now = Date.now();
 
-        if (startedAt > Date.now()) {
+        if (startedAt > now) {
             this.clearFirstUnlockStartedAt();
+            return;
+        }
+
+        if (startedAt > 0) {
+            const unlockAt = startedAt + (this.getUnlockAfterSeconds() * 1000);
+
+            if (unlockAt <= now) {
+                return;
+            }
         }
     },
 
@@ -100,6 +112,29 @@ CryptoZoo.dailyReward = {
         const startedAt = this.getFirstUnlockStartedAt();
         if (!startedAt) {
             this.setFirstUnlockStartedAt(Date.now());
+        }
+    },
+
+    normalizeClaimState() {
+        CryptoZoo.state = CryptoZoo.state || {};
+
+        const last = Math.max(0, Number(CryptoZoo.state.lastDailyRewardAt) || 0);
+        if (!last) return;
+
+        const cooldownMs = this.getCooldownMs();
+        const readyAt = last + cooldownMs;
+        const now = Date.now();
+
+        if (readyAt <= now) {
+            return;
+        }
+
+        if (last > now) {
+            CryptoZoo.state.lastDailyRewardAt = 0;
+            CryptoZoo.state.dailyRewardStreak = 0;
+            CryptoZoo.state.dailyRewardClaimDayKey = "";
+            this.clearFirstUnlockStartedAt();
+            this.ensureFirstUnlockTimerStarted();
         }
     },
 
@@ -180,15 +215,31 @@ CryptoZoo.dailyReward = {
         return Math.max(1, Math.min(this.getMaxStreak(), streak || 1));
     },
 
-    getTimeLeftMs() {
+    getReadyAtTimestamp() {
         if (!this.isUnlocked()) {
-            return this.getRemainingUnlockSeconds() * 1000;
+            const startedAt = this.getFirstUnlockStartedAt();
+            if (!startedAt) return Date.now() + (this.getUnlockAfterSeconds() * 1000);
+            return startedAt + (this.getUnlockAfterSeconds() * 1000);
         }
 
         const last = Number(CryptoZoo.state?.lastDailyRewardAt) || 0;
         if (!last) return 0;
 
-        return Math.max(0, (last + this.getCooldownMs()) - Date.now());
+        return last + this.getCooldownMs();
+    },
+
+    getTimeLeftMs() {
+        if (!this.isUnlocked()) {
+            return this.getRemainingUnlockSeconds() * 1000;
+        }
+
+        const readyAt = this.getReadyAtTimestamp();
+        if (!readyAt) {
+            return 0;
+        }
+
+        const left = Math.max(0, readyAt - Date.now());
+        return left <= 1000 ? 0 : left;
     },
 
     canClaim() {
@@ -261,6 +312,8 @@ CryptoZoo.dailyReward = {
     },
 
     async claim() {
+        this.normalizeClaimState();
+
         if (!this.isUnlocked()) {
             const left = Math.ceil(this.getRemainingUnlockSeconds());
             CryptoZoo.ui?.showToast?.(
