@@ -340,7 +340,7 @@ CryptoZoo.dailyReward = {
         CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + coins;
         CryptoZoo.state.gems = (Number(CryptoZoo.state.gems) || 0) + gems;
         CryptoZoo.state.lastDailyRewardAt = Date.now();
-        CryptoZoo.state.lastLogin = Date.now();
+        
         CryptoZoo.state.updatedAt = Date.now();
 
         this.clearFirstUnlockStartedAt();

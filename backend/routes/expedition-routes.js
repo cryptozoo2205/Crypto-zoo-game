@@ -209,7 +209,7 @@ function getRewardBalanceAmount(player, expeditionState) {
     const boostMultiplier = getTotalExpeditionRewardMultiplier(player);
 
     let reward = hours * 0.024 * tierMultiplier * rarityMultiplier * boostMultiplier;
-    reward = Math.min(reward, 1.5);
+    
 
     return Number(reward.toFixed(3));
 }
@@ -229,7 +229,7 @@ function getMaxRewardBalanceAmount(expeditionState) {
     const theoreticalMaxBoostMultiplier = 2.0 * 1.25;
 
     let reward = hours * 0.024 * tierMultiplier * rarityMultiplier * theoreticalMaxBoostMultiplier;
-    reward = Math.min(reward, 1.5);
+    
 
     return Number(reward.toFixed(3));
 }

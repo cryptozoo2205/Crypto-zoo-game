@@ -759,7 +759,7 @@ CryptoZoo.ui = {
 
                 if (gems >= 3) {
                     CryptoZoo.state.gems = Math.max(0, gems - 3);
-                    CryptoZoo.state.lastLogin = Date.now();
+                    
                     CryptoZoo.boostSystem?.activate?.();
                     CryptoZoo.ui?.render?.();
                     CryptoZoo.api?.savePlayer?.();

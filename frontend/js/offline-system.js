@@ -39,8 +39,8 @@ CryptoZoo.offline = {
         CryptoZoo.state.lastLogin = this.clampLastLogin(CryptoZoo.state?.lastLogin);
 
         const baseHours = Math.max(
-            0.25,
-            Number(CryptoZoo.gameplay?.getOfflineBaseHours?.() || CryptoZoo.gameplay?.baseOfflineHours || 0.25)
+            0,
+            Number(CryptoZoo.gameplay?.getOfflineBaseHours?.() || CryptoZoo.gameplay?.baseOfflineHours || 0)
         );
 
         CryptoZoo.state.offlineBaseHours = baseHours;
@@ -108,11 +108,11 @@ CryptoZoo.offline = {
 
     getBaseOfflineSeconds() {
         const baseHours = Math.max(
-            0.25,
+            0,
             Number(CryptoZoo.state?.offlineBaseHours) ||
                 Number(CryptoZoo.gameplay?.getOfflineBaseHours?.()) ||
                 Number(CryptoZoo.gameplay?.baseOfflineHours) ||
-                0.25
+                0
         );
 
         return Math.floor(baseHours * 3600);
@@ -249,7 +249,7 @@ CryptoZoo.offline = {
 
         const baseIncomePerSecond = Math.max(0, Number(this.getBaseIncomePerSecond()) || 0);
 
-        let offlineCoins = Math.floor(baseIncomePerSecond * cappedSeconds);
+        let offlineCoins = Math.floor(baseIncomePerSecond * cappedSeconds * 0.25);
 
         if (!Number.isFinite(offlineCoins)) {
             offlineCoins = 0;

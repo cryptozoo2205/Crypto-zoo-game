@@ -9,7 +9,7 @@ CryptoZoo.gameplay = {
     touchReleaseTimer: null,
 
     maxOfflineSeconds: 15 * 60,
-    baseOfflineHours: 0.25,
+    baseOfflineHours: 6,
     maxOfflineHoursWithoutAds: 4,
     maxOfflineBoostHoursFromShop: 0,
     maxOfflineAdsHours: 6,
@@ -245,7 +245,7 @@ CryptoZoo.gameplay = {
             expeditionBoost: 0,
             expeditionBoostActiveUntil: 0,
             offlineMaxSeconds: this.maxOfflineSeconds,
-            offlineBoostMultiplier: 1,
+            offlineBoostMultiplier: 0.25,
             offlineBoostActiveUntil: 0,
             offlineBoost: 1,
             offlineBaseHours: this.baseOfflineHours,
@@ -455,7 +455,7 @@ CryptoZoo.gameplay = {
     },
 
     getOfflineHoursWithoutAds() {
-        return Math.max(0.25, this.getOfflineBaseHours());
+        return Math.max(0, this.getOfflineBaseHours());
     },
 
     getOfflineHoursTotal() {
@@ -573,7 +573,7 @@ CryptoZoo.gameplay = {
             return;
         }
 
-        CryptoZoo.state.xp = Math.floor(savedXp);
+        CryptoZoo.state.xp = Math.floor(savedXp * 0.6);
         CryptoZoo.state.level = progressFromXp.level;
 
         if ((Number(CryptoZoo.state.lastAwardedLevel) || 1) > CryptoZoo.state.level) {
@@ -813,7 +813,7 @@ CryptoZoo.gameplay = {
 
         CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + totalCoins;
         CryptoZoo.state.xp = Math.max(0, Number(CryptoZoo.state.xp) || 0) + totalXp;
-        CryptoZoo.state.lastLogin = Date.now();
+        
 
         this.recalculateLevel();
 
@@ -951,7 +951,7 @@ CryptoZoo.gameplay = {
             CryptoZoo.state.animals[type].count = count;
             CryptoZoo.state.animals[type].level = level;
 
-            total += count * baseIncome * this.getAnimalIncomeMultiplier(level);
+            total += count * baseIncome * Math.pow(1.08, level);
         });
 
         if (total > 1e9) {
@@ -1060,7 +1060,7 @@ CryptoZoo.gameplay = {
 
     persistAndRender() {
         this.recalculateProgress();
-        CryptoZoo.state.lastLogin = Date.now();
+        
         this.requestRender();
         CryptoZoo.api?.savePlayer?.();
     },

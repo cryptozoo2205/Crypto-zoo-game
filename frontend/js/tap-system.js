@@ -18,7 +18,7 @@ CryptoZoo.tapSystem = {
         CryptoZoo.gameplay?.recalculateLevel?.();
 
         CryptoZoo.ui?.animateCoin?.(safeTapCount);
-        CryptoZoo.state.lastLogin = Date.now();
+        
         CryptoZoo.ui?.render?.();
         CryptoZoo.api?.savePlayer?.();
 

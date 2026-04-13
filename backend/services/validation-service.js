@@ -310,14 +310,8 @@ function buildSafePlayerState(oldPlayer, incomingRaw) {
             ...normalizeObject(incoming.telegramUser)
         },
 
-        coins: Math.max(
-            Number(oldSafe?.coins || 0),
-            Number(incoming.coins || 0)
-        ),
-        gems: Math.max(
-            Number(oldSafe?.gems || 0),
-            Number(incoming.gems || 0)
-        ),
+        coins: Number(incoming.coins || 0),
+        gems: Number(incoming.gems || 0),
         rewardBalance: Math.max(
             normalizeRewardNumber(oldSafe?.rewardBalance, 0),
             normalizeRewardNumber(incoming.rewardBalance, 0)

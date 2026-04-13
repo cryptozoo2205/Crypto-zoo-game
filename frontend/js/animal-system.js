@@ -137,7 +137,7 @@ CryptoZoo.animalsSystem = {
     },
 
     async saveNow() {
-        CryptoZoo.state.lastLogin = Date.now();
+        
         CryptoZoo.gameplay?.recalculateProgress?.();
         CryptoZoo.gameplay?.requestRender?.(true);
 

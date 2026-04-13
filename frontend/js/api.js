@@ -54,7 +54,7 @@ window.CryptoZoo.api = {
                 );
                 CryptoZoo.state.telegramUser = telegramUser;
                 CryptoZoo.state.updatedAt = Date.now();
-                CryptoZoo.state.lastLogin = Date.now();
+                
 
                 this.writeLocalState(CryptoZoo.state, telegramUser.id);
 
@@ -1042,7 +1042,7 @@ window.CryptoZoo.api = {
         const state = this.normalizeState(CryptoZoo.state || {});
         state.telegramUser = telegramUser;
         state.updatedAt = Date.now();
-        state.lastLogin = Date.now();
+       
 
         return {
             telegramId: String(telegramUser.id),
@@ -1289,7 +1289,7 @@ window.CryptoZoo.api = {
             );
             current.telegramUser = telegramUser;
             current.updatedAt = Date.now();
-            current.lastLogin = Date.now();
+           
 
             CryptoZoo.state = current;
             this.writeLocalState(current, telegramUser.id);
@@ -1329,7 +1329,7 @@ window.CryptoZoo.api = {
             );
             CryptoZoo.state.telegramUser = telegramUser;
             CryptoZoo.state.updatedAt = Date.now();
-            CryptoZoo.state.lastLogin = Date.now();
+            
             this.writeLocalState(CryptoZoo.state, telegramUser.id);
             return CryptoZoo.state;
         }
@@ -1348,7 +1348,7 @@ window.CryptoZoo.api = {
             );
             CryptoZoo.state.telegramUser = telegramUser;
             CryptoZoo.state.updatedAt = Date.now();
-            CryptoZoo.state.lastLogin = Date.now();
+            
 
             this.writeLocalState(CryptoZoo.state, telegramId);
 
@@ -1373,7 +1373,7 @@ window.CryptoZoo.api = {
 
             CryptoZoo.state.telegramUser = telegramUser;
             CryptoZoo.state.updatedAt = Date.now();
-            CryptoZoo.state.lastLogin = Date.now();
+            
 
             this.writeLocalState(CryptoZoo.state, telegramId);
 
@@ -1405,7 +1405,7 @@ window.CryptoZoo.api = {
 
             CryptoZoo.state.telegramUser = telegramUser;
             CryptoZoo.state.updatedAt = Date.now();
-            CryptoZoo.state.lastLogin = Date.now();
+            
 
             this.writeLocalState(CryptoZoo.state, telegramId);
 
@@ -1474,7 +1474,7 @@ window.CryptoZoo.api = {
         CryptoZoo.state = CryptoZoo.state || {};
         CryptoZoo.state.telegramUser = telegramUser;
         CryptoZoo.state.updatedAt = Date.now();
-        CryptoZoo.state.lastLogin = Date.now();
+        
 
         this.pendingDirty = true;
         this.writeLocalState(CryptoZoo.state, telegramUser.id);
@@ -1507,7 +1507,7 @@ window.CryptoZoo.api = {
             CryptoZoo.state = this.normalizeState(CryptoZoo.state || payload);
             CryptoZoo.state.telegramUser = telegramUser;
             CryptoZoo.state.updatedAt = Date.now();
-            CryptoZoo.state.lastLogin = Date.now();
+            
 
             this.writeLocalState(CryptoZoo.state, telegramUser.id);
 

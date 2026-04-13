@@ -505,7 +505,7 @@ Object.assign(CryptoZoo.minigames, {
 
         CryptoZoo.state.coins = (Number(CryptoZoo.state.coins) || 0) + Math.max(0, Number(result.coins) || 0);
         CryptoZoo.state.gems = (Number(CryptoZoo.state.gems) || 0) + Math.max(0, Number(result.gems) || 0);
-        CryptoZoo.state.lastLogin = Date.now();
+        
 
         const toastParts = [
             `+${CryptoZoo.formatNumber(result.coins)} coins`

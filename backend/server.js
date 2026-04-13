@@ -76,7 +76,7 @@ if (fs.existsSync(FRONTEND_DIR)) {
 }
 
 // 📡 API 404
-app.use("/api/*", (req, res) => {
+app.use("/api", (req, res) => {
     return res.status(404).json({
         error: "API route not found",
         path: req.originalUrl
