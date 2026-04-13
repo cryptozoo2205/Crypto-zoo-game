@@ -44,19 +44,95 @@ CryptoZoo.shopSystem = {
             this.getOwnedCount(itemId) + Math.max(1, Number(amount) || 1);
     },
 
+    getEffectivePriceScale(item) {
+        const explicitScale = Number(item?.priceScale);
+
+        if (Number.isFinite(explicitScale) && explicitScale > 1) {
+            return explicitScale;
+        }
+
+        const type = String(item?.type || "").toLowerCase();
+        const effect = String(item?.effect || "").toLowerCase();
+        const itemId = String(item?.id || "").toLowerCase();
+
+        if (type === "click" || itemId.startsWith("click")) {
+            return 1.35;
+        }
+
+        if (type === "income" || itemId.startsWith("income")) {
+            return 1.28;
+        }
+
+        if (type === "expeditiontime" || effect === "expeditiontime") {
+            return 1.18;
+        }
+
+        if (type === "expedition" || itemId.startsWith("expedition")) {
+            return 1;
+        }
+
+        return 1.2;
+    },
+
     getScaledCoinPrice(item) {
         const basePrice = Math.max(0, Number(item?.price) || 0);
         const owned = this.getOwnedCount(item?.id);
-        const scale = Math.max(1, Number(item?.priceScale) || 1);
+        const scale = this.getEffectivePriceScale(item);
+
+        if (basePrice <= 0) {
+            return 0;
+        }
+
+        if (scale <= 1) {
+            return Math.floor(basePrice);
+        }
 
         return Math.floor(basePrice * Math.pow(scale, owned));
     },
 
+    getCurrentPriceMeta(item) {
+        if (!item) {
+            return {
+                label: "Koszt",
+                value: "0"
+            };
+        }
+
+        const gemPrice = Math.max(0, Number(item.gemPrice) || 0);
+        if (gemPrice > 0) {
+            return {
+                label: "Koszt",
+                value: `${CryptoZoo.formatNumber(gemPrice)} gemy`
+            };
+        }
+
+        return {
+            label: "Koszt",
+            value: CryptoZoo.formatNumber(this.getScaledCoinPrice(item))
+        };
+    },
+
     canAfford(item) {
+        const gemPrice = Math.max(0, Number(item?.gemPrice) || 0);
+
+        if (gemPrice > 0) {
+            return (Number(CryptoZoo.state?.gems) || 0) >= gemPrice;
+        }
+
         return (Number(CryptoZoo.state?.coins) || 0) >= this.getScaledCoinPrice(item);
     },
 
     spendPrice(item) {
+        const gemPrice = Math.max(0, Number(item?.gemPrice) || 0);
+
+        if (gemPrice > 0) {
+            CryptoZoo.state.gems = Math.max(
+                0,
+                (Number(CryptoZoo.state?.gems) || 0) - gemPrice
+            );
+            return;
+        }
+
         const price = this.getScaledCoinPrice(item);
 
         CryptoZoo.state.coins = Math.max(
@@ -135,7 +211,14 @@ CryptoZoo.shopSystem = {
         }
 
         if (!this.canAfford(item)) {
-            CryptoZoo.ui?.showToast?.(`Brakuje ${CryptoZoo.formatNumber(this.getScaledCoinPrice(item))}`);
+            const gemPrice = Math.max(0, Number(item?.gemPrice) || 0);
+
+            if (gemPrice > 0) {
+                CryptoZoo.ui?.showToast?.(`Brakuje ${CryptoZoo.formatNumber(gemPrice)} gemów`);
+            } else {
+                CryptoZoo.ui?.showToast?.(`Brakuje ${CryptoZoo.formatNumber(this.getScaledCoinPrice(item))}`);
+            }
+
             return false;
         }
 
@@ -166,4 +249,3 @@ CryptoZoo.shopSystem = {
         });
     }
 };
-EOF
