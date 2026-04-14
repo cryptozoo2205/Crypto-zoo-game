@@ -2,11 +2,10 @@ window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.ads = {
     isLoading: false,
-
-    minWatchTimeMs: 12000,
     adHardTimeoutMs: 90000,
 
     updateOfflineUi() {
+        CryptoZoo.offlineAdsUI?.updateButton?.();
         CryptoZoo.ui?.renderOfflineInfo?.();
     },
 
@@ -91,6 +90,8 @@ CryptoZoo.ads = {
             CryptoZoo.state.offlineBoostActiveUntil = result.offlineBoostActiveUntil;
         }
 
+        CryptoZoo.offlineAds?.ensureState?.();
+
         if (typeof CryptoZoo.api?.writeLocalState === "function") {
             CryptoZoo.api.writeLocalState(CryptoZoo.state);
         }
@@ -98,33 +99,59 @@ CryptoZoo.ads = {
         CryptoZoo.gameplay?.recalculateProgress?.();
         CryptoZoo.ui?.renderOfflineInfo?.();
         CryptoZoo.ui?.render?.();
+        CryptoZoo.offlineAdsUI?.updateButton?.();
     },
 
-    async openAdWithoutEvents() {
-        const startedAt = Date.now();
+    isAdSuccessResult(result) {
+        if (result === true) return true;
+        if (typeof result === "string") {
+            const value = result.trim().toLowerCase();
+            return value === "success" || value === "completed" || value === "rewarded";
+        }
 
+        if (!result || typeof result !== "object") {
+            return false;
+        }
+
+        if (result.success === true) return true;
+        if (result.completed === true) return true;
+        if (result.rewarded === true) return true;
+
+        const status = String(result.status || result.result || "").trim().toLowerCase();
+        return status === "success" || status === "completed" || status === "rewarded";
+    },
+
+    async openRewardedAdStrict() {
         if (typeof show_10822070 !== "function") {
             throw new Error("Reklama nie jest jeszcze gotowa");
         }
 
-        const maybePromise = show_10822070();
+        let adPromise;
 
-        if (maybePromise && typeof maybePromise.then === "function") {
-            try {
-                await Promise.race([
-                    maybePromise,
-                    new Promise((resolve) => setTimeout(resolve, this.adHardTimeoutMs))
-                ]);
-            } catch (error) {
-                throw error instanceof Error ? error : new Error(String(error || "Ad error"));
-            }
-        } else {
-            await new Promise((resolve) => {
-                setTimeout(resolve, this.minWatchTimeMs);
-            });
+        try {
+            adPromise = show_10822070();
+        } catch (error) {
+            throw error instanceof Error ? error : new Error(String(error || "Ad error"));
         }
 
-        return Date.now() - startedAt;
+        if (!adPromise || typeof adPromise.then !== "function") {
+            throw new Error("Reklama nie jest jeszcze gotowa");
+        }
+
+        const result = await Promise.race([
+            adPromise,
+            new Promise((_, reject) => {
+                setTimeout(() => {
+                    reject(new Error("Limit czasu reklamy"));
+                }, this.adHardTimeoutMs);
+            })
+        ]);
+
+        if (!this.isAdSuccessResult(result)) {
+            throw new Error("Obejrzyj reklamę do końca");
+        }
+
+        return result;
     },
 
     async showRewardedAd() {
@@ -135,16 +162,17 @@ CryptoZoo.ads = {
             return false;
         }
 
+        if (!CryptoZoo.offlineAds?.canWatchAd?.()) {
+            CryptoZoo.ui?.showToast?.("Osiągnięto maksymalny limit 6h");
+            this.updateOfflineUi();
+            return false;
+        }
+
         this.isLoading = true;
         this.updateOfflineUi();
 
         try {
-            const watchedMs = await this.openAdWithoutEvents();
-
-            if (watchedMs < this.minWatchTimeMs) {
-                CryptoZoo.ui?.showToast?.("Obejrzyj reklamę do końca");
-                return false;
-            }
+            await this.openRewardedAdStrict();
 
             const result = await this.requestOfflineRewardFromBackend();
             await this.syncStateFromBackendReward(result);
@@ -164,6 +192,7 @@ CryptoZoo.ads = {
             this.isLoading = false;
             CryptoZoo.ui?.renderOfflineInfo?.();
             CryptoZoo.ui?.render?.();
+            CryptoZoo.offlineAdsUI?.updateButton?.();
         }
     }
 };

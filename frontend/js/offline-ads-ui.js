@@ -8,9 +8,43 @@ CryptoZoo.offlineAdsUI = {
         return document.getElementById("watchOfflineAdBtn");
     },
 
+    applyButtonLabel(button) {
+        if (!button) return;
+
+        const targetLabel =
+            button.querySelector("[data-role='label']") ||
+            button.querySelector(".btn-label") ||
+            button.querySelector(".label") ||
+            (button.children.length === 1 && button.firstElementChild?.tagName === "SPAN"
+                ? button.firstElementChild
+                : null);
+
+        if (targetLabel) {
+            targetLabel.textContent = "+1h";
+        } else if (
+            button.children.length === 0 ||
+            /limit|\d{2}:\d{2}:\d{2}|\+\d+h/i.test(button.textContent || "")
+        ) {
+            button.textContent = "+1h";
+        }
+
+        button.setAttribute("data-offline-ad-label", "+1h");
+        button.setAttribute("aria-label", "+1h");
+        button.dataset.label = "+1h";
+
+        if (CryptoZoo.ads?.isLoading) {
+            button.disabled = true;
+        } else {
+            button.disabled = !CryptoZoo.offlineAds?.canWatchAd?.();
+        }
+    },
+
     updateButton() {
-        if (!this.getButton()) return;
+        const button = this.getButton();
+        if (!button) return;
+
         CryptoZoo.ui?.renderOfflineInfo?.();
+        this.applyButtonLabel(button);
     },
 
     startTimer() {

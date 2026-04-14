@@ -103,8 +103,10 @@ function getDefaultPlayer(telegramId = "local-player", username = "Gracz") {
 
         offlineBaseHours: 1,
         offlineBoostHours: 0,
-        offlineAdsHours: 0,
-        offlineAdsResetAt: 0,
+        offlineAdsHours: 0, // forced reset
+        //original offlineAdsHours: 0,
+        offlineAdsResetAt: 0, // forced reset
+        //original offlineAdsResetAt: 0,
         offlineMaxSeconds: 1 * 60 * 60,
         offlineBoostMultiplier: 1,
         offlineBoostActiveUntil: 0,
@@ -224,12 +226,12 @@ function normalizePlayer(input) {
 
     const offlineAdsHours = Math.max(
         0,
-        Math.floor(normalizeNumber(safeInput.offlineAdsHours, base.offlineAdsHours))
+        Math.floor(normalizeNumber(0, base.offlineAdsHours))
     );
 
     const offlineAdsResetAt = Math.max(
         0,
-        normalizeNumber(safeInput.offlineAdsResetAt, base.offlineAdsResetAt || 0)
+        normalizeNumber(0, base.offlineAdsResetAt || 0)
     );
 
     const computedOfflineMaxSeconds = (offlineBaseHours + offlineBoostHours + offlineAdsHours) * 60 * 60;

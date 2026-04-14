@@ -521,7 +521,7 @@ CryptoZoo.gameplay = {
 
     getLevelRequirement(level) {
         const safeLevel = Math.max(1, Math.floor(Number(level) || 1));
-        return Math.floor(100 * Math.pow(safeLevel, 1.35));
+        return Math.floor(115 * Math.pow(safeLevel, 1.38));
     },
 
     getTotalXpRequiredForLevel(level) {
@@ -802,7 +802,7 @@ CryptoZoo.gameplay = {
     getTapXpGain(amount = 1) {
         const safeAmount = Math.max(1, Math.floor(Number(amount) || 1));
         const multiplier = Math.max(1, Number(this.getBoost2xMultiplier()) || 1);
-        return safeAmount * 0.55 * multiplier;
+        return safeAmount * 1 * multiplier;
     },
 
     handleTap(amount = 1) {
