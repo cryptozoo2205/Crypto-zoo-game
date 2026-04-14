@@ -1,13 +1,9 @@
-require("dotenv").config();
-
+require("dotenv").config({ path: require("path").join(__dirname, "../.env") });
 const TelegramBot = require("node-telegram-bot-api");
-const { registerAdminHandlers } = require("./bot-admin");
-
 const token = process.env.BOT_TOKEN;
-const WEBAPP_URL = process.env.WEBAPP_URL;
-const WITHDRAW_NOTIFY_CHAT_ID = String(
     process.env.WITHDRAW_NOTIFY_CHAT_ID ||
     process.env.WITHDRAW_CHANNEL_ID ||
+    process.env.ADMIN_CHAT_ID ||
     ""
 ).trim();
 

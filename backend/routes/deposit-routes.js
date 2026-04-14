@@ -77,6 +77,12 @@ function isDepositExpired(deposit) {
 }
 
 function markExpiredDeposits(db) {
+    db.deposits = db.deposits.map(d => {
+        if (d.status === "created" && d.expiresAt && Date.now() > d.expiresAt) {
+            d.status = "expired";
+        }
+        return d;
+    });
     db.deposits = Array.isArray(db?.deposits) ? db.deposits : [];
 
     let changed = false;
@@ -200,7 +206,7 @@ function sanitizeDepositForCreate(deposit) {
         status: normalizeDepositStatus(deposit?.status),
         createdAt: Math.max(0, Number(deposit?.createdAt) || Date.now()),
         updatedAt: Math.max(0, Number(deposit?.updatedAt) || Date.now()),
-        expiresAt: Math.max(0, Number(deposit?.expiresAt) || 0)
+        expiresAt: Date.now() + (5 * 60 * 1000),
     };
 }
 
@@ -242,6 +248,12 @@ router.post("/create", (req, res) => {
     db.deposits = Array.isArray(db.deposits) ? db.deposits : [];
 
     const expiredChanged = markExpiredDeposits(db);
+    db.deposits = db.deposits.map(d => {
+        if (d.status === "created" && d.expiresAt && Date.now() > d.expiresAt) {
+            d.status = "expired";
+        }
+        return d;
+    });
     if (expiredChanged) {
         writeDb(db);
     }
@@ -317,6 +329,12 @@ router.post("/payment-data", (req, res) => {
     db.deposits = Array.isArray(db.deposits) ? db.deposits : [];
 
     const expiredChanged = markExpiredDeposits(db);
+    db.deposits = db.deposits.map(d => {
+        if (d.status === "created" && d.expiresAt && Date.now() > d.expiresAt) {
+            d.status = "expired";
+        }
+        return d;
+    });
     if (expiredChanged) {
         writeDb(db);
     }
@@ -416,6 +434,12 @@ router.post("/confirm", (req, res) => {
     db.players = db.players && typeof db.players === "object" ? db.players : {};
 
     const expiredChanged = markExpiredDeposits(db);
+    db.deposits = db.deposits.map(d => {
+        if (d.status === "created" && d.expiresAt && Date.now() > d.expiresAt) {
+            d.status = "expired";
+        }
+        return d;
+    });
 
     const depositId = safeString(req.body?.depositId, "");
     const status = safeString(req.body?.status, "").toLowerCase();
@@ -481,6 +505,12 @@ router.get("/:telegramId", (req, res) => {
     db.deposits = Array.isArray(db.deposits) ? db.deposits : [];
 
     const expiredChanged = markExpiredDeposits(db);
+    db.deposits = db.deposits.map(d => {
+        if (d.status === "created" && d.expiresAt && Date.now() > d.expiresAt) {
+            d.status = "expired";
+        }
+        return d;
+    });
     if (expiredChanged) {
         writeDb(db);
     }

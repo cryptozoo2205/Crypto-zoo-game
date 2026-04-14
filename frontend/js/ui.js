@@ -409,13 +409,13 @@ CryptoZoo.ui = {
         }
 
         if (CryptoZoo.ads?.isLoading) {
-            adBtn.disabled = true;
+            adBtn.disabled = false;
             adBtn.textContent = "⏳ Reklama...";
             return;
         }
 
         if (!canWatchAd) {
-            adBtn.disabled = true;
+            adBtn.disabled = false;
             adBtn.textContent = `📺 Limit • ${this.formatTimeLeft(resetSeconds)}`;
             return;
         }

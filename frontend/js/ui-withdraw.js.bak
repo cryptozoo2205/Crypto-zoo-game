@@ -518,21 +518,9 @@ CryptoZoo.uiWithdraw = {
     async open() {
         const modal = document.getElementById("withdrawModal");
         if (!modal) return;
-
         modal.classList.remove("hidden");
-        modal.style.display = "";
-        modal.style.visibility = "";
-        modal.style.opacity = "";
-        modal.style.pointerEvents = "";
-        modal.style.zIndex = "";
-
-        this.render?.();
-
-        const amountInput = document.getElementById("withdrawAmountInput");
-        if (amountInput) {
-            setTimeout(() => amountInput.focus(), 50);
-        }
     }
 
 document.addEventListener("DOMContentLoaded", () => {
+    CryptoZoo.uiWithdraw?.bind?.();
 });

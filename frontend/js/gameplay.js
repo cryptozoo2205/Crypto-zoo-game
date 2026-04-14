@@ -802,7 +802,7 @@ CryptoZoo.gameplay = {
     getTapXpGain(amount = 1) {
         const safeAmount = Math.max(1, Math.floor(Number(amount) || 1));
         const multiplier = Math.max(1, Number(this.getBoost2xMultiplier()) || 1);
-        return safeAmount * 0.5 * multiplier;
+        return safeAmount * 0.55 * multiplier;
     },
 
     handleTap(amount = 1) {
@@ -951,7 +951,7 @@ CryptoZoo.gameplay = {
             CryptoZoo.state.animals[type].count = count;
             CryptoZoo.state.animals[type].level = level;
 
-            total += count * baseIncome * Math.pow(1.08, level);
+            total += count * baseIncome * Math.pow(1.07, level);
         });
 
         if (total > 1e9) {

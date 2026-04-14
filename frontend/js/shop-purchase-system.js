@@ -154,7 +154,7 @@ CryptoZoo.shopSystem = {
             if ((Number(animal?.count) || 0) <= 0) return;
 
             const currentLevel = Math.max(1, Number(animal?.level) || 1);
-            const nextLevel = Math.min(maxLevel, currentLevel + 1);
+            const nextLevel = Math.min(maxLevel, currentLevel + Math.max(1, Number(item?.incomeBonus) || 1));
 
             if (nextLevel > currentLevel) {
                 animal.level = nextLevel;

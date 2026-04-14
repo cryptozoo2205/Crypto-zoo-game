@@ -2,8 +2,6 @@ window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.uiDeposit = {
     selectedAmount: 1,
-    activeDepositExpiresAt: 0,
-    activeDepositCountdownInterval: null,
 
     getStaticDepositOptions() {
         return [1, 3, 5, 10];
@@ -84,100 +82,6 @@ CryptoZoo.uiDeposit = {
         if (!options.includes(Number(this.selectedAmount))) {
             this.selectedAmount = options[0];
         }
-    },
-
-
-    formatCountdownMs(ms) {
-        const totalSeconds = Math.max(0, Math.ceil((Number(ms) || 0) / 1000));
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds % 60;
-        return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-    },
-
-    getActiveDepositRemainingMs() {
-        const expiresAt = Number(this.activeDepositExpiresAt || 0);
-        if (!expiresAt) return 0;
-        return Math.max(0, expiresAt - Date.now());
-    },
-
-    clearActiveDepositCountdown() {
-        this.activeDepositExpiresAt = 0;
-        if (this.activeDepositCountdownInterval) {
-            clearInterval(this.activeDepositCountdownInterval);
-            this.activeDepositCountdownInterval = null;
-        }
-        this.renderActiveDepositCountdownHint();
-    },
-
-    setActiveDepositCountdown(expiresAt) {
-        const safeExpiresAt = Number(expiresAt || 0);
-        if (!safeExpiresAt) {
-            this.clearActiveDepositCountdown();
-            return;
-        }
-
-        this.activeDepositExpiresAt = safeExpiresAt;
-
-        if (this.activeDepositCountdownInterval) {
-            clearInterval(this.activeDepositCountdownInterval);
-            this.activeDepositCountdownInterval = null;
-        }
-
-        this.renderActiveDepositCountdownHint();
-
-        this.activeDepositCountdownInterval = setInterval(() => {
-            const remaining = this.getActiveDepositRemainingMs();
-            if (remaining <= 0) {
-                this.clearActiveDepositCountdown();
-                return;
-            }
-            this.renderActiveDepositCountdownHint();
-        }, 1000);
-    },
-
-    getCountdownHintHost() {
-        const mount = this.getMount();
-        if (!mount || !mount.parentNode) return null;
-
-        let host = document.getElementById("settingsDepositCountdownHint");
-        if (!host) {
-            host = document.createElement("div");
-            host.id = "settingsDepositCountdownHint";
-            host.style.width = "100%";
-            host.style.marginTop = "12px";
-            mount.parentNode.insertBefore(host, mount.nextSibling);
-        }
-
-        return host;
-    },
-
-    renderActiveDepositCountdownHint() {
-        const host = this.getCountdownHintHost();
-        if (!host) return;
-
-        const remainingMs = this.getActiveDepositRemainingMs();
-        if (remainingMs <= 0) {
-            host.innerHTML = "";
-            return;
-        }
-
-        const label = this.t("Nowy depozyt za", "New deposit in");
-        host.innerHTML = `
-            <div style="
-                width: 100%;
-                padding: 12px 14px;
-                border-radius: 14px;
-                border: 1px solid rgba(255,255,255,0.10);
-                background: rgba(255,255,255,0.04);
-                color: #ffd76a;
-                font-size: 14px;
-                font-weight: 800;
-                text-align: center;
-                box-sizing: border-box;
-            ">
-                ${label} ${this.formatCountdownMs(remainingMs)}
-            </div>
-        `;
     },
 
     render() {
@@ -302,26 +206,6 @@ CryptoZoo.uiDeposit = {
             return false;
         } catch (e) {
             console.error("Deposit create error:", e);
-
-            const rawErrorMessage = String(e?.message || "");
-            const jsonStart = rawErrorMessage.indexOf("{");
-            let payload = null;
-
-            if (jsonStart >= 0) {
-                try {
-                    payload = JSON.parse(rawErrorMessage.slice(jsonStart));
-                } catch (_) {}
-            }
-
-            const activeDepositExpiresAt = Number(payload?.activeDeposit?.expiresAt || 0);
-            if (activeDepositExpiresAt > Date.now()) {
-                this.setActiveDepositCountdown(activeDepositExpiresAt);
-                CryptoZoo.ui?.showToast?.(
-                    this.t("Masz już aktywny depozyt", "You already have an active deposit")
-                );
-                return false;
-            }
-
             CryptoZoo.ui?.showToast?.(
                 this.t("Błąd tworzenia depozytu", "Deposit error")
             );

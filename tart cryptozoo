@@ -1,0 +1,63 @@
+[1mdiff --git a/frontend/js/offline-ads-system.js b/frontend/js/offline-ads-system.js[m
+[1mindex 368b6d1..b0f88d6 100644[m
+[1m--- a/frontend/js/offline-ads-system.js[m
+[1m+++ b/frontend/js/offline-ads-system.js[m
+[36m@@ -55,7 +55,7 @@[m [mCryptoZoo.offlineAds = {[m
+     syncStateFromResetAt() {[m
+         CryptoZoo.state = CryptoZoo.state || {};[m
+ [m
+[31m-        const now = this.getNow();[m
+[32m+[m[32m        if (!CryptoZoo.state.offlineAdsResetAt || CryptoZoo.state.offlineAdsResetAt <= 0) { const now = this.getNow();[m
+         const resetAt = Math.max(0, Number(CryptoZoo.state.offlineAdsResetAt) || 0);[m
+ [m
+         if (resetAt <= now) {[m
+[36m@@ -78,7 +78,7 @@[m [mCryptoZoo.offlineAds = {[m
+         CryptoZoo.state.offlineAdsResetAt = rawResetAt;[m
+ [m
+         if (rawResetAt > 0) {[m
+[31m-            this.syncStateFromResetAt();[m
+[32m+[m[32m            } this.syncStateFromResetAt();[m
+             return;[m
+         }[m
+ [m
+[36m@@ -87,14 +87,14 @@[m [mCryptoZoo.offlineAds = {[m
+             return;[m
+         }[m
+ [m
+[31m-        const now = this.getNow();[m
+[32m+[m[32m        if (!CryptoZoo.state.offlineAdsResetAt || CryptoZoo.state.offlineAdsResetAt <= 0) { const now = this.getNow();[m
+         CryptoZoo.state.offlineAdsResetAt = now + rawHours * 3600 * 1000;[m
+[31m-        this.syncStateFromResetAt();[m
+[32m+[m[32m        } this.syncStateFromResetAt();[m
+     },[m
+ [m
+     getCurrentHours() {[m
+         this.ensureState();[m
+[31m-        return this.syncStateFromResetAt();[m
+[32m+[m[32m        return } this.syncStateFromResetAt();[m
+     },[m
+ [m
+     getMaxHours() {[m
+[36m@@ -156,7 +156,7 @@[m [mCryptoZoo.offlineAds = {[m
+             return false;[m
+         }[m
+ [m
+[31m-        const now = this.getNow();[m
+[32m+[m[32m        if (!CryptoZoo.state.offlineAdsResetAt || CryptoZoo.state.offlineAdsResetAt <= 0) { const now = this.getNow();[m
+         const current = this.getCurrentHours();[m
+         const remaining = this.getRemainingHours();[m
+         const requested = Math.max(0, Number(hours) || 0);[m
+[36m@@ -167,10 +167,11 @@[m [mCryptoZoo.offlineAds = {[m
+ [m
+         const added = Math.min(requested, remaining);[m
+         const currentResetAt = Math.max(0, Number(CryptoZoo.state?.offlineAdsResetAt) || 0);[m
+[31m-        const baseResetAt = currentResetAt > now ? currentResetAt : now;[m
+[32m+[m[32m        if (currentResetAt <= now) { this.setZeroState(); return false; }[m
+[32m+[m[32m        const baseResetAt = currentResetAt;[m
+ [m
+         CryptoZoo.state.offlineAdsResetAt = baseResetAt + added * 3600 * 1000;[m
+[31m-        this.syncStateFromResetAt();[m
+[32m+[m[32m        } this.syncStateFromResetAt();[m
+ [m
+         return added > 0;[m
+     },[m

@@ -131,6 +131,7 @@ CryptoZoo.offline = {
 
     getMaxSeconds() {
         const total = this.getBaseOfflineSeconds() + this.getAdsOfflineSeconds();
+        if ((CryptoZoo.state?.offlineAdsHours || 0) <= 0) return 0;
         return Math.max(0, total);
     },
 
@@ -204,6 +205,10 @@ CryptoZoo.offline = {
             CryptoZoo.state.offlineAdsResetAt = 0;
         } else {
             CryptoZoo.state.offlineAdsHours = Number((adsSecondsLeft / 3600).toFixed(6));
+        if (adsSecondsLeft <= 0) {
+            CryptoZoo.state.offlineAdsHours = 0;
+            CryptoZoo.state.offlineAdsResetAt = 0;
+        }
             CryptoZoo.state.offlineAdsResetAt = Date.now() + (adsSecondsLeft * 1000);
         }
 
@@ -237,7 +242,6 @@ CryptoZoo.offline = {
         const cappedSeconds = Math.min(elapsedSeconds, maxOfflineSeconds);
         const wasCapped = elapsedSeconds > maxOfflineSeconds;
 
-        CryptoZoo.state.lastLogin = now;
 
         if (cappedSeconds <= 0) {
             CryptoZoo.state.offlineMaxSeconds = this.getMaxSeconds();

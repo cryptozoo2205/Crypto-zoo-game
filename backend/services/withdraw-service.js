@@ -18,7 +18,7 @@ const MIN_WITHDRAW_LEVEL = Math.max(
 
 const MIN_ACCOUNT_AGE_MS = Math.max(
     0,
-    Number(LIMITS?.minWithdrawAccountAgeMs) || 24 * 60 * 60 * 1000
+    Number(LIMITS?.minWithdrawAccountAgeMs) || 0
 );
 
 const WITHDRAW_FEE_PERCENT = Math.max(
@@ -273,7 +273,7 @@ function validateWithdrawRequest(db, player, amount) {
     if (accountAgeMs < MIN_ACCOUNT_AGE_MS) {
         return {
             ok: false,
-            error: "Account must be at least 24h old"
+            error: ""
         };
     }
 
