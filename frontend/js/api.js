@@ -960,12 +960,12 @@ window.CryptoZoo.api = {
                 local.offlineBoostHours || 0
             ),
             offlineAdsHours: Math.max(
-                server.offlineAdsHours || 0,
-                local.offlineAdsHours || 0
+                0,
+                Number(server.offlineAdsHours) || 0
             ),
             offlineAdsResetAt: Math.max(
-                server.offlineAdsResetAt || 0,
-                local.offlineAdsResetAt || 0
+                0,
+                Number(server.offlineAdsResetAt) || 0
             ),
             offlineMaxSeconds: Math.max(
                 server.offlineMaxSeconds || 3600,
@@ -1436,6 +1436,9 @@ window.CryptoZoo.api = {
 
         if (serverRaw) {
             CryptoZoo.state = this.mergeStates(serverRaw, localRaw || {});
+            CryptoZoo.state.offlineAdsHours = Math.max(0, Number(serverRaw.offlineAdsHours) || 0);
+            CryptoZoo.state.offlineAdsResetAt = Math.max(0, Number(serverRaw.offlineAdsResetAt) || 0);
+            CryptoZoo.state.offlineMaxSeconds = Math.max(3600, Number(serverRaw.offlineMaxSeconds) || 3600);
         } else if (localRaw) {
             CryptoZoo.state = this.normalizeState(localRaw);
         } else {

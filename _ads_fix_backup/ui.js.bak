@@ -371,9 +371,22 @@ CryptoZoo.ui = {
 
         if (!mainText || !subText || !adBtn) return;
 
+        adBtn.style.pointerEvents = "auto";
+        adBtn.style.touchAction = "manipulation";
+        adBtn.disabled = false;
+        adBtn.onclick = (e) => {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            CryptoZoo.audio?.play?.("click");
+            CryptoZoo.ads?.showRewardedAd?.();
+            return false;
+        };
+
         CryptoZoo.offlineAds?.ensureState?.();
 
-        const adsHours = Math.max(
+        let adsHours = Math.max(
             0,
             Number(CryptoZoo.offlineAds?.getCurrentHours?.() || 0)
         );
@@ -383,15 +396,31 @@ CryptoZoo.ui = {
             Number(CryptoZoo.offlineAds?.getMaxHours?.() || 6)
         );
 
-        const remainingHours = Math.max(
+        let remainingHours = Math.max(
             0,
             Number(CryptoZoo.offlineAds?.getRemainingHours?.() || (maxAds - adsHours))
         );
 
-        const resetSeconds = Math.max(
+        let resetSeconds = Math.max(
             0,
             Number(CryptoZoo.offlineAds?.getSecondsUntilReset?.() || 0)
         );
+
+        const resetAt = Math.max(
+            0,
+            Number(CryptoZoo.state?.offlineAdsResetAt || 0)
+        );
+
+        if (resetAt <= Date.now() || resetSeconds <= 0) {
+            adsHours = 0;
+            remainingHours = maxAds;
+            resetSeconds = 0;
+
+            if (CryptoZoo.state) {
+                CryptoZoo.state.offlineAdsHours = 0;
+                CryptoZoo.state.offlineAdsResetAt = 0;
+            }
+        }
 
         const hasAnyAdsTime = adsHours > 0.000001;
         const rewardHours = this.getOfflineAdRewardHours();
@@ -421,7 +450,7 @@ CryptoZoo.ui = {
         }
 
         adBtn.disabled = false;
-        adBtn.textContent = `📺 30min`;
+        adBtn.textContent = `📺 ${Math.round(rewardHours * 60)}min`;
     },
 
     ensureOfflineInfoTimerRunning() {

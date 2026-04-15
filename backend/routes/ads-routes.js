@@ -1,3 +1,4 @@
+const safeInput = (req) => req.body || {};
 const express = require("express");
 
 const { readDb, writeDb } = require("../db/db");
@@ -6,8 +7,8 @@ const { normalizePlayer, getDefaultPlayer } = require("../services/player-servic
 
 const router = express.Router();
 
-const OFFLINE_ADS_MAX_HOURS = 6;
-const OFFLINE_ADS_HOURS_PER_AD = 1;
+const OFFLINE_ADS_MAX_HOURS = 3;
+const OFFLINE_ADS_HOURS_PER_AD = 0.5;
 const MIN_SECONDS_BETWEEN_AD_REWARDS = 0;
 
 function normalizeNumber(value, fallback = 0) {
@@ -66,6 +67,10 @@ function ensureOfflineAdsState(player) {
     }
 
     if (player.offlineAdsResetAt > now) {
+    if (player.offlineAdsResetAt <= now) {
+        player.offlineAdsHours = 0;
+        player.offlineAdsResetAt = 0;
+    }
         const remainingHours = Math.max(0, (player.offlineAdsResetAt - now) / (60 * 60 * 1000));
         player.offlineAdsHours = clamp(
             Number(remainingHours.toFixed(6)),

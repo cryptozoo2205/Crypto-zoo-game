@@ -573,7 +573,7 @@ CryptoZoo.gameplay = {
             return;
         }
 
-        CryptoZoo.state.xp = Math.floor(savedXp * 0.6);
+        CryptoZoo.state.xp = savedXp;
         CryptoZoo.state.level = progressFromXp.level;
 
         if ((Number(CryptoZoo.state.lastAwardedLevel) || 1) > CryptoZoo.state.level) {

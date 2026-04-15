@@ -226,12 +226,12 @@ function normalizePlayer(input) {
 
     const offlineAdsHours = Math.max(
         0,
-        Math.floor(normalizeNumber(0, base.offlineAdsHours))
+        Math.floor(normalizeNumber(safeInput.offlineAdsHours, base.offlineAdsHours))
     );
 
     const offlineAdsResetAt = Math.max(
         0,
-        normalizeNumber(0, base.offlineAdsResetAt || 0)
+        normalizeNumber(safeInput.offlineAdsResetAt, base.offlineAdsResetAt || 0)
     );
 
     const computedOfflineMaxSeconds = (offlineBaseHours + offlineBoostHours + offlineAdsHours) * 60 * 60;

@@ -3,6 +3,7 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.ads = {
     isLoading: false,
     adHardTimeoutMs: 90000,
+    minRewardedWatchMs: 25000,
 
     updateOfflineUi() {
         CryptoZoo.offlineAdsUI?.updateButton?.();
@@ -102,25 +103,6 @@ CryptoZoo.ads = {
         CryptoZoo.offlineAdsUI?.updateButton?.();
     },
 
-    isAdSuccessResult(result) {
-        if (result === true) return true;
-        if (typeof result === "string") {
-            const value = result.trim().toLowerCase();
-            return value === "success" || value === "completed" || value === "rewarded";
-        }
-
-        if (!result || typeof result !== "object") {
-            return false;
-        }
-
-        if (result.success === true) return true;
-        if (result.completed === true) return true;
-        if (result.rewarded === true) return true;
-
-        const status = String(result.status || result.result || "").trim().toLowerCase();
-        return status === "success" || status === "completed" || status === "rewarded";
-    },
-
     async openRewardedAdStrict() {
         if (typeof show_10822070 !== "function") {
             throw new Error("Reklama nie jest jeszcze gotowa");
@@ -138,7 +120,7 @@ CryptoZoo.ads = {
             throw new Error("Reklama nie jest jeszcze gotowa");
         }
 
-        const result = await Promise.race([
+        const result = await Promise.race([/
             adPromise,
             new Promise((_, reject) => {
                 setTimeout(() => {
@@ -147,11 +129,11 @@ CryptoZoo.ads = {
             })
         ]);
 
-        if (!this.isAdSuccessResult(result)) {
-            
+        if (!result || result !== "success") {
+            throw new Error("Obejrzyj reklamę do końca");
         }
 
-        return result;
+        return true;
     },
 
     async showRewardedAd() {

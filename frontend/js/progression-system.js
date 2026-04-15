@@ -67,7 +67,7 @@ CryptoZoo.progression = {
             requiredXp += 100;
         }
 
-        CryptoZoo.state.level = Math.max(Number(CryptoZoo.state.level) || 1, level);
+        CryptoZoo.state.level = Math.max(1, level);
         return CryptoZoo.state.level;
     },
 

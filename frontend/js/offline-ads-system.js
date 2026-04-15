@@ -1,8 +1,8 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.offlineAds = {
-    MAX_HOURS: 6,
-    HOURS_PER_AD: 1,
+    MAX_HOURS: 3,
+    HOURS_PER_AD: 0.5,
 
     getNow() {
         return Date.now();
@@ -27,18 +27,12 @@ CryptoZoo.offlineAds = {
     ensureState() {
         CryptoZoo.state = CryptoZoo.state || {};
 
-        if (Number(CryptoZoo.state.offlineAdsStateVersion) !== 2) {
-            CryptoZoo.state.offlineAdsHours = 0;
-            CryptoZoo.state.offlineAdsResetAt = 0;
-            CryptoZoo.state.offlineAdsStateVersion = 2;
-            this.persistState();
-        }
-
         const resetAt = Math.max(0, Number(CryptoZoo.state.offlineAdsResetAt) || 0);
         const now = this.getNow();
 
         if (resetAt <= now) {
             this.setZeroState();
+            this.persistState();
             return;
         }
 
@@ -70,6 +64,7 @@ CryptoZoo.offlineAds = {
 
         if (seconds <= 0) {
             this.setZeroState();
+            this.persistState();
             return 0;
         }
 
@@ -137,7 +132,7 @@ CryptoZoo.offlineAds = {
         const currentMinutes = Math.floor(current * 60);
 
         if (currentMinutes <= 0) {
-            return `Offline: 0m/${this.formatHoursShort(max)} · +1h po obejrzeniu reklamy`;
+            return `Offline: 0m/${this.formatHoursShort(max)} · 30min po obejrzeniu reklamy`;
         }
 
         return `Offline: ${this.formatHoursShort(current)}/${this.formatHoursShort(max)} · Reset za: ${this.getFormattedTimeUntilReset()}`;
