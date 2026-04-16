@@ -1,3 +1,8 @@
+const { ANIMALS_JUNGLE_CONFIG } = require("./animals-jungle-config");
+const { ANIMALS_DESERT_CONFIG } = require("./animals-desert-config");
+const { EXPEDITIONS_JUNGLE_CONFIG } = require("./expeditions-jungle-config");
+const { EXPEDITIONS_DESERT_CONFIG } = require("./expeditions-desert-config");
+
 const LIMITS = {
     MAX_COINS: 1e15,
     MAX_GEMS: 1e6,
@@ -51,19 +56,13 @@ const REFERRAL_REWARDS = {
 };
 
 const ANIMALS_CONFIG = {
-    monkey: { baseIncome: 1, buyCost: 120 },
-    panda: { baseIncome: 4, buyCost: 520 },
-    lion: { baseIncome: 11, buyCost: 2200 },
-    tiger: { baseIncome: 26, buyCost: 9000 },
-    elephant: { baseIncome: 62, buyCost: 22000 },
-    giraffe: { baseIncome: 145, buyCost: 52000 },
-    zebra: { baseIncome: 320, buyCost: 120000 },
-    hippo: { baseIncome: 700, buyCost: 270000 },
-    penguin: { baseIncome: 1500, buyCost: 600000 },
-    bear: { baseIncome: 3200, buyCost: 1300000 },
-    crocodile: { baseIncome: 6800, buyCost: 2900000 },
-    kangaroo: { baseIncome: 14500, buyCost: 6400000 },
-    wolf: { baseIncome: 30000, buyCost: 14000000 }
+    ...ANIMALS_JUNGLE_CONFIG,
+    ...ANIMALS_DESERT_CONFIG
+};
+
+const EXPEDITIONS_CONFIG = {
+    ...EXPEDITIONS_JUNGLE_CONFIG,
+    ...EXPEDITIONS_DESERT_CONFIG
 };
 
 const ADMIN_SECRET = String(process.env.ADMIN_SECRET || "");
@@ -72,5 +71,6 @@ module.exports = {
     LIMITS,
     REFERRAL_REWARDS,
     ANIMALS_CONFIG,
+    EXPEDITIONS_CONFIG,
     ADMIN_SECRET
 };
