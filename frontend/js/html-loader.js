@@ -96,10 +96,5 @@ CryptoZoo.htmlLoader = {
             "./frontend/partials/daily-reward-modal.html",
             "frontend/partials/daily-reward-modal.html"
         ]);
-
-        const screenGame = document.getElementById("screen-game");
-        if (screenGame) {
-            screenGame.classList.remove("hidden");
-        }
     }
 };
