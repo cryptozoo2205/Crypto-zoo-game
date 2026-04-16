@@ -266,11 +266,45 @@
 
         <main id="game">
             <div id="homeMount"></div>
-            <div id="zooScreenMount"></div>
-            <div id="shopScreenMount"></div>
-            <div id="missionsScreenMount"></div>
+
+            <section id="screen-zoo" class="screen hidden">
+                <div class="panel card">
+                    <h2 id="langScreenZooTitle">🐾 Zoo</h2>
+                    <div id="zooList"></div>
+                </div>
+            </section>
+
+            <section id="screen-shop" class="screen hidden">
+                <div class="panel card">
+                    <h2 id="langScreenShopTitle">🛒 Shop</h2>
+
+                    <div class="shop-item boost-shop-card" id="boostShopCard">
+                        <h3 id="langBoostShopCardTitle">⚡ X2 Boost</h3>
+                        <div id="langBoostShopCardDesc">Podwaja klik i dochód zoo przez 10 minut.</div>
+                        <div style="margin-top:6px;" id="langBoostShopCardCostWrap">Koszt: <strong>1 gem</strong></div>
+                        <div id="boostShopStatus" style="margin-top:6px;">Nieaktywny</div>
+                        <button id="buyBoostBtn" type="button" style="margin-top:10px;">Kup X2 Boost</button>
+                    </div>
+
+                    <div id="shopList"></div>
+                </div>
+            </section>
+
+            <section id="screen-missions" class="screen hidden">
+                <div class="panel card">
+                    <h2 id="langScreenExpeditionsTitle">🌍 Expeditions</h2>
+                    <div id="missionsList"></div>
+                </div>
+            </section>
+
             <div id="minigamesMount"></div>
-            <div id="rankingScreenMount"></div>
+
+            <section id="screen-ranking" class="screen hidden">
+                <div class="panel card">
+                    <h2 id="langScreenRankingTitle">🏆 Ranking</h2>
+                    <ul id="rankingList"></ul>
+                </div>
+            </section>
         </main>
 
         <footer class="menu">
