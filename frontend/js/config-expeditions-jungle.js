@@ -16,7 +16,7 @@ CryptoZoo.regionExpeditions.jungle = [
         gemChance: 0.01,
         rareChance: 0.12,
         epicChance: 0.01,
-        unlockLevel: 3
+        unlockLevel: 1
     },
     {
         id: "jungle_river",
