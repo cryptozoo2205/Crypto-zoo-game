@@ -112,6 +112,16 @@ CryptoZoo.ui = {
 
         const lang = this.getCurrentLang();
         const expeditionKeyMap = {
+            jungle_scout: "expeditionJungleScout",
+            jungle_river: "expeditionJungleRiver",
+            jungle_ruins: "expeditionJungleRuins",
+            jungle_canopy: "expeditionJungleCanopy",
+            jungle_depths: "expeditionJungleDepths",
+            jungle_temple: "expeditionJungleTemple",
+            jungle_king: "expeditionJungleKing",
+            desert_outpost: "expeditionDesertOutpost",
+            desert_dunes: "expeditionDesertDunes",
+
             forest: "expeditionForest",
             river: "expeditionRiver",
             volcano: "expeditionVolcano",
@@ -759,7 +769,7 @@ CryptoZoo.ui = {
 
                 if (gems >= 3) {
                     CryptoZoo.state.gems = Math.max(0, gems - 3);
-                    
+
                     CryptoZoo.boostSystem?.activate?.();
                     CryptoZoo.ui?.render?.();
                     CryptoZoo.api?.savePlayer?.();
@@ -1184,6 +1194,89 @@ CryptoZoo.ui = {
         return true;
     },
 
+    renderExpeditionCardsIntoMount(mountId, expeditions) {
+        const mount = document.getElementById(mountId);
+        if (!mount) return;
+
+        const safeExpeditions = Array.isArray(expeditions) ? expeditions : [];
+
+        mount.innerHTML = safeExpeditions.map((exp) => {
+            const rewardRangeText = this.getExpeditionRewardRangeText(exp);
+            const isUnlocked = CryptoZoo.expeditions?.isUnlocked?.(exp) || false;
+            const canAfford = CryptoZoo.expeditions?.canAffordStart?.(exp) || false;
+            const requiredLevel = CryptoZoo.expeditions?.getUnlockRequirement?.(exp) || 1;
+            const startCostCoins = CryptoZoo.expeditions?.getStartCostCoins?.(exp) || 0;
+
+            let buttonLabel = this.t("start", "Start");
+            let buttonDisabled = false;
+
+            if (!isUnlocked) {
+                buttonLabel = `${this.t("lvl", "Lvl")} ${CryptoZoo.formatNumber(requiredLevel)}`;
+                buttonDisabled = true;
+            } else if (!canAfford) {
+                buttonLabel = `${this.t("cost", "Koszt")}: ${CryptoZoo.formatNumber(startCostCoins)}`;
+                buttonDisabled = true;
+            }
+
+            const effectiveDuration =
+                CryptoZoo.expeditions?.getEffectiveDurationSeconds?.(exp) ||
+                Number(exp.duration || 0);
+
+            const effectiveRareChance =
+                CryptoZoo.expeditions?.getEffectiveRareChance?.(exp) ||
+                Number(exp.rareChance || 0);
+
+            const effectiveEpicChance =
+                CryptoZoo.expeditions?.getEffectiveEpicChance?.(exp) ||
+                Number(exp.epicChance || 0);
+
+            const expeditionName = this.getLocalizedExpeditionName(exp);
+
+            return `
+                <div class="expedition-card">
+                    <h3>${expeditionName}</h3>
+                    <div>${this.t("time", "Czas")}: ${this.formatTimeLeft(effectiveDuration)}</div>
+                    <div>
+                        ${this.t("cost", "Koszt")} startu:
+                        ${CryptoZoo.formatNumber(startCostCoins)} ${this.t("coins", "coins")}
+                    </div>
+                    <div>
+                        ${this.t("baseReward", "Nagroda bazowa")}:
+                        ${CryptoZoo.formatNumber(exp.baseCoins)} ${this.t("coins", "coins")}
+                    </div>
+                    <div>
+                        ${this.t("rewardWallet", "Reward Wallet")}: ${rewardRangeText}
+                    </div>
+                    <div>
+                        ${this.t("requiredLevel", "Wymagany poziom")}: ${CryptoZoo.formatNumber(requiredLevel)}
+                    </div>
+                    <div>
+                        ${this.t("bonusChance", "Szansa na bonus")}:
+                        ${this.t("rare", "Rare")} ${(effectiveRareChance * 100).toFixed(0)}% /
+                        ${this.t("epic", "Epic")} ${(effectiveEpicChance * 100).toFixed(0)}%
+                    </div>
+                    <button
+                        id="start-expedition-${exp.id}"
+                        type="button"
+                        ${buttonDisabled ? "disabled" : ""}
+                        style="${buttonDisabled ? "opacity:0.65; cursor:not-allowed;" : ""}"
+                    >${buttonLabel}</button>
+                </div>
+            `;
+        }).join("");
+
+        safeExpeditions.forEach((exp) => {
+            if (
+                CryptoZoo.expeditions?.isUnlocked?.(exp) &&
+                CryptoZoo.expeditions?.canAffordStart?.(exp)
+            ) {
+                this.bindClick(`start-expedition-${exp.id}`, () => {
+                    CryptoZoo.expeditions?.start?.(exp.id, []);
+                });
+            }
+        });
+    },
+
     renderExpeditions() {
         const container = document.getElementById("missionsList");
         if (!container) return;
@@ -1284,7 +1377,6 @@ CryptoZoo.ui = {
             return;
         }
 
-        const expeditions = CryptoZoo.config?.expeditions || [];
         const rareBonus = Math.max(
             0,
             Number(CryptoZoo.expeditions?.getRareChanceBonus?.() || 0)
@@ -1307,83 +1399,14 @@ CryptoZoo.ui = {
             </div>
         `;
 
-        container.innerHTML = dailyMissionsHtml + expeditionInfoCard + expeditions.map((exp) => {
-            const rewardRangeText = this.getExpeditionRewardRangeText(exp);
-            const isUnlocked = CryptoZoo.expeditions?.isUnlocked?.(exp) || false;
-            const canAfford = CryptoZoo.expeditions?.canAffordStart?.(exp) || false;
-            const requiredLevel = CryptoZoo.expeditions?.getUnlockRequirement?.(exp) || 1;
-            const startCostCoins = CryptoZoo.expeditions?.getStartCostCoins?.(exp) || 0;
-
-            let buttonLabel = this.t("start", "Start");
-            let buttonDisabled = false;
-
-            if (!isUnlocked) {
-                buttonLabel = `${this.t("lvl", "Lvl")} ${CryptoZoo.formatNumber(requiredLevel)}`;
-                buttonDisabled = true;
-            } else if (!canAfford) {
-                buttonLabel = `${this.t("cost", "Koszt")}: ${CryptoZoo.formatNumber(startCostCoins)}`;
-                buttonDisabled = true;
-            }
-
-            const effectiveDuration =
-                CryptoZoo.expeditions?.getEffectiveDurationSeconds?.(exp) ||
-                Number(exp.duration || 0);
-
-            const effectiveRareChance =
-                CryptoZoo.expeditions?.getEffectiveRareChance?.(exp) ||
-                Number(exp.rareChance || 0);
-
-            const effectiveEpicChance =
-                CryptoZoo.expeditions?.getEffectiveEpicChance?.(exp) ||
-                Number(exp.epicChance || 0);
-
-            const expeditionName = this.getLocalizedExpeditionName(exp);
-
-            return `
-                <div class="expedition-card">
-                    <h3>${expeditionName}</h3>
-                    <div>${this.t("time", "Czas")}: ${this.formatTimeLeft(effectiveDuration)}</div>
-                    <div>
-                        ${this.t("cost", "Koszt")} startu:
-                        ${CryptoZoo.formatNumber(startCostCoins)} ${this.t("coins", "coins")}
-                    </div>
-                    <div>
-                        ${this.t("baseReward", "Nagroda bazowa")}:
-                        ${CryptoZoo.formatNumber(exp.baseCoins)} ${this.t("coins", "coins")}
-                    </div>
-                    <div>
-                        ${this.t("rewardWallet", "Reward Wallet")}: ${rewardRangeText}
-                    </div>
-                    <div>
-                        ${this.t("requiredLevel", "Wymagany poziom")}: ${CryptoZoo.formatNumber(requiredLevel)}
-                    </div>
-                    <div>
-                        ${this.t("bonusChance", "Szansa na bonus")}:
-                        ${this.t("rare", "Rare")} ${(effectiveRareChance * 100).toFixed(0)}% /
-                        ${this.t("epic", "Epic")} ${(effectiveEpicChance * 100).toFixed(0)}%
-                    </div>
-                    <button
-                        id="start-expedition-${exp.id}"
-                        type="button"
-                        ${buttonDisabled ? "disabled" : ""}
-                        style="${buttonDisabled ? "opacity:0.65; cursor:not-allowed;" : ""}"
-                    >${buttonLabel}</button>
-                </div>
-            `;
-        }).join("");
+        container.innerHTML = `
+            ${dailyMissionsHtml}
+            ${expeditionInfoCard}
+            <div id="expeditionRegionsMount"></div>
+        `;
 
         this.bindDailyMissionButtons();
-
-        expeditions.forEach((exp) => {
-            if (
-                CryptoZoo.expeditions?.isUnlocked?.(exp) &&
-                CryptoZoo.expeditions?.canAffordStart?.(exp)
-            ) {
-                this.bindClick(`start-expedition-${exp.id}`, () => {
-                    CryptoZoo.expeditions?.start?.(exp.id, []);
-                });
-            }
-        });
+        CryptoZoo.expeditionRegionsUi?.render?.();
     },
 
     renderShopItems() {
