@@ -16,7 +16,7 @@ CryptoZoo.expeditionRegionsUi = {
             {
                 id: "desert",
                 name: "Desert",
-                minLevel: 48,
+                minLevel: 49,
                 maxLevel: null,
                 locked: true,
                 bgClass: "exp-region-bg-desert"
