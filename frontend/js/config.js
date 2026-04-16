@@ -1,4 +1,6 @@
 window.CryptoZoo = window.CryptoZoo || {};
+CryptoZoo.regionAnimals = CryptoZoo.regionAnimals || {};
+CryptoZoo.regionExpeditions = CryptoZoo.regionExpeditions || {};
 
 CryptoZoo.config = {
     apiBase: "https://cryptozoo.pl/api",
@@ -13,135 +15,13 @@ CryptoZoo.config = {
     clickValue: 1,
 
     animals: {
-        monkey: {
-            name: "Monkey",
-            namePl: "Małpa",
-            nameEn: "Monkey",
-            asset: "monkey",
-            buyCost: 150,
-            baseIncome: 1,
-            unlockLevel: 1
-        },
-        panda: {
-            name: "Panda",
-            namePl: "Panda",
-            nameEn: "Panda",
-            asset: "panda",
-            buyCost: 850,
-            baseIncome: 4,
-            unlockLevel: 3
-        },
-        lion: {
-            name: "Lion",
-            namePl: "Lew",
-            nameEn: "Lion",
-            asset: "lion",
-            buyCost: 4500,
-            baseIncome: 11,
-            unlockLevel: 6
-        },
-        tiger: {
-            name: "Tiger",
-            namePl: "Tygrys",
-            nameEn: "Tiger",
-            asset: "tiger",
-            buyCost: 18000,
-            baseIncome: 26,
-            unlockLevel: 10
-        },
-        elephant: {
-            name: "Elephant",
-            namePl: "Słoń",
-            nameEn: "Elephant",
-            asset: "elephant",
-            buyCost: 78000,
-            baseIncome: 58,
-            unlockLevel: 14
-        },
-        giraffe: {
-            name: "Giraffe",
-            namePl: "Żyrafa",
-            nameEn: "Giraffe",
-            asset: "giraffe",
-            buyCost: 340000,
-            baseIncome: 125,
-            unlockLevel: 18
-        },
-        zebra: {
-            name: "Zebra",
-            namePl: "Zebra",
-            nameEn: "Zebra",
-            asset: "zebra",
-            buyCost: 1450000,
-            baseIncome: 265,
-            unlockLevel: 22
-        },
-        hippo: {
-            name: "Hippo",
-            namePl: "Hipopotam",
-            nameEn: "Hippo",
-            asset: "hippo",
-            buyCost: 6200000,
-            baseIncome: 560,
-            unlockLevel: 27
-        },
-        penguin: {
-            name: "Penguin",
-            namePl: "Pingwin",
-            nameEn: "Penguin",
-            asset: "penguin",
-            buyCost: 27000000,
-            baseIncome: 1180,
-            unlockLevel: 32
-        },
-        bear: {
-            name: "Bear",
-            namePl: "Niedźwiedź",
-            nameEn: "Bear",
-            asset: "bear",
-            buyCost: 120000000,
-            baseIncome: 2450,
-            unlockLevel: 38
-        },
-        crocodile: {
-            name: "Crocodile",
-            namePl: "Krokodyl",
-            nameEn: "Crocodile",
-            asset: "crocodile",
-            buyCost: 540000000,
-            baseIncome: 5100,
-            unlockLevel: 44
-        },
-        kangaroo: {
-            name: "Kangaroo",
-            namePl: "Kangur",
-            nameEn: "Kangaroo",
-            asset: "kangaroo",
-            buyCost: 2400000000,
-            baseIncome: 10400,
-            unlockLevel: 50
-        },
-        wolf: {
-            name: "Wolf",
-            namePl: "Wilk",
-            nameEn: "Wolf",
-            asset: "wolf",
-            buyCost: 10500000000,
-            baseIncome: 21000,
-            unlockLevel: 58
-        }
+        ...(CryptoZoo.regionAnimals.jungle || {}),
+        ...(CryptoZoo.regionAnimals.desert || {})
     },
 
     expeditions: [
-        { id: "forest", name: "Magic Forest", namePl: "Magiczny Las", nameEn: "Magic Forest", duration: 300, baseDuration: 300, baseCoins: 70, startCostCoins: 55, baseGems: 0, gemChance: 0.01, rareChance: 0.12, epicChance: 0.01, unlockLevel: 1 },
-        { id: "river", name: "Crystal River", namePl: "Kryształowa Rzeka", nameEn: "Crystal River", duration: 900, baseDuration: 900, baseCoins: 260, startCostCoins: 220, baseGems: 0, gemChance: 0.014, rareChance: 0.13, epicChance: 0.014, unlockLevel: 4 },
-        { id: "volcano", name: "Golden Volcano", namePl: "Złoty Wulkan", nameEn: "Golden Volcano", duration: 1800, baseDuration: 1800, baseCoins: 760, startCostCoins: 650, baseGems: 0, gemChance: 0.019, rareChance: 0.145, epicChance: 0.019, unlockLevel: 8 },
-        { id: "canyon", name: "Sunstone Canyon", namePl: "Kanion Słonecznego Kamienia", nameEn: "Sunstone Canyon", duration: 3600, baseDuration: 3600, baseCoins: 2100, startCostCoins: 1750, baseGems: 0, gemChance: 0.024, rareChance: 0.155, epicChance: 0.024, unlockLevel: 12 },
-        { id: "glacier", name: "Frozen Glacier", namePl: "Zamarznięty Lodowiec", nameEn: "Frozen Glacier", duration: 7200, baseDuration: 7200, baseCoins: 5600, startCostCoins: 4600, baseGems: 0, gemChance: 0.03, rareChance: 0.165, epicChance: 0.03, unlockLevel: 17 },
-        { id: "jungle", name: "Emerald Jungle", namePl: "Szmaragdowa Dżungla", nameEn: "Emerald Jungle", duration: 14400, baseDuration: 14400, baseCoins: 14500, startCostCoins: 11600, baseGems: 0, gemChance: 0.038, rareChance: 0.175, epicChance: 0.038, unlockLevel: 23 },
-        { id: "temple", name: "Ancient Temple", namePl: "Starożytna Świątynia", nameEn: "Ancient Temple", duration: 28800, baseDuration: 28800, baseCoins: 36000, startCostCoins: 28000, baseGems: 0, gemChance: 0.05, rareChance: 0.185, epicChance: 0.05, unlockLevel: 30 },
-        { id: "oasis", name: "Royal Oasis", namePl: "Królewska Oaza", nameEn: "Royal Oasis", duration: 43200, baseDuration: 43200, baseCoins: 80000, startCostCoins: 61000, baseGems: 0, gemChance: 0.062, rareChance: 0.195, epicChance: 0.062, unlockLevel: 38 },
-        { id: "kingdom", name: "Lost Beast Kingdom", namePl: "Zaginione Królestwo Bestii", nameEn: "Lost Beast Kingdom", duration: 86400, baseDuration: 86400, baseCoins: 180000, startCostCoins: 145000, baseGems: 0, gemChance: 0.078, rareChance: 0.21, epicChance: 0.078, unlockLevel: 48 }
+        ...(CryptoZoo.regionExpeditions.jungle || []),
+        ...(CryptoZoo.regionExpeditions.desert || [])
     ],
 
     shopItems: [
