@@ -8,7 +8,6 @@ const LIMITS = {
     MAX_REWARD_WALLET: 100000,
     MAX_WITHDRAW_PENDING: 100000,
 
-    // 🔒 HARD ANTI-CHEAT (mini gry + nagrody)
     MAX_COINS_GAIN_PER_SAVE: 5e7,
     MAX_GEMS_GAIN_PER_SAVE: 25,
     MAX_LEVEL_GAIN_PER_SAVE: 3,
@@ -67,123 +66,11 @@ const ANIMALS_CONFIG = {
     wolf: { baseIncome: 30000, buyCost: 14000000 }
 };
 
-const EXPEDITIONS_CONFIG = {
-    forest: {
-        id: "forest",
-        name: "Magic Forest",
-        duration: 300,
-        baseDuration: 300,
-        baseCoins: 80,
-        startCostCoins: 50,
-        gemChance: 0.01,
-        rareChance: 0.12,
-        epicChance: 0.01,
-        unlockLevel: 1
-    },
-    river: {
-        id: "river",
-        name: "Crystal River",
-        duration: 900,
-        baseDuration: 900,
-        baseCoins: 350,
-        startCostCoins: 260,
-        gemChance: 0.016,
-        rareChance: 0.13,
-        epicChance: 0.015,
-        unlockLevel: 3
-    },
-    volcano: {
-        id: "volcano",
-        name: "Golden Volcano",
-        duration: 1800,
-        baseDuration: 1800,
-        baseCoins: 1050,
-        startCostCoins: 780,
-        gemChance: 0.022,
-        rareChance: 0.145,
-        epicChance: 0.022,
-        unlockLevel: 5
-    },
-    canyon: {
-        id: "canyon",
-        name: "Sunstone Canyon",
-        duration: 3600,
-        baseDuration: 3600,
-        baseCoins: 2900,
-        startCostCoins: 2100,
-        gemChance: 0.028,
-        rareChance: 0.155,
-        epicChance: 0.028,
-        unlockLevel: 7
-    },
-    glacier: {
-        id: "glacier",
-        name: "Frozen Glacier",
-        duration: 7200,
-        baseDuration: 7200,
-        baseCoins: 7600,
-        startCostCoins: 5200,
-        gemChance: 0.035,
-        rareChance: 0.165,
-        epicChance: 0.035,
-        unlockLevel: 10
-    },
-    jungle: {
-        id: "jungle",
-        name: "Emerald Jungle",
-        duration: 14400,
-        baseDuration: 14400,
-        baseCoins: 19000,
-        startCostCoins: 12800,
-        gemChance: 0.045,
-        rareChance: 0.175,
-        epicChance: 0.045,
-        unlockLevel: 14
-    },
-    temple: {
-        id: "temple",
-        name: "Ancient Temple",
-        duration: 28800,
-        baseDuration: 28800,
-        baseCoins: 47000,
-        startCostCoins: 29500,
-        gemChance: 0.058,
-        rareChance: 0.185,
-        epicChance: 0.058,
-        unlockLevel: 18
-    },
-    oasis: {
-        id: "oasis",
-        name: "Royal Oasis",
-        duration: 43200,
-        baseDuration: 43200,
-        baseCoins: 104000,
-        startCostCoins: 63000,
-        gemChance: 0.072,
-        rareChance: 0.195,
-        epicChance: 0.072,
-        unlockLevel: 22
-    },
-    kingdom: {
-        id: "kingdom",
-        name: "Lost Beast Kingdom",
-        duration: 86400,
-        baseDuration: 86400,
-        baseCoins: 235000,
-        startCostCoins: 132000,
-        gemChance: 0.09,
-        rareChance: 0.21,
-        epicChance: 0.09,
-        unlockLevel: 28
-    }
-};
-
 const ADMIN_SECRET = String(process.env.ADMIN_SECRET || "");
 
 module.exports = {
     LIMITS,
     REFERRAL_REWARDS,
     ANIMALS_CONFIG,
-    EXPEDITIONS_CONFIG,
     ADMIN_SECRET
 };
