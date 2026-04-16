@@ -1,19 +1,16 @@
 const express = require("express");
 
 const { readDb, writeDb } = require("../db/db");
-const { EXPEDITIONS_CONFIG, LIMITS } = require("../config/game-config");
+const { LIMITS } = require("../config/game-config");
+const {
+    EXPEDITIONS_CONFIG,
+    getAllExpeditions,
+    getExpeditionById
+} = require("../config/expeditions-config");
 const { safeString, clamp, normalizeRewardNumber } = require("../utils/helpers");
 const { getPlayerOrCreate, normalizePlayer } = require("../services/player-service");
 
 const router = express.Router();
-
-function getAllExpeditions() {
-    return Object.values(EXPEDITIONS_CONFIG || {});
-}
-
-function getExpeditionById(id) {
-    return getAllExpeditions().find((exp) => String(exp.id) === String(id)) || null;
-}
 
 function normalizeRewardRarity(rarity) {
     const safeRarity = String(rarity || "common").toLowerCase();
@@ -180,15 +177,15 @@ function getGemsReward(expedition, rewardRarity) {
 
 function getRewardTierMultiplier(expeditionId) {
     const tierMap = {
-        forest: 1.00,
-        river: 1.03,
-        volcano: 1.06,
-        canyon: 1.10,
-        glacier: 1.14,
-        jungle: 1.18,
-        temple: 1.22,
-        oasis: 1.26,
-        kingdom: 1.30
+        jungle_scout: 1.00,
+        jungle_river: 1.03,
+        jungle_ruins: 1.06,
+        jungle_canopy: 1.10,
+        jungle_depths: 1.14,
+        jungle_temple: 1.18,
+        jungle_king: 1.22,
+        desert_outpost: 1.26,
+        desert_dunes: 1.30
     };
 
     return Number(tierMap[String(expeditionId || "").toLowerCase()]) || 1.0;
@@ -208,8 +205,7 @@ function getRewardBalanceAmount(player, expeditionState) {
     const rarityMultiplier = getRarityRewardBalanceMultiplier(rewardRarity);
     const boostMultiplier = getTotalExpeditionRewardMultiplier(player);
 
-    let reward = hours * 0.024 * tierMultiplier * rarityMultiplier * boostMultiplier;
-    
+    const reward = hours * 0.024 * tierMultiplier * rarityMultiplier * boostMultiplier;
 
     return Number(reward.toFixed(3));
 }
@@ -228,8 +224,7 @@ function getMaxRewardBalanceAmount(expeditionState) {
     const rarityMultiplier = getRarityRewardBalanceMultiplier(rewardRarity);
     const theoreticalMaxBoostMultiplier = 2.0 * 1.25;
 
-    let reward = hours * 0.024 * tierMultiplier * rarityMultiplier * theoreticalMaxBoostMultiplier;
-    
+    const reward = hours * 0.024 * tierMultiplier * rarityMultiplier * theoreticalMaxBoostMultiplier;
 
     return Number(reward.toFixed(3));
 }
@@ -278,6 +273,7 @@ function buildActiveExpedition(player, expedition, selectedAnimals = []) {
 
     return {
         id: String(expedition.id || ""),
+        regionId: String(expedition.regionId || ""),
         name: String(expedition.name || "Expedition"),
         startTime: now,
         endTime: now + baseDuration * 1000,
@@ -376,6 +372,21 @@ function sanitizeStoredRewardBalance(expeditionState) {
     );
 }
 
+router.get("/list", (req, res) => {
+    try {
+        return res.json({
+            ok: true,
+            expeditions: getAllExpeditions().filter((expedition) => expedition.enabled !== false)
+        });
+    } catch (error) {
+        console.error("GET /api/expedition/list failed:", error);
+        return res.status(500).json({
+            error: "Expedition list load failed",
+            details: error?.message || "Unknown server error"
+        });
+    }
+});
+
 router.post("/start", (req, res) => {
     try {
         const db = readDb();
@@ -394,7 +405,7 @@ router.post("/start", (req, res) => {
         }
 
         const expedition = getExpeditionById(expeditionId);
-        if (!expedition) {
+        if (!expedition || expedition.enabled === false) {
             return res.status(404).json({ error: "Expedition not found" });
         }
 
