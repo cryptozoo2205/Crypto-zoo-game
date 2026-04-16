@@ -265,7 +265,9 @@
         </header>
 
         <main id="game">
-            <div id="homeMount"></div>
+            <section id="screen-game" class="screen">
+                <div id="homeMount"></div>
+            </section>
 
             <section id="screen-zoo" class="screen hidden">
                 <div class="panel card">
@@ -297,7 +299,35 @@
                 </div>
             </section>
 
-            <div id="minigamesMount"></div>
+            <section id="screen-minigames" class="screen hidden">
+                <div class="panel card minigames-card">
+                    <div class="minigames-header">
+                        <div class="minigames-title" id="langMiniGamesTitle">🎮 Mini Games</div>
+                        <div class="minigames-subtitle" id="langMiniGamesSubtitle">
+                            Zagraj w memory i odbierz nagrody
+                        </div>
+                    </div>
+
+                    <div id="minigamesWrap">
+                        <div id="memoryGame" class="minigame-box">
+                            <div class="minigame-box-header">
+                                <div class="minigame-name" id="langMemoryName">Memory Animals</div>
+                                <div class="minigame-desc" id="langMemoryDesc">
+                                    Znajdź wszystkie pary i odbierz nagrody
+                                </div>
+                            </div>
+
+                            <div id="memoryBoard" class="memory-grid"></div>
+
+                            <button id="startMemoryBtn" type="button">Start Memory</button>
+
+                            <div id="memoryStatus" class="minigame-status">
+                                Find all pairs
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
             <section id="screen-ranking" class="screen hidden">
                 <div class="panel card">
@@ -339,10 +369,10 @@
     <div id="withdrawModalMount"></div>
     <div id="dailyRewardModalMount"></div>
 
-<script src="./js/config-animals-jungle.js"></script>
-<script src="./js/config-animals-desert.js"></script>
-<script src="./js/config-expeditions-jungle.js"></script>
-<script src="./js/config-expeditions-desert.js"></script>
+    <script src="./js/config-animals-jungle.js"></script>
+    <script src="./js/config-animals-desert.js"></script>
+    <script src="./js/config-expeditions-jungle.js"></script>
+    <script src="./js/config-expeditions-desert.js"></script>
     <script src="./js/config.js"></script>
     <script src="./js/state.js"></script>
     <script src="./js/dom.js"></script>
