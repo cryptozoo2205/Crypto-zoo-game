@@ -1,0 +1,122 @@
+<div id="settingsModal" class="profile-modal hidden">
+    <div class="profile-backdrop" id="settingsBackdrop"></div>
+
+    <div class="profile-card">
+        <div class="profile-header">
+            <div class="profile-avatar"></div>
+
+            <div class="profile-user-meta">
+                <div class="profile-name" id="langSettingsTitle">Settings</div>
+                <div class="profile-subtitle" id="langSettingsSubtitle">Ustawienia gry i FAQ</div>
+            </div>
+        </div>
+
+        <div class="profile-grid">
+            <div class="profile-box">
+                <div class="profile-box-label" id="langSettingsLanguage">Language</div>
+                <div class="profile-box-value" id="settingsLanguageValue">Polski</div>
+            </div>
+
+            <div class="profile-box">
+                <div class="profile-box-label" id="langSettingsSounds">Sounds</div>
+                <div class="profile-box-value" id="settingsSoundValue">ON</div>
+            </div>
+        </div>
+
+        <div class="profile-boost-row">
+            <div class="profile-boost-left">
+                <div class="profile-boost-label" id="langSettingsFaqHelp">FAQ / Help</div>
+
+                <button
+                    id="openFaqBtn"
+                    class="profile-close-btn"
+                    type="button"
+                    style="margin-top:8px;"
+                >
+                    Otwórz FAQ
+                </button>
+
+                <button
+                    id="openSupportBtn"
+                    class="profile-close-btn"
+                    type="button"
+                    style="margin-top:10px;"
+                >
+                    Kontakt z obsługą
+                </button>
+            </div>
+        </div>
+
+        <button
+            id="toggleFinanceBtn"
+            class="profile-close-btn"
+            type="button"
+            aria-expanded="false"
+            style="margin-top:12px; display:flex; align-items:center; justify-content:space-between; gap:10px;"
+        >
+            <span id="toggleFinanceBtnLabel">Deposit / Withdraw</span>
+            <span id="toggleFinanceBtnArrow">▼</span>
+        </button>
+
+        <div
+            id="settingsFinanceContent"
+            class="profile-boost-row"
+            style="margin-top:12px; display:none;"
+        >
+            <div class="profile-boost-left" style="width:100%;">
+                <div class="profile-grid">
+                    <div class="profile-box">
+                        <div class="profile-box-label">Reward</div>
+                        <div class="profile-box-value" id="settingsRewardBalance">0.000</div>
+                        <div class="profile-box-subvalue" id="settingsRewardBalanceUsd"></div>
+                    </div>
+
+                    <div class="profile-box">
+                        <div class="profile-box-label">Wallet</div>
+                        <div class="profile-box-value" id="settingsRewardWallet">0.000</div>
+                        <div class="profile-box-subvalue" id="settingsRewardWalletUsd"></div>
+                    </div>
+
+                    <div class="profile-box">
+                        <div class="profile-box-label">Pending</div>
+                        <div class="profile-box-value" id="settingsWithdrawPending">0.000</div>
+                        <div class="profile-box-subvalue" id="settingsWithdrawPendingUsd"></div>
+                    </div>
+                </div>
+
+                <button id="settingsTransferRewardBtn" class="profile-close-btn" type="button" style="margin-top:12px;">Transfer Reward</button>
+                <button id="settingsRequestWithdrawBtn" class="profile-close-btn" type="button">Open Withdraw</button>
+
+                <div class="profile-boost-row" style="margin-top:12px;">
+                    <div class="profile-boost-left" style="width:100%;">
+                        <div class="profile-boost-label">Wybierz depozyt</div>
+                        <div
+                            id="settingsDepositAmountOptions"
+                            style="margin-top:10px; display:flex; flex-wrap:wrap; gap:12px;"
+                        ></div>
+                    </div>
+                </div>
+
+                <button id="settingsCreateDepositBtn" class="profile-close-btn" type="button" style="margin-top:12px;">Create Deposit</button>
+
+                <div class="profile-boost-row" style="margin-top:12px;">
+                    <div class="profile-boost-left" style="width:100%;">
+                        <div class="profile-boost-label">Historia wypłat</div>
+                        <div id="settingsWithdrawHistoryList" style="margin-top:10px;"></div>
+                    </div>
+                </div>
+
+                <div class="profile-boost-row" style="margin-top:12px;">
+                    <div class="profile-boost-left" style="width:100%;">
+                        <div class="profile-boost-label">Historia wpłat</div>
+                        <div id="settingsDepositsHistoryList" style="margin-top:10px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="settingsFaqMount"></div>
+
+        <button id="closeSettingsBtn" class="profile-close-btn" type="button">Zamknij</button>
+    </div>
+</div>
