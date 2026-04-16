@@ -63,23 +63,16 @@ CryptoZoo.init = {
     },
 
     refreshLoadedUi() {
-        try {
+        this.runSafe(async () => {
             CryptoZoo.ui?.renderTopHiddenStats?.();
             CryptoZoo.ui?.renderHome?.();
-            CryptoZoo.ui?.renderCurrentScreen?.();
-            CryptoZoo.ui?.renderOpenModalsOnly?.();
             CryptoZoo.ui?.renderZooList?.();
             CryptoZoo.ui?.renderExpeditions?.();
             CryptoZoo.ui?.renderShopItems?.();
-
-            if ((CryptoZoo.gameplay?.activeScreen || "game") === "ranking") {
-                CryptoZoo.uiRanking?.renderRanking?.(true);
-            }
-
+            CryptoZoo.ui?.renderCurrentScreen?.();
+            CryptoZoo.ui?.renderOpenModalsOnly?.();
             CryptoZoo.expeditionRegionsUi?.render?.();
-        } catch (error) {
-            console.error("refreshLoadedUi failed:", error);
-        }
+        });
     },
 
     scheduleResume() {
@@ -215,6 +208,7 @@ CryptoZoo.init = {
 
         await this.runSafe(async () => {
             await CryptoZoo.api?.init?.();
+            this.refreshLoadedUi();
         });
 
         this.setLoadingProgress(68);
