@@ -1,0 +1,5 @@
+const ANIMALS_DESERT_CONFIG = {};
+
+module.exports = {
+    ANIMALS_DESERT_CONFIG
+};
