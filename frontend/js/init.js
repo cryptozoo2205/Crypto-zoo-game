@@ -62,6 +62,26 @@ CryptoZoo.init = {
         return null;
     },
 
+    refreshLoadedUi() {
+        try {
+            CryptoZoo.ui?.renderTopHiddenStats?.();
+            CryptoZoo.ui?.renderHome?.();
+            CryptoZoo.ui?.renderCurrentScreen?.();
+            CryptoZoo.ui?.renderOpenModalsOnly?.();
+            CryptoZoo.ui?.renderZooList?.();
+            CryptoZoo.ui?.renderExpeditions?.();
+            CryptoZoo.ui?.renderShopItems?.();
+
+            if ((CryptoZoo.gameplay?.activeScreen || "game") === "ranking") {
+                CryptoZoo.uiRanking?.renderRanking?.(true);
+            }
+
+            CryptoZoo.expeditionRegionsUi?.render?.();
+        } catch (error) {
+            console.error("refreshLoadedUi failed:", error);
+        }
+    },
+
     scheduleResume() {
         if (this.resumeScheduled) return;
         this.resumeScheduled = true;
@@ -78,6 +98,7 @@ CryptoZoo.init = {
             CryptoZoo.telegram?.applyViewportFix?.();
             CryptoZoo.telegram?.applyIdentityToUi?.();
             CryptoZoo.gameplay?.requestRender?.(true);
+            this.refreshLoadedUi();
         });
     },
 
@@ -146,6 +167,7 @@ CryptoZoo.init = {
                 CryptoZoo.uiProfile?.bindProfileModal?.();
                 CryptoZoo.ui?.bindHomeButtons?.();
                 CryptoZoo.ads?.updateOfflineUi?.();
+                this.refreshLoadedUi();
             });
         }, 260);
 
@@ -199,6 +221,7 @@ CryptoZoo.init = {
 
         await this.runSafe(async () => {
             CryptoZoo.gameplay?.init?.();
+            this.refreshLoadedUi();
         });
 
         this.setLoadingProgress(84);
@@ -215,6 +238,7 @@ CryptoZoo.init = {
         await this.runSafe(async () => {
             CryptoZoo.gameplay?.requestRender?.(true);
             CryptoZoo.ads?.updateOfflineUi?.();
+            this.refreshLoadedUi();
         });
 
         this.setLoadingProgress(100);
