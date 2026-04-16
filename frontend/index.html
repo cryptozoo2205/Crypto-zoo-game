@@ -362,351 +362,237 @@
         </footer>
     </div>
 
-    <div id="profileModal" class="profile-modal hidden">
-        <div class="profile-backdrop" id="profileBackdrop"></div>
+    <div id="profileModalMount"></div>
 
-        <div class="profile-card">
-            <div class="profile-header">
-                <div class="profile-avatar"></div>
+    <div id="settingsModalMount">
+        <div id="settingsModal" class="profile-modal hidden">
+            <div class="profile-backdrop" id="settingsBackdrop"></div>
 
-                <div class="profile-user-meta">
-                    <div class="profile-name" id="profileName">Gracz</div>
-                    <div class="profile-subtitle" id="profileSubtitle">@username</div>
-                </div>
-            </div>
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="profile-avatar"></div>
 
-            <div class="profile-grid">
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langProfileAnimals">Animals</div>
-                    <div class="profile-box-value" id="profileAnimalsTotal">0</div>
+                    <div class="profile-user-meta">
+                        <div class="profile-name" id="langSettingsTitle">Settings</div>
+                        <div class="profile-subtitle" id="langSettingsSubtitle">Ustawienia gry i FAQ</div>
+                    </div>
                 </div>
 
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langProfileSpecies">Species</div>
-                    <div class="profile-box-value" id="profileSpeciesUnlocked">0</div>
-                </div>
-
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langProfileBoxes">Boxes</div>
-                    <div class="profile-box-value" id="profileBoxesTotal">0</div>
-                </div>
-
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langProfileRanking">Ranking</div>
-                    <div class="profile-box-value" id="profileRankingPlace">#-</div>
-                </div>
-
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langProfileReward">Reward</div>
-                    <div class="profile-box-value" id="profileRewardBalance">0</div>
-                    <div class="profile-box-subvalue" id="profileRewardBalanceUsd"></div>
-                </div>
-
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langProfileWallet">Wallet</div>
-                    <div class="profile-box-value" id="profileRewardWallet">0</div>
-                    <div class="profile-box-subvalue" id="profileRewardWalletUsd"></div>
-                </div>
-
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langProfilePending">Pending</div>
-                    <div class="profile-box-value" id="profileWithdrawPending">0</div>
-                    <div class="profile-box-subvalue" id="profileWithdrawPendingUsd"></div>
-                </div>
-            </div>
-
-            <div class="profile-boost-row">
-                <div class="profile-boost-left">
-                    <div class="profile-boost-label" id="langProfileBoostStatus">Boost status</div>
-                    <div class="profile-boost-value" id="profileBoostStatus">Nieaktywny</div>
-                </div>
-            </div>
-
-            <button
-                id="toggleReferralBtn"
-                class="profile-close-btn"
-                type="button"
-                aria-expanded="false"
-                style="margin-top:12px; display:flex; align-items:center; justify-content:space-between; gap:10px;"
-            >
-                <span id="toggleReferralBtnLabel">Referral / Zaproś znajomych</span>
-                <span id="toggleReferralBtnArrow">▼</span>
-            </button>
-
-            <div
-                id="profileReferralContent"
-                class="profile-boost-row"
-                style="margin-top:12px; display:none;"
-            >
-                <div class="profile-boost-left" style="width:100%;">
-                    <div class="profile-boost-label">Referral</div>
-
-                    <div style="margin-top:10px; display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px;">
-                        <div class="profile-box" style="margin:0;">
-                            <div class="profile-box-label">Zaproszeni</div>
-                            <div class="profile-box-value" id="profileReferralsCount">0</div>
-                        </div>
-
-                        <div class="profile-box" style="margin:0;">
-                            <div class="profile-box-label">Kod</div>
-                            <div class="profile-box-value" id="profileReferralCode">-</div>
-                        </div>
+                <div class="profile-grid">
+                    <div class="profile-box">
+                        <div class="profile-box-label" id="langSettingsLanguage">Language</div>
+                        <div class="profile-box-value" id="settingsLanguageValue">Polski</div>
                     </div>
 
-                    <div style="margin-top:10px;">
-                        <div class="profile-box-label" style="margin-bottom:6px;">Link referral</div>
-                        <div
-                            id="profileReferralLink"
-                            style="padding:10px; border:1px solid rgba(255,255,255,0.1); border-radius:10px; word-break:break-all; font-size:12px; color:rgba(255,255,255,0.88); background:rgba(255,255,255,0.03); min-height:18px;"
-                        >-</div>
+                    <div class="profile-box">
+                        <div class="profile-box-label" id="langSettingsSounds">Sounds</div>
+                        <div class="profile-box-value" id="settingsSoundValue">ON</div>
                     </div>
+                </div>
 
-                    <button id="copyReferralBtn" class="profile-close-btn" type="button" style="margin-top:10px;">Kopiuj link</button>
+                <div class="profile-boost-row">
+                    <div class="profile-boost-left">
+                        <div class="profile-boost-label" id="langSettingsFaqHelp">FAQ / Help</div>
 
-                    <div style="margin-top:12px;">
-                        <div class="profile-box-label" style="margin-bottom:6px;">Nagrody referral</div>
-                        <div
-                            id="profileReferralRewards"
-                            style="padding:10px; border:1px solid rgba(255,255,255,0.1); border-radius:10px; font-size:12px; color:rgba(255,255,255,0.82); background:rgba(255,255,255,0.03); line-height:1.5;"
+                        <button
+                            id="openFaqBtn"
+                            class="profile-close-btn"
+                            type="button"
+                            style="margin-top:8px;"
                         >
-                            Ładowanie...
-                        </div>
-                    </div>
+                            Otwórz FAQ
+                        </button>
 
-                    <div style="margin-top:12px;">
-                        <div class="profile-box-label" style="margin-bottom:6px;">Ostatni zaproszeni</div>
-                        <div id="profileReferralsList" style="margin-top:8px;"></div>
+                        <button
+                            id="openSupportBtn"
+                            class="profile-close-btn"
+                            type="button"
+                            style="margin-top:10px;"
+                        >
+                            Kontakt z obsługą
+                        </button>
                     </div>
                 </div>
-            </div>
 
-            <button id="closeProfileBtn" class="profile-close-btn" type="button">Zamknij</button>
+                <button
+                    id="toggleFinanceBtn"
+                    class="profile-close-btn"
+                    type="button"
+                    aria-expanded="false"
+                    style="margin-top:12px; display:flex; align-items:center; justify-content:space-between; gap:10px;"
+                >
+                    <span id="toggleFinanceBtnLabel">Deposit / Withdraw</span>
+                    <span id="toggleFinanceBtnArrow">▼</span>
+                </button>
+
+                <div
+                    id="settingsFinanceContent"
+                    class="profile-boost-row"
+                    style="margin-top:12px; display:none;"
+                >
+                    <div class="profile-boost-left" style="width:100%;">
+                        <div class="profile-grid">
+                            <div class="profile-box">
+                                <div class="profile-box-label">Reward</div>
+                                <div class="profile-box-value" id="settingsRewardBalance">0.000</div>
+                                <div class="profile-box-subvalue" id="settingsRewardBalanceUsd"></div>
+                            </div>
+
+                            <div class="profile-box">
+                                <div class="profile-box-label">Wallet</div>
+                                <div class="profile-box-value" id="settingsRewardWallet">0.000</div>
+                                <div class="profile-box-subvalue" id="settingsRewardWalletUsd"></div>
+                            </div>
+
+                            <div class="profile-box">
+                                <div class="profile-box-label">Pending</div>
+                                <div class="profile-box-value" id="settingsWithdrawPending">0.000</div>
+                                <div class="profile-box-subvalue" id="settingsWithdrawPendingUsd"></div>
+                            </div>
+                        </div>
+
+                        <button id="settingsTransferRewardBtn" class="profile-close-btn" type="button" style="margin-top:12px;">Transfer Reward</button>
+                        <button id="settingsRequestWithdrawBtn" class="profile-close-btn" type="button">Open Withdraw</button>
+
+                        <div class="profile-boost-row" style="margin-top:12px;">
+                            <div class="profile-boost-left" style="width:100%;">
+                                <div class="profile-boost-label">Wybierz depozyt</div>
+                                <div
+                                    id="settingsDepositAmountOptions"
+                                    style="margin-top:10px; display:flex; flex-wrap:wrap; gap:12px;"
+                                ></div>
+                            </div>
+                        </div>
+
+                        <button id="settingsCreateDepositBtn" class="profile-close-btn" type="button" style="margin-top:12px;">Create Deposit</button>
+
+                        <div class="profile-boost-row" style="margin-top:12px;">
+                            <div class="profile-boost-left" style="width:100%;">
+                                <div class="profile-boost-label">Historia wypłat</div>
+                                <div id="settingsWithdrawHistoryList" style="margin-top:10px;"></div>
+                            </div>
+                        </div>
+
+                        <div class="profile-boost-row" style="margin-top:12px;">
+                            <div class="profile-boost-left" style="width:100%;">
+                                <div class="profile-boost-label">Historia wpłat</div>
+                                <div id="settingsDepositsHistoryList" style="margin-top:10px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="settingsFaqMount"></div>
+
+                <button id="closeSettingsBtn" class="profile-close-btn" type="button">Zamknij</button>
+            </div>
         </div>
     </div>
 
-    <div id="settingsModal" class="profile-modal hidden">
-        <div class="profile-backdrop" id="settingsBackdrop"></div>
+    <div id="withdrawModalMount">
+        <div id="withdrawModal" class="profile-modal hidden">
+            <div class="profile-backdrop" id="withdrawBackdrop"></div>
 
-        <div class="profile-card">
-            <div class="profile-header">
-                <div class="profile-avatar"></div>
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="profile-avatar">💸</div>
 
-                <div class="profile-user-meta">
-                    <div class="profile-name" id="langSettingsTitle">Settings</div>
-                    <div class="profile-subtitle" id="langSettingsSubtitle">Ustawienia gry i FAQ</div>
-                </div>
-            </div>
-
-            <div class="profile-grid">
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langSettingsLanguage">Language</div>
-                    <div class="profile-box-value" id="settingsLanguageValue">Polski</div>
-                </div>
-
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langSettingsSounds">Sounds</div>
-                    <div class="profile-box-value" id="settingsSoundValue">ON</div>
-                </div>
-            </div>
-
-            <div class="profile-boost-row">
-                <div class="profile-boost-left">
-                    <div class="profile-boost-label" id="langSettingsFaqHelp">FAQ / Help</div>
-
-                    <button
-                        id="openFaqBtn"
-                        class="profile-close-btn"
-                        type="button"
-                        style="margin-top:8px;"
-                    >
-                        Otwórz FAQ
-                    </button>
-
-                    <button
-                        id="openSupportBtn"
-                        class="profile-close-btn"
-                        type="button"
-                        style="margin-top:10px;"
-                    >
-                        Kontakt z obsługą
-                    </button>
-                </div>
-            </div>
-
-            <button
-                id="toggleFinanceBtn"
-                class="profile-close-btn"
-                type="button"
-                aria-expanded="false"
-                style="margin-top:12px; display:flex; align-items:center; justify-content:space-between; gap:10px;"
-            >
-                <span id="toggleFinanceBtnLabel">Deposit / Withdraw</span>
-                <span id="toggleFinanceBtnArrow">▼</span>
-            </button>
-
-            <div
-                id="settingsFinanceContent"
-                class="profile-boost-row"
-                style="margin-top:12px; display:none;"
-            >
-                <div class="profile-boost-left" style="width:100%;">
-                    <div class="profile-grid">
-                        <div class="profile-box">
-                            <div class="profile-box-label">Reward</div>
-                            <div class="profile-box-value" id="settingsRewardBalance">0.000</div>
-                            <div class="profile-box-subvalue" id="settingsRewardBalanceUsd"></div>
-                        </div>
-
-                        <div class="profile-box">
-                            <div class="profile-box-label">Wallet</div>
-                            <div class="profile-box-value" id="settingsRewardWallet">0.000</div>
-                            <div class="profile-box-subvalue" id="settingsRewardWalletUsd"></div>
-                        </div>
-
-                        <div class="profile-box">
-                            <div class="profile-box-label">Pending</div>
-                            <div class="profile-box-value" id="settingsWithdrawPending">0.000</div>
-                            <div class="profile-box-subvalue" id="settingsWithdrawPendingUsd"></div>
-                        </div>
-                    </div>
-
-                    <button id="settingsTransferRewardBtn" class="profile-close-btn" type="button" style="margin-top:12px;">Transfer Reward</button>
-                    <button id="settingsRequestWithdrawBtn" class="profile-close-btn" type="button">Open Withdraw</button>
-
-                    <div class="profile-boost-row" style="margin-top:12px;">
-                        <div class="profile-boost-left" style="width:100%;">
-                            <div class="profile-boost-label">Wybierz depozyt</div>
-                            <div
-                                id="settingsDepositAmountOptions"
-                                style="margin-top:10px; display:flex; flex-wrap:wrap; gap:12px;"
-                            ></div>
-                        </div>
-                    </div>
-
-                    <button id="settingsCreateDepositBtn" class="profile-close-btn" type="button" style="margin-top:12px;">Create Deposit</button>
-
-                    <div class="profile-boost-row" style="margin-top:12px;">
-                        <div class="profile-boost-left" style="width:100%;">
-                            <div class="profile-boost-label">Historia wypłat</div>
-                            <div id="settingsWithdrawHistoryList" style="margin-top:10px;"></div>
-                        </div>
-                    </div>
-
-                    <div class="profile-boost-row" style="margin-top:12px;">
-                        <div class="profile-boost-left" style="width:100%;">
-                            <div class="profile-boost-label">Historia wpłat</div>
-                            <div id="settingsDepositsHistoryList" style="margin-top:10px;"></div>
-                        </div>
+                    <div class="profile-user-meta">
+                        <div class="profile-name">Withdraw TON</div>
+                        <div class="profile-subtitle">Wpisz adres wallet i potwierdź wypłatę</div>
                     </div>
                 </div>
+
+                <div class="withdraw-modal-summary">
+                    <div class="withdraw-modal-box">
+                        <div class="withdraw-modal-box-label">Brutto</div>
+                        <div class="withdraw-modal-box-value" id="withdrawGrossValue">0.000</div>
+                    </div>
+
+                    <div class="withdraw-modal-box">
+                        <div class="withdraw-modal-box-label">Fee 10%</div>
+                        <div class="withdraw-modal-box-value" id="withdrawFeeValue">0.000</div>
+                    </div>
+
+                    <div class="withdraw-modal-box" style="grid-column:1 / -1;">
+                        <div class="withdraw-modal-box-label">Netto</div>
+                        <div class="withdraw-modal-box-value" id="withdrawNetValue">0.000</div>
+                    </div>
+                </div>
+
+                <div class="profile-boost-row" style="margin-top:12px;">
+                    <div class="profile-boost-left" style="width:100%;">
+                        <div class="profile-boost-label">TON wallet</div>
+                        <input
+                            id="withdrawTonWalletInput"
+                            class="withdraw-wallet-input"
+                            type="text"
+                            inputmode="text"
+                            autocomplete="off"
+                            spellcheck="false"
+                            placeholder="Wpisz adres TON wallet"
+                        >
+                    </div>
+                </div>
+
+                <div class="withdraw-help-box" id="withdrawHelpText">
+                    Withdraw używa środków z Wallet. Po wpisaniu adresu TON możesz potwierdzić wypłatę.
+                </div>
+
+                <button id="confirmWithdrawBtn" class="profile-close-btn" type="button" style="margin-top:12px;">Wypłać</button>
+                <button id="closeWithdrawBtn" class="profile-close-btn" type="button">Zamknij</button>
             </div>
-
-            <div id="settingsFaqMount"></div>
-
-            <button id="closeSettingsBtn" class="profile-close-btn" type="button">Zamknij</button>
         </div>
     </div>
 
-    <div id="withdrawModal" class="profile-modal hidden">
-        <div class="profile-backdrop" id="withdrawBackdrop"></div>
+    <div id="dailyRewardModalMount">
+        <div id="dailyRewardModal" class="profile-modal hidden">
+            <div class="profile-backdrop" id="dailyRewardBackdrop"></div>
 
-        <div class="profile-card">
-            <div class="profile-header">
-                <div class="profile-avatar">💸</div>
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="profile-avatar">🎁</div>
 
-                <div class="profile-user-meta">
-                    <div class="profile-name">Withdraw TON</div>
-                    <div class="profile-subtitle">Wpisz adres wallet i potwierdź wypłatę</div>
-                </div>
-            </div>
-
-            <div class="withdraw-modal-summary">
-                <div class="withdraw-modal-box">
-                    <div class="withdraw-modal-box-label">Brutto</div>
-                    <div class="withdraw-modal-box-value" id="withdrawGrossValue">0.000</div>
-                </div>
-
-                <div class="withdraw-modal-box">
-                    <div class="withdraw-modal-box-label">Fee 10%</div>
-                    <div class="withdraw-modal-box-value" id="withdrawFeeValue">0.000</div>
-                </div>
-
-                <div class="withdraw-modal-box" style="grid-column:1 / -1;">
-                    <div class="withdraw-modal-box-label">Netto</div>
-                    <div class="withdraw-modal-box-value" id="withdrawNetValue">0.000</div>
-                </div>
-            </div>
-
-            <div class="profile-boost-row" style="margin-top:12px;">
-                <div class="profile-boost-left" style="width:100%;">
-                    <div class="profile-boost-label">TON wallet</div>
-                    <input
-                        id="withdrawTonWalletInput"
-                        class="withdraw-wallet-input"
-                        type="text"
-                        inputmode="text"
-                        autocomplete="off"
-                        spellcheck="false"
-                        placeholder="Wpisz adres TON wallet"
-                    >
-                </div>
-            </div>
-
-            <div class="withdraw-help-box" id="withdrawHelpText">
-                Withdraw używa środków z Wallet. Po wpisaniu adresu TON możesz potwierdzić wypłatę.
-            </div>
-
-            <button id="confirmWithdrawBtn" class="profile-close-btn" type="button" style="margin-top:12px;">Wypłać</button>
-            <button id="closeWithdrawBtn" class="profile-close-btn" type="button">Zamknij</button>
-        </div>
-    </div>
-
-    <div id="dailyRewardModal" class="profile-modal hidden">
-        <div class="profile-backdrop" id="dailyRewardBackdrop"></div>
-
-        <div class="profile-card">
-            <div class="profile-header">
-                <div class="profile-avatar">🎁</div>
-
-                <div class="profile-user-meta">
-                    <div class="profile-name" id="langDailyRewardModalTitle">Daily Reward</div>
-                    <div class="profile-subtitle" id="dailyRewardSubtitle">Odbierz codzienną nagrodę i wracaj po więcej</div>
-                </div>
-            </div>
-
-            <div class="profile-grid">
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langDailyRewardStatusLabel">Status</div>
-                    <div class="profile-box-value" id="dailyRewardStatusText">Sprawdzanie...</div>
-                </div>
-
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langDailyRewardCollectLabel">Do odebrania</div>
-                    <div class="profile-box-value" id="dailyRewardAmountText">0</div>
-                </div>
-
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langDailyRewardCountdownLabel">Countdown</div>
-                    <div class="profile-box-value" id="dailyRewardTimerText">--:--:--</div>
-                </div>
-
-                <div class="profile-box">
-                    <div class="profile-box-label" id="langDailyRewardStreakLabel">Streak</div>
-                    <div class="profile-box-value" id="dailyRewardStreakText">Day 1</div>
-                </div>
-            </div>
-
-            <div class="profile-boost-row">
-                <div class="profile-boost-left">
-                    <div class="profile-boost-label" id="langDailyRewardInfoLabel">Info</div>
-                    <div class="profile-boost-value" id="dailyRewardInfoText">
-                        Tutaj pokażemy gotowość nagrody, cooldown i później streak bez ruszania innych systemów.
+                    <div class="profile-user-meta">
+                        <div class="profile-name" id="langDailyRewardModalTitle">Daily Reward</div>
+                        <div class="profile-subtitle" id="dailyRewardSubtitle">Odbierz codzienną nagrodę i wracaj po więcej</div>
                     </div>
                 </div>
-            </div>
 
-            <button id="claimDailyRewardBtn" class="profile-close-btn" type="button">Odbierz nagrodę</button>
-            <button id="closeDailyRewardBtn" class="profile-close-btn" type="button">Zamknij</button>
+                <div class="profile-grid">
+                    <div class="profile-box">
+                        <div class="profile-box-label" id="langDailyRewardStatusLabel">Status</div>
+                        <div class="profile-box-value" id="dailyRewardStatusText">Sprawdzanie...</div>
+                    </div>
+
+                    <div class="profile-box">
+                        <div class="profile-box-label" id="langDailyRewardCollectLabel">Do odebrania</div>
+                        <div class="profile-box-value" id="dailyRewardAmountText">0</div>
+                    </div>
+
+                    <div class="profile-box">
+                        <div class="profile-box-label" id="langDailyRewardCountdownLabel">Countdown</div>
+                        <div class="profile-box-value" id="dailyRewardTimerText">--:--:--</div>
+                    </div>
+
+                    <div class="profile-box">
+                        <div class="profile-box-label" id="langDailyRewardStreakLabel">Streak</div>
+                        <div class="profile-box-value" id="dailyRewardStreakText">Day 1</div>
+                    </div>
+                </div>
+
+                <div class="profile-boost-row">
+                    <div class="profile-boost-left">
+                        <div class="profile-boost-label" id="langDailyRewardInfoLabel">Info</div>
+                        <div class="profile-boost-value" id="dailyRewardInfoText">
+                            Tutaj pokażemy gotowość nagrody, cooldown i później streak bez ruszania innych systemów.
+                        </div>
+                    </div>
+                </div>
+
+                <button id="claimDailyRewardBtn" class="profile-close-btn" type="button">Odbierz nagrodę</button>
+                <button id="closeDailyRewardBtn" class="profile-close-btn" type="button">Zamknij</button>
+            </div>
         </div>
     </div>
 
