@@ -30,22 +30,18 @@ CryptoZoo.htmlLoader = {
         const mount = document.getElementById(id);
 
         if (!mount) {
-            if (options.optional) {
-                return false;
+            if (!options.optional) {
+                console.error("HTML mount not found:", id);
             }
-
-            console.error("HTML mount not found:", id);
             return false;
         }
 
         const html = await this.fetchHtml(paths);
 
         if (!html) {
-            if (options.optional) {
-                return false;
+            if (!options.optional) {
+                console.error("HTML content empty for:", paths);
             }
-
-            console.error("HTML content empty for:", paths);
             return false;
         }
 
@@ -58,16 +54,12 @@ CryptoZoo.htmlLoader = {
     },
 
     async init() {
-        const homeLoaded = await this.load("homeMount", [
+        await this.load("homeMount", [
             "./partials/home.html",
             "partials/home.html",
             "./frontend/partials/home.html",
             "frontend/partials/home.html"
         ]);
-
-        if (!homeLoaded) {
-            return;
-        }
 
         await this.loadOptional("zooMount", [
             "./partials/zoo-screen.html",
