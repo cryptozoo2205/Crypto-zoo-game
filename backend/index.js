@@ -2,8 +2,10 @@ require("dotenv").config();
 
 const path = require("path");
 const express = require("express");
-const { readDb, writeDb, ensureDb } = require("./db/db");
+const { ensureDb } = require("./db/db");
 const { normalizePlayer, getPlayerOrCreate } = require("./services/player-service");
+
+const expeditionRoutes = require("./routes/expedition-routes");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -14,6 +16,8 @@ const INDEX_PATH = path.join(FRONTEND_DIR, "index.html");
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(FRONTEND_DIR));
+
+app.use("/api/expedition", expeditionRoutes);
 
 function getPlayerByTelegramId(db, telegramId) {
     const key = String(telegramId || "").trim();
@@ -30,6 +34,8 @@ function getPlayerByTelegramId(db, telegramId) {
 }
 
 function savePlayerToDb(db, player) {
+    const { writeDb } = require("./db/db");
+
     const normalized = normalizePlayer(player);
     const key = String(normalized.telegramId || "").trim();
 
@@ -67,6 +73,7 @@ app.get("/api/player/:telegramId", async (req, res) => {
             return res.status(400).json({ error: "MISSING_TELEGRAM_ID" });
         }
 
+        const { readDb, writeDb } = require("./db/db");
         const db = readDb();
 
         let player = getPlayerByTelegramId(db, telegramId);
@@ -94,6 +101,7 @@ app.post("/api/player/save", async (req, res) => {
             return res.status(400).json({ error: "MISSING_TELEGRAM_ID" });
         }
 
+        const { readDb } = require("./db/db");
         const db = readDb();
         const existingPlayer = getPlayerByTelegramId(db, telegramId);
         const player = sanitizePlayerPayload(req.body, existingPlayer);
@@ -118,6 +126,7 @@ app.post("/api/player", async (req, res) => {
             return res.status(400).json({ error: "MISSING_TELEGRAM_ID" });
         }
 
+        const { readDb } = require("./db/db");
         const db = readDb();
         const existingPlayer = getPlayerByTelegramId(db, telegramId);
         const player = sanitizePlayerPayload(req.body, existingPlayer);
@@ -133,6 +142,7 @@ app.post("/api/player", async (req, res) => {
 app.get("/api/ranking", async (req, res) => {
     try {
         const limit = Math.max(1, Math.min(100, Number(req.query.limit) || 50));
+        const { readDb } = require("./db/db");
         const db = readDb();
 
         const ranking = Object.values(db.players || {})
