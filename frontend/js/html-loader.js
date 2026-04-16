@@ -14,6 +14,7 @@ CryptoZoo.htmlLoader = {
                 }
 
                 const html = await res.text();
+
                 if (html && html.trim()) {
                     return html;
                 }
