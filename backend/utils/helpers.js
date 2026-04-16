@@ -14,7 +14,6 @@ function normalizeRewardNumber(value, fallback = 0) {
 
     if (!Number.isFinite(num)) return fallback;
 
-    // 🔥 zabezpieczenie przed ekstremami
     const safe = Math.max(0, num);
 
     return Number(safe.toFixed(3));
@@ -24,10 +23,15 @@ function safeString(value, fallback = "") {
     return String(value ?? fallback).trim();
 }
 
-function normalizeTelegramUser(rawTelegramUser, fallbackTelegramId = "local-player", fallbackUsername = "Gracz") {
-    const safe = rawTelegramUser && typeof rawTelegramUser === "object"
-        ? rawTelegramUser
-        : {};
+function normalizeTelegramUser(
+    rawTelegramUser,
+    fallbackTelegramId = "local-player",
+    fallbackUsername = "Gracz"
+) {
+    const safe =
+        rawTelegramUser && typeof rawTelegramUser === "object"
+            ? rawTelegramUser
+            : {};
 
     const id = safeString(
         safe.id,
@@ -44,10 +48,15 @@ function normalizeTelegramUser(rawTelegramUser, fallbackTelegramId = "local-play
         username || "Gracz"
     );
 
+    const lastName = safeString(safe.last_name, "");
+    const languageCode = safeString(safe.language_code, "pl");
+
     return {
         id,
         username,
         first_name: firstName,
+        last_name: lastName,
+        language_code: languageCode,
         isMock: !!safe.isMock,
         isTelegramWebApp: !!safe.isTelegramWebApp
     };
@@ -67,12 +76,12 @@ function sanitizeReferrerId(value) {
 function extractReferrerId(req) {
     return sanitizeReferrerId(
         req.query?.ref ||
-        req.query?.startapp ||
-        req.query?.start ||
-        req.body?.ref ||
-        req.body?.referrerId ||
-        req.body?.referralCode ||
-        ""
+            req.query?.startapp ||
+            req.query?.start ||
+            req.body?.ref ||
+            req.body?.referrerId ||
+            req.body?.referralCode ||
+            ""
     );
 }
 
