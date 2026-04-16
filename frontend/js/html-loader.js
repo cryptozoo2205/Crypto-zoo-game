@@ -61,39 +61,11 @@ CryptoZoo.htmlLoader = {
             "frontend/partials/home.html"
         ]);
 
-        await this.loadOptional("zooMount", [
-            "./partials/zoo-screen.html",
-            "partials/zoo-screen.html",
-            "./frontend/partials/zoo-screen.html",
-            "frontend/partials/zoo-screen.html"
-        ]);
-
-        await this.loadOptional("shopMount", [
-            "./partials/shop-screen.html",
-            "partials/shop-screen.html",
-            "./frontend/partials/shop-screen.html",
-            "frontend/partials/shop-screen.html"
-        ]);
-
-        await this.loadOptional("missionsMount", [
-            "./partials/missions-screen.html",
-            "partials/missions-screen.html",
-            "./frontend/partials/missions-screen.html",
-            "frontend/partials/missions-screen.html"
-        ]);
-
         await this.loadOptional("minigamesMount", [
             "./partials/minigames-screen.html",
             "partials/minigames-screen.html",
             "./frontend/partials/minigames-screen.html",
             "frontend/partials/minigames-screen.html"
-        ]);
-
-        await this.loadOptional("rankingMount", [
-            "./partials/ranking-screen.html",
-            "partials/ranking-screen.html",
-            "./frontend/partials/ranking-screen.html",
-            "frontend/partials/ranking-screen.html"
         ]);
 
         await this.loadOptional("profileModalMount", [
