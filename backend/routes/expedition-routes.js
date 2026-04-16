@@ -3,7 +3,6 @@ const express = require("express");
 const { readDb, writeDb } = require("../db/db");
 const { LIMITS } = require("../config/game-config");
 const {
-    EXPEDITIONS_CONFIG,
     getAllExpeditions,
     getExpeditionById
 } = require("../config/expeditions-config");
@@ -275,6 +274,8 @@ function buildActiveExpedition(player, expedition, selectedAnimals = []) {
         id: String(expedition.id || ""),
         regionId: String(expedition.regionId || ""),
         name: String(expedition.name || "Expedition"),
+        namePl: String(expedition.namePl || ""),
+        nameEn: String(expedition.nameEn || ""),
         startTime: now,
         endTime: now + baseDuration * 1000,
         duration: baseDuration,
@@ -529,12 +530,6 @@ router.post("/collect", (req, res) => {
         const telegramId = safeString(req.body?.telegramId, "");
         const username = safeString(req.body?.username, "Gracz");
 
-        console.log("POST /api/expedition/collect", {
-            telegramId,
-            username,
-            body: req.body
-        });
-
         if (!telegramId) {
             return res.status(400).json({ error: "Missing telegramId" });
         }
@@ -555,7 +550,7 @@ router.post("/collect", (req, res) => {
         }
 
         const expeditionConfig = getExpeditionById(expedition.id);
-        if (!expeditionConfig) {
+        if (!expeditionConfig || expeditionConfig.enabled === false) {
             return res.status(400).json({ error: "Expedition config not found" });
         }
 
