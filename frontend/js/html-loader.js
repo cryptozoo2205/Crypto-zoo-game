@@ -69,6 +69,13 @@ CryptoZoo.htmlLoader = {
             return;
         }
 
+        await this.loadOptional("minigamesMount", [
+            "./partials/minigames-screen.html",
+            "partials/minigames-screen.html",
+            "./frontend/partials/minigames-screen.html",
+            "frontend/partials/minigames-screen.html"
+        ]);
+
         await this.loadOptional("profileModalMount", [
             "./partials/profile-modal.html",
             "partials/profile-modal.html",
