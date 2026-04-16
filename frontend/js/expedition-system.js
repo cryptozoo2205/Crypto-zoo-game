@@ -19,6 +19,17 @@ CryptoZoo.expeditions = {
         return this.getAll().find((exp) => String(exp.id) === String(id)) || null;
     },
 
+    getRegionId(expedition) {
+        return String(expedition?.regionId || "jungle");
+    },
+
+    getAllByRegion(regionId) {
+        const safeRegionId = String(regionId || "").trim();
+        return this.getAll().filter((expedition) => {
+            return this.getRegionId(expedition) === safeRegionId;
+        });
+    },
+
     t(key, fallback) {
         const translated = CryptoZoo.lang?.t?.(key);
         if (translated && translated !== key) {
@@ -239,6 +250,11 @@ CryptoZoo.expeditions = {
         const configExpedition = this.getById(expedition.id);
 
         expedition.id = String(expedition.id || "");
+        expedition.regionId = String(
+            expedition.regionId ||
+            configExpedition?.regionId ||
+            "jungle"
+        );
         expedition.name = String(
             expedition.name ||
             configExpedition?.nameEn ||
@@ -494,15 +510,15 @@ CryptoZoo.expeditions = {
         const expeditionId = String(expedition?.id || "").toLowerCase();
 
         const tierMap = {
-            forest: 1.00,
-            river: 1.01,
-            volcano: 1.03,
-            canyon: 1.05,
-            glacier: 1.08,
-            jungle: 1.11,
-            temple: 1.14,
-            oasis: 1.18,
-            kingdom: 1.22
+            jungle_scout: 1.00,
+            jungle_river: 1.03,
+            jungle_ruins: 1.06,
+            jungle_canopy: 1.10,
+            jungle_depths: 1.14,
+            jungle_temple: 1.18,
+            jungle_king: 1.22,
+            desert_outpost: 1.26,
+            desert_dunes: 1.30
         };
 
         return Number(tierMap[expeditionId]) || 1.00;
