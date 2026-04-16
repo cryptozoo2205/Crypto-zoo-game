@@ -1,76 +1,18 @@
 require("dotenv").config();
 
-const fs = require("fs");
 const path = require("path");
 const express = require("express");
+const { readDb, writeDb, ensureDb } = require("./db/db");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
 const FRONTEND_DIR = path.join(__dirname, "../frontend");
 const INDEX_PATH = path.join(FRONTEND_DIR, "index.html");
-const DATA_DIR = path.join(__dirname, "data");
-const DB_PATH = path.join(DATA_DIR, "db.json");
 
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(FRONTEND_DIR));
-
-function ensureDataDir() {
-    if (!fs.existsSync(DATA_DIR)) {
-        fs.mkdirSync(DATA_DIR, { recursive: true });
-    }
-}
-
-function ensureDbFile() {
-    ensureDataDir();
-
-    if (!fs.existsSync(DB_PATH)) {
-        fs.writeFileSync(
-            DB_PATH,
-            JSON.stringify({ players: {} }, null, 2),
-            "utf8"
-        );
-    }
-}
-
-function readDb() {
-    ensureDbFile();
-
-    try {
-        const raw = fs.readFileSync(DB_PATH, "utf8");
-        const parsed = JSON.parse(raw || "{}");
-
-        return {
-            players:
-                parsed && parsed.players && typeof parsed.players === "object"
-                    ? parsed.players
-                    : {}
-        };
-    } catch (error) {
-        console.error("DB read error:", error);
-
-        return {
-            players: {}
-        };
-    }
-}
-
-function writeDb(db) {
-    ensureDbFile();
-
-    const safeDb = {
-        players:
-            db && db.players && typeof db.players === "object"
-                ? db.players
-                : {}
-    };
-
-    const tempPath = `${DB_PATH}.tmp`;
-
-    fs.writeFileSync(tempPath, JSON.stringify(safeDb, null, 2), "utf8");
-    fs.renameSync(tempPath, DB_PATH);
-}
 
 function getDefaultAnimals() {
     return {
@@ -99,29 +41,44 @@ function getDefaultBoxes() {
     };
 }
 
-function getDefaultState(telegramId, username = "Gracz") {
+function getDefaultPlayerState(telegramId, username = "Gracz") {
     return {
         telegramId: String(telegramId || ""),
         username: String(username || "Gracz"),
 
         coins: 0,
         gems: 0,
+
         rewardBalance: 0,
         rewardWallet: 0,
         withdrawPending: 0,
 
         level: 1,
         xp: 0,
+
         coinsPerClick: 1,
         upgradeCost: 50,
         zooIncome: 0,
 
         expeditionBoost: 0,
+        expeditionBoostActiveUntil: 0,
+
         offlineBoost: 1,
+        offlineBaseHours: 0.25,
+        offlineBoostHours: 0,
+        offlineAdsHours: 0,
+        offlineMaxSeconds: 15 * 60,
+        offlineBoostMultiplier: 1,
+        offlineBoostActiveUntil: 0,
+
         lastLogin: Date.now(),
+        lastAwardedLevel: 1,
+
         boost2xActiveUntil: 0,
 
         expedition: null,
+        activeExpedition: null,
+        selectedAnimals: [],
 
         boxes: getDefaultBoxes(),
         animals: getDefaultAnimals(),
@@ -129,47 +86,46 @@ function getDefaultState(telegramId, username = "Gracz") {
         shopPurchases: {},
         shopItemCharges: {},
 
-        dailyExpeditionBoost: {
-            activeUntil: 0,
-            lastPurchaseAt: 0
-        },
-
         expeditionStats: {
+            rareChanceBonus: 0,
+            epicChanceBonus: 0,
+            timeReductionSeconds: 0,
             timeBoostCharges: []
         },
 
-        minigames: {},
-        depositsHistory: [],
-        withdrawHistory: []
+        minigames: {
+            memoryCooldownUntil: 0
+        },
+
+        lastDailyRewardAt: 0,
+        dailyRewardStreak: 0,
+        dailyRewardClaimDayKey: "",
+
+        playTimeSeconds: 0,
+        updatedAt: Date.now()
     };
 }
 
-function normalizeAnimalMap(rawAnimals) {
-    const defaults = getDefaultAnimals();
-    const result = {};
-
-    Object.keys(defaults).forEach((type) => {
-        const raw =
-            rawAnimals && rawAnimals[type] ? rawAnimals[type] : defaults[type];
-
-        result[type] = {
-            count: Math.max(0, Number(raw?.count) || 0),
-            level: Math.max(1, Number(raw?.level) || 1)
-        };
-    });
-
-    return result;
+function normalizeNumber(value, fallback = 0, min = 0) {
+    const num = Number(value);
+    if (!Number.isFinite(num)) {
+        return fallback;
+    }
+    return Math.max(min, num);
 }
 
-function normalizeBoxes(rawBoxes) {
-    const defaults = getDefaultBoxes();
+function normalizeInteger(value, fallback = 0, min = 0) {
+    return Math.floor(normalizeNumber(value, fallback, min));
+}
 
-    return {
-        common: Math.max(0, Number(rawBoxes?.common) || defaults.common),
-        rare: Math.max(0, Number(rawBoxes?.rare) || defaults.rare),
-        epic: Math.max(0, Number(rawBoxes?.epic) || defaults.epic),
-        legendary: Math.max(0, Number(rawBoxes?.legendary) || defaults.legendary)
-    };
+function normalizeObject(value, fallback = {}) {
+    return value && typeof value === "object" && !Array.isArray(value)
+        ? value
+        : fallback;
+}
+
+function normalizeArray(value) {
+    return Array.isArray(value) ? value : [];
 }
 
 function normalizeBoostTimestamp(value) {
@@ -190,6 +146,35 @@ function normalizeBoostTimestamp(value) {
     return safeValue;
 }
 
+function normalizeBoxes(rawBoxes) {
+    const boxes = normalizeObject(rawBoxes, {});
+    const defaults = getDefaultBoxes();
+
+    return {
+        common: normalizeInteger(boxes.common, defaults.common, 0),
+        rare: normalizeInteger(boxes.rare, defaults.rare, 0),
+        epic: normalizeInteger(boxes.epic, defaults.epic, 0),
+        legendary: normalizeInteger(boxes.legendary, defaults.legendary, 0)
+    };
+}
+
+function normalizeAnimals(rawAnimals) {
+    const animals = normalizeObject(rawAnimals, {});
+    const defaults = getDefaultAnimals();
+    const normalized = {};
+
+    Object.keys(defaults).forEach((key) => {
+        const source = normalizeObject(animals[key], defaults[key]);
+
+        normalized[key] = {
+            count: normalizeInteger(source.count, 0, 0),
+            level: normalizeInteger(source.level, 1, 1)
+        };
+    });
+
+    return normalized;
+}
+
 function normalizeExpedition(rawExpedition) {
     if (!rawExpedition || typeof rawExpedition !== "object") {
         return null;
@@ -198,99 +183,116 @@ function normalizeExpedition(rawExpedition) {
     return {
         id: String(rawExpedition.id || ""),
         name: String(rawExpedition.name || "Expedition"),
-        startTime: Number(rawExpedition.startTime) || Date.now(),
-        endTime: Number(rawExpedition.endTime) || 0,
+        startTime: normalizeNumber(rawExpedition.startTime, Date.now(), 0),
+        endTime: normalizeNumber(rawExpedition.endTime, 0, 0),
         rewardRarity: String(rawExpedition.rewardRarity || "common"),
-        rewardCoins: Math.max(0, Number(rawExpedition.rewardCoins) || 0),
-        rewardGems: Math.max(0, Number(rawExpedition.rewardGems) || 0),
-
-        duration: Math.max(0, Number(rawExpedition.duration) || 0),
-        lastTimeBoostUsedAt: Number(rawExpedition.lastTimeBoostUsedAt) || 0
+        rewardCoins: normalizeNumber(rawExpedition.rewardCoins, 0, 0),
+        rewardGems: normalizeNumber(rawExpedition.rewardGems, 0, 0),
+        duration: normalizeInteger(rawExpedition.duration, 0, 0),
+        lastTimeBoostUsedAt: normalizeNumber(rawExpedition.lastTimeBoostUsedAt, 0, 0)
     };
 }
 
-function normalizePlainObject(value) {
-    return value && typeof value === "object" && !Array.isArray(value)
-        ? value
-        : {};
-}
-
 function normalizeTimeBoostCharges(value) {
-    if (!Array.isArray(value)) {
-        return [];
-    }
-
-    return value
-        .map((entry) => Math.max(0, Math.floor(Number(entry) || 0)))
+    return normalizeArray(value)
+        .map((entry) => normalizeInteger(entry, 0, 0))
         .filter((entry) => entry > 0);
 }
 
-function normalizePlayer(playerLike) {
-    const base = getDefaultState(
-        playerLike?.telegramId || "",
-        playerLike?.username || "Gracz"
-    );
+function normalizePlayer(playerLike, telegramId = "", username = "Gracz") {
+    const base = getDefaultPlayerState(telegramId, username);
+    const player = normalizeObject(playerLike, {});
 
     return {
         ...base,
 
-        telegramId: String(playerLike?.telegramId || base.telegramId),
-        username: String(playerLike?.username || base.username),
+        telegramId: String(player.telegramId || base.telegramId),
+        username: String(player.username || base.username),
 
-        coins: Math.max(0, Number(playerLike?.coins) || 0),
-        gems: Math.max(0, Number(playerLike?.gems) || 0),
-        rewardBalance: Math.max(0, Number(playerLike?.rewardBalance) || 0),
-        rewardWallet: Math.max(0, Number(playerLike?.rewardWallet) || 0),
-        withdrawPending: Math.max(0, Number(playerLike?.withdrawPending) || 0),
+        coins: normalizeNumber(player.coins, 0, 0),
+        gems: normalizeInteger(player.gems, 0, 0),
 
-        level: Math.max(1, Number(playerLike?.level) || 1),
-        xp: Math.max(0, Number(playerLike?.xp) || 0),
-        coinsPerClick: Math.max(1, Number(playerLike?.coinsPerClick) || 1),
-        upgradeCost: Math.max(0, Number(playerLike?.upgradeCost) || 50),
-        zooIncome: Math.max(0, Number(playerLike?.zooIncome) || 0),
+        rewardBalance: normalizeNumber(player.rewardBalance, 0, 0),
+        rewardWallet: normalizeNumber(player.rewardWallet, 0, 0),
+        withdrawPending: normalizeNumber(player.withdrawPending, 0, 0),
 
-        expeditionBoost: Math.max(0, Number(playerLike?.expeditionBoost) || 0),
-        offlineBoost: Math.max(1, Number(playerLike?.offlineBoost) || 1),
-        lastLogin: Number(playerLike?.lastLogin) || Date.now(),
-        boost2xActiveUntil: normalizeBoostTimestamp(
-            playerLike?.boost2xActiveUntil
-        ),
+        level: normalizeInteger(player.level, 1, 1),
+        xp: normalizeNumber(player.xp, 0, 0),
 
-        expedition: normalizeExpedition(playerLike?.expedition),
+        coinsPerClick: normalizeNumber(player.coinsPerClick, 1, 1),
+        upgradeCost: normalizeNumber(player.upgradeCost, 50, 0),
+        zooIncome: normalizeNumber(player.zooIncome, 0, 0),
 
-        boxes: normalizeBoxes(playerLike?.boxes),
-        animals: normalizeAnimalMap(playerLike?.animals),
+        expeditionBoost: normalizeNumber(player.expeditionBoost, 0, 0),
+        expeditionBoostActiveUntil: normalizeBoostTimestamp(player.expeditionBoostActiveUntil),
 
-        shopPurchases: normalizePlainObject(playerLike?.shopPurchases),
-        shopItemCharges: normalizePlainObject(playerLike?.shopItemCharges),
+        offlineBoost: normalizeNumber(player.offlineBoost, 1, 1),
+        offlineBaseHours: normalizeNumber(player.offlineBaseHours, 0.25, 0),
+        offlineBoostHours: normalizeNumber(player.offlineBoostHours, 0, 0),
+        offlineAdsHours: normalizeNumber(player.offlineAdsHours, 0, 0),
+        offlineMaxSeconds: normalizeInteger(player.offlineMaxSeconds, 15 * 60, 0),
+        offlineBoostMultiplier: normalizeNumber(player.offlineBoostMultiplier, 1, 1),
+        offlineBoostActiveUntil: normalizeBoostTimestamp(player.offlineBoostActiveUntil),
 
-        dailyExpeditionBoost: {
-            activeUntil: normalizeBoostTimestamp(
-                playerLike?.dailyExpeditionBoost?.activeUntil
-            ),
-            lastPurchaseAt: Math.max(
-                0,
-                Number(playerLike?.dailyExpeditionBoost?.lastPurchaseAt) || 0
-            )
-        },
+        lastLogin: normalizeNumber(player.lastLogin, Date.now(), 0),
+        lastAwardedLevel: normalizeInteger(player.lastAwardedLevel, 1, 1),
+
+        boost2xActiveUntil: normalizeBoostTimestamp(player.boost2xActiveUntil),
+
+        expedition: normalizeExpedition(player.expedition),
+        activeExpedition: normalizeExpedition(player.activeExpedition),
+        selectedAnimals: normalizeArray(player.selectedAnimals),
+
+        boxes: normalizeBoxes(player.boxes),
+        animals: normalizeAnimals(player.animals),
+
+        shopPurchases: normalizeObject(player.shopPurchases, {}),
+        shopItemCharges: normalizeObject(player.shopItemCharges, {}),
 
         expeditionStats: {
-            ...(normalizePlainObject(base.expeditionStats)),
-            ...(normalizePlainObject(playerLike?.expeditionStats)),
-            timeBoostCharges: normalizeTimeBoostCharges(
-                playerLike?.expeditionStats?.timeBoostCharges
-            )
+            rareChanceBonus: normalizeNumber(player.expeditionStats?.rareChanceBonus, 0, 0),
+            epicChanceBonus: normalizeNumber(player.expeditionStats?.epicChanceBonus, 0, 0),
+            timeReductionSeconds: normalizeInteger(player.expeditionStats?.timeReductionSeconds, 0, 0),
+            timeBoostCharges: normalizeTimeBoostCharges(player.expeditionStats?.timeBoostCharges)
         },
 
-        minigames: normalizePlainObject(playerLike?.minigames),
+        minigames: {
+            memoryCooldownUntil: normalizeNumber(player.minigames?.memoryCooldownUntil, 0, 0)
+        },
 
-        depositsHistory: Array.isArray(playerLike?.depositsHistory)
-            ? playerLike.depositsHistory
-            : [],
-        withdrawHistory: Array.isArray(playerLike?.withdrawHistory)
-            ? playerLike.withdrawHistory
-            : []
+        lastDailyRewardAt: normalizeNumber(player.lastDailyRewardAt, 0, 0),
+        dailyRewardStreak: normalizeInteger(player.dailyRewardStreak, 0, 0),
+        dailyRewardClaimDayKey: String(player.dailyRewardClaimDayKey || ""),
+
+        playTimeSeconds: normalizeInteger(player.playTimeSeconds, 0, 0),
+        updatedAt: Date.now()
     };
+}
+
+function getPlayerByTelegramId(db, telegramId) {
+    const key = String(telegramId || "");
+    if (!key) {
+        return null;
+    }
+
+    const rawPlayer = db.players?.[key];
+    if (!rawPlayer) {
+        return null;
+    }
+
+    return normalizePlayer(rawPlayer, key, rawPlayer.username || "Gracz");
+}
+
+function savePlayerToDb(db, player) {
+    const key = String(player.telegramId || "");
+    if (!key) {
+        throw new Error("MISSING_TELEGRAM_ID");
+    }
+
+    db.players[key] = normalizePlayer(player, key, player.username || "Gracz");
+    writeDb(db);
+
+    return db.players[key];
 }
 
 function sanitizePlayerPayload(body, existingPlayer = null) {
@@ -298,36 +300,13 @@ function sanitizePlayerPayload(body, existingPlayer = null) {
     const username = String(body?.username || existingPlayer?.username || "Gracz");
 
     const merged = {
-        ...(existingPlayer || getDefaultState(telegramId, username)),
-        ...(body || {}),
+        ...(existingPlayer || getDefaultPlayerState(telegramId, username)),
+        ...normalizeObject(body, {}),
         telegramId,
         username
     };
 
-    return normalizePlayer(merged);
-}
-
-function getPlayerByTelegramId(telegramId) {
-    const db = readDb();
-    const key = String(telegramId || "");
-    const rawPlayer = db.players[key];
-
-    if (!rawPlayer) {
-        return null;
-    }
-
-    return normalizePlayer(rawPlayer);
-}
-
-function savePlayer(player) {
-    const db = readDb();
-    const normalized = normalizePlayer(player);
-    const key = String(normalized.telegramId || "");
-
-    db.players[key] = normalized;
-    writeDb(db);
-
-    return normalized;
+    return normalizePlayer(merged, telegramId, username);
 }
 
 app.get("/api/health", async (req, res) => {
@@ -342,10 +321,13 @@ app.get("/api/player/:telegramId", async (req, res) => {
             return res.status(400).json({ error: "MISSING_TELEGRAM_ID" });
         }
 
-        let player = getPlayerByTelegramId(telegramId);
+        const db = readDb();
+
+        let player = getPlayerByTelegramId(db, telegramId);
 
         if (!player) {
-            player = savePlayer(getDefaultState(telegramId, "Gracz"));
+            player = getDefaultPlayerState(telegramId, "Gracz");
+            player = savePlayerToDb(db, player);
         }
 
         return res.json({
@@ -366,13 +348,14 @@ app.post("/api/player/save", async (req, res) => {
             return res.status(400).json({ error: "MISSING_TELEGRAM_ID" });
         }
 
-        const existing = getPlayerByTelegramId(telegramId);
-        const payload = sanitizePlayerPayload(req.body, existing);
-        const saved = savePlayer(payload);
+        const db = readDb();
+        const existingPlayer = getPlayerByTelegramId(db, telegramId);
+        const player = sanitizePlayerPayload(req.body, existingPlayer);
+        const savedPlayer = savePlayerToDb(db, player);
 
         return res.json({
             ok: true,
-            player: saved
+            player: savedPlayer
         });
     } catch (error) {
         console.error("POST /api/player/save error:", error);
@@ -389,11 +372,12 @@ app.post("/api/player", async (req, res) => {
             return res.status(400).json({ error: "MISSING_TELEGRAM_ID" });
         }
 
-        const existing = getPlayerByTelegramId(telegramId);
-        const payload = sanitizePlayerPayload(req.body, existing);
-        const saved = savePlayer(payload);
+        const db = readDb();
+        const existingPlayer = getPlayerByTelegramId(db, telegramId);
+        const player = sanitizePlayerPayload(req.body, existingPlayer);
+        const savedPlayer = savePlayerToDb(db, player);
 
-        return res.json(saved);
+        return res.json(savedPlayer);
     } catch (error) {
         console.error("POST /api/player error:", error);
         return res.status(500).json({ error: "SERVER_ERROR" });
@@ -406,7 +390,13 @@ app.get("/api/ranking", async (req, res) => {
         const db = readDb();
 
         const ranking = Object.values(db.players || {})
-            .map((player) => normalizePlayer(player))
+            .map((player) =>
+                normalizePlayer(
+                    player,
+                    player?.telegramId || "",
+                    player?.username || "Gracz"
+                )
+            )
             .sort((a, b) => {
                 if (b.coins !== a.coins) return b.coins - a.coins;
                 if (b.level !== a.level) return b.level - a.level;
@@ -416,9 +406,9 @@ app.get("/api/ranking", async (req, res) => {
             .map((player, index) => ({
                 rank: index + 1,
                 telegramId: String(player.telegramId || ""),
-                username: player.username || "Gracz",
-                coins: Math.max(0, Number(player.coins) || 0),
-                level: Math.max(1, Number(player.level) || 1)
+                username: String(player.username || "Gracz"),
+                coins: normalizeNumber(player.coins, 0, 0),
+                level: normalizeInteger(player.level, 1, 1)
             }));
 
         return res.json({
@@ -436,6 +426,6 @@ app.use((req, res) => {
 });
 
 app.listen(PORT, () => {
-    ensureDbFile();
+    ensureDb();
     console.log(`Server running on port ${PORT}`);
 });
