@@ -1,0 +1,53 @@
+<div id="withdrawModal" class="profile-modal hidden">
+    <div class="profile-backdrop" id="withdrawBackdrop"></div>
+
+    <div class="profile-card">
+        <div class="profile-header">
+            <div class="profile-avatar">💸</div>
+
+            <div class="profile-user-meta">
+                <div class="profile-name">Withdraw TON</div>
+                <div class="profile-subtitle">Wpisz adres wallet i potwierdź wypłatę</div>
+            </div>
+        </div>
+
+        <div class="withdraw-modal-summary">
+            <div class="withdraw-modal-box">
+                <div class="withdraw-modal-box-label">Brutto</div>
+                <div class="withdraw-modal-box-value" id="withdrawGrossValue">0.000</div>
+            </div>
+
+            <div class="withdraw-modal-box">
+                <div class="withdraw-modal-box-label">Fee 10%</div>
+                <div class="withdraw-modal-box-value" id="withdrawFeeValue">0.000</div>
+            </div>
+
+            <div class="withdraw-modal-box" style="grid-column:1 / -1;">
+                <div class="withdraw-modal-box-label">Netto</div>
+                <div class="withdraw-modal-box-value" id="withdrawNetValue">0.000</div>
+            </div>
+        </div>
+
+        <div class="profile-boost-row" style="margin-top:12px;">
+            <div class="profile-boost-left" style="width:100%;">
+                <div class="profile-boost-label">TON wallet</div>
+                <input
+                    id="withdrawTonWalletInput"
+                    class="withdraw-wallet-input"
+                    type="text"
+                    inputmode="text"
+                    autocomplete="off"
+                    spellcheck="false"
+                    placeholder="Wpisz adres TON wallet"
+                >
+            </div>
+        </div>
+
+        <div class="withdraw-help-box" id="withdrawHelpText">
+            Withdraw używa środków z Wallet. Po wpisaniu adresu TON możesz potwierdzić wypłatę.
+        </div>
+
+        <button id="confirmWithdrawBtn" class="profile-close-btn" type="button" style="margin-top:12px;">Wypłać</button>
+        <button id="closeWithdrawBtn" class="profile-close-btn" type="button">Zamknij</button>
+    </div>
+</div>
