@@ -1,0 +1,5 @@
+const EXPEDITIONS_DESERT_CONFIG = {};
+
+module.exports = {
+    EXPEDITIONS_DESERT_CONFIG
+};
