@@ -1,4 +1,4 @@
-window.CryptoZoo = window.CryptoZoo || {};
+lwindow.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.depositBind = {
     selectedAmount: 3,
