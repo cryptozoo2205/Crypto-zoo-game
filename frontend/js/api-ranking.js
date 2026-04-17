@@ -2,8 +2,11 @@ window.CryptoZoo = window.CryptoZoo || {};
 window.CryptoZoo.api = window.CryptoZoo.api || {};
 
 Object.assign(window.CryptoZoo.api, {
-    async loadRanking(limit = 50) {
+    async loadRanking(type = "overall", limit = 50) {
         const safeLimit = Math.max(1, Math.min(100, Number(limit) || 50));
+        const safeType = ["overall", "ref", "daily", "weekly"].includes(String(type || "").toLowerCase())
+            ? String(type).toLowerCase()
+            : "overall";
 
         let telegramId = "";
 
@@ -18,7 +21,8 @@ Object.assign(window.CryptoZoo.api, {
         }
 
         const query = new URLSearchParams({
-            limit: String(safeLimit)
+            limit: String(safeLimit),
+            type: safeType
         });
 
         if (telegramId) {
@@ -33,10 +37,16 @@ Object.assign(window.CryptoZoo.api, {
             });
 
             if (Array.isArray(response?.ranking)) {
-                return response.ranking;
+                return {
+                    type: response?.type || safeType,
+                    rows: response.ranking
+                };
             }
 
-            return [];
+            return {
+                type: safeType,
+                rows: []
+            };
         } catch (error) {
             console.warn("loadRanking failed:", error);
 
@@ -51,20 +61,39 @@ Object.assign(window.CryptoZoo.api, {
                     ""
                 ).trim();
 
-                const fallbackRow = {
-                    rank: 1,
-                    telegramId: currentId || "local-player",
-                    username: String(
-                        CryptoZoo.state?.telegramUser?.username ||
-                        CryptoZoo.state?.telegramUser?.first_name ||
-                        "Gracz"
-                    ),
-                    coins: Number(CryptoZoo.state?.coins) || 0,
-                    level: Number(CryptoZoo.state?.level) || 1,
-                    isCurrentPlayer: true
-                };
+                const state = CryptoZoo.state || {};
 
-                return [fallbackRow];
+                const fallbackMetricValue =
+                    safeType === "ref"
+                        ? Number(state.referralsCount) || 0
+                        : safeType === "daily"
+                            ? Number(state.dailyCoins || state.stats?.dailyCoins || 0)
+                            : safeType === "weekly"
+                                ? Number(state.weeklyCoins || state.stats?.weeklyCoins || 0)
+                                : Number(state.coins) || 0;
+
+                return {
+                    type: safeType,
+                    rows: [
+                        {
+                            rank: 1,
+                            telegramId: currentId || "local-player",
+                            username: String(
+                                state.telegramUser?.username ||
+                                state.telegramUser?.first_name ||
+                                "Gracz"
+                            ),
+                            coins: Number(state.coins) || 0,
+                            level: Number(state.level) || 1,
+                            referralsCount: Number(state.referralsCount) || 0,
+                            dailyValue: Number(state.dailyCoins || state.stats?.dailyCoins || 0),
+                            weeklyValue: Number(state.weeklyCoins || state.stats?.weeklyCoins || 0),
+                            metricType: safeType,
+                            metricValue: fallbackMetricValue,
+                            isCurrentPlayer: true
+                        }
+                    ]
+                };
             }
 
             throw error;
