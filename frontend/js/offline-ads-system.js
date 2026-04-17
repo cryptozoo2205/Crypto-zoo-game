@@ -22,17 +22,24 @@ CryptoZoo.offlineAds = {
         CryptoZoo.state = CryptoZoo.state || {};
         CryptoZoo.state.offlineAdsHours = 0;
         CryptoZoo.state.offlineAdsResetAt = 0;
+        CryptoZoo.state.offlineAdsEnabled = false;
     },
 
     ensureState() {
         CryptoZoo.state = CryptoZoo.state || {};
 
+        const enabled = Boolean(CryptoZoo.state.offlineAdsEnabled);
         const now = this.getNow();
         const resetAt = Math.max(0, Number(CryptoZoo.state.offlineAdsResetAt) || 0);
 
+        if (!enabled) {
+            this.setZeroState();
+            return;
+        }
+
         if (resetAt <= 0) {
-            CryptoZoo.state.offlineAdsHours = 0;
-            CryptoZoo.state.offlineAdsResetAt = 0;
+            this.setZeroState();
+            this.persistState();
             return;
         }
 
@@ -45,7 +52,15 @@ CryptoZoo.offlineAds = {
         }
 
         const currentHours = this.clampHours(msLeft / 3600000);
+
+        if (currentHours <= 0) {
+            this.setZeroState();
+            this.persistState();
+            return;
+        }
+
         CryptoZoo.state.offlineAdsHours = Number(currentHours.toFixed(6));
+        CryptoZoo.state.offlineAdsEnabled = true;
     },
 
     getCurrentHours() {
@@ -65,8 +80,10 @@ CryptoZoo.offlineAds = {
     getSecondsUntilReset() {
         this.ensureState();
 
+        const enabled = Boolean(CryptoZoo.state?.offlineAdsEnabled);
         const resetAt = Math.max(0, Number(CryptoZoo.state?.offlineAdsResetAt) || 0);
-        if (resetAt <= 0) {
+
+        if (!enabled || resetAt <= 0) {
             return 0;
         }
 
@@ -100,6 +117,11 @@ CryptoZoo.offlineAds = {
 
     getNextResetAt() {
         this.ensureState();
+
+        if (!Boolean(CryptoZoo.state?.offlineAdsEnabled)) {
+            return 0;
+        }
+
         return Math.max(0, Number(CryptoZoo.state?.offlineAdsResetAt) || 0);
     },
 
@@ -172,6 +194,7 @@ CryptoZoo.offlineAds = {
         CryptoZoo.state = CryptoZoo.state || {};
         CryptoZoo.state.offlineAdsHours = Number(next.toFixed(6));
         CryptoZoo.state.offlineAdsResetAt = Math.max(baseTime, now) + addedMs;
+        CryptoZoo.state.offlineAdsEnabled = true;
 
         this.persistState();
         return true;
