@@ -52,7 +52,9 @@ CryptoZoo.expeditionRegionsUi = {
                 position: relative;
                 overflow: hidden;
                 border-radius: 24px;
-                min-height: 138px;
+                min-height: 132px;
+                width: calc(100% - 20px);
+                margin: 0 auto;
                 padding: 20px 22px;
                 display: flex;
                 align-items: flex-end;
@@ -78,7 +80,7 @@ CryptoZoo.expeditionRegionsUi = {
                 inset: 0;
                 z-index: 0;
                 background:
-                    linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 24%),
+                    linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 26%),
                     linear-gradient(180deg, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.42) 100%);
             }
 
@@ -96,120 +98,121 @@ CryptoZoo.expeditionRegionsUi = {
 
             .exp-region-bg-jungle {
                 background:
-                    linear-gradient(135deg, rgba(8,24,14,0.97) 0%, rgba(11,39,21,0.98) 100%);
+                    linear-gradient(135deg, rgba(7,20,12,0.98) 0%, rgba(10,34,20,0.99) 52%, rgba(7,18,11,1) 100%);
                 border-color: rgba(255, 211, 98, 0.18);
                 box-shadow:
                     0 18px 38px rgba(0,0,0,0.30),
-                    0 0 0 1px rgba(255, 210, 90, 0.05),
+                    0 0 0 1px rgba(255, 210, 90, 0.04),
                     inset 0 1px 0 rgba(255,255,255,0.06);
             }
 
             .exp-region-bg-jungle::after {
                 background:
-                    radial-gradient(circle at 14% 20%, rgba(255, 226, 136, 0.16), transparent 18%),
-                    radial-gradient(circle at 86% 22%, rgba(255, 219, 108, 0.12), transparent 18%),
-                    radial-gradient(circle at 50% 58%, rgba(255, 208, 96, 0.08), transparent 14%),
-                    linear-gradient(125deg, transparent 0%, rgba(106, 170, 78, 0.18) 24%, transparent 45%),
-                    linear-gradient(60deg, transparent 5%, rgba(61, 117, 52, 0.18) 28%, transparent 54%),
+                    radial-gradient(circle at 14% 20%, rgba(255, 224, 126, 0.13), transparent 18%),
+                    radial-gradient(circle at 86% 18%, rgba(255, 224, 126, 0.08), transparent 18%),
+                    radial-gradient(circle at 52% 50%, rgba(255, 211, 98, 0.06), transparent 22%),
+                    linear-gradient(135deg, transparent 0%, rgba(59, 120, 58, 0.16) 22%, transparent 42%),
+                    linear-gradient(45deg, transparent 8%, rgba(39, 88, 42, 0.18) 28%, transparent 56%),
                     repeating-linear-gradient(
-                        120deg,
+                        125deg,
                         rgba(0,0,0,0.00) 0px,
-                        rgba(0,0,0,0.00) 18px,
-                        rgba(75, 134, 60, 0.12) 18px,
-                        rgba(75, 134, 60, 0.12) 34px
+                        rgba(0,0,0,0.00) 26px,
+                        rgba(58, 122, 58, 0.08) 26px,
+                        rgba(58, 122, 58, 0.08) 46px
                     ),
                     repeating-linear-gradient(
-                        60deg,
+                        55deg,
                         rgba(0,0,0,0.00) 0px,
-                        rgba(0,0,0,0.00) 20px,
-                        rgba(35, 82, 35, 0.14) 20px,
-                        rgba(35, 82, 35, 0.14) 38px
+                        rgba(0,0,0,0.00) 32px,
+                        rgba(29, 70, 34, 0.11) 32px,
+                        rgba(29, 70, 34, 0.11) 54px
                     ),
                     linear-gradient(90deg,
                         rgba(255,213,95,0.00) 0%,
-                        rgba(255,220,110,0.10) 5%,
-                        rgba(255,214,96,0.22) 7%,
-                        rgba(255,232,155,0.08) 9%,
-                        rgba(255,213,95,0.00) 13%,
-                        rgba(255,213,95,0.00) 87%,
-                        rgba(255,220,110,0.10) 91%,
-                        rgba(255,214,96,0.22) 93%,
-                        rgba(255,232,155,0.08) 95%,
+                        rgba(255,220,110,0.07) 4%,
+                        rgba(255,214,96,0.18) 5.8%,
+                        rgba(255,232,155,0.05) 7.2%,
+                        rgba(255,213,95,0.00) 10.5%,
+                        rgba(255,213,95,0.00) 89.5%,
+                        rgba(255,220,110,0.07) 92.8%,
+                        rgba(255,214,96,0.18) 94.2%,
+                        rgba(255,232,155,0.05) 96%,
                         rgba(255,213,95,0.00) 100%
                     ),
                     linear-gradient(180deg,
                         rgba(255,213,95,0.00) 0%,
-                        rgba(255,220,110,0.10) 7%,
-                        rgba(255,214,96,0.22) 9%,
-                        rgba(255,232,155,0.08) 11%,
-                        rgba(255,213,95,0.00) 15%,
-                        rgba(255,213,95,0.00) 85%,
-                        rgba(255,220,110,0.10) 89%,
-                        rgba(255,214,96,0.22) 91%,
-                        rgba(255,232,155,0.08) 93%,
+                        rgba(255,220,110,0.07) 5%,
+                        rgba(255,214,96,0.18) 6.8%,
+                        rgba(255,232,155,0.05) 8.4%,
+                        rgba(255,213,95,0.00) 11.5%,
+                        rgba(255,213,95,0.00) 88.5%,
+                        rgba(255,220,110,0.07) 91.6%,
+                        rgba(255,214,96,0.18) 93.2%,
+                        rgba(255,232,155,0.05) 95%,
                         rgba(255,213,95,0.00) 100%
                     );
                 box-shadow:
-                    inset 0 0 0 1px rgba(255, 220, 118, 0.14),
-                    inset 0 0 26px rgba(255, 214, 92, 0.05);
+                    inset 0 0 0 1px rgba(255, 220, 118, 0.12),
+                    inset 0 0 28px rgba(255, 214, 92, 0.04);
             }
 
             .exp-region-bg-desert {
                 background:
-                    linear-gradient(135deg, rgba(31,18,10,0.97) 0%, rgba(58,35,13,0.99) 100%);
+                    linear-gradient(135deg, rgba(28,17,10,0.98) 0%, rgba(55,33,12,0.99) 52%, rgba(27,16,10,1) 100%);
                 border-color: rgba(255, 211, 98, 0.16);
                 box-shadow:
                     0 18px 38px rgba(0,0,0,0.30),
-                    0 0 0 1px rgba(255, 210, 90, 0.04),
+                    0 0 0 1px rgba(255, 210, 90, 0.03),
                     inset 0 1px 0 rgba(255,255,255,0.05);
             }
 
             .exp-region-bg-desert::after {
                 background:
-                    radial-gradient(circle at 14% 20%, rgba(255, 223, 158, 0.14), transparent 18%),
-                    radial-gradient(circle at 86% 22%, rgba(255, 216, 132, 0.10), transparent 18%),
-                    linear-gradient(155deg, transparent 0%, rgba(191, 131, 49, 0.14) 28%, transparent 52%),
+                    radial-gradient(circle at 14% 20%, rgba(255, 223, 158, 0.12), transparent 18%),
+                    radial-gradient(circle at 86% 18%, rgba(255, 214, 126, 0.08), transparent 18%),
+                    radial-gradient(circle at 52% 52%, rgba(255, 198, 108, 0.05), transparent 20%),
+                    linear-gradient(155deg, transparent 0%, rgba(191, 131, 49, 0.10) 26%, transparent 48%),
                     repeating-linear-gradient(
                         -18deg,
                         rgba(0,0,0,0.00) 0px,
-                        rgba(0,0,0,0.00) 18px,
-                        rgba(145, 98, 36, 0.12) 18px,
-                        rgba(145, 98, 36, 0.12) 34px
+                        rgba(0,0,0,0.00) 28px,
+                        rgba(145, 98, 36, 0.08) 28px,
+                        rgba(145, 98, 36, 0.08) 48px
                     ),
                     repeating-linear-gradient(
                         14deg,
                         rgba(0,0,0,0.00) 0px,
-                        rgba(0,0,0,0.00) 24px,
-                        rgba(108, 72, 28, 0.10) 24px,
-                        rgba(108, 72, 28, 0.10) 40px
+                        rgba(0,0,0,0.00) 34px,
+                        rgba(108, 72, 28, 0.08) 34px,
+                        rgba(108, 72, 28, 0.08) 58px
                     ),
                     linear-gradient(90deg,
                         rgba(255,213,95,0.00) 0%,
-                        rgba(255,220,110,0.08) 5%,
-                        rgba(255,214,96,0.18) 7%,
-                        rgba(255,232,155,0.06) 9%,
-                        rgba(255,213,95,0.00) 13%,
-                        rgba(255,213,95,0.00) 87%,
-                        rgba(255,220,110,0.08) 91%,
-                        rgba(255,214,96,0.18) 93%,
-                        rgba(255,232,155,0.06) 95%,
+                        rgba(255,220,110,0.06) 4%,
+                        rgba(255,214,96,0.14) 5.8%,
+                        rgba(255,232,155,0.04) 7.2%,
+                        rgba(255,213,95,0.00) 10.5%,
+                        rgba(255,213,95,0.00) 89.5%,
+                        rgba(255,220,110,0.06) 92.8%,
+                        rgba(255,214,96,0.14) 94.2%,
+                        rgba(255,232,155,0.04) 96%,
                         rgba(255,213,95,0.00) 100%
                     ),
                     linear-gradient(180deg,
                         rgba(255,213,95,0.00) 0%,
-                        rgba(255,220,110,0.08) 7%,
-                        rgba(255,214,96,0.18) 9%,
-                        rgba(255,232,155,0.06) 11%,
-                        rgba(255,213,95,0.00) 15%,
-                        rgba(255,213,95,0.00) 85%,
-                        rgba(255,220,110,0.08) 89%,
-                        rgba(255,214,96,0.18) 91%,
-                        rgba(255,232,155,0.06) 93%,
+                        rgba(255,220,110,0.06) 5%,
+                        rgba(255,214,96,0.14) 6.8%,
+                        rgba(255,232,155,0.04) 8.4%,
+                        rgba(255,213,95,0.00) 11.5%,
+                        rgba(255,213,95,0.00) 88.5%,
+                        rgba(255,220,110,0.06) 91.6%,
+                        rgba(255,214,96,0.14) 93.2%,
+                        rgba(255,232,155,0.04) 95%,
                         rgba(255,213,95,0.00) 100%
                     );
                 box-shadow:
-                    inset 0 0 0 1px rgba(255, 220, 118, 0.10),
-                    inset 0 0 24px rgba(255, 183, 76, 0.04);
+                    inset 0 0 0 1px rgba(255, 220, 118, 0.09),
+                    inset 0 0 24px rgba(255, 183, 76, 0.03);
             }
 
             .exp-region-content {
@@ -228,8 +231,8 @@ CryptoZoo.expeditionRegionsUi = {
                 letter-spacing: 0.01em;
                 color: #f7d56b;
                 text-shadow:
-                    0 1px 0 rgba(255, 242, 184, 0.60),
-                    0 2px 0 rgba(204, 146, 28, 0.55),
+                    0 1px 0 rgba(255, 242, 184, 0.55),
+                    0 2px 0 rgba(204, 146, 28, 0.48),
                     0 4px 12px rgba(0,0,0,0.70);
             }
 
@@ -237,9 +240,9 @@ CryptoZoo.expeditionRegionsUi = {
                 font-size: 13px;
                 line-height: 1.15;
                 font-weight: 800;
-                color: rgba(248, 225, 151, 0.94);
+                color: rgba(248, 225, 151, 0.92);
                 text-shadow:
-                    0 1px 0 rgba(255, 245, 198, 0.32),
+                    0 1px 0 rgba(255, 245, 198, 0.26),
                     0 2px 8px rgba(0,0,0,0.66);
             }
 
