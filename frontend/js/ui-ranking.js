@@ -22,20 +22,6 @@ CryptoZoo.uiRanking = {
         this.updateSubtitle();
     },
 
-    getRankingTypeLabel(type) {
-        switch (this.normalizeType(type)) {
-            case "daily":
-                return "Dzienny";
-            case "weekly":
-                return "Tygodniowy";
-            case "ref":
-                return "Ref";
-            case "overall":
-            default:
-                return "Ogólny";
-        }
-    },
-
     getSubtitleText(type) {
         switch (this.normalizeType(type)) {
             case "daily":
@@ -172,7 +158,7 @@ CryptoZoo.uiRanking = {
         });
     },
 
-    getPodiumOrder(rows) {
+    getPodiumRows(rows) {
         const safeRows = Array.isArray(rows) ? rows.slice(0, 3) : [];
         const byRank = new Map();
 
@@ -180,9 +166,15 @@ CryptoZoo.uiRanking = {
             byRank.set(Number(row.rank) || 0, row);
         });
 
-        return [2, 1, 3]
-            .map((rank) => byRank.get(rank))
-            .filter(Boolean);
+        if (safeRows.length === 1) {
+            return safeRows;
+        }
+
+        if (safeRows.length === 2) {
+            return [byRank.get(2), byRank.get(1)].filter(Boolean);
+        }
+
+        return [byRank.get(2), byRank.get(1), byRank.get(3)].filter(Boolean);
     },
 
     renderTop3(rows, type) {
@@ -192,11 +184,13 @@ CryptoZoo.uiRanking = {
         const safeRows = Array.isArray(rows) ? rows.slice(0, 3) : [];
 
         if (!safeRows.length) {
+            mount.className = "ranking-top3";
             mount.innerHTML = "";
             return;
         }
 
-        const ordered = this.getPodiumOrder(safeRows);
+        const ordered = this.getPodiumRows(safeRows);
+        mount.className = `ranking-top3 count-${ordered.length}`;
 
         mount.innerHTML = ordered.map((row) => {
             const rank = Number(row.rank) || 0;
