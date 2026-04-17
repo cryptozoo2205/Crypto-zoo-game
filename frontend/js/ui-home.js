@@ -4,7 +4,7 @@ CryptoZoo.ui = CryptoZoo.ui || {};
 Object.assign(CryptoZoo.ui, {
     getOfflineAdRewardHours() {
         const value = Number(CryptoZoo.offlineAds?.HOURS_PER_AD);
-        return Number.isFinite(value) && value > 0 ? value : 1;
+        return Number.isFinite(value) && value > 0 ? value : 0.5;
     },
 
     renderOfflineInfo() {
@@ -23,7 +23,7 @@ Object.assign(CryptoZoo.ui, {
 
         const maxAds = Math.max(
             0,
-            Number(CryptoZoo.offlineAds?.getMaxHours?.() || 6)
+            Number(CryptoZoo.offlineAds?.getMaxHours?.() || 3)
         );
 
         const remainingHours = Math.max(
@@ -39,31 +39,43 @@ Object.assign(CryptoZoo.ui, {
         const hasAnyAdsTime = adsHours > 0.000001;
         const canWatchAd = !!CryptoZoo.offlineAds?.canWatchAd?.();
 
-        const adsHoursLabel = this.formatHoursShort(adsHours);
-        const remainingHoursLabel = this.formatHoursShort(remainingHours);
+        const adsHoursLabel =
+            CryptoZoo.offlineAds?.formatHoursShort?.(adsHours) ||
+            this.formatHoursShort(adsHours);
 
-        mainText.textContent = `Offline: ${adsHoursLabel}/${CryptoZoo.formatNumber(maxAds)}h`;
+        const remainingHoursLabel =
+            CryptoZoo.offlineAds?.formatHoursShort?.(remainingHours) ||
+            this.formatHoursShort(remainingHours);
+
+        const maxAdsLabel =
+            CryptoZoo.offlineAds?.formatHoursShort?.(maxAds) ||
+            this.formatHoursShort(maxAds);
+
+        mainText.textContent = `Offline: ${adsHoursLabel}/${maxAdsLabel}`;
 
         if (hasAnyAdsTime && resetSeconds > 0) {
-            subText.textContent = `+${remainingHoursLabel} • ${this.formatTimeLeft(resetSeconds)}`;
+            subText.textContent = `Możesz dodać jeszcze ${remainingHoursLabel} • Reset za ${this.formatTimeLeft(resetSeconds)}`;
         } else {
-            subText.textContent = `+${remainingHoursLabel} • brak aktywnego timera`;
+            subText.textContent = `Możesz dodać jeszcze ${remainingHoursLabel} • Brak aktywnego timera`;
         }
 
         if (CryptoZoo.ads?.isLoading) {
-            adBtn.disabled = false;
+            adBtn.disabled = true;
             adBtn.textContent = "⏳ Reklama...";
             return;
         }
 
         if (!canWatchAd) {
-            adBtn.disabled = false;
-            adBtn.textContent = `📺 Limit • ${this.formatTimeLeft(resetSeconds)}`;
+            adBtn.disabled = true;
+            adBtn.textContent =
+                resetSeconds > 0
+                    ? `📺 Limit • ${this.formatTimeLeft(resetSeconds)}`
+                    : "📺 Limit";
             return;
         }
 
         adBtn.disabled = false;
-        adBtn.textContent = `📺 30min`;
+        adBtn.textContent = "📺 30min";
     },
 
     ensureOfflineInfoTimerRunning() {
