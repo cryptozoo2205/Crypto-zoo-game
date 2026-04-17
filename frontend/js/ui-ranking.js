@@ -172,6 +172,19 @@ CryptoZoo.uiRanking = {
         });
     },
 
+    getPodiumOrder(rows) {
+        const safeRows = Array.isArray(rows) ? rows.slice(0, 3) : [];
+        const byRank = new Map();
+
+        safeRows.forEach((row) => {
+            byRank.set(Number(row.rank) || 0, row);
+        });
+
+        return [2, 1, 3]
+            .map((rank) => byRank.get(rank))
+            .filter(Boolean);
+    },
+
     renderTop3(rows, type) {
         const mount = document.getElementById("rankingTop3");
         if (!mount) return;
@@ -183,14 +196,7 @@ CryptoZoo.uiRanking = {
             return;
         }
 
-        const rankMap = new Map();
-        safeRows.forEach((row) => {
-            rankMap.set(Number(row.rank) || 0, row);
-        });
-
-        const ordered = [2, 1, 3]
-            .map((rank) => rankMap.get(rank))
-            .filter(Boolean);
+        const ordered = this.getPodiumOrder(safeRows);
 
         mount.innerHTML = ordered.map((row) => {
             const rank = Number(row.rank) || 0;
@@ -211,6 +217,7 @@ CryptoZoo.uiRanking = {
 
             return `
                 <div class="ranking-podium-card ${placeClass}">
+                    <div class="ranking-podium-glow"></div>
                     <div class="ranking-podium-place">${icon}</div>
                     <div class="ranking-podium-name">${username}</div>
                     <div class="ranking-podium-level">Lvl ${level}</div>
