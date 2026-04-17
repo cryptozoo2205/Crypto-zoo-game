@@ -3,6 +3,7 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.ads = {
     isLoading: false,
     adHardTimeoutMs: 90000,
+    githubTestAdDurationMs: 3500,
 
     updateOfflineUi() {
         CryptoZoo.offlineAdsUI?.updateButton?.();
@@ -35,6 +36,19 @@ CryptoZoo.ads = {
         return raw.replace(/\/+$/, "");
     },
 
+    isGithubLikeHost() {
+        const host = String(window.location?.hostname || "").toLowerCase();
+        return (
+            host.includes("github.io") ||
+            host === "localhost" ||
+            host === "127.0.0.1"
+        );
+    },
+
+    isSdkReady() {
+        return typeof window.show_10822070 === "function";
+    },
+
     async requestOfflineRewardFromBackend() {
         const res = await fetch(`${this.getApiBase()}/ads/reward-offline`, {
             method: "POST",
@@ -51,6 +65,49 @@ CryptoZoo.ads = {
         }
 
         return data;
+    },
+
+    buildLocalRewardResult() {
+        CryptoZoo.state = CryptoZoo.state || {};
+
+        const added = CryptoZoo.offlineAds?.addHours?.(
+            CryptoZoo.offlineAds?.HOURS_PER_AD || 0.5
+        );
+
+        if (!added) {
+            throw new Error("Osiągnięto maksymalny limit 3h");
+        }
+
+        CryptoZoo.offlineAds?.ensureState?.();
+
+        return {
+            ok: true,
+            message: "Dodano +30min zarobków offline",
+            offlineAdsHours: Number(CryptoZoo.state.offlineAdsHours || 0),
+            offlineAdsResetAt: Number(CryptoZoo.state.offlineAdsResetAt || 0),
+            offlineMaxSeconds: Math.max(
+                3600,
+                Math.round((Number(CryptoZoo.state.offlineAdsHours || 0) * 3600))
+            ),
+            offlineBoostHours: Number(CryptoZoo.state.offlineBoostHours || 0),
+            offlineBaseHours: Number(CryptoZoo.state.offlineBaseHours || 1),
+            offlineBoostMultiplier: Number(CryptoZoo.state.offlineBoostMultiplier || 1),
+            offlineBoostActiveUntil: Number(CryptoZoo.state.offlineBoostActiveUntil || 0),
+            player: CryptoZoo.state
+        };
+    },
+
+    async requestOfflineReward() {
+        try {
+            return await this.requestOfflineRewardFromBackend();
+        } catch (error) {
+            if (!this.isGithubLikeHost()) {
+                throw error;
+            }
+
+            console.warn("Backend reward failed on GitHub/local, using local fallback:", error);
+            return this.buildLocalRewardResult();
+        }
     },
 
     async syncStateFromBackendReward(result) {
@@ -104,6 +161,7 @@ CryptoZoo.ads = {
 
     isAdSuccessResult(result) {
         if (result === true) return true;
+
         if (typeof result === "string") {
             const value = result.trim().toLowerCase();
             return value === "success" || value === "completed" || value === "rewarded";
@@ -121,15 +179,36 @@ CryptoZoo.ads = {
         return status === "success" || status === "completed" || status === "rewarded";
     },
 
+    async openGithubTestRewardedAd() {
+        return new Promise((resolve, reject) => {
+            const ok = window.confirm(
+                "Tryb GitHub/test:\n\nKliknij OK i odczekaj chwilę, aby zasymulować pełne obejrzenie reklamy.\nAnuluj = brak rewardu."
+            );
+
+            if (!ok) {
+                reject(new Error("Reklama została zamknięta przed końcem"));
+                return;
+            }
+
+            setTimeout(() => {
+                resolve({ completed: true, rewarded: true, source: "github-test" });
+            }, this.githubTestAdDurationMs);
+        });
+    },
+
     async openRewardedAdStrict() {
-        if (typeof show_10822070 !== "function") {
+        if (!this.isSdkReady()) {
+            if (this.isGithubLikeHost()) {
+                return this.openGithubTestRewardedAd();
+            }
+
             throw new Error("Reklama nie jest jeszcze gotowa");
         }
 
         let adPromise;
 
         try {
-            adPromise = show_10822070();
+            adPromise = window.show_10822070();
         } catch (error) {
             throw error instanceof Error ? error : new Error(String(error || "Ad error"));
         }
@@ -148,7 +227,7 @@ CryptoZoo.ads = {
         ]);
 
         if (!this.isAdSuccessResult(result)) {
-            
+            throw new Error("Reklama została zamknięta przed końcem");
         }
 
         return result;
@@ -157,13 +236,8 @@ CryptoZoo.ads = {
     async showRewardedAd() {
         if (this.isLoading) return false;
 
-        if (typeof show_10822070 !== "function") {
-            CryptoZoo.ui?.showToast?.("Reklama nie jest jeszcze gotowa");
-            return false;
-        }
-
         if (!CryptoZoo.offlineAds?.canWatchAd?.()) {
-            CryptoZoo.ui?.showToast?.("Osiągnięto maksymalny limit 6h");
+            CryptoZoo.ui?.showToast?.("Osiągnięto maksymalny limit 3h");
             this.updateOfflineUi();
             return false;
         }
@@ -174,19 +248,21 @@ CryptoZoo.ads = {
         try {
             await this.openRewardedAdStrict();
 
-            const result = await this.requestOfflineRewardFromBackend();
+            const result = await this.requestOfflineReward();
             await this.syncStateFromBackendReward(result);
 
             CryptoZoo.ui?.showToast?.(
-                result?.message || "Dodano +1h zarobków offline"
+                result?.message || "Dodano +30min zarobków offline"
             );
 
             return true;
         } catch (error) {
             console.error("Rewarded ad error:", error);
+
             CryptoZoo.ui?.showToast?.(
                 error?.message || "Nie udało się odebrać rewardu reklamy"
             );
+
             return false;
         } finally {
             this.isLoading = false;
