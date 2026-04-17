@@ -39,24 +39,50 @@ Object.assign(CryptoZoo.ui, {
         const hasAnyAdsTime = adsHours > 0.000001;
         const canWatchAd = !!CryptoZoo.offlineAds?.canWatchAd?.();
 
-        const adsHoursLabel =
-            CryptoZoo.offlineAds?.formatHoursShort?.(adsHours) ||
-            this.formatHoursShort(adsHours);
+        const adRewardHours = Math.max(0.5, Number(this.getOfflineAdRewardHours()) || 0.5);
+        const maxSlots = Math.max(1, Math.round(maxAds / adRewardHours));
+        const activeSlots = Math.max(0, Math.min(maxSlots, Math.round(adsHours / adRewardHours)));
+        const remainingSlots = Math.max(0, maxSlots - activeSlots);
 
-        const remainingHoursLabel =
-            CryptoZoo.offlineAds?.formatHoursShort?.(remainingHours) ||
-            this.formatHoursShort(remainingHours);
+        let barsHtml = '<div class="home-offline-bars" style="display:flex;gap:6px;align-items:center;flex-wrap:nowrap;margin-top:2px;">';
 
-        const maxAdsLabel =
-            CryptoZoo.offlineAds?.formatHoursShort?.(maxAds) ||
-            this.formatHoursShort(maxAds);
+        for (let i = 0; i < maxSlots; i++) {
+            const active = i < activeSlots;
 
-        mainText.textContent = `Offline: ${adsHoursLabel}/${maxAdsLabel}`;
+            barsHtml += `
+                <div
+                    style="
+                        width:18px;
+                        height:8px;
+                        border-radius:999px;
+                        background:${active ? "linear-gradient(180deg,#53f28a 0%,#1db954 100%)" : "rgba(255,255,255,0.14)"};
+                        border:1px solid ${active ? "rgba(110,255,160,0.55)" : "rgba(255,255,255,0.08)"};
+                        box-shadow:${active ? "0 0 10px rgba(83,242,138,0.28)" : "none"};
+                        flex:0 0 auto;
+                    "
+                ></div>
+            `;
+        }
 
-        if (hasAnyAdsTime && resetSeconds > 0) {
-            subText.textContent = `Możesz dodać jeszcze ${remainingHoursLabel} • Reset za ${this.formatTimeLeft(resetSeconds)}`;
+        barsHtml += "</div>";
+
+        mainText.innerHTML = `
+            <div style="display:flex;flex-direction:column;gap:8px;">
+                <div style="font-size:14px;font-weight:800;color:#ffffff;line-height:1.1;">
+                    ${activeSlots}/${maxSlots} aktywne
+                </div>
+                ${barsHtml}
+            </div>
+        `;
+
+        if (activeSlots >= maxSlots) {
+            subText.textContent = resetSeconds > 0
+                ? `MAX • Reset: ${this.formatTimeLeft(resetSeconds)}`
+                : "MAX";
+        } else if (hasAnyAdsTime && resetSeconds > 0) {
+            subText.textContent = `Pozostało: ${remainingSlots}/${maxSlots} • Reset: ${this.formatTimeLeft(resetSeconds)}`;
         } else {
-            subText.textContent = `Możesz dodać jeszcze ${remainingHoursLabel} • Brak aktywnego timera`;
+            subText.textContent = `Pozostało: ${remainingSlots}/${maxSlots}`;
         }
 
         if (CryptoZoo.ads?.isLoading) {
@@ -69,13 +95,13 @@ Object.assign(CryptoZoo.ui, {
             adBtn.disabled = true;
             adBtn.textContent =
                 resetSeconds > 0
-                    ? `📺 Limit • ${this.formatTimeLeft(resetSeconds)}`
-                    : "📺 Limit";
+                    ? `⏳ ${this.formatTimeLeft(resetSeconds)}`
+                    : "⏳ MAX";
             return;
         }
 
         adBtn.disabled = false;
-        adBtn.textContent = "📺 30min";
+        adBtn.textContent = "📺 +30m";
     },
 
     ensureOfflineInfoTimerRunning() {
