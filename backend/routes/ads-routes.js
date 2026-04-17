@@ -1,4 +1,3 @@
-const safeInput = (req) => req.body || {};
 const express = require("express");
 
 const { readDb, writeDb } = require("../db/db");
@@ -10,6 +9,7 @@ const router = express.Router();
 const OFFLINE_ADS_MAX_HOURS = 3;
 const OFFLINE_ADS_HOURS_PER_AD = 0.5;
 const MIN_SECONDS_BETWEEN_AD_REWARDS = 0;
+const MIN_REQUIRED_AD_WATCH_MS = 15000;
 
 function normalizeNumber(value, fallback = 0) {
     const num = Number(value);
@@ -67,10 +67,6 @@ function ensureOfflineAdsState(player) {
     }
 
     if (player.offlineAdsResetAt > now) {
-    if (player.offlineAdsResetAt <= now) {
-        player.offlineAdsHours = 0;
-        player.offlineAdsResetAt = 0;
-    }
         const remainingHours = Math.max(0, (player.offlineAdsResetAt - now) / (60 * 60 * 1000));
         player.offlineAdsHours = clamp(
             Number(remainingHours.toFixed(6)),
@@ -92,7 +88,7 @@ function ensureOfflineAdsState(player) {
     return player;
 }
 
-function buildSuccessPayload(player, addedHours, now) {
+function buildSuccessPayload(player, addedHours) {
     return {
         ok: true,
         message: `Dodano +${addedHours}h zarobków offline`,
@@ -114,6 +110,24 @@ function buildErrorPayload(player, error, extra = {}) {
         player,
         ...extra
     };
+}
+
+function getWatchedMs(req) {
+    const body = req.body || {};
+
+    const directWatchMs = Math.max(0, normalizeNumber(body.watchedMs, 0));
+    if (directWatchMs > 0) {
+        return directWatchMs;
+    }
+
+    const adStartedAt = Math.max(0, normalizeNumber(body.adStartedAt, 0));
+    const adEndedAt = Math.max(0, normalizeNumber(body.adEndedAt, 0));
+
+    if (adStartedAt > 0 && adEndedAt >= adStartedAt) {
+        return adEndedAt - adStartedAt;
+    }
+
+    return 0;
 }
 
 router.post("/reward-offline", async (req, res) => {
@@ -138,6 +152,50 @@ router.post("/reward-offline", async (req, res) => {
         const player = ensureOfflineAdsState(existingPlayer);
         const now = Date.now();
 
+        const watchedMs = getWatchedMs(req);
+
+        if (watchedMs < MIN_REQUIRED_AD_WATCH_MS) {
+            db.players[telegramId] = normalizePlayer(player);
+            writeDb(db);
+
+            return res.status(200).json(
+                buildErrorPayload(
+                    db.players[telegramId],
+                    "Reklama została zamknięta przed końcem",
+                    {
+                        requiredWatchMs: MIN_REQUIRED_AD_WATCH_MS,
+                        watchedMs
+                    }
+                )
+            );
+        }
+
+        const secondsSinceLastReward =
+            player.lastOfflineAdRewardAt > 0
+                ? Math.floor((now - player.lastOfflineAdRewardAt) / 1000)
+                : 999999;
+
+        if (
+            MIN_SECONDS_BETWEEN_AD_REWARDS > 0 &&
+            secondsSinceLastReward < MIN_SECONDS_BETWEEN_AD_REWARDS
+        ) {
+            db.players[telegramId] = normalizePlayer(player);
+            writeDb(db);
+
+            return res.status(200).json(
+                buildErrorPayload(
+                    db.players[telegramId],
+                    "Za wcześnie na kolejny reward reklamy",
+                    {
+                        waitSeconds: Math.max(
+                            0,
+                            MIN_SECONDS_BETWEEN_AD_REWARDS - secondsSinceLastReward
+                        )
+                    }
+                )
+            );
+        }
+
         if (player.offlineAdsHours >= OFFLINE_ADS_MAX_HOURS) {
             db.players[telegramId] = normalizePlayer(player);
             writeDb(db);
@@ -145,7 +203,7 @@ router.post("/reward-offline", async (req, res) => {
             return res.status(200).json(
                 buildErrorPayload(
                     db.players[telegramId],
-                    `Osiągnięto limit reklam offline`
+                    "Osiągnięto limit reklam offline"
                 )
             );
         }
@@ -178,7 +236,7 @@ router.post("/reward-offline", async (req, res) => {
         writeDb(db);
 
         return res.status(200).json(
-            buildSuccessPayload(db.players[telegramId], addedHours, now)
+            buildSuccessPayload(db.players[telegramId], addedHours)
         );
     } catch (error) {
         console.error("ads reward-offline error:", error);
