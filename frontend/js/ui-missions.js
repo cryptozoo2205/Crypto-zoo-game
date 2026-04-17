@@ -245,6 +245,8 @@ Object.assign(CryptoZoo.ui, {
             `
             : "";
 
+        let activeExpeditionHtml = "";
+
         if (expedition) {
             const now = Date.now();
             const timeLeft = Math.max(0, Math.floor((expedition.endTime - now) / 1000));
@@ -295,10 +297,8 @@ Object.assign(CryptoZoo.ui, {
                 `;
             }
 
-            container.innerHTML = `
-                ${dailyMissionsHtml}
-                ${testModeBadge}
-                <div class="expedition-card">
+            activeExpeditionHtml = `
+                <div class="expedition-card" style="margin-bottom:12px;">
                     <h3>${this.t("activeExpedition", "Aktywna ekspedycja")}: ${expeditionName}</h3>
                     <div>${this.t("timeLeft", "Pozostało")}: <span id="activeExpeditionTimeLeft">${this.formatTimeLeft(timeLeft)}</span></div>
                     ${
@@ -321,22 +321,6 @@ Object.assign(CryptoZoo.ui, {
                     </div>
                 </div>
             `;
-
-            this.bindDailyMissionButtons();
-
-            if (canCollect) {
-                this.bindClick("collect-expedition-btn", () => {
-                    CryptoZoo.expeditions?.collect?.();
-                });
-            }
-
-            if (!canCollect && timeBoostChargesCount > 0) {
-                this.bindClick("use-expedition-time-boost-btn", () => {
-                    CryptoZoo.expeditions?.useTimeBoostOnActiveExpedition?.();
-                });
-            }
-
-            return;
         }
 
         const rareBonus = Math.max(
@@ -364,11 +348,35 @@ Object.assign(CryptoZoo.ui, {
         container.innerHTML = `
             ${dailyMissionsHtml}
             ${testModeBadge}
+            ${activeExpeditionHtml}
             ${expeditionInfoCard}
             <div id="expeditionRegionsMount"></div>
         `;
 
         this.bindDailyMissionButtons();
+
+        if (expedition) {
+            const now = Date.now();
+            const timeLeft = Math.max(0, Math.floor((expedition.endTime - now) / 1000));
+            const canCollect = timeLeft <= 0;
+            const timeBoostChargesCountActive =
+                CryptoZoo.expeditions?.getTimeBoostChargesCount?.() ||
+                CryptoZoo.state?.expeditionStats?.timeBoostCharges?.length ||
+                0;
+
+            if (canCollect) {
+                this.bindClick("collect-expedition-btn", () => {
+                    CryptoZoo.expeditions?.collect?.();
+                });
+            }
+
+            if (!canCollect && timeBoostChargesCountActive > 0) {
+                this.bindClick("use-expedition-time-boost-btn", () => {
+                    CryptoZoo.expeditions?.useTimeBoostOnActiveExpedition?.();
+                });
+            }
+        }
+
         CryptoZoo.expeditionRegionsUi?.render?.();
     }
 });
