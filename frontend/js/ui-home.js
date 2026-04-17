@@ -31,7 +31,6 @@ Object.assign(CryptoZoo.ui, {
         const adRewardHours = Math.max(0.5, Number(this.getOfflineAdRewardHours()) || 0.5);
         const maxSlots = Math.max(1, Math.round(maxAds / adRewardHours));
         const activeSlots = Math.max(0, Math.min(maxSlots, Math.round(adsHours / adRewardHours)));
-        const remainingSlots = Math.max(0, maxSlots - activeSlots);
 
         let barsHtml = '<div class="home-offline-bars" style="display:flex;gap:6px;align-items:center;flex-wrap:nowrap;margin-top:2px;">';
 
@@ -66,14 +65,13 @@ Object.assign(CryptoZoo.ui, {
 
         const currentMinutes = Math.max(0, Math.floor(adsHours * 60));
         const maxMinutes = Math.max(0, Math.floor(maxAds * 60));
-        const remainingMinutes = Math.max(0, Math.floor((maxAds - adsHours) * 60));
 
         if (activeSlots <= 0) {
-            subText.textContent = `Pakiet offline: 0m / ${maxMinutes}m • Dostępne: ${remainingSlots}/${maxSlots}`;
+            subText.textContent = `Pakiet offline: 0m / ${maxMinutes}m`;
         } else if (activeSlots >= maxSlots) {
             subText.textContent = `Pakiet offline: ${currentMinutes}m / ${maxMinutes}m • MAX`;
         } else {
-            subText.textContent = `Pakiet offline: ${currentMinutes}m / ${maxMinutes}m • Dostępne: ${remainingSlots}/${maxSlots}`;
+            subText.textContent = `Pakiet offline: ${currentMinutes}m / ${maxMinutes}m`;
         }
 
         if (CryptoZoo.ads?.isLoading) {
