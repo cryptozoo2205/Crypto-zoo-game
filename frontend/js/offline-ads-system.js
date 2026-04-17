@@ -28,19 +28,48 @@ CryptoZoo.offlineAds = {
     ensureState() {
         CryptoZoo.state = CryptoZoo.state || {};
 
+        const enabled = Boolean(CryptoZoo.state.offlineAdsEnabled);
+        const now = this.getNow();
+        const resetAt = Math.max(0, Number(CryptoZoo.state.offlineAdsResetAt) || 0);
         const storedHours = this.clampHours(CryptoZoo.state.offlineAdsHours);
 
-        if (storedHours <= 0) {
+        if (!enabled) {
             this.setZeroState();
             return;
         }
 
-        CryptoZoo.state.offlineAdsHours = Number(storedHours.toFixed(6));
-        CryptoZoo.state.offlineAdsEnabled = true;
-
-        if (!Number.isFinite(Number(CryptoZoo.state.offlineAdsResetAt))) {
-            CryptoZoo.state.offlineAdsResetAt = 0;
+        if (storedHours <= 0) {
+            this.setZeroState();
+            this.persistState();
+            return;
         }
+
+        if (resetAt <= 0) {
+            CryptoZoo.state.offlineAdsResetAt = now + Math.floor(storedHours * 3600 * 1000);
+            CryptoZoo.state.offlineAdsHours = Number(storedHours.toFixed(6));
+            CryptoZoo.state.offlineAdsEnabled = true;
+            this.persistState();
+            return;
+        }
+
+        const msLeft = resetAt - now;
+
+        if (msLeft <= 0) {
+            this.setZeroState();
+            this.persistState();
+            return;
+        }
+
+        const currentHours = this.clampHours(msLeft / 3600000);
+
+        if (currentHours <= 0) {
+            this.setZeroState();
+            this.persistState();
+            return;
+        }
+
+        CryptoZoo.state.offlineAdsHours = Number(currentHours.toFixed(6));
+        CryptoZoo.state.offlineAdsEnabled = true;
     },
 
     getCurrentHours() {
@@ -58,7 +87,24 @@ CryptoZoo.offlineAds = {
     },
 
     getSecondsUntilReset() {
-        return 0;
+        this.ensureState();
+
+        const enabled = Boolean(CryptoZoo.state?.offlineAdsEnabled);
+        const resetAt = Math.max(0, Number(CryptoZoo.state?.offlineAdsResetAt) || 0);
+
+        if (!enabled || resetAt <= 0) {
+            return 0;
+        }
+
+        const seconds = Math.max(0, Math.ceil((resetAt - this.getNow()) / 1000));
+
+        if (seconds <= 0) {
+            this.setZeroState();
+            this.persistState();
+            return 0;
+        }
+
+        return seconds;
     },
 
     formatTimeLeft(totalSeconds) {
@@ -79,7 +125,13 @@ CryptoZoo.offlineAds = {
     },
 
     getNextResetAt() {
-        return 0;
+        this.ensureState();
+
+        if (!Boolean(CryptoZoo.state?.offlineAdsEnabled)) {
+            return 0;
+        }
+
+        return Math.max(0, Number(CryptoZoo.state?.offlineAdsResetAt) || 0);
     },
 
     formatHoursShort(hoursValue) {
@@ -124,7 +176,7 @@ CryptoZoo.offlineAds = {
             return `Offline: 0m/${this.formatHoursShort(max)} · 30min po obejrzeniu reklamy`;
         }
 
-        return `Offline: ${this.formatHoursShort(current)}/${this.formatHoursShort(max)}`;
+        return `Offline: ${this.formatHoursShort(current)}/${this.formatHoursShort(max)} · Reset za: ${this.getFormattedTimeUntilReset()}`;
     },
 
     addHours(hours = 1) {
@@ -135,6 +187,10 @@ CryptoZoo.offlineAds = {
             return false;
         }
 
+        const now = this.getNow();
+        const currentResetAt = Math.max(0, Number(CryptoZoo.state?.offlineAdsResetAt) || 0);
+        const baseTime = currentResetAt > now ? currentResetAt : now;
+
         const current = this.getCurrentHours();
         const next = this.clampHours(current + safeHours);
 
@@ -142,10 +198,12 @@ CryptoZoo.offlineAds = {
             return false;
         }
 
+        const addedMs = (next - current) * 3600 * 1000;
+
         CryptoZoo.state = CryptoZoo.state || {};
         CryptoZoo.state.offlineAdsHours = Number(next.toFixed(6));
-        CryptoZoo.state.offlineAdsResetAt = 0;
-        CryptoZoo.state.offlineAdsEnabled = next > 0;
+        CryptoZoo.state.offlineAdsResetAt = Math.max(baseTime, now) + addedMs;
+        CryptoZoo.state.offlineAdsEnabled = true;
 
         this.persistState();
         return true;
