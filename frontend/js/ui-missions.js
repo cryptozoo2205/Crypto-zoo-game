@@ -232,6 +232,18 @@ Object.assign(CryptoZoo.ui, {
 
         const dailyMissionsHtml = this.renderDailyMissionsSection();
         const expedition = CryptoZoo.state?.expedition;
+        const isLocalTestMode = !!CryptoZoo.expeditions?.canUseLocalFallback?.();
+
+        const testModeBadge = isLocalTestMode
+            ? `
+                <div class="expedition-card" style="margin-bottom:12px; border:1px solid rgba(79,172,254,0.35); background:linear-gradient(180deg, rgba(24,40,82,0.96) 0%, rgba(11,21,50,0.96) 100%);">
+                    <h3>🧪 ${this.t("testMode", "Tryb testowy")}</h3>
+                    <div style="color:rgba(255,255,255,0.78);">
+                        ${this.t("githubTestModeExpeditions", "Ekspedycje działają lokalnie na GitHub / localhost. To tryb testowy bez VPS.")}
+                    </div>
+                </div>
+            `
+            : "";
 
         if (expedition) {
             const now = Date.now();
@@ -285,6 +297,7 @@ Object.assign(CryptoZoo.ui, {
 
             container.innerHTML = `
                 ${dailyMissionsHtml}
+                ${testModeBadge}
                 <div class="expedition-card">
                     <h3>${this.t("activeExpedition", "Aktywna ekspedycja")}: ${expeditionName}</h3>
                     <div>${this.t("timeLeft", "Pozostało")}: <span id="activeExpeditionTimeLeft">${this.formatTimeLeft(timeLeft)}</span></div>
@@ -350,6 +363,7 @@ Object.assign(CryptoZoo.ui, {
 
         container.innerHTML = `
             ${dailyMissionsHtml}
+            ${testModeBadge}
             ${expeditionInfoCard}
             <div id="expeditionRegionsMount"></div>
         `;
