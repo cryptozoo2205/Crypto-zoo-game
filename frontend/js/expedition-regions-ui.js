@@ -82,17 +82,17 @@ CryptoZoo.expeditionRegionsUi = {
                 filter:grayscale(.05);
             }
 
-            /* === JUNGLE PREMIUM BUTTON === */
             .exp-region-card.exp-region-button-only{
-                min-height:145px;
-                height:145px;
+                min-height:120px;
+                height:120px;
                 padding:0;
                 border:none;
                 box-shadow:none;
-                background-size:100% 100%;
-                background-position:center;
-                background-repeat:no-repeat;
+                background-color:transparent;
+                background-image:none;
+                overflow:visible;
                 align-items:stretch;
+                justify-content:center;
             }
 
             .exp-region-card.exp-region-button-only::before{
@@ -101,19 +101,29 @@ CryptoZoo.expeditionRegionsUi = {
 
             .exp-region-card.exp-region-button-only .exp-region-content{
                 position:absolute;
-                inset:0;
+                left:50%;
+                top:50%;
+                transform:translate(-50%, -50%);
                 z-index:5;
+                width:78%;
+                height:88px;
                 display:flex;
                 flex-direction:column;
                 align-items:center;
                 justify-content:center;
                 text-align:center;
-                gap:4px;
-                padding:14px;
+                gap:2px;
+                padding:10px 20px 8px;
+                box-sizing:border-box;
+                background-image:url("assets/regions/jungle-button.png");
+                background-size:100% 100%;
+                background-position:center;
+                background-repeat:no-repeat;
+                pointer-events:none;
             }
 
             .exp-region-bg-jungle{
-                background-image:url("assets/regions/jungle-button.png");
+                background:none;
             }
 
             .exp-region-bg-desert{
@@ -122,22 +132,49 @@ CryptoZoo.expeditionRegionsUi = {
                     url("assets/regions/desert-bg.png");
             }
 
-            .exp-region-title{
-                font-size:28px;
+            .exp-region-content{
+                position:relative;
+                z-index:2;
+                display:flex;
+                flex-direction:column;
+                gap:6px;
+            }
+
+            .exp-region-card.exp-region-button-only .exp-region-title{
+                font-size:24px;
+                line-height:1;
                 font-weight:900;
-                letter-spacing:.02em;
+                letter-spacing:.01em;
                 color:#ffd86a;
                 text-shadow:
                     0 1px 0 #fff1a6,
                     0 2px 0 #d49f19,
-                    0 3px 8px rgba(0,0,0,.75);
+                    0 3px 8px rgba(0,0,0,.78);
+                margin:0;
+            }
+
+            .exp-region-card.exp-region-button-only .exp-region-subtitle{
+                font-size:11px;
+                line-height:1.05;
+                font-weight:800;
+                color:rgba(255,245,190,.96);
+                text-shadow:0 2px 6px rgba(0,0,0,.85);
+                max-width:90%;
+                margin:0 auto;
+                white-space:normal;
+            }
+
+            .exp-region-title{
+                font-size:20px;
+                font-weight:900;
+                color:#fff;
+                letter-spacing:.02em;
             }
 
             .exp-region-subtitle{
-                font-size:13px;
-                font-weight:800;
-                color:rgba(255,245,190,.96);
-                text-shadow:0 2px 6px rgba(0,0,0,.8);
+                font-size:12px;
+                font-weight:700;
+                color:rgba(255,255,255,.82);
             }
 
             .exp-region-lock{
