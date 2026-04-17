@@ -26,11 +26,6 @@ Object.assign(CryptoZoo.ui, {
             Number(CryptoZoo.offlineAds?.getMaxHours?.() || 3)
         );
 
-        const resetSeconds = Math.max(
-            0,
-            Number(CryptoZoo.offlineAds?.getSecondsUntilReset?.() || 0)
-        );
-
         const canWatchAd = !!CryptoZoo.offlineAds?.canWatchAd?.();
 
         const adRewardHours = Math.max(0.5, Number(this.getOfflineAdRewardHours()) || 0.5);
@@ -69,16 +64,16 @@ Object.assign(CryptoZoo.ui, {
             </div>
         `;
 
+        const currentMinutes = Math.max(0, Math.floor(adsHours * 60));
+        const maxMinutes = Math.max(0, Math.floor(maxAds * 60));
+        const remainingMinutes = Math.max(0, Math.floor((maxAds - adsHours) * 60));
+
         if (activeSlots <= 0) {
-            subText.textContent = `Dostępne: ${remainingSlots}/${maxSlots}`;
+            subText.textContent = `Pakiet offline: 0m / ${maxMinutes}m • Dostępne: ${remainingSlots}/${maxSlots}`;
         } else if (activeSlots >= maxSlots) {
-            subText.textContent = resetSeconds > 0
-                ? `MAX • Reset: ${this.formatTimeLeft(resetSeconds)}`
-                : "MAX";
+            subText.textContent = `Pakiet offline: ${currentMinutes}m / ${maxMinutes}m • MAX`;
         } else {
-            subText.textContent = resetSeconds > 0
-                ? `Pozostało: ${remainingSlots}/${maxSlots} • Reset: ${this.formatTimeLeft(resetSeconds)}`
-                : `Pozostało: ${remainingSlots}/${maxSlots}`;
+            subText.textContent = `Pakiet offline: ${currentMinutes}m / ${maxMinutes}m • Dostępne: ${remainingSlots}/${maxSlots}`;
         }
 
         if (CryptoZoo.ads?.isLoading) {
@@ -89,10 +84,7 @@ Object.assign(CryptoZoo.ui, {
 
         if (!canWatchAd) {
             adBtn.disabled = true;
-            adBtn.textContent =
-                resetSeconds > 0
-                    ? `⏳ ${this.formatTimeLeft(resetSeconds)}`
-                    : "⏳ MAX";
+            adBtn.textContent = "⏳ MAX";
             return;
         }
 
