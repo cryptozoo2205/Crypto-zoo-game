@@ -164,7 +164,17 @@ CryptoZoo.ads = {
 
         if (typeof result === "string") {
             const value = result.trim().toLowerCase();
-            return value === "success" || value === "completed" || value === "rewarded";
+            return [
+                "success",
+                "completed",
+                "rewarded",
+                "done",
+                "viewed",
+                "finished",
+                "reward",
+                "grant",
+                "granted"
+            ].includes(value);
         }
 
         if (!result || typeof result !== "object") {
@@ -174,9 +184,42 @@ CryptoZoo.ads = {
         if (result.success === true) return true;
         if (result.completed === true) return true;
         if (result.rewarded === true) return true;
+        if (result.reward === true) return true;
+        if (result.granted === true) return true;
 
-        const status = String(result.status || result.result || "").trim().toLowerCase();
-        return status === "success" || status === "completed" || status === "rewarded";
+        const valuesToCheck = [
+            result.status,
+            result.result,
+            result.state,
+            result.event,
+            result.type,
+            result.message
+        ]
+            .map((value) => String(value || "").trim().toLowerCase())
+            .filter(Boolean);
+
+        if (valuesToCheck.some((value) => [
+            "success",
+            "completed",
+            "rewarded",
+            "done",
+            "viewed",
+            "finished",
+            "reward",
+            "grant",
+            "granted"
+        ].includes(value))) {
+            return true;
+        }
+
+        if (
+            valuesToCheck.includes("close") &&
+            (result.reward === true || result.rewarded === true || result.granted === true)
+        ) {
+            return true;
+        }
+
+        return false;
     },
 
     async openGithubTestRewardedAd() {
@@ -225,6 +268,8 @@ CryptoZoo.ads = {
                 }, this.adHardTimeoutMs);
             })
         ]);
+
+        console.log("Rewarded ad SDK result:", result);
 
         if (!this.isAdSuccessResult(result)) {
             throw new Error("Reklama została zamknięta przed końcem");
