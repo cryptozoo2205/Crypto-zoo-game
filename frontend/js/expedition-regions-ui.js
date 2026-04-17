@@ -83,15 +83,19 @@ CryptoZoo.expeditionRegionsUi = {
             }
 
             .exp-region-bg-jungle {
-                background-image:
-                    linear-gradient(180deg, rgba(0,0,0,0.10), rgba(0,0,0,0.45)),
-                    url("./assets/regions/jungle-bg.png");
+                background-image: url("assets/regions/jungle-button.png");
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
             }
 
             .exp-region-bg-desert {
                 background-image:
                     linear-gradient(180deg, rgba(0,0,0,0.10), rgba(0,0,0,0.45)),
                     url("./assets/regions/desert-bg.png");
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
             }
 
             .exp-region-content {
