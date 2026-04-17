@@ -41,139 +41,139 @@ CryptoZoo.expeditionRegionsUi = {
         const style = document.createElement("style");
         style.id = "expeditionRegionsUiStyles";
         style.textContent = `
-            .exp-region-select-wrap{
-                display:flex;
-                flex-direction:column;
-                gap:14px;
-                margin-top:14px;
+            .exp-region-select-wrap {
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+                margin-top: 14px;
             }
 
-            .exp-region-card{
-                position:relative;
-                overflow:hidden;
-                border-radius:22px;
-                min-height:120px;
-                padding:18px;
-                display:flex;
-                align-items:flex-end;
-                border:1px solid rgba(255,255,255,0.12);
-                box-shadow:0 14px 32px rgba(0,0,0,0.24);
-                cursor:pointer;
-                background-size:cover;
-                background-position:center;
-                background-repeat:no-repeat;
+            .exp-region-card {
+                position: relative;
+                overflow: hidden;
+                border-radius: 22px;
+                min-height: 120px;
+                padding: 18px;
+                display: flex;
+                align-items: flex-end;
+                border: 1px solid rgba(255,255,255,0.12);
+                box-shadow: 0 14px 32px rgba(0,0,0,0.24);
+                cursor: pointer;
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
             }
 
-            .exp-region-card::before{
-                content:"";
-                position:absolute;
-                inset:0;
+            .exp-region-card::before {
+                content: "";
+                position: absolute;
+                inset: 0;
                 background:
-                    linear-gradient(180deg, rgba(0,0,0,.12), rgba(0,0,0,.48)),
-                    linear-gradient(135deg, rgba(255,255,255,.04), transparent 46%);
+                    linear-gradient(180deg, rgba(0,0,0,0.12), rgba(0,0,0,0.48)),
+                    linear-gradient(135deg, rgba(255,255,255,0.04), transparent 46%);
             }
 
-            .exp-region-card.exp-region-locked{
-                cursor:default;
-                filter:grayscale(.05);
+            .exp-region-card.exp-region-locked {
+                cursor: default;
+                filter: grayscale(0.05);
             }
 
-            .exp-region-bg-jungle{
+            .exp-region-bg-jungle {
                 background-image:
-                    linear-gradient(180deg, rgba(0,0,0,.10), rgba(0,0,0,.42)),
-                    url("assets/regions/jungle-button.png");
-                background-size:cover;
-                background-position:center;
-                background-repeat:no-repeat;
+                    linear-gradient(180deg, rgba(0,0,0,0.10), rgba(0,0,0,0.45)),
+                    url("assets/regions/jungle-bg.png");
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
             }
 
-            .exp-region-bg-desert{
+            .exp-region-bg-desert {
                 background-image:
-                    linear-gradient(180deg, rgba(0,0,0,.10), rgba(0,0,0,.45)),
+                    linear-gradient(180deg, rgba(0,0,0,0.10), rgba(0,0,0,0.45)),
                     url("assets/regions/desert-bg.png");
-                background-size:cover;
-                background-position:center;
-                background-repeat:no-repeat;
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
             }
 
-            .exp-region-content{
-                position:relative;
-                z-index:2;
-                display:flex;
-                flex-direction:column;
-                gap:6px;
+            .exp-region-content {
+                position: relative;
+                z-index: 2;
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
             }
 
-            .exp-region-title{
-                font-size:20px;
-                font-weight:900;
-                color:#fff;
-                letter-spacing:.02em;
-                text-shadow:0 2px 8px rgba(0,0,0,.75);
+            .exp-region-title {
+                font-size: 20px;
+                font-weight: 900;
+                color: #fff;
+                letter-spacing: 0.02em;
+                text-shadow: 0 2px 8px rgba(0,0,0,0.75);
             }
 
-            .exp-region-subtitle{
-                font-size:12px;
-                font-weight:700;
-                color:rgba(255,255,255,.86);
-                text-shadow:0 2px 8px rgba(0,0,0,.7);
+            .exp-region-subtitle {
+                font-size: 12px;
+                font-weight: 700;
+                color: rgba(255,255,255,0.86);
+                text-shadow: 0 2px 8px rgba(0,0,0,0.70);
             }
 
-            .exp-region-lock{
-                position:absolute;
-                inset:0;
-                z-index:3;
-                display:flex;
-                align-items:center;
-                justify-content:center;
-                pointer-events:none;
+            .exp-region-lock {
+                position: absolute;
+                inset: 0;
+                z-index: 3;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                pointer-events: none;
             }
 
-            .exp-region-lock-badge{
-                width:64px;
-                height:64px;
-                border-radius:999px;
-                display:flex;
-                align-items:center;
-                justify-content:center;
-                background:rgba(0,0,0,.45);
-                border:1px solid rgba(255,255,255,.18);
-                color:#fff;
-                font-size:28px;
-                box-shadow:0 10px 24px rgba(0,0,0,.28);
+            .exp-region-lock-badge {
+                width: 64px;
+                height: 64px;
+                border-radius: 999px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(0,0,0,0.45);
+                border: 1px solid rgba(255,255,255,0.18);
+                color: #fff;
+                font-size: 28px;
+                box-shadow: 0 10px 24px rgba(0,0,0,0.28);
             }
 
-            .exp-region-expeditions-wrap{
-                margin-top:14px;
-                display:flex;
-                flex-direction:column;
-                gap:10px;
+            .exp-region-expeditions-wrap {
+                margin-top: 14px;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
             }
 
-            .exp-region-expeditions-head{
-                display:flex;
-                align-items:center;
-                justify-content:space-between;
-                gap:10px;
-                padding:10px 12px;
-                border-radius:14px;
-                background:rgba(255,255,255,.05);
-                border:1px solid rgba(255,255,255,.08);
+            .exp-region-expeditions-head {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+                padding: 10px 12px;
+                border-radius: 14px;
+                background: rgba(255,255,255,0.05);
+                border: 1px solid rgba(255,255,255,0.08);
             }
 
-            .exp-region-expeditions-title{
-                font-size:14px;
-                font-weight:900;
-                color:#fff;
+            .exp-region-expeditions-title {
+                font-size: 14px;
+                font-weight: 900;
+                color: #fff;
             }
 
-            .exp-region-back-btn{
-                border:0;
-                border-radius:12px;
-                padding:8px 12px;
-                font-size:12px;
-                font-weight:800;
-                cursor:pointer;
+            .exp-region-back-btn {
+                border: 0;
+                border-radius: 12px;
+                padding: 8px 12px;
+                font-size: 12px;
+                font-weight: 800;
+                cursor: pointer;
             }
         `;
 
