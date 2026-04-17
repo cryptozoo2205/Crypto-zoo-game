@@ -82,9 +82,28 @@ CryptoZoo.expeditionRegionsUi = {
                 filter: grayscale(0.05);
             }
 
+            .exp-region-card.exp-region-button-only {
+                min-height: 110px;
+                height: 110px;
+                padding: 0;
+                border: 0;
+                box-shadow: none;
+                overflow: visible;
+                background-color: transparent;
+                align-items: stretch;
+            }
+
+            .exp-region-card.exp-region-button-only::before {
+                display: none;
+            }
+
+            .exp-region-card.exp-region-button-only .exp-region-content {
+                display: none;
+            }
+
             .exp-region-bg-jungle {
                 background-image: url("assets/regions/jungle-button.png");
-                background-size: cover;
+                background-size: contain;
                 background-position: center;
                 background-repeat: no-repeat;
             }
@@ -209,19 +228,23 @@ CryptoZoo.expeditionRegionsUi = {
             <div class="exp-region-select-wrap">
                 ${regions.map((region) => {
                     const isLocked = Boolean(region.locked);
+                    const isImageOnlyButton = region.id === "jungle";
                     const subtitle = isLocked
                         ? `Od poziomu ${region.minLevel}`
                         : `Region dostępny • poziomy ${region.minLevel}-${region.maxLevel}`;
 
                     return `
                         <div
-                            class="exp-region-card ${region.bgClass} ${isLocked ? "exp-region-locked" : ""}"
+                            class="exp-region-card ${region.bgClass} ${isLocked ? "exp-region-locked" : ""} ${isImageOnlyButton ? "exp-region-button-only" : ""}"
                             data-exp-region-id="${region.id}"
+                            aria-label="${region.name}"
                         >
-                            <div class="exp-region-content">
-                                <div class="exp-region-title">${region.name}</div>
-                                <div class="exp-region-subtitle">${subtitle}</div>
-                            </div>
+                            ${isImageOnlyButton ? "" : `
+                                <div class="exp-region-content">
+                                    <div class="exp-region-title">${region.name}</div>
+                                    <div class="exp-region-subtitle">${subtitle}</div>
+                                </div>
+                            `}
                             ${isLocked ? `
                                 <div class="exp-region-lock">
                                     <div class="exp-region-lock-badge">🔒</div>
