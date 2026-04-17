@@ -209,8 +209,8 @@ CryptoZoo.expeditionRegionsUi = {
                 ${regions.map((region) => {
                     const isLocked = Boolean(region.locked);
                     const subtitle = isLocked
-                        ? \`Od poziomu \${region.minLevel}\`
-                        : \`Region dostępny • poziomy \${region.minLevel}-\${region.maxLevel}\`;
+                        ? `Od poziomu ${region.minLevel}`
+                        : `Region dostępny • poziomy ${region.minLevel}-${region.maxLevel}`;
 
                     return `
                         <div
