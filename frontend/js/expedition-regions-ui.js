@@ -211,8 +211,8 @@ CryptoZoo.expeditionRegionsUi = {
                 ${regions.map((region) => {
                     const isLocked = Boolean(region.locked);
                     const subtitle = isLocked
-                        ? \`Od poziomu \${region.minLevel}\`
-                        : \`Region dostępny • poziomy \${region.minLevel}-\${region.maxLevel}\`;
+                        ? `Od poziomu ${region.minLevel}`
+                        : `Region dostępny • poziomy ${region.minLevel}-${region.maxLevel}`;
 
                     return `
                         <div
@@ -237,7 +237,7 @@ CryptoZoo.expeditionRegionsUi = {
         regions.forEach((region) => {
             if (region.locked) return;
 
-            const card = mount.querySelector(\`[data-exp-region-id="\${region.id}"]\`);
+            const card = mount.querySelector(`[data-exp-region-id="${region.id}"]`);
             if (!card) return;
 
             card.onclick = () => {
