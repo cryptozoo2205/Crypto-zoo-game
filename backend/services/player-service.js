@@ -59,6 +59,32 @@ function getDefaultAnimals() {
     };
 }
 
+function getCurrentDayKey(timestamp = Date.now()) {
+    const date = new Date(timestamp);
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(date.getUTCDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
+
+function getCurrentWeekKey(timestamp = Date.now()) {
+    const date = new Date(timestamp);
+
+    const utcDate = new Date(Date.UTC(
+        date.getUTCFullYear(),
+        date.getUTCMonth(),
+        date.getUTCDate()
+    ));
+
+    const dayNum = utcDate.getUTCDay() || 7;
+    utcDate.setUTCDate(utcDate.getUTCDate() + 4 - dayNum);
+
+    const yearStart = new Date(Date.UTC(utcDate.getUTCFullYear(), 0, 1));
+    const weekNo = Math.ceil((((utcDate - yearStart) / 86400000) + 1) / 7);
+
+    return `${utcDate.getUTCFullYear()}-W${String(weekNo).padStart(2, "0")}`;
+}
+
 function getDefaultPlayer(telegramId = "local-player", username = "Gracz") {
     const now = Date.now();
 
@@ -103,10 +129,8 @@ function getDefaultPlayer(telegramId = "local-player", username = "Gracz") {
 
         offlineBaseHours: 1,
         offlineBoostHours: 0,
-        offlineAdsHours: 0, // forced reset
-        //original offlineAdsHours: 0,
-        offlineAdsResetAt: 0, // forced reset
-        //original offlineAdsResetAt: 0,
+        offlineAdsHours: 0,
+        offlineAdsResetAt: 0,
         offlineMaxSeconds: 1 * 60 * 60,
         offlineBoostMultiplier: 1,
         offlineBoostActiveUntil: 0,
@@ -127,6 +151,15 @@ function getDefaultPlayer(telegramId = "local-player", username = "Gracz") {
         referralWelcomeBonusClaimed: false,
         referralActivated: false,
         referralActivationBonusClaimed: false,
+
+        dailyCoins: 0,
+        weeklyCoins: 0,
+        dailyRankingCoins: 0,
+        weeklyRankingCoins: 0,
+        dailyUpdatedAt: now,
+        weeklyUpdatedAt: now,
+        dailyDayKey: getCurrentDayKey(now),
+        weeklyWeekKey: getCurrentWeekKey(now),
 
         animals: getDefaultAnimals(),
 
@@ -166,7 +199,16 @@ function getDefaultPlayer(telegramId = "local-player", username = "Gracz") {
         boosts: {},
         settings: {},
         profile: {},
-        stats: {},
+        stats: {
+            dailyCoins: 0,
+            weeklyCoins: 0,
+            dailyRankingCoins: 0,
+            weeklyRankingCoins: 0,
+            dailyUpdatedAt: now,
+            weeklyUpdatedAt: now,
+            dailyDayKey: getCurrentDayKey(now),
+            weeklyWeekKey: getCurrentWeekKey(now)
+        },
 
         depositHistory: [],
         deposits: [],
@@ -213,6 +255,7 @@ function normalizePlayer(input) {
     const expeditionStatsInput = normalizeObject(safeInput.expeditionStats);
     const dailyMissionsInput = normalizeObject(safeInput.dailyMissions);
     const dailyExpeditionBoostInput = normalizeObject(safeInput.dailyExpeditionBoost);
+    const statsInput = normalizeObject(safeInput.stats);
 
     const offlineBaseHours = Math.max(
         1,
@@ -235,6 +278,64 @@ function normalizePlayer(input) {
     );
 
     const computedOfflineMaxSeconds = (offlineBaseHours + offlineBoostHours + offlineAdsHours) * 60 * 60;
+
+    const dailyCoins = Math.max(
+        0,
+        normalizeNumber(
+            safeInput.dailyCoins,
+            normalizeNumber(statsInput.dailyCoins, base.dailyCoins)
+        )
+    );
+
+    const weeklyCoins = Math.max(
+        0,
+        normalizeNumber(
+            safeInput.weeklyCoins,
+            normalizeNumber(statsInput.weeklyCoins, base.weeklyCoins)
+        )
+    );
+
+    const dailyRankingCoins = Math.max(
+        0,
+        normalizeNumber(
+            safeInput.dailyRankingCoins,
+            normalizeNumber(statsInput.dailyRankingCoins, dailyCoins)
+        )
+    );
+
+    const weeklyRankingCoins = Math.max(
+        0,
+        normalizeNumber(
+            safeInput.weeklyRankingCoins,
+            normalizeNumber(statsInput.weeklyRankingCoins, weeklyCoins)
+        )
+    );
+
+    const dailyUpdatedAt = Math.max(
+        0,
+        normalizeNumber(
+            safeInput.dailyUpdatedAt,
+            normalizeNumber(statsInput.dailyUpdatedAt, base.dailyUpdatedAt)
+        )
+    );
+
+    const weeklyUpdatedAt = Math.max(
+        0,
+        normalizeNumber(
+            safeInput.weeklyUpdatedAt,
+            normalizeNumber(statsInput.weeklyUpdatedAt, base.weeklyUpdatedAt)
+        )
+    );
+
+    const dailyDayKey = safeString(
+        safeInput.dailyDayKey,
+        safeString(statsInput.dailyDayKey, base.dailyDayKey)
+    ) || getCurrentDayKey(now);
+
+    const weeklyWeekKey = safeString(
+        safeInput.weeklyWeekKey,
+        safeString(statsInput.weeklyWeekKey, base.weeklyWeekKey)
+    ) || getCurrentWeekKey(now);
 
     return {
         ...base,
@@ -334,6 +435,15 @@ function normalizePlayer(input) {
         referralActivated: Boolean(safeInput.referralActivated),
         referralActivationBonusClaimed: Boolean(safeInput.referralActivationBonusClaimed),
 
+        dailyCoins,
+        weeklyCoins,
+        dailyRankingCoins,
+        weeklyRankingCoins,
+        dailyUpdatedAt,
+        weeklyUpdatedAt,
+        dailyDayKey,
+        weeklyWeekKey,
+
         animals: normalizedAnimals,
 
         boxes: {
@@ -402,7 +512,19 @@ function normalizePlayer(input) {
         boosts: normalizeObject(safeInput.boosts),
         settings: normalizeObject(safeInput.settings),
         profile: normalizeObject(safeInput.profile),
-        stats: normalizeObject(safeInput.stats),
+
+        stats: {
+            ...normalizeObject(base.stats),
+            ...statsInput,
+            dailyCoins,
+            weeklyCoins,
+            dailyRankingCoins,
+            weeklyRankingCoins,
+            dailyUpdatedAt,
+            weeklyUpdatedAt,
+            dailyDayKey,
+            weeklyWeekKey
+        },
 
         depositHistory: normalizeArray(
             safeInput.depositHistory || safeInput.depositsHistory || safeInput.paymentHistory
@@ -435,5 +557,7 @@ module.exports = {
     getDefaultPlayer,
     normalizePlayer,
     getPlayerOrCreate,
-    normalizeReferrals
+    normalizeReferrals,
+    getCurrentDayKey,
+    getCurrentWeekKey
 };
