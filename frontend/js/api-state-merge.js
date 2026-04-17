@@ -89,6 +89,36 @@ Object.assign(window.CryptoZoo.api, {
         const server = this.normalizeState(serverRaw);
         const local = this.normalizeState(localRaw);
 
+        const mergedOfflineAdsHours = Math.max(
+            Number(server.offlineAdsHours || 0),
+            Number(local.offlineAdsHours || 0)
+        );
+
+        const mergedOfflineAdsResetAt = Math.max(
+            Number(server.offlineAdsResetAt || 0),
+            Number(local.offlineAdsResetAt || 0)
+        );
+
+        const mergedOfflineAdsEnabled =
+            (Boolean(server.offlineAdsEnabled) || Boolean(local.offlineAdsEnabled)) &&
+            mergedOfflineAdsHours > 0;
+
+        const mergedOfflineBaseHours = Math.max(
+            Number(server.offlineBaseHours || 0),
+            Number(local.offlineBaseHours || 0)
+        );
+
+        const mergedOfflineBoostHours = Math.max(
+            Number(server.offlineBoostHours || 0),
+            Number(local.offlineBoostHours || 0)
+        );
+
+        const mergedOfflineMaxSeconds = Math.max(
+            Number(server.offlineMaxSeconds || 0),
+            Number(local.offlineMaxSeconds || 0),
+            (mergedOfflineBaseHours + mergedOfflineBoostHours + mergedOfflineAdsHours) * 3600
+        );
+
         return this.normalizeState({
             ...server,
             ...local,
@@ -216,26 +246,12 @@ Object.assign(window.CryptoZoo.api, {
                 )
             },
 
-            offlineBaseHours: Math.max(
-                server.offlineBaseHours || 1,
-                local.offlineBaseHours || 1
-            ),
-            offlineBoostHours: Math.max(
-                server.offlineBoostHours || 0,
-                local.offlineBoostHours || 0
-            ),
-            offlineAdsHours: Math.max(
-                0,
-                Number(server.offlineAdsHours) || 0
-            ),
-            offlineAdsResetAt: Math.max(
-                0,
-                Number(server.offlineAdsResetAt) || 0
-            ),
-            offlineMaxSeconds: Math.max(
-                server.offlineMaxSeconds || 3600,
-                local.offlineMaxSeconds || 3600
-            ),
+            offlineBaseHours: mergedOfflineBaseHours,
+            offlineBoostHours: mergedOfflineBoostHours,
+            offlineAdsHours: mergedOfflineAdsHours,
+            offlineAdsResetAt: mergedOfflineAdsResetAt,
+            offlineAdsEnabled: mergedOfflineAdsEnabled,
+            offlineMaxSeconds: mergedOfflineMaxSeconds,
             offlineBoostMultiplier: Math.max(
                 server.offlineBoostMultiplier || 1,
                 local.offlineBoostMultiplier || 1
