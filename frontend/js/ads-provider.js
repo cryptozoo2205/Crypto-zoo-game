@@ -3,7 +3,8 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.ads = {
     isLoading: false,
     adHardTimeoutMs: 90000,
-    githubTestAdDurationMs: 3500,
+    githubTestAdDurationMs: 15000,
+    minRequiredAdWatchMs: 15000,
 
     updateOfflineUi() {
         CryptoZoo.offlineAdsUI?.updateButton?.();
@@ -49,13 +50,20 @@ CryptoZoo.ads = {
         return typeof window.show_10822070 === "function";
     },
 
-    async requestOfflineRewardFromBackend() {
+    async requestOfflineRewardFromBackend(adMeta = {}) {
+        const payload = {
+            ...this.getPlayerPayload(),
+            watchedMs: Math.max(0, Number(adMeta.watchedMs) || 0),
+            adStartedAt: Math.max(0, Number(adMeta.adStartedAt) || 0),
+            adEndedAt: Math.max(0, Number(adMeta.adEndedAt) || 0)
+        };
+
         const res = await fetch(`${this.getApiBase()}/ads/reward-offline`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify(this.getPlayerPayload())
+            body: JSON.stringify(payload)
         });
 
         const data = await res.json().catch(() => ({}));
@@ -67,7 +75,13 @@ CryptoZoo.ads = {
         return data;
     },
 
-    buildLocalRewardResult() {
+    buildLocalRewardResult(adMeta = {}) {
+        const watchedMs = Math.max(0, Number(adMeta.watchedMs) || 0);
+
+        if (watchedMs < this.minRequiredAdWatchMs) {
+            throw new Error("Reklama została zamknięta przed końcem");
+        }
+
         CryptoZoo.state = CryptoZoo.state || {};
 
         const added = CryptoZoo.offlineAds?.addHours?.(
@@ -97,16 +111,16 @@ CryptoZoo.ads = {
         };
     },
 
-    async requestOfflineReward() {
+    async requestOfflineReward(adMeta = {}) {
         try {
-            return await this.requestOfflineRewardFromBackend();
+            return await this.requestOfflineRewardFromBackend(adMeta);
         } catch (error) {
             if (!this.isGithubLikeHost()) {
                 throw error;
             }
 
             console.warn("Backend reward failed on GitHub/local, using local fallback:", error);
-            return this.buildLocalRewardResult();
+            return this.buildLocalRewardResult(adMeta);
         }
     },
 
@@ -223,9 +237,11 @@ CryptoZoo.ads = {
     },
 
     async openGithubTestRewardedAd() {
+        const adStartedAt = Date.now();
+
         return new Promise((resolve, reject) => {
             const ok = window.confirm(
-                "Tryb GitHub/test:\n\nKliknij OK i odczekaj chwilę, aby zasymulować pełne obejrzenie reklamy.\nAnuluj = brak rewardu."
+                "Tryb GitHub/test:\n\nKliknij OK i odczekaj 15 sekund, aby zasymulować pełne obejrzenie reklamy.\nAnuluj = brak rewardu."
             );
 
             if (!ok) {
@@ -234,12 +250,23 @@ CryptoZoo.ads = {
             }
 
             setTimeout(() => {
-                resolve({ completed: true, rewarded: true, source: "github-test" });
+                const adEndedAt = Date.now();
+
+                resolve({
+                    completed: true,
+                    rewarded: true,
+                    source: "github-test",
+                    adStartedAt,
+                    adEndedAt,
+                    watchedMs: Math.max(0, adEndedAt - adStartedAt)
+                });
             }, this.githubTestAdDurationMs);
         });
     },
 
     async openRewardedAdStrict() {
+        const adStartedAt = Date.now();
+
         if (!this.isSdkReady()) {
             if (this.isGithubLikeHost()) {
                 return this.openGithubTestRewardedAd();
@@ -260,7 +287,7 @@ CryptoZoo.ads = {
             throw new Error("Reklama nie jest jeszcze gotowa");
         }
 
-        const result = await Promise.race([
+        const sdkResult = await Promise.race([
             adPromise,
             new Promise((_, reject) => {
                 setTimeout(() => {
@@ -269,9 +296,22 @@ CryptoZoo.ads = {
             })
         ]);
 
+        const adEndedAt = Date.now();
+        const watchedMs = Math.max(0, adEndedAt - adStartedAt);
+
+        const result = {
+            ...(sdkResult && typeof sdkResult === "object" ? sdkResult : { raw: sdkResult }),
+            adStartedAt,
+            adEndedAt,
+            watchedMs
+        };
+
         console.log("Rewarded ad SDK result:", result);
 
-        if (!this.isAdSuccessResult(result)) {
+        const sdkSuccess = this.isAdSuccessResult(result);
+        const timeSuccess = watchedMs >= this.minRequiredAdWatchMs;
+
+        if (!sdkSuccess && !timeSuccess) {
             throw new Error("Reklama została zamknięta przed końcem");
         }
 
@@ -291,9 +331,9 @@ CryptoZoo.ads = {
         this.updateOfflineUi();
 
         try {
-            await this.openRewardedAdStrict();
+            const adMeta = await this.openRewardedAdStrict();
 
-            const result = await this.requestOfflineReward();
+            const result = await this.requestOfflineReward(adMeta);
             await this.syncStateFromBackendReward(result);
 
             CryptoZoo.ui?.showToast?.(
