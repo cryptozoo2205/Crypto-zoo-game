@@ -6,8 +6,17 @@ const MAX_EXPEDITION_BOOST_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_DEPOSIT_AMOUNT = 100000;
 const MAX_GEMS_FROM_DEPOSIT = 150;
 
+const UNIQUE_AMOUNT_DECIMALS = 6;
+const UNIQUE_AMOUNT_MIN_FRACTION = 0.000001;
+const UNIQUE_AMOUNT_MAX_FRACTION = 0.009999;
+
 function clampDepositAmount(amount) {
     return Math.max(0, Math.min(MAX_DEPOSIT_AMOUNT, normalizeRewardNumber(amount, 0)));
+}
+
+function roundTonAmount(amount) {
+    const safe = Number(amount) || 0;
+    return Number(safe.toFixed(UNIQUE_AMOUNT_DECIMALS));
 }
 
 function getDepositGemsAmount(amount) {
@@ -73,6 +82,21 @@ function getExpeditionBoostActiveUntil(depositAmount, now = Date.now()) {
     return safeNow + durationMs;
 }
 
+function generateUniqueFraction() {
+    const minInt = Math.round(UNIQUE_AMOUNT_MIN_FRACTION * 1_000_000);
+    const maxInt = Math.round(UNIQUE_AMOUNT_MAX_FRACTION * 1_000_000);
+    const randomInt = Math.floor(Math.random() * (maxInt - minInt + 1)) + minInt;
+
+    return Number((randomInt / 1_000_000).toFixed(UNIQUE_AMOUNT_DECIMALS));
+}
+
+function buildExpectedAmount(baseAmount, uniqueFraction = 0) {
+    const safeBaseAmount = clampDepositAmount(baseAmount);
+    const safeFraction = Math.max(0, Number(uniqueFraction) || 0);
+
+    return roundTonAmount(safeBaseAmount + safeFraction);
+}
+
 function createDeposit({
     telegramId,
     username,
@@ -84,18 +108,23 @@ function createDeposit({
     const now = Date.now();
     const randomPart = Math.random().toString(36).slice(2, 8);
     const id = `dp_${now}_${randomPart}`;
-    const paymentComment = `CRYPTOZOO_${id}`;
-    const safeAmount = clampDepositAmount(amount);
+
+    const safeBaseAmount = clampDepositAmount(amount);
+    const uniqueFraction = generateUniqueFraction();
+    const expectedAmount = buildExpectedAmount(safeBaseAmount, uniqueFraction);
+
     const gemsAmount = Math.max(
         0,
-        Math.min(MAX_GEMS_FROM_DEPOSIT, Number(getDepositGemsAmount(safeAmount)) || 0)
+        Math.min(MAX_GEMS_FROM_DEPOSIT, Number(getDepositGemsAmount(safeBaseAmount)) || 0)
     );
+
     const expeditionBoostAmount = clampExpeditionBoost(
-        getDepositExpeditionBoostAmount(safeAmount)
+        getDepositExpeditionBoostAmount(safeBaseAmount)
     );
+
     const expeditionBoostDurationMs = Math.min(
         MAX_EXPEDITION_BOOST_DURATION_MS,
-        Math.max(0, Number(getDepositExpeditionBoostDurationMs(safeAmount)) || 0)
+        Math.max(0, Number(getDepositExpeditionBoostDurationMs(safeBaseAmount)) || 0)
     );
 
     return {
@@ -103,7 +132,11 @@ function createDeposit({
         telegramId: String(telegramId || ""),
         username: String(username || "Gracz"),
 
-        amount: safeAmount,
+        amount: expectedAmount,
+        baseAmount: safeBaseAmount,
+        expectedAmount,
+        uniqueFraction,
+
         gemsAmount,
         expeditionBoostAmount,
         expeditionBoostDurationMs,
@@ -113,7 +146,7 @@ function createDeposit({
         walletAddress: safeString(walletAddress, ""),
 
         status: "created",
-        paymentComment,
+        paymentComment: "",
         txHash: "",
 
         createdAt: now,
@@ -125,11 +158,17 @@ function createDeposit({
 }
 
 function buildDepositPaymentData(deposit) {
-    const receiverAddress = process.env.TON_WALLET_ADDRESS || TON_RECEIVER_WALLET;
+    const receiverAddress =
+        process.env.TON_DEPOSIT_WALLET ||
+        process.env.TON_WALLET_ADDRESS ||
+        TON_RECEIVER_WALLET;
 
     return {
         depositId: String(deposit?.id || ""),
-        amount: clampDepositAmount(deposit?.amount),
+        amount: roundTonAmount(deposit?.amount),
+        baseAmount: roundTonAmount(deposit?.baseAmount),
+        expectedAmount: roundTonAmount(deposit?.expectedAmount || deposit?.amount),
+        uniqueFraction: roundTonAmount(deposit?.uniqueFraction || 0),
         gemsAmount: Math.max(
             0,
             Math.min(MAX_GEMS_FROM_DEPOSIT, Number(deposit?.gemsAmount) || 0)
@@ -142,7 +181,7 @@ function buildDepositPaymentData(deposit) {
         asset: String(deposit?.asset || "TON"),
         source: String(deposit?.source || "ton"),
         receiverAddress: String(receiverAddress || ""),
-        paymentComment: String(deposit?.paymentComment || ""),
+        paymentComment: "",
         expiresAt: Math.max(0, Number(deposit?.expiresAt || 0))
     };
 }
@@ -157,6 +196,9 @@ module.exports = {
     TON_RECEIVER_WALLET,
     MAX_EXPEDITION_BOOST,
     MAX_EXPEDITION_BOOST_DURATION_MS,
+    UNIQUE_AMOUNT_DECIMALS,
+    UNIQUE_AMOUNT_MIN_FRACTION,
+    UNIQUE_AMOUNT_MAX_FRACTION,
     getDepositGemsAmount,
     getDepositExpeditionBoostAmount,
     getDepositExpeditionBoostDurationMs,
@@ -164,6 +206,8 @@ module.exports = {
     applyDepositExpeditionBoost,
     getRemainingExpeditionBoostCapacity,
     getExpeditionBoostActiveUntil,
+    generateUniqueFraction,
+    buildExpectedAmount,
     createDeposit,
     buildDepositPaymentData,
     getPlayerDeposits
