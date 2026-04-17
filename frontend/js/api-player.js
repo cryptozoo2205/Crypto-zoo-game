@@ -1,0 +1,259 @@
+window.CryptoZoo = window.CryptoZoo || {};
+window.CryptoZoo.api = window.CryptoZoo.api || {};
+
+Object.assign(window.CryptoZoo.api, {
+    unwrapPlayerResponse(data) {
+        if (!data || typeof data !== "object") {
+            return null;
+        }
+
+        if (data.player && typeof data.player === "object") {
+            return data.player;
+        }
+
+        if (
+            typeof data.coins === "number" ||
+            typeof data.level === "number" ||
+            Array.isArray(data.deposits) ||
+            Array.isArray(data.depositHistory) ||
+            typeof data.referralsCount === "number" ||
+            typeof data.referralCode === "string"
+        ) {
+            return data;
+        }
+
+        return null;
+    },
+
+    async syncPlayerFromResponse(response, fallbackState = null) {
+        const telegramUser = await this.getTelegramUser();
+
+        if (this.testResetMode) {
+            const current = this.normalizeState(
+                CryptoZoo.state ||
+                fallbackState ||
+                this.getDefaultState(telegramUser)
+            );
+
+            current.telegramUser = telegramUser;
+            current.updatedAt = Date.now();
+
+            CryptoZoo.state = current;
+            this.writeLocalState(current, telegramUser.id);
+
+            if (this.getSavePayload && this.getSaveFingerprintFromPayload) {
+                const payload = await this.getSavePayload();
+                this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
+            }
+
+            this.pendingDirty = false;
+            return response;
+        }
+
+        const playerPart = this.unwrapPlayerResponse(response);
+
+        if (playerPart && typeof playerPart === "object") {
+            CryptoZoo.state = this.mergeStates(
+                playerPart,
+                CryptoZoo.state || fallbackState || {}
+            );
+
+            CryptoZoo.state.telegramUser = telegramUser;
+            this.writeLocalState(CryptoZoo.state, telegramUser.id);
+
+            if (this.getSavePayload && this.getSaveFingerprintFromPayload) {
+                const payload = await this.getSavePayload();
+                this.lastSavedSnapshot = this.getSaveFingerprintFromPayload(payload);
+            }
+
+            this.pendingDirty = false;
+        }
+
+        return response;
+    },
+
+    async ensurePlayerPersistedOnBackend() {
+        if (this.testResetMode) {
+            const telegramUser = await this.getTelegramUser();
+
+            CryptoZoo.state = this.normalizeState(
+                CryptoZoo.state ||
+                this.readLocalState(telegramUser.id) ||
+                this.getDefaultState(telegramUser)
+            );
+
+            CryptoZoo.state.telegramUser = telegramUser;
+            CryptoZoo.state.updatedAt = Date.now();
+
+            this.writeLocalState(CryptoZoo.state, telegramUser.id);
+            return CryptoZoo.state;
+        }
+
+        if (this.ensurePlayerPromise) {
+            return this.ensurePlayerPromise;
+        }
+
+        this.ensurePlayerPromise = (async () => {
+            const telegramUser = await this.getTelegramUser();
+            const telegramId = String(telegramUser.id);
+            const localRaw = this.readLocalState(telegramId);
+
+            CryptoZoo.state = this.normalizeState(
+                CryptoZoo.state ||
+                localRaw ||
+                this.getDefaultState(telegramUser)
+            );
+
+            CryptoZoo.state.telegramUser = telegramUser;
+            CryptoZoo.state.updatedAt = Date.now();
+
+            this.writeLocalState(CryptoZoo.state, telegramId);
+
+            const payload = await this.getSavePayload();
+
+            const response = await this.request("/player/save", {
+                method: "POST",
+                body: JSON.stringify(payload),
+                timeoutMs: 5000,
+                retryCount: 1
+            });
+
+            const playerPart = this.unwrapPlayerResponse(response);
+
+            if (playerPart && typeof playerPart === "object") {
+                CryptoZoo.state = this.mergeStates(
+                    playerPart,
+                    CryptoZoo.state || payload
+                );
+            } else {
+                CryptoZoo.state = this.normalizeState(
+                    CryptoZoo.state || payload
+                );
+            }
+
+            CryptoZoo.state.telegramUser = telegramUser;
+            CryptoZoo.state.updatedAt = Date.now();
+
+            this.writeLocalState(CryptoZoo.state, telegramId);
+
+            if (this.getSavePayload && this.getSaveFingerprintFromPayload) {
+                const freshPayload = await this.getSavePayload();
+                this.lastSavedSnapshot =
+                    this.getSaveFingerprintFromPayload(freshPayload);
+            }
+
+            this.pendingDirty = false;
+
+            return CryptoZoo.state;
+        })();
+
+        try {
+            return await this.ensurePlayerPromise;
+        } finally {
+            this.ensurePlayerPromise = null;
+        }
+    },
+
+    async loadPlayer() {
+        const telegramUser = await this.getTelegramUser();
+        const telegramId = String(telegramUser.id);
+        const localRaw = this.readLocalState(telegramId);
+
+        if (this.testResetMode) {
+            if (localRaw) {
+                CryptoZoo.state = this.normalizeState(localRaw);
+            } else {
+                CryptoZoo.state = this.normalizeState(
+                    this.getDefaultState(telegramUser)
+                );
+            }
+
+            CryptoZoo.state.telegramUser = telegramUser;
+            CryptoZoo.state.updatedAt = Date.now();
+
+            this.writeLocalState(CryptoZoo.state, telegramId);
+
+            try {
+                if (this.getSavePayload && this.getSaveFingerprintFromPayload) {
+                    const payload = await this.getSavePayload();
+                    this.lastSavedSnapshot =
+                        this.getSaveFingerprintFromPayload(payload);
+                }
+
+                this.pendingDirty = false;
+            } catch (error) {
+                console.warn("Snapshot init failed:", error);
+            }
+
+            return CryptoZoo.state;
+        }
+
+        let serverRaw = null;
+
+        try {
+            console.log("LOAD PLAYER ID:", telegramId);
+            console.log("API BASE:", this.getApiBase());
+
+            serverRaw = await this.request(`/player/${telegramId}`, {
+                timeoutMs: 4000
+            });
+
+            serverRaw = this.unwrapPlayerResponse(serverRaw);
+        } catch (error) {
+            console.warn("LOAD FAIL → local fallback", error);
+        }
+
+        if (serverRaw) {
+            CryptoZoo.state = this.mergeStates(serverRaw, localRaw || {});
+            CryptoZoo.state.offlineAdsHours = Math.max(
+                0,
+                Number(serverRaw.offlineAdsHours) || 0
+            );
+            CryptoZoo.state.offlineAdsResetAt = Math.max(
+                0,
+                Number(serverRaw.offlineAdsResetAt) || 0
+            );
+            CryptoZoo.state.offlineMaxSeconds = Math.max(
+                3600,
+                Number(serverRaw.offlineMaxSeconds) || 3600
+            );
+        } else if (localRaw) {
+            CryptoZoo.state = this.normalizeState(localRaw);
+        } else {
+            CryptoZoo.state = this.getDefaultState(telegramUser);
+        }
+
+        try {
+            const referralResponse = await this.applyReferralIfNeeded();
+            const referralPlayer = this.unwrapPlayerResponse(referralResponse);
+
+            if (referralPlayer && typeof referralPlayer === "object") {
+                CryptoZoo.state = this.mergeStates(
+                    referralPlayer,
+                    CryptoZoo.state || {}
+                );
+            }
+        } catch (error) {
+            console.warn("Referral apply during loadPlayer failed:", error);
+        }
+
+        CryptoZoo.state.telegramUser = telegramUser;
+        CryptoZoo.state.updatedAt = Date.now();
+
+        this.writeLocalState(CryptoZoo.state, telegramId);
+
+        try {
+            if (this.getSavePayload && this.getSaveFingerprintFromPayload) {
+                const payload = await this.getSavePayload();
+                this.lastSavedSnapshot =
+                    this.getSaveFingerprintFromPayload(payload);
+            }
+
+            this.pendingDirty = false;
+        } catch (error) {
+            console.warn("Snapshot init failed:", error);
+        }
+
+        return CryptoZoo.state;
+    }
+});
