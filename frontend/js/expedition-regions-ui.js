@@ -62,6 +62,7 @@ CryptoZoo.expeditionRegionsUi = {
                 background-size: cover;
                 background-position: center;
                 background-repeat: no-repeat;
+                isolation: isolate;
             }
 
             .exp-region-card::before {
@@ -69,8 +70,18 @@ CryptoZoo.expeditionRegionsUi = {
                 position: absolute;
                 inset: 0;
                 background:
-                    linear-gradient(180deg, rgba(0,0,0,0.12), rgba(0,0,0,0.48)),
-                    linear-gradient(135deg, rgba(255,255,255,0.04), transparent 46%);
+                    linear-gradient(180deg, rgba(0,0,0,0.10), rgba(0,0,0,0.52)),
+                    linear-gradient(135deg, rgba(255,255,255,0.06), transparent 46%);
+                z-index: 0;
+            }
+
+            .exp-region-card::after {
+                content: "";
+                position: absolute;
+                inset: 0;
+                z-index: 1;
+                pointer-events: none;
+                opacity: 0.95;
             }
 
             .exp-region-card.exp-region-locked {
@@ -79,21 +90,98 @@ CryptoZoo.expeditionRegionsUi = {
             }
 
             .exp-region-bg-jungle {
-                background-image:
-                    linear-gradient(180deg, rgba(0,0,0,0.10), rgba(0,0,0,0.45)),
-                    url("assets/regions/jungle-bg.png");
-                background-size: cover;
-                background-position: center;
-                background-repeat: no-repeat;
+                background:
+                    radial-gradient(circle at 18% 22%, rgba(255, 223, 120, 0.18), transparent 22%),
+                    radial-gradient(circle at 84% 26%, rgba(120, 255, 170, 0.10), transparent 20%),
+                    linear-gradient(135deg, rgba(36, 82, 46, 0.96), rgba(10, 34, 18, 0.98));
+            }
+
+            .exp-region-bg-jungle::after {
+                background:
+                    linear-gradient(180deg, rgba(112, 170, 68, 0.08), transparent 34%),
+                    radial-gradient(circle at 50% 58%, rgba(245, 197, 92, 0.16), transparent 14%),
+                    radial-gradient(circle at 50% 58%, rgba(255, 238, 164, 0.10), transparent 8%),
+                    linear-gradient(90deg,
+                        transparent 0%,
+                        rgba(255, 231, 149, 0.12) 14%,
+                        rgba(255, 215, 96, 0.30) 18%,
+                        rgba(255, 241, 175, 0.16) 20%,
+                        transparent 24%,
+                        transparent 76%,
+                        rgba(255, 231, 149, 0.12) 80%,
+                        rgba(255, 215, 96, 0.30) 84%,
+                        rgba(255, 241, 175, 0.16) 86%,
+                        transparent 100%
+                    ),
+                    linear-gradient(180deg,
+                        transparent 0%,
+                        rgba(255, 231, 149, 0.10) 18%,
+                        rgba(255, 215, 96, 0.26) 22%,
+                        rgba(255, 241, 175, 0.14) 24%,
+                        transparent 28%,
+                        transparent 72%,
+                        rgba(255, 231, 149, 0.10) 76%,
+                        rgba(255, 215, 96, 0.26) 80%,
+                        rgba(255, 241, 175, 0.14) 82%,
+                        transparent 100%
+                    ),
+                    linear-gradient(135deg,
+                        rgba(255, 219, 102, 0.34) 0%,
+                        rgba(139, 92, 22, 0.18) 12%,
+                        transparent 18%
+                    ),
+                    linear-gradient(225deg,
+                        rgba(255, 219, 102, 0.34) 0%,
+                        rgba(139, 92, 22, 0.18) 12%,
+                        transparent 18%
+                    ),
+                    linear-gradient(315deg,
+                        rgba(255, 219, 102, 0.34) 0%,
+                        rgba(139, 92, 22, 0.18) 12%,
+                        transparent 18%
+                    ),
+                    linear-gradient(45deg,
+                        rgba(255, 219, 102, 0.34) 0%,
+                        rgba(139, 92, 22, 0.18) 12%,
+                        transparent 18%
+                    ),
+                    repeating-linear-gradient(
+                        115deg,
+                        rgba(22, 62, 31, 0.00) 0px,
+                        rgba(22, 62, 31, 0.00) 18px,
+                        rgba(70, 118, 54, 0.18) 18px,
+                        rgba(70, 118, 54, 0.18) 30px
+                    ),
+                    repeating-linear-gradient(
+                        65deg,
+                        rgba(14, 42, 22, 0.00) 0px,
+                        rgba(14, 42, 22, 0.00) 22px,
+                        rgba(86, 142, 62, 0.12) 22px,
+                        rgba(86, 142, 62, 0.12) 36px
+                    );
+                box-shadow:
+                    inset 0 0 0 1px rgba(255, 218, 110, 0.20),
+                    inset 0 0 20px rgba(255, 214, 98, 0.08);
             }
 
             .exp-region-bg-desert {
-                background-image:
-                    linear-gradient(180deg, rgba(0,0,0,0.10), rgba(0,0,0,0.45)),
-                    url("assets/regions/desert-bg.png");
-                background-size: cover;
-                background-position: center;
-                background-repeat: no-repeat;
+                background:
+                    radial-gradient(circle at 18% 22%, rgba(255, 214, 120, 0.12), transparent 22%),
+                    radial-gradient(circle at 84% 26%, rgba(255, 241, 184, 0.05), transparent 20%),
+                    linear-gradient(135deg, rgba(88, 54, 17, 0.96), rgba(23, 14, 8, 0.98));
+            }
+
+            .exp-region-bg-desert::after {
+                background:
+                    linear-gradient(180deg, rgba(255, 210, 120, 0.04), transparent 30%),
+                    repeating-linear-gradient(
+                        -18deg,
+                        rgba(123, 77, 24, 0.00) 0px,
+                        rgba(123, 77, 24, 0.00) 16px,
+                        rgba(178, 120, 46, 0.12) 16px,
+                        rgba(178, 120, 46, 0.12) 28px
+                    ),
+                    linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.16) 100%);
             }
 
             .exp-region-content {
