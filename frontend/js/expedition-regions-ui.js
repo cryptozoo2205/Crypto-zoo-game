@@ -63,6 +63,9 @@ CryptoZoo.expeditionRegionsUi = {
                 border: 1px solid rgba(255,255,255,0.12);
                 box-shadow: 0 14px 32px rgba(0,0,0,0.24);
                 cursor: pointer;
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
             }
 
             .exp-region-card::before {
@@ -70,7 +73,7 @@ CryptoZoo.expeditionRegionsUi = {
                 position: absolute;
                 inset: 0;
                 background:
-                    linear-gradient(180deg, rgba(0,0,0,0.08), rgba(0,0,0,0.52)),
+                    linear-gradient(180deg, rgba(0,0,0,0.10), rgba(0,0,0,0.45)),
                     linear-gradient(135deg, rgba(255,255,255,0.06), transparent 46%);
             }
 
@@ -80,23 +83,15 @@ CryptoZoo.expeditionRegionsUi = {
             }
 
             .exp-region-bg-jungle {
-                background:
-                    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.14), transparent 28%),
-                    radial-gradient(circle at 78% 25%, rgba(255,255,255,0.08), transparent 24%),
-                    linear-gradient(135deg, rgba(61, 121, 72, 0.88), rgba(14, 55, 28, 0.94)),
-                    url("assets/regions/jungle-bg.png");
-                background-size: cover;
-                background-position: center;
+                background-image:
+                    linear-gradient(180deg, rgba(0,0,0,0.10), rgba(0,0,0,0.45)),
+                    url("./assets/regions/jungle-bg.png");
             }
 
             .exp-region-bg-desert {
-                background:
-                    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.10), transparent 28%),
-                    radial-gradient(circle at 80% 30%, rgba(255,255,255,0.06), transparent 24%),
-                    linear-gradient(135deg, rgba(160, 108, 39, 0.90), rgba(80, 48, 12, 0.95)),
-                    url("assets/regions/desert-bg.png");
-                background-size: cover;
-                background-position: center;
+                background-image:
+                    linear-gradient(180deg, rgba(0,0,0,0.10), rgba(0,0,0,0.45)),
+                    url("./assets/regions/desert-bg.png");
             }
 
             .exp-region-content {
