@@ -3,7 +3,15 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.uiRanking = {
     renderRankingRows(rows) {
         const rankingList = document.getElementById("rankingList");
-        if (!rankingList) return;
+        const screen = document.getElementById("screen-ranking");
+
+        if (!rankingList || !screen) return;
+
+        screen.style.backgroundImage = "url('assets/backgrounds/jungle-bg.jpg')";
+        screen.style.backgroundSize = "cover";
+        screen.style.backgroundPosition = "center";
+        screen.style.backgroundRepeat = "no-repeat";
+        screen.style.minHeight = "100%";
 
         const safeRanking = Array.isArray(rows) ? rows : [];
 
@@ -18,6 +26,7 @@ CryptoZoo.uiRanking = {
             const coins = CryptoZoo.formatNumber(row.coins || 0);
             const level = CryptoZoo.formatNumber(row.level || 1);
             const currentClass = row.isCurrentPlayer ? " ranking-me" : "";
+
             const badge =
                 rank === 1 ? "🥇" :
                 rank === 2 ? "🥈" :
@@ -29,10 +38,14 @@ CryptoZoo.uiRanking = {
                     <div class="ranking-left">
                         <div class="ranking-badge">${badge}</div>
                         <div class="ranking-meta">
-                            <div class="ranking-name">${username}${row.isCurrentPlayer ? ' <span class="me-badge">TY</span>' : ""}</div>
+                            <div class="ranking-name">
+                                ${username}
+                                ${row.isCurrentPlayer ? '<span class="me-badge">TY</span>' : ""}
+                            </div>
                             <div class="ranking-sub">Lvl ${level}</div>
                         </div>
                     </div>
+
                     <div class="ranking-score">${coins}</div>
                 </li>
             `;
@@ -42,9 +55,11 @@ CryptoZoo.uiRanking = {
     async renderRanking(forceRefresh = false) {
         const ui = CryptoZoo.ui || {};
         const rankingList = document.getElementById("rankingList");
+
         if (!rankingList) return;
 
         const now = Date.now();
+
         const cacheFresh =
             ui.rankingCache &&
             (now - (ui.rankingLastFetchAt || 0)) < (ui.rankingCacheTtl || 15000);
