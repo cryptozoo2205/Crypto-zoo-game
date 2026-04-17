@@ -421,660 +421,182 @@ CryptoZoo.expeditions = {
 
         charges.forEach((charge, index) => {
             const safeCharge = Math.max(0, Number(charge) || 0);
-            const applied = Math.min(safeCharge, maxAllowedReduction);
+            const applied = Math.min(safeCharge, maxAllowed
+async collectLocalFallback(skipInProgressCheck = false) {
+    CryptoZoo.state = CryptoZoo.state || {};
 
-            if (applied > bestApplied) {
-                bestApplied = applied;
-                bestIndex = index;
-            }
-        });
+    if (!skipInProgressCheck && this.collectInProgress) {
+        return false;
+    }
 
-        if (bestIndex < 0 || bestApplied <= 0) {
-            return 0;
-        }
+    const expedition = this.getActiveExpedition();
 
-        CryptoZoo.state.expeditionStats.timeBoostCharges.splice(bestIndex, 1);
-        return bestApplied;
-    },
+    if (!expedition) {
+        CryptoZoo.ui?.showToast?.("Brak aktywnej ekspedycji");
+        return false;
+    }
 
-    getUnlockRequirement(expedition) {
-        const configExpedition = this.getById(expedition?.id);
-        return Math.max(
-            1,
-            Math.floor(Number(configExpedition?.unlockLevel) || Number(expedition?.unlockLevel) || 1)
-        );
-    },
+    if (expedition.claimed || Number(expedition.collectedAt) > 0) {
+        CryptoZoo.ui?.showToast?.("Nagroda z tej ekspedycji została już odebrana");
+        return false;
+    }
 
-    getStartCostCoins(expedition) {
-        const configExpedition = this.getById(expedition?.id);
-        return Math.max(
+    if (!this.canCollect()) {
+        CryptoZoo.ui?.showToast?.("Ekspedycja jeszcze trwa");
+        return false;
+    }
+
+    this.collectInProgress = true;
+
+    try {
+        const coins = Math.max(0, Number(expedition.rewardCoins) || 0);
+        const gems = Math.max(0, Number(expedition.rewardGems) || 0);
+
+        const rewardBalance = Math.max(
             0,
-            Math.floor(Number(configExpedition?.startCostCoins) || Number(expedition?.startCostCoins) || 0)
-        );
-    },
-
-    getBaseCoinsReward(expedition) {
-        const configExpedition = this.getById(expedition?.id);
-        return Math.max(
-            0,
-            Math.floor(Number(configExpedition?.baseCoins) || Number(expedition?.baseCoins) || 0)
-        );
-    },
-
-    getCurrentCoins() {
-        return Math.max(0, Math.floor(Number(CryptoZoo.state?.coins) || 0));
-    },
-
-    canAffordStart(expedition) {
-        const cost = this.getStartCostCoins(expedition);
-        const coins = this.getCurrentCoins();
-        return coins >= cost;
-    },
-
-    isUnlocked(expedition) {
-        const requiredLevel = this.getUnlockRequirement(expedition);
-        const playerLevel = Math.max(1, Number(CryptoZoo.state?.level) || 1);
-        return playerLevel >= requiredLevel;
-    },
-
-    hasActiveExpedition() {
-        return !!this.ensureActiveExpeditionShape();
-    },
-
-    getActiveExpedition() {
-        return this.ensureActiveExpeditionShape();
-    },
-
-    isDepositExpeditionBoostActive() {
-        this.ensureExpeditionStats();
-        return (Number(CryptoZoo.state?.expeditionBoostActiveUntil) || 0) > Date.now();
-    },
-
-    getExpeditionBoostMultiplier() {
-        this.ensureExpeditionStats();
-
-        if (!this.isDepositExpeditionBoostActive()) {
-            return 1;
-        }
-
-        const boostLevel = Math.max(0, Number(CryptoZoo.state?.expeditionBoost) || 0);
-        return 1 + Math.min(0.15, boostLevel * 0.15);
-    },
-
-    getTotalExpeditionRewardMultiplier() {
-        const baseMultiplier = this.getExpeditionBoostMultiplier();
-        const dailyMultiplier = Math.max(
-            1,
-            Number(CryptoZoo.shopSystem?.getDailyBoostMultiplier?.() || 1)
+            Number(this.finalizeRewardBalanceAmount(expedition)) || 0
         );
 
-        return baseMultiplier * dailyMultiplier;
-    },
+        CryptoZoo.state.coins =
+            Math.max(0, Number(CryptoZoo.state.coins) || 0) + coins;
 
-    getEffectiveDurationSeconds(expedition) {
-        const configExpedition = this.getById(expedition?.id);
+        CryptoZoo.state.gems =
+            Math.max(0, Number(CryptoZoo.state.gems) || 0) + gems;
 
-        return Math.max(
-            60,
-            Number(configExpedition?.baseDuration) ||
-            Number(configExpedition?.duration) ||
-            Number(expedition?.baseDuration) ||
-            Number(expedition?.duration) ||
-            60
-        );
-    },
-
-    getEffectiveRareChance(expedition) {
-        const configExpedition = this.getById(expedition?.id);
-        const baseRareChance = Math.max(
-            0,
-            Number(configExpedition?.rareChance) || Number(expedition?.rareChance) || 0
-        );
-        const bonus = this.getRareChanceBonus();
-        return Math.min(0.32, baseRareChance + bonus);
-    },
-
-    getEffectiveEpicChance(expedition) {
-        const configExpedition = this.getById(expedition?.id);
-        const baseEpicChance = Math.max(
-            0,
-            Number(configExpedition?.epicChance) || Number(expedition?.epicChance) || 0
-        );
-        const bonus = this.getEpicChanceBonus();
-        return Math.min(0.10, baseEpicChance + bonus);
-    },
-
-    getEffectiveGemChance(expedition, rewardRarity = "common") {
-        const configExpedition = this.getById(expedition?.id);
-        const baseGemChance = Math.max(
-            0,
-            Number(configExpedition?.gemChance) || Number(expedition?.gemChance) || 0
-        );
-
-        let chance = baseGemChance;
-        if (rewardRarity === "rare") chance += 0.008;
-        if (rewardRarity === "epic") chance += 0.018;
-
-        return Math.min(0.06, chance);
-    },
-
-    rollRewardRarity(expedition) {
-        const epicChance = this.getEffectiveEpicChance(expedition);
-        const rareChance = this.getEffectiveRareChance(expedition);
-        const roll = Math.random();
-
-        if (roll < epicChance) return "epic";
-        if (roll < epicChance + rareChance) return "rare";
-        return "common";
-    },
-
-    rollRewardGems(expedition, rewardRarity = "common") {
-        const chance = this.getEffectiveGemChance(expedition, rewardRarity);
-        if (Math.random() >= chance) {
-            return 0;
-        }
-
-        if (rewardRarity === "epic") return 2;
-        return 1;
-    },
-
-    getRewardTierMultiplier(expedition) {
-        const expeditionId = String(expedition?.id || "").toLowerCase();
-
-        const tierMap = {
-            jungle_scout: 1.00,
-            jungle_river: 1.03,
-            jungle_ruins: 1.06,
-            jungle_canopy: 1.10,
-            jungle_depths: 1.14,
-            jungle_temple: 1.18,
-            jungle_king: 1.22,
-            desert_outpost: 1.26,
-            desert_dunes: 1.30
-        };
-
-        return Number(tierMap[expeditionId]) || 1.00;
-    },
-
-    calculateRewardBalancePreview(expedition) {
-        if (!expedition) return 0;
-
-        const durationSeconds = this.getEffectiveDurationSeconds(expedition);
-        const hours = durationSeconds / 3600;
-        const tierMultiplier = this.getRewardTierMultiplier(expedition);
-
-        const rarity = this.normalizeRewardRarity(expedition.rewardRarity);
-        let rarityMultiplier = 1;
-
-        if (rarity === "rare") rarityMultiplier = 1.10;
-        if (rarity === "epic") rarityMultiplier = 1.22;
-
-        const boostMultiplier = this.getTotalExpeditionRewardMultiplier();
-
-        let reward = hours * this.BASE_REWARD_PER_HOUR * tierMultiplier * rarityMultiplier * boostMultiplier;
-
-        if (reward > 0 && reward < this.MIN_REWARD_PREVIEW) {
-            reward = this.MIN_REWARD_PREVIEW;
-        }
-
-        reward = Math.min(reward, this.MAX_REWARD_PER_EXPEDITION);
-
-        return Number(reward.toFixed(3));
-    },
-
-    getRewardBalanceAmount(expedition) {
-        return this.calculateRewardBalancePreview(expedition);
-    },
-
-    finalizeRewardBalanceAmount(expedition) {
-        let reward = this.calculateRewardBalancePreview(expedition);
-        reward = this.applyRewardDiminishing(reward);
-        reward = Math.min(reward, this.MAX_REWARD_PER_EXPEDITION);
-        reward = this.applyRewardCap(reward);
-
-        return Number(reward.toFixed(3));
-    },
-
-    getLocalRewardCoins(expeditionConfig, rewardRarity) {
-        const baseCoins = this.getBaseCoinsReward(expeditionConfig);
-        const totalMultiplier = this.getTotalExpeditionRewardMultiplier();
-
-        let rarityMultiplier = 1;
-        if (rewardRarity === "rare") rarityMultiplier = 1.15;
-        if (rewardRarity === "epic") rarityMultiplier = 1.3;
-
-        return Math.max(
-            0,
-            Math.floor(baseCoins * totalMultiplier * rarityMultiplier)
-        );
-    },
-
-    buildLocalExpedition(expeditionConfig, selectedAnimals = []) {
-        const now = Date.now();
-        const normalizedSelectedAnimals = this.normalizeSelectedAnimals(selectedAnimals);
-        const rewardRarity = this.rollRewardRarity(expeditionConfig);
-        const baseDuration = this.getEffectiveDurationSeconds(expeditionConfig);
-        const bestChargeReduction = this.peekBestTimeBoostCharge(baseDuration);
-        const legacyReduction = this.getLegacyTimeReductionSeconds();
-        const totalReduction = Math.min(
-            Math.max(0, baseDuration - 60),
-            Math.max(0, bestChargeReduction) + Math.max(0, legacyReduction)
-        );
-
-        const duration = Math.max(60, baseDuration - totalReduction);
-        const rewardCoins = this.getLocalRewardCoins(expeditionConfig, rewardRarity);
-        const rewardGems = this.rollRewardGems(expeditionConfig, rewardRarity);
-        const rewardBalance = this.getRewardBalanceAmount({
-            ...expeditionConfig,
-            rewardRarity,
-            duration,
-            baseDuration
-        });
-
-        return {
-            id: String(expeditionConfig.id),
-            regionId: String(this.getRegionId(expeditionConfig)),
-            name: this.getExpeditionDisplayName(expeditionConfig),
-            startTime: now,
-            endTime: now + duration * 1000,
-            baseDuration,
-            duration,
-            timeReductionUsed: totalReduction,
-            rewardRarity,
-            rewardCoins,
-            rewardGems,
-            selectedAnimals: normalizedSelectedAnimals,
-            startCostCoins: this.getStartCostCoins(expeditionConfig),
-            rewardBalance,
-            claimed: false,
-            collectedAt: 0
-        };
-    },
-
-    async startLocalFallback(expeditionId, selectedAnimals = []) {
-        CryptoZoo.state = CryptoZoo.state || {};
-        this.ensureExpeditionStats();
-
-        if (this.hasActiveExpedition()) {
-            CryptoZoo.ui?.showToast?.("Masz już aktywną ekspedycję");
-            return false;
-        }
-
-        const expeditionConfig = this.getById(expeditionId);
-        if (!expeditionConfig) {
-            CryptoZoo.ui?.showToast?.("Nie znaleziono ekspedycji");
-            return false;
-        }
-
-        if (!this.isUnlocked(expeditionConfig)) {
-            const requiredLevel = this.getUnlockRequirement(expeditionConfig);
-            CryptoZoo.ui?.showToast?.(`Wymagany poziom: ${CryptoZoo.formatNumber(requiredLevel)}`);
-            return false;
-        }
-
-        const startCostCoins = this.getStartCostCoins(expeditionConfig);
-
-        if (!this.canAffordStart(expeditionConfig)) {
-            CryptoZoo.ui?.showToast?.(
-                `Potrzebujesz ${CryptoZoo.formatNumber(startCostCoins)} coins`
+        if (rewardBalance > 0) {
+            CryptoZoo.state.rewardBalance = Number(
+                (
+                    (Number(CryptoZoo.state.rewardBalance) || 0) +
+                    rewardBalance
+                ).toFixed(3)
             );
-            return false;
         }
 
-        CryptoZoo.state.coins = Math.max(
-            0,
-            this.getCurrentCoins() - startCostCoins
-        );
+        expedition.claimed = true;
+        expedition.collectedAt = Date.now();
 
-        const expedition = this.buildLocalExpedition(expeditionConfig, selectedAnimals);
-        CryptoZoo.state.expedition = expedition;
+        CryptoZoo.state.expedition = null;
 
-        const legacyReduction = this.getLegacyTimeReductionSeconds();
-        if (legacyReduction > 0) {
-            CryptoZoo.state.expeditionStats.timeReductionSeconds = 0;
-        }
-
-        const bestChargeReduction = this.peekBestTimeBoostCharge(expedition.baseDuration || expedition.duration || 60);
-        if (bestChargeReduction > 0) {
-            this.consumeBestTimeBoostCharge(expedition.baseDuration || expedition.duration || 60);
-        }
-
-        CryptoZoo.dailyMissions?.recordStartExpedition?.(1);
-        CryptoZoo.audio?.play?.("click");
+        CryptoZoo.audio?.play?.("win");
         CryptoZoo.gameplay?.recalculateProgress?.();
         CryptoZoo.api?.savePlayer?.();
         CryptoZoo.ui?.render?.();
 
-        this.showFallbackEnabledToastOnce();
-        this.showFallbackStartToast(expeditionConfig, startCostCoins);
-
-        return true;
-    },
-
-    async useTimeBoostOnActiveExpeditionLocalFallback() {
-        CryptoZoo.state = CryptoZoo.state || {};
-        this.ensureExpeditionStats();
-
-        const expedition = this.getActiveExpedition();
-        if (!expedition) {
-            CryptoZoo.ui?.showToast?.("Brak aktywnej ekspedycji");
-            return false;
-        }
-
-        if (expedition.claimed) {
-            CryptoZoo.ui?.showToast?.("Nagroda z tej ekspedycji została już odebrana");
-            return false;
-        }
-
-        const remainingSeconds = Math.max(
-            0,
-            Math.floor((Number(expedition.endTime) - Date.now()) / 1000)
-        );
-
-        if (remainingSeconds <= 0) {
-            CryptoZoo.ui?.showToast?.("Ekspedycja jest już gotowa");
-            return false;
-        }
-
-        const reductionSeconds = this.consumeBestTimeBoostCharge(
-            expedition.baseDuration || expedition.duration || 60
-        );
-
-        if (reductionSeconds <= 0) {
-            CryptoZoo.ui?.showToast?.("Brak dostępnego boosta czasu");
-            return false;
-        }
-
-        const minEndTime = Math.max(
-            Number(expedition.startTime) || Date.now(),
-            Date.now() + 1000
-        );
-
-        expedition.timeReductionUsed = Math.max(
-            0,
-            Number(expedition.timeReductionUsed) || 0
-        ) + reductionSeconds;
-
-        expedition.duration = Math.max(
-            60,
-            Number(expedition.duration) - reductionSeconds
-        );
-
-        expedition.endTime = Math.max(
-            minEndTime,
-            Number(expedition.endTime) - reductionSeconds * 1000
-        );
-
-        CryptoZoo.audio?.play?.("click");
-        CryptoZoo.api?.savePlayer?.();
-        CryptoZoo.ui?.render?.();
+        const rewardText = [
+            `+${CryptoZoo.formatNumber(coins)} coins`,
+            gems > 0 ? `+${CryptoZoo.formatNumber(gems)} gem` : "",
+            rewardBalance > 0
+                ? `+${rewardBalance.toFixed(3)} reward`
+                : ""
+        ].filter(Boolean).join(" • ");
 
         this.showFallbackEnabledToastOnce();
+
         CryptoZoo.ui?.showToast?.(
-            `⏩ Skrócono o ${CryptoZoo.ui?.formatDurationLabel?.(reductionSeconds) || `${reductionSeconds}s`}`
+            `🎁 Expedition complete • ${rewardText}`
         );
 
         return true;
-    },
 
-    canCollect() {
-        const expedition = this.getActiveExpedition();
-        if (!expedition) return false;
-        if (expedition.claimed) return false;
+    } finally {
+        setTimeout(() => {
+            this.collectInProgress = false;
+        }, 250);
+    }
+},
 
-        return Date.now() >= Math.max(0, Number(expedition.endTime) || 0);
-    },
+async collect() {
+    CryptoZoo.state = CryptoZoo.state || {};
 
-    async start(expeditionId, selectedAnimals = []) {
-        CryptoZoo.state = CryptoZoo.state || {};
-        this.ensureExpeditionStats();
+    if (this.collectInProgress) {
+        return false;
+    }
 
-        if (this.hasActiveExpedition()) {
-            CryptoZoo.ui?.showToast?.("Masz już aktywną ekspedycję");
-            return false;
-        }
+    const expedition = this.getActiveExpedition();
 
-        const expeditionConfig = this.getById(expeditionId);
-        if (!expeditionConfig) {
-            CryptoZoo.ui?.showToast?.("Nie znaleziono ekspedycji");
-            return false;
-        }
+    if (!expedition) {
+        CryptoZoo.ui?.showToast?.("Brak aktywnej ekspedycji");
+        return false;
+    }
 
-        if (!this.isUnlocked(expeditionConfig)) {
-            const requiredLevel = this.getUnlockRequirement(expeditionConfig);
-            CryptoZoo.ui?.showToast?.(`Wymagany poziom: ${CryptoZoo.formatNumber(requiredLevel)}`);
-            return false;
-        }
+    if (expedition.claimed || Number(expedition.collectedAt) > 0) {
+        CryptoZoo.ui?.showToast?.("Nagroda z tej ekspedycji została już odebrana");
+        return false;
+    }
 
-        const startCostCoins = this.getStartCostCoins(expeditionConfig);
+    if (!this.canCollect()) {
+        CryptoZoo.ui?.showToast?.("Ekspedycja jeszcze trwa");
+        return false;
+    }
 
-        if (!this.canAffordStart(expeditionConfig)) {
-            CryptoZoo.ui?.showToast?.(
-                `Potrzebujesz ${CryptoZoo.formatNumber(startCostCoins)} coins`
-            );
-            return false;
-        }
+    this.collectInProgress = true;
 
-        try {
-            const response = await CryptoZoo.api.expeditionStart(
-                expeditionId,
-                this.normalizeSelectedAnimals(selectedAnimals)
-            );
+    try {
+        const response = await CryptoZoo.api.expeditionCollect();
+        const rewards = response?.rewards || {};
 
-            if (response?.player) {
-                CryptoZoo.dailyMissions?.recordStartExpedition?.(1);
-                CryptoZoo.audio?.play?.("click");
-                CryptoZoo.gameplay?.recalculateProgress?.();
-                CryptoZoo.ui?.render?.();
-                CryptoZoo.ui?.showToast?.(
-                    `🌍 Start: ${this.getExpeditionDisplayName(expeditionConfig)} • -${CryptoZoo.formatNumber(startCostCoins)} coins`
-                );
-                return true;
-            }
+        const coins = Math.max(0, Number(rewards.coins) || 0);
+        const gems = Math.max(0, Number(rewards.gems) || 0);
 
-            return false;
-        } catch (error) {
-            if (this.isBackendOfflineError(error) && this.canUseLocalFallback()) {
-                return this.startLocalFallback(expeditionId, selectedAnimals);
-            }
-
-            this.showExpeditionError(error, "Błąd startu ekspedycji");
-            return false;
-        }
-    },
-
-    async useTimeBoostOnActiveExpedition() {
-        CryptoZoo.state = CryptoZoo.state || {};
-        this.ensureExpeditionStats();
-
-        const expedition = this.getActiveExpedition();
-        if (!expedition) {
-            CryptoZoo.ui?.showToast?.("Brak aktywnej ekspedycji");
-            return false;
-        }
-
-        if (expedition.claimed) {
-            CryptoZoo.ui?.showToast?.("Nagroda z tej ekspedycji została już odebrana");
-            return false;
-        }
-
-        const remainingSeconds = Math.max(
+        let rewardBalance = Math.max(
             0,
-            Math.floor((Number(expedition.endTime) - Date.now()) / 1000)
+            Number(rewards.rewardBalance) || 0
         );
 
-        if (remainingSeconds <= 0) {
-            CryptoZoo.ui?.showToast?.("Ekspedycja jest już gotowa");
-            return false;
-        }
-
-        const reductionSeconds = this.peekBestTimeBoostCharge(expedition.baseDuration || expedition.duration || 60);
-
-        if (reductionSeconds <= 0) {
-            CryptoZoo.ui?.showToast?.("Brak dostępnego boosta czasu");
-            return false;
-        }
-
-        try {
-            const response = await CryptoZoo.api.expeditionUseTimeReduction(reductionSeconds);
-            const usedReductionSeconds = Math.max(
-                0,
-                Number(response?.reductionSeconds) || reductionSeconds
-            );
-
-            CryptoZoo.audio?.play?.("click");
-            CryptoZoo.ui?.render?.();
-            CryptoZoo.ui?.showToast?.(
-                `⏩ Skrócono o ${CryptoZoo.ui?.formatDurationLabel?.(usedReductionSeconds) || `${usedReductionSeconds}s`}`
-            );
-
-            return true;
-        } catch (error) {
-            if (this.isBackendOfflineError(error) && this.canUseLocalFallback()) {
-                return this.useTimeBoostOnActiveExpeditionLocalFallback();
-            }
-
-            this.showExpeditionError(error, "Błąd skrócenia ekspedycji");
-            return false;
-        }
-    },
-
-    async collectLocalFallback() {
-        CryptoZoo.state = CryptoZoo.state || {};
-
-        if (this.collectInProgress) {
-            return false;
-        }
-
-        const expedition = this.getActiveExpedition();
-        if (!expedition) {
-            CryptoZoo.ui?.showToast?.("Brak aktywnej ekspedycji");
-            return false;
-        }
-
-        if (expedition.claimed || Number(expedition.collectedAt) > 0) {
-            CryptoZoo.ui?.showToast?.("Nagroda z tej ekspedycji została już odebrana");
-            return false;
-        }
-
-        if (!this.canCollect()) {
-            CryptoZoo.ui?.showToast?.("Ekspedycja jeszcze trwa");
-            return false;
-        }
-
-        this.collectInProgress = true;
-
-        try {
-            const coins = Math.max(0, Number(expedition.rewardCoins) || 0);
-            const gems = Math.max(0, Number(expedition.rewardGems) || 0);
-            const rewardBalance = Math.max(
-                0,
-                Number(this.finalizeRewardBalanceAmount(expedition)) || 0
-            );
-
-            CryptoZoo.state.coins = Math.max(0, Number(CryptoZoo.state.coins) || 0) + coins;
-            CryptoZoo.state.gems = Math.max(0, Number(CryptoZoo.state.gems) || 0) + gems;
+        if (rewardBalance <= 0) {
+            rewardBalance =
+                this.finalizeRewardBalanceAmount(expedition);
 
             if (rewardBalance > 0) {
                 CryptoZoo.state.rewardBalance = Number(
-                    ((Number(CryptoZoo.state.rewardBalance) || 0) + rewardBalance).toFixed(3)
+                    (
+                        (Number(CryptoZoo.state.rewardBalance) || 0) +
+                        rewardBalance
+                    ).toFixed(3)
                 );
+
+                CryptoZoo.api?.savePlayer?.();
             }
-
-            expedition.claimed = true;
-            expedition.collectedAt = Date.now();
-
-            CryptoZoo.state.expedition = null;
-
-            CryptoZoo.audio?.play?.("win");
-            CryptoZoo.gameplay?.recalculateProgress?.();
-            CryptoZoo.api?.savePlayer?.();
-            CryptoZoo.ui?.render?.();
-
-            const rewardText = [
-                `+${CryptoZoo.formatNumber(coins)} coins`,
-                gems > 0 ? `+${CryptoZoo.formatNumber(gems)} gem` : "",
-                rewardBalance > 0 ? `+${rewardBalance.toFixed(3)} reward` : ""
-            ].filter(Boolean).join(" • ");
-
-            this.showFallbackEnabledToastOnce();
-            CryptoZoo.ui?.showToast?.(`🎁 Expedition complete • ${rewardText}`);
-            return true;
-        } finally {
-            setTimeout(() => {
-                this.collectInProgress = false;
-            }, 250);
-        }
-    },
-
-    async collect() {
-        CryptoZoo.state = CryptoZoo.state || {};
-
-        if (this.collectInProgress) {
-            return false;
         }
 
-        const expedition = this.getActiveExpedition();
-        if (!expedition) {
-            CryptoZoo.ui?.showToast?.("Brak aktywnej ekspedycji");
-            return false;
+        CryptoZoo.audio?.play?.("win");
+        CryptoZoo.gameplay?.recalculateProgress?.();
+        CryptoZoo.ui?.render?.();
+
+        const rewardText = [
+            `+${CryptoZoo.formatNumber(coins)} coins`,
+            gems > 0 ? `+${CryptoZoo.formatNumber(gems)} gem` : "",
+            rewardBalance > 0
+                ? `+${rewardBalance.toFixed(3)} reward`
+                : ""
+        ].filter(Boolean).join(" • ");
+
+        CryptoZoo.ui?.showToast?.(
+            `🎁 Expedition complete • ${rewardText}`
+        );
+
+        return true;
+
+    } catch (error) {
+
+        if (
+            this.isBackendOfflineError(error) &&
+            this.canUseLocalFallback()
+        ) {
+            this.collectInProgress = false;
+            return this.collectLocalFallback(true);
         }
 
-        if (expedition.claimed || Number(expedition.collectedAt) > 0) {
-            CryptoZoo.ui?.showToast?.("Nagroda z tej ekspedycji została już odebrana");
-            return false;
-        }
+        this.showExpeditionError(
+            error,
+            "Błąd odbioru nagrody"
+        );
 
-        if (!this.canCollect()) {
-            CryptoZoo.ui?.showToast?.("Ekspedycja jeszcze trwa");
-            return false;
-        }
+        return false;
 
-        this.collectInProgress = true;
-
-        try {
-            const response = await CryptoZoo.api.expeditionCollect();
-            const rewards = response?.rewards || {};
-
-            const coins = Math.max(0, Number(rewards.coins) || 0);
-            const gems = Math.max(0, Number(rewards.gems) || 0);
-
-            let rewardBalance = Math.max(0, Number(rewards.rewardBalance) || 0);
-
-            if (rewardBalance <= 0) {
-                rewardBalance = this.finalizeRewardBalanceAmount(expedition);
-
-                if (rewardBalance > 0) {
-                    CryptoZoo.state.rewardBalance = Number(
-                        ((Number(CryptoZoo.state.rewardBalance) || 0) + rewardBalance).toFixed(3)
-                    );
-                    CryptoZoo.api?.savePlayer?.();
-                }
-            }
-
-            CryptoZoo.audio?.play?.("win");
-            CryptoZoo.gameplay?.recalculateProgress?.();
-            CryptoZoo.ui?.render?.();
-
-            const rewardText = [
-                `+${CryptoZoo.formatNumber(coins)} coins`,
-                gems > 0 ? `+${CryptoZoo.formatNumber(gems)} gem` : "",
-                rewardBalance > 0 ? `+${rewardBalance.toFixed(3)} reward` : ""
-            ].filter(Boolean).join(" • ");
-
-            CryptoZoo.ui?.showToast?.(`🎁 Expedition complete • ${rewardText}`);
-            return true;
-        } catch (error) {
-            if (this.isBackendOfflineError(error) && this.canUseLocalFallback()) {
-                return this.collectLocalFallback();
-            }
-
-            this.showExpeditionError(error, "Błąd odbioru nagrody");
-            return false;
-        } finally {
-            setTimeout(() => {
-                this.collectInProgress = false;
-            }, 250);
-        }
+    } finally {
+        setTimeout(() => {
+            this.collectInProgress = false;
+        }, 250);
     }
-};
+}
