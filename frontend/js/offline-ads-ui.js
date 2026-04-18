@@ -3,17 +3,26 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.offlineAdsUI = {
     maxSlots: 6,
 
+    getHoursPerSlot() {
+        return Math.max(0.01, Number(CryptoZoo.offlineAds?.HOURS_PER_AD) || 0.5);
+    },
+
     getSlotsUsed() {
-        const used = Number(CryptoZoo.state?.offlineAdsUsed || 0);
-        return Math.max(0, Math.min(this.maxSlots, used));
+        const currentHours = Math.max(
+            0,
+            Number(CryptoZoo.offlineAds?.getCurrentHours?.() || 0)
+        );
+
+        const slots = Math.floor(currentHours / this.getHoursPerSlot());
+        return Math.max(0, Math.min(this.maxSlots, slots));
     },
 
     getSlotsLeft() {
-        return this.maxSlots - this.getSlotsUsed();
+        return Math.max(0, this.maxSlots - this.getSlotsUsed());
     },
 
     getNextResetSeconds() {
-        const ts = Number(CryptoZoo.state?.offlineAdsResetAt || 0);
+        const ts = Number(CryptoZoo.offlineAds?.getNextResetAt?.() || 0);
         if (!ts) return 0;
 
         const left = Math.floor((ts - Date.now()) / 1000);
@@ -23,11 +32,13 @@ CryptoZoo.offlineAdsUI = {
     formatShort(sec) {
         sec = Number(sec || 0);
 
-        const m = Math.floor(sec / 60);
+        const h = Math.floor(sec / 3600);
+        const m = Math.floor((sec % 3600) / 60);
         const s = sec % 60;
 
-        if (m <= 0) return `${s}s`;
-        return `${m}m`;
+        if (h > 0) return `${h}h ${m}m`;
+        if (m > 0) return `${m}m`;
+        return `${s}s`;
     },
 
     renderBars() {
@@ -49,10 +60,11 @@ CryptoZoo.offlineAdsUI = {
         const btn = document.getElementById("watchOfflineAdBtn");
         if (!btn) return;
 
+        const canWatch = !!CryptoZoo.offlineAds?.canWatchAd?.();
         const left = this.getSlotsLeft();
 
-        btn.disabled = left <= 0;
-        btn.innerHTML = left <= 0
+        btn.disabled = !canWatch || left <= 0;
+        btn.innerHTML = (!canWatch || left <= 0)
             ? `⏳ MAX`
             : `📺 +30m`;
     },
@@ -89,7 +101,7 @@ CryptoZoo.offlineAdsUI = {
                     ${
                         left <= 0
                             ? `MAX`
-                            : `Reset: ${this.formatShort(nextReset)}`
+                            : (nextReset > 0 ? `Reset: ${this.formatShort(nextReset)}` : `Gotowe`)
                     }
                 </div>
             </div>
@@ -101,7 +113,7 @@ CryptoZoo.offlineAdsUI = {
 
         if (btn) {
             btn.onclick = () => {
-                CryptoZoo.ads?.showOfflineRewardedAd?.();
+                CryptoZoo.ads?.showRewardedAd?.();
             };
         }
     },
