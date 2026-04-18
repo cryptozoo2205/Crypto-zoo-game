@@ -19,16 +19,51 @@ CryptoZoo.depositUI = {
         });
     },
 
+    formatUsdAmount(amount, decimals = 2) {
+        const safeAmount = Math.max(0, Number(amount) || 0);
+        return safeAmount.toFixed(decimals).replace(/\.?0+$/, (match) => {
+            return match.startsWith(".") ? "" : match;
+        });
+    },
+
+    formatDurationFromMs(durationMs) {
+        const safeMs = Math.max(0, Number(durationMs) || 0);
+        const totalHours = Math.max(0, Math.floor(safeMs / (60 * 60 * 1000)));
+
+        if (totalHours <= 0) {
+            return "0h";
+        }
+
+        const days = Math.floor(totalHours / 24);
+        const hours = totalHours % 24;
+
+        if (days <= 0) {
+            return `${totalHours}h`;
+        }
+
+        if (hours <= 0) {
+            return days === 1 ? "1 dzień" : `${days} dni`;
+        }
+
+        return `${days === 1 ? "1 dzień" : `${days} dni`} ${hours}h`;
+    },
+
     stopEvent(event) {
         if (!event) return;
         event.preventDefault?.();
         event.stopPropagation?.();
     },
 
-    getDepositBonusMeta(amount, payment = {}, deposit = {}) {
-        const safeAmount = Math.max(
+    getDepositBonusMeta(amountUsd, payment = {}, deposit = {}) {
+        const safeAmountUsd = Math.max(
             0,
-            Number(payment?.baseAmount ?? deposit?.baseAmount ?? amount) || 0
+            Number(
+                payment?.baseAmountUsd ??
+                deposit?.baseAmountUsd ??
+                payment?.baseAmount ??
+                deposit?.baseAmount ??
+                amountUsd
+            ) || 0
         );
 
         const gemsAmount = Math.max(
@@ -43,33 +78,23 @@ CryptoZoo.depositUI = {
 
         const boostPercent = Math.round(expeditionBoostAmount * 100);
 
-        const durationMsRaw = Math.max(
+        const durationMs = Math.max(
             0,
             Number(payment?.expeditionBoostDurationMs ?? deposit?.expeditionBoostDurationMs) || 0
         );
 
-        let durationDays = 0;
-
-        if (durationMsRaw > 0) {
-            durationDays = Math.max(1, Math.round(durationMsRaw / (24 * 60 * 60 * 1000)));
-        } else {
-            if (safeAmount >= 10) durationDays = 7;
-            else if (safeAmount >= 5) durationDays = 5;
-            else if (safeAmount >= 3) durationDays = 3;
-            else if (safeAmount >= 1) durationDays = 1;
-        }
-
         return {
+            amountUsd: safeAmountUsd,
             gemsAmount,
             boostPercent,
-            durationDays
+            durationMs
         };
     },
 
     formatBonusText(meta) {
         const gems = Math.max(0, Number(meta?.gemsAmount) || 0);
         const boostPercent = Math.max(0, Number(meta?.boostPercent) || 0);
-        const durationDays = Math.max(0, Number(meta?.durationDays) || 0);
+        const durationMs = Math.max(0, Number(meta?.durationMs) || 0);
 
         const parts = [];
 
@@ -81,8 +106,8 @@ CryptoZoo.depositUI = {
             parts.push(`+${CryptoZoo.formatNumber(boostPercent)}% boost ekspedycji`);
         }
 
-        if (durationDays > 0) {
-            parts.push(durationDays === 1 ? "1 dzień" : `${durationDays} dni`);
+        if (durationMs > 0) {
+            parts.push(this.formatDurationFromMs(durationMs));
         }
 
         return parts.join(" • ");
@@ -162,7 +187,7 @@ CryptoZoo.depositUI = {
 
                 <div class="profile-boost-row" style="margin-top:12px;">
                     <div class="profile-boost-left" style="width:100%;">
-                        <div class="profile-boost-label">Wybrany pakiet</div>
+                        <div class="profile-boost-label">Kwota wpłaty</div>
                         <div
                             id="depositPaymentBaseAmount"
                             class="profile-boost-value"
@@ -200,7 +225,7 @@ CryptoZoo.depositUI = {
                     <div class="profile-boost-left" style="width:100%;">
                         <div class="profile-boost-label">Płatność</div>
                         <div class="profile-boost-value" style="margin-top:6px; font-size:13px; line-height:1.5;">
-                            Wyślij dokładnie podaną kwotę ze swojego portfela. System automatycznie wykryje wpłatę i doda bonus po potwierdzeniu.
+                            Wyślij dokładnie podaną kwotę ze swojego portfela. System automatycznie wykryje wpłatę i doda bonus po potwierdzeniu. Działa tak samo na GitHub test mode i na VPS.
                         </div>
                     </div>
                 </div>
@@ -305,16 +330,21 @@ CryptoZoo.depositUI = {
                 CryptoZoo.audio?.play?.("click");
 
                 const address = this.currentDepositData?.address || "";
-                const amount = this.formatTonAmount(
+                const tonAmount = this.formatTonAmount(
                     this.currentDepositData?.expectedAmount ?? this.currentDepositData?.amount ?? 0,
                     6
                 );
-                const baseAmount = this.formatTonAmount(this.currentDepositData?.baseAmount || 0, 3);
+                const usdAmount = this.formatUsdAmount(
+                    this.currentDepositData?.baseAmountUsd ??
+                    this.currentDepositData?.baseAmount ??
+                    0,
+                    2
+                );
                 const bonusText = String(this.currentDepositData?.bonusText || "").trim();
 
                 const fullText = [
-                    `AMOUNT: ${amount} TON`,
-                    `PACKAGE: ${baseAmount} TON`,
+                    `AMOUNT: ${tonAmount} TON`,
+                    `DEPOSIT: ${usdAmount}$`,
                     `ADDRESS: ${address}`,
                     bonusText ? `BONUS: ${bonusText}` : ""
                 ].filter(Boolean).join("\n");
@@ -339,17 +369,21 @@ CryptoZoo.depositUI = {
         const bonusEl = document.getElementById("depositPaymentBonus");
         const addressEl = document.getElementById("depositPaymentAddress");
 
-        const amount = Number(this.currentDepositData?.expectedAmount ?? this.currentDepositData?.amount ?? 0);
-        const baseAmount = Number(this.currentDepositData?.baseAmount || 0);
+        const tonAmount = Number(this.currentDepositData?.expectedAmount ?? this.currentDepositData?.amount ?? 0);
+        const baseAmountUsd = Number(
+            this.currentDepositData?.baseAmountUsd ??
+            this.currentDepositData?.baseAmount ??
+            0
+        );
         const address = String(this.currentDepositData?.address || "");
         const bonusText = String(this.currentDepositData?.bonusText || "").trim();
 
         if (amountEl) {
-            amountEl.textContent = `${this.formatTonAmount(amount, 6)} TON`;
+            amountEl.textContent = `${this.formatTonAmount(tonAmount, 6)} TON`;
         }
 
         if (baseAmountEl) {
-            baseAmountEl.textContent = `${this.formatTonAmount(baseAmount, 3)} TON`;
+            baseAmountEl.textContent = `${this.formatUsdAmount(baseAmountUsd, 2)}$`;
         }
 
         if (bonusEl) {
@@ -492,7 +526,7 @@ CryptoZoo.depositUI = {
         }
     },
 
-    async createDeposit(amount) {
+    async createDeposit(amountUsd) {
         if (this.isCreatingDeposit) {
             return false;
         }
@@ -500,17 +534,17 @@ CryptoZoo.depositUI = {
         this.isCreatingDeposit = true;
 
         try {
-            const safeAmount = Number((Math.max(0, Number(amount) || 0)).toFixed(3));
+            const safeAmountUsd = Number((Math.max(0, Number(amountUsd) || 0)).toFixed(2));
 
-            if (safeAmount <= 0) {
-                throw new Error("Invalid deposit amount");
+            if (safeAmountUsd < 1) {
+                throw new Error("Minimalna wpłata to 1$");
             }
 
             if (!CryptoZoo.api?.createDepositWithPayment) {
                 throw new Error("createDepositWithPayment not available");
             }
 
-            const result = await CryptoZoo.api.createDepositWithPayment(safeAmount);
+            const result = await CryptoZoo.api.createDepositWithPayment(safeAmountUsd);
             const deposit = result?.deposit || null;
             const payment = result?.payment || null;
 
@@ -527,19 +561,21 @@ CryptoZoo.depositUI = {
                 ""
             ).trim();
 
-            const paymentAmount = Number(
+            const paymentAmountTon = Number(
                 payment.expectedAmount ??
                 deposit.expectedAmount ??
                 payment.amount ??
                 deposit.amount ??
-                safeAmount
-            ) || safeAmount;
+                0
+            ) || 0;
 
-            const baseAmount = Number(
+            const baseAmountUsd = Number(
+                payment.baseAmountUsd ??
+                deposit.baseAmountUsd ??
                 payment.baseAmount ??
                 deposit.baseAmount ??
-                safeAmount
-            ) || safeAmount;
+                safeAmountUsd
+            ) || safeAmountUsd;
 
             const uniqueFraction = Number(
                 payment.uniqueFraction ??
@@ -551,25 +587,31 @@ CryptoZoo.depositUI = {
                 throw new Error("Missing TON receiver address");
             }
 
-            const bonusMeta = this.getDepositBonusMeta(baseAmount, payment, deposit);
+            if (paymentAmountTon <= 0) {
+                throw new Error("Missing TON payment amount");
+            }
+
+            const bonusMeta = this.getDepositBonusMeta(baseAmountUsd, payment, deposit);
             const bonusText = this.formatBonusText(bonusMeta);
 
             this.currentDepositData = {
                 depositId: String(deposit.depositId || deposit.id || payment.depositId || ""),
                 address: receiverAddress,
-                amount: paymentAmount,
-                baseAmount,
-                expectedAmount: paymentAmount,
+                amount: paymentAmountTon,
+                expectedAmount: paymentAmountTon,
+                baseAmount: baseAmountUsd,
+                baseAmountUsd,
                 uniqueFraction,
                 bonusText
             };
 
             this.bindResumeEvents();
             this.showDepositModal();
+            this.startVerifyWatcher();
 
             const toastMessage = bonusText
-                ? `Deposit ${this.formatTonAmount(paymentAmount, 6)} TON utworzony • ${bonusText}`
-                : `Deposit ${this.formatTonAmount(paymentAmount, 6)} TON utworzony`;
+                ? `Depozyt ${this.formatUsdAmount(baseAmountUsd, 2)}$ utworzony • ${bonusText}`
+                : `Depozyt ${this.formatUsdAmount(baseAmountUsd, 2)}$ utworzony`;
 
             CryptoZoo.ui?.showToast?.(toastMessage);
 
@@ -589,8 +631,8 @@ CryptoZoo.depositUI = {
 
     async createAndPaySelectedDeposit() {
         const selectedAmount =
-            Number(CryptoZoo.uiDeposit?.selectedAmount) ||
-            Number(CryptoZoo.uiSettings?.selectedDepositAmount) ||
+            Number(CryptoZoo.depositBind?.customUsdAmount) ||
+            Number(CryptoZoo.depositBind?.selectedAmount) ||
             1;
 
         return this.createDeposit(selectedAmount);
