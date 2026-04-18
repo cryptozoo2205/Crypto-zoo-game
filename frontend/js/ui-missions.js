@@ -336,12 +336,42 @@ Object.assign(CryptoZoo.ui, {
             CryptoZoo.state?.expeditionStats?.timeBoostCharges?.length ||
             0;
 
+        const depositBoostMultiplier = Math.max(
+            1,
+            Number(CryptoZoo.expeditions?.getExpeditionBoostMultiplier?.() || 1)
+        );
+        const depositBoostPercent = Math.max(
+            0,
+            Math.round((depositBoostMultiplier - 1) * 100)
+        );
+        const depositBoostActiveUntil = Math.max(
+            0,
+            Number(CryptoZoo.state?.expeditionBoostActiveUntil) || 0
+        );
+        const depositBoostActive = depositBoostActiveUntil > Date.now();
+
+        let depositBoostText = this.t("inactive", "Nieaktywny");
+        if (depositBoostActive && depositBoostPercent > 0) {
+            depositBoostText = `+${CryptoZoo.formatNumber(depositBoostPercent)}%`;
+        }
+
+        let depositBoostTimeText = this.t("inactive", "Nieaktywny");
+        if (depositBoostActive) {
+            const remainingSeconds = Math.max(
+                0,
+                Math.floor((depositBoostActiveUntil - Date.now()) / 1000)
+            );
+            depositBoostTimeText = this.formatTimeLeft(remainingSeconds);
+        }
+
         const expeditionInfoCard = `
             <div class="expedition-card" style="margin-bottom:12px;">
                 <h3>🧭 ${this.t("expeditionUpgrades", "Expedition Upgrades")}</h3>
                 <div>${this.t("rareBonus", "Rare bonus")}: +${(rareBonus * 100).toFixed(0)}%</div>
                 <div>${this.t("epicBonus", "Epic bonus")}: +${(epicBonus * 100).toFixed(0)}%</div>
                 <div>${this.t("timeBoostsAvailable", "Time boosts available")}: ${CryptoZoo.formatNumber(timeBoostChargesCount)}</div>
+                <div>Bonus depozytu: ${depositBoostText}</div>
+                <div>Boost depozytu czas: ${depositBoostTimeText}</div>
             </div>
         `;
 
