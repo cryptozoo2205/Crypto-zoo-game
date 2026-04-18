@@ -201,6 +201,71 @@ CryptoZoo.uiSettings = {
         return this.getDepositInputValue();
     },
 
+    updateDepositPreviewUi() {
+        const input = document.getElementById("settingsDepositUsdInput");
+        const gemsEl = document.getElementById("settingsDepositPreviewGems");
+        const boostEl = document.getElementById("settingsDepositPreviewBoost");
+        const durationEl = document.getElementById("settingsDepositPreviewDuration");
+        const depositBtn = document.getElementById("settingsCreateDepositBtn");
+
+        const currentValue = input
+            ? this.formatDepositUsd(input.value)
+            : this.getSelectedDepositAmount();
+
+        const safeValue = currentValue >= this.minDepositUsd
+            ? currentValue
+            : this.minDepositUsd;
+
+        this.setDepositInputValue(safeValue);
+
+        const bonus = this.getDepositBonusMeta(safeValue);
+
+        if (gemsEl) {
+            gemsEl.textContent = `+${CryptoZoo.formatNumber(bonus.gems)} gem`;
+        }
+
+        if (boostEl) {
+            boostEl.textContent = `+${CryptoZoo.formatNumber(bonus.boostPercent)}% boost ekspedycji`;
+        }
+
+        if (durationEl) {
+            durationEl.textContent = this.formatHoursLabel(bonus.durationHours);
+        }
+
+        if (depositBtn) {
+            depositBtn.textContent = `Create Deposit (${safeValue}$)`;
+        }
+    },
+
+    bindDepositInput() {
+        const input = document.getElementById("settingsDepositUsdInput");
+        if (!input || input.dataset.bound) return;
+
+        input.dataset.bound = "1";
+
+        input.addEventListener("input", () => {
+            this.updateDepositPreviewUi();
+        });
+
+        input.addEventListener("change", () => {
+            this.updateDepositPreviewUi();
+        });
+
+        input.addEventListener("blur", () => {
+            const parsed = this.formatDepositUsd(input.value);
+
+            if (parsed < this.minDepositUsd) {
+                input.value = this.minDepositUsd.toFixed(2).replace(/\.00$/, "");
+                this.setDepositInputValue(this.minDepositUsd);
+            } else {
+                input.value = String(this.formatDepositUsd(parsed));
+                this.setDepositInputValue(parsed);
+            }
+
+            this.updateDepositPreviewUi();
+        });
+    },
+
     renderDepositAmountOptions() {
         const wrap = document.getElementById("settingsDepositAmountOptions");
         if (!wrap) return;
@@ -257,45 +322,29 @@ CryptoZoo.uiSettings = {
                 />
 
                 <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.10);">
-                    <div style="font-size:13px;font-weight:800;line-height:1.35;color:rgba(255,255,255,0.92);">
+                    <div
+                        id="settingsDepositPreviewGems"
+                        style="font-size:13px;font-weight:800;line-height:1.35;color:rgba(255,255,255,0.92);"
+                    >
                         +${CryptoZoo.formatNumber(bonus.gems)} gem
                     </div>
-                    <div style="margin-top:6px;font-size:13px;font-weight:800;line-height:1.35;color:rgba(255,255,255,0.82);">
+                    <div
+                        id="settingsDepositPreviewBoost"
+                        style="margin-top:6px;font-size:13px;font-weight:800;line-height:1.35;color:rgba(255,255,255,0.82);"
+                    >
                         +${CryptoZoo.formatNumber(bonus.boostPercent)}% boost ekspedycji
                     </div>
-                    <div style="margin-top:6px;font-size:13px;font-weight:800;line-height:1.35;color:rgba(255,255,255,0.72);">
+                    <div
+                        id="settingsDepositPreviewDuration"
+                        style="margin-top:6px;font-size:13px;font-weight:800;line-height:1.35;color:rgba(255,255,255,0.72);"
+                    >
                         ${this.formatHoursLabel(bonus.durationHours)}
                     </div>
                 </div>
             </div>
         `;
 
-        const input = document.getElementById("settingsDepositUsdInput");
-        if (input && !input.dataset.bound) {
-            input.dataset.bound = "1";
-
-            const updateValue = () => {
-                const rawValue = input.value;
-                const parsed = this.formatDepositUsd(rawValue);
-
-                if (parsed < this.minDepositUsd) {
-                    this.setDepositInputValue(this.minDepositUsd);
-                } else {
-                    this.setDepositInputValue(parsed);
-                }
-
-                this.renderDepositAmountOptions();
-
-                const depositBtn = document.getElementById("settingsCreateDepositBtn");
-                if (depositBtn) {
-                    depositBtn.textContent = `Create Deposit (${this.getSelectedDepositAmount()}$)`;
-                }
-            };
-
-            input.addEventListener("input", updateValue);
-            input.addEventListener("change", updateValue);
-            input.addEventListener("blur", updateValue);
-        }
+        this.bindDepositInput();
     },
 
     refreshSettingsModalData() {
