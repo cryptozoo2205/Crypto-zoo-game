@@ -36,8 +36,8 @@ function ensureOfflineAdsState(player) {
     const now = Date.now();
 
     player.offlineBaseHours = Math.max(
-        1,
-        Math.floor(normalizeNumber(player.offlineBaseHours, 1))
+        0,
+        Math.floor(normalizeNumber(player.offlineBaseHours, 0))
     );
 
     player.offlineBoostHours = Math.max(
@@ -67,21 +67,28 @@ function ensureOfflineAdsState(player) {
     }
 
     if (player.offlineAdsResetAt > now) {
-        const remainingHours = Math.max(0, (player.offlineAdsResetAt - now) / (60 * 60 * 1000));
+        const remainingHours = Math.max(
+            0,
+            (player.offlineAdsResetAt - now) / (60 * 60 * 1000)
+        );
+
         player.offlineAdsHours = clamp(
             Number(remainingHours.toFixed(6)),
             0,
             OFFLINE_ADS_MAX_HOURS
         );
     } else if (player.offlineAdsHours > 0) {
-        player.offlineAdsResetAt = now + player.offlineAdsHours * 60 * 60 * 1000;
+        player.offlineAdsResetAt =
+            now + (player.offlineAdsHours * 60 * 60 * 1000);
     } else {
         player.offlineAdsResetAt = 0;
         player.offlineAdsHours = 0;
     }
 
     player.offlineMaxSeconds =
-        (player.offlineBaseHours + player.offlineBoostHours + player.offlineAdsHours) * 60 * 60;
+        (player.offlineBaseHours +
+            player.offlineBoostHours +
+            player.offlineAdsHours) * 3600;
 
     delete player.offlineAdsLastUpdateAt;
 
@@ -89,9 +96,11 @@ function ensureOfflineAdsState(player) {
 }
 
 function buildSuccessPayload(player, addedHours) {
+    const addedMinutes = Math.round(addedHours * 60);
+
     return {
         ok: true,
-        message: `Dodano +${addedHours}h zarobków offline`,
+        message: `Dodano +${addedMinutes}min zarobków offline`,
         offlineAdsHours: player.offlineAdsHours,
         offlineAdsResetAt: player.offlineAdsResetAt,
         offlineMaxSeconds: player.offlineMaxSeconds,
@@ -189,7 +198,8 @@ router.post("/reward-offline", async (req, res) => {
                     {
                         waitSeconds: Math.max(
                             0,
-                            MIN_SECONDS_BETWEEN_AD_REWARDS - secondsSinceLastReward
+                            MIN_SECONDS_BETWEEN_AD_REWARDS -
+                                secondsSinceLastReward
                         )
                     }
                 )
@@ -208,9 +218,20 @@ router.post("/reward-offline", async (req, res) => {
             );
         }
 
-        const previousAdsHours = Math.max(0, Number(player.offlineAdsHours) || 0);
-        const remaining = Math.max(0, OFFLINE_ADS_MAX_HOURS - previousAdsHours);
-        const addedHours = Math.min(OFFLINE_ADS_HOURS_PER_AD, remaining);
+        const previousAdsHours = Math.max(
+            0,
+            Number(player.offlineAdsHours) || 0
+        );
+
+        const remaining = Math.max(
+            0,
+            OFFLINE_ADS_MAX_HOURS - previousAdsHours
+        );
+
+        const addedHours = Math.min(
+            OFFLINE_ADS_HOURS_PER_AD,
+            remaining
+        );
 
         player.offlineAdsHours = clamp(
             Number((previousAdsHours + addedHours).toFixed(6)),
@@ -219,27 +240,34 @@ router.post("/reward-offline", async (req, res) => {
         );
 
         if (player.offlineAdsResetAt > now && previousAdsHours > 0) {
-            player.offlineAdsResetAt += addedHours * 60 * 60 * 1000;
+            player.offlineAdsResetAt += addedHours * 3600 * 1000;
         } else if (player.offlineAdsHours > 0) {
-            player.offlineAdsResetAt = now + player.offlineAdsHours * 60 * 60 * 1000;
+            player.offlineAdsResetAt =
+                now + (player.offlineAdsHours * 3600 * 1000);
         } else {
             player.offlineAdsResetAt = 0;
         }
 
         player.lastOfflineAdRewardAt = now;
-        player.lastLogin = now;
         player.updatedAt = now;
+
         player.offlineMaxSeconds =
-            (player.offlineBaseHours + player.offlineBoostHours + player.offlineAdsHours) * 60 * 60;
+            (player.offlineBaseHours +
+                player.offlineBoostHours +
+                player.offlineAdsHours) * 3600;
 
         db.players[telegramId] = normalizePlayer(player);
         writeDb(db);
 
         return res.status(200).json(
-            buildSuccessPayload(db.players[telegramId], addedHours)
+            buildSuccessPayload(
+                db.players[telegramId],
+                addedHours
+            )
         );
     } catch (error) {
         console.error("ads reward-offline error:", error);
+
         return res.status(500).json({
             ok: false,
             error: "Nie udało się obsłużyć reward reklamy"
