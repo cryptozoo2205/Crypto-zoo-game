@@ -224,6 +224,8 @@ CryptoZoo.expeditions = {
             .filter((value) => value > 0)
             .sort((a, b) => a - b);
 
+        CryptoZoo.state.shopItemCharges = CryptoZoo.state.shopItemCharges || {};
+
         CryptoZoo.state.expeditionBoost = Math.max(
             0,
             Number(CryptoZoo.state.expeditionBoost) || 0
@@ -354,15 +356,106 @@ CryptoZoo.expeditions = {
         return Math.max(0, Number(CryptoZoo.state.expeditionStats.timeReductionSeconds) || 0);
     },
 
-    getTimeBoostCharges() {
+    getLegacyTimeBoostCharges() {
         this.ensureExpeditionStats();
+
         return Array.isArray(CryptoZoo.state.expeditionStats.timeBoostCharges)
             ? CryptoZoo.state.expeditionStats.timeBoostCharges
             : [];
     },
 
+    getShopTimeBoostItems() {
+        const items = Array.isArray(CryptoZoo.config?.shopItems)
+            ? CryptoZoo.config.shopItems
+            : [];
+
+        return items
+            .filter((item) => {
+                const type = String(item?.type || "").toLowerCase();
+                const effect = String(item?.effect || "").toLowerCase();
+
+                return type === "expeditiontime" || effect === "expeditiontime";
+            })
+            .map((item) => ({
+                id: String(item.id || ""),
+                seconds: Math.max(0, Number(item.timeReductionSeconds) || 0),
+                item
+            }))
+            .filter((entry) => entry.id && entry.seconds > 0)
+            .sort((a, b) => a.seconds - b.seconds);
+    },
+
+    getShopTimeBoostChargeCount(itemId) {
+        this.ensureExpeditionStats();
+        return Math.max(0, Number(CryptoZoo.state?.shopItemCharges?.[itemId]) || 0);
+    },
+
+    getAvailableTimeBoostOptions() {
+        this.ensureExpeditionStats();
+
+        const options = [];
+        const shopItems = this.getShopTimeBoostItems();
+
+        shopItems.forEach((entry) => {
+            const count = this.getShopTimeBoostChargeCount(entry.id);
+
+            if (count > 0) {
+                options.push({
+                    source: "shop",
+                    key: entry.id,
+                    itemId: entry.id,
+                    seconds: entry.seconds,
+                    count,
+                    item: entry.item
+                });
+            }
+        });
+
+        const legacyCounts = new Map();
+        this.getLegacyTimeBoostCharges().forEach((seconds) => {
+            const safeSeconds = Math.max(0, Number(seconds) || 0);
+            if (safeSeconds <= 0) return;
+            legacyCounts.set(safeSeconds, (legacyCounts.get(safeSeconds) || 0) + 1);
+        });
+
+        Array.from(legacyCounts.entries())
+            .sort((a, b) => Number(a[0]) - Number(b[0]))
+            .forEach(([seconds, count]) => {
+                options.push({
+                    source: "legacy",
+                    key: `legacy_${seconds}`,
+                    itemId: "",
+                    seconds: Math.max(0, Number(seconds) || 0),
+                    count: Math.max(0, Number(count) || 0),
+                    item: null
+                });
+            });
+
+        return options.sort((a, b) => Number(a.seconds || 0) - Number(b.seconds || 0));
+    },
+
+    getTimeBoostCharges() {
+        const options = this.getAvailableTimeBoostOptions();
+        const flatCharges = [];
+
+        options.forEach((option) => {
+            const seconds = Math.max(0, Number(option?.seconds) || 0);
+            const count = Math.max(0, Number(option?.count) || 0);
+
+            for (let i = 0; i < count; i += 1) {
+                if (seconds > 0) {
+                    flatCharges.push(seconds);
+                }
+            }
+        });
+
+        return flatCharges.sort((a, b) => a - b);
+    },
+
     getTimeBoostChargesCount() {
-        return this.getTimeBoostCharges().length;
+        return this.getAvailableTimeBoostOptions().reduce((sum, option) => {
+            return sum + Math.max(0, Number(option?.count) || 0);
+        }, 0);
     },
 
     addTimeBoostCharge(seconds) {
@@ -376,6 +469,64 @@ CryptoZoo.expeditions = {
 
         CryptoZoo.api?.savePlayer?.();
         return true;
+    },
+
+    getTimeBoostOptionByKey(optionKey) {
+        const safeKey = String(optionKey || "").trim();
+        if (!safeKey) return null;
+
+        return this.getAvailableTimeBoostOptions().find((option) => {
+            return String(option.key || "") === safeKey;
+        }) || null;
+    },
+
+    consumeSpecificTimeBoostCharge(optionKey, baseDuration) {
+        this.ensureExpeditionStats();
+
+        const option = this.getTimeBoostOptionByKey(optionKey);
+        if (!option) {
+            return 0;
+        }
+
+        const safeBaseDuration = Math.max(60, Number(baseDuration) || 60);
+        const maxAllowedReduction = Math.max(0, safeBaseDuration - 60);
+
+        if (maxAllowedReduction <= 0) {
+            return 0;
+        }
+
+        const requestedSeconds = Math.max(0, Number(option.seconds) || 0);
+        const appliedReduction = Math.min(requestedSeconds, maxAllowedReduction);
+
+        if (appliedReduction <= 0) {
+            return 0;
+        }
+
+        if (option.source === "shop" && option.itemId) {
+            const currentCount = this.getShopTimeBoostChargeCount(option.itemId);
+            if (currentCount <= 0) {
+                return 0;
+            }
+
+            CryptoZoo.state.shopItemCharges[option.itemId] = currentCount - 1;
+            return appliedReduction;
+        }
+
+        if (option.source === "legacy") {
+            const charges = this.getLegacyTimeBoostCharges();
+            const index = charges.findIndex((seconds) => {
+                return Math.max(0, Number(seconds) || 0) === requestedSeconds;
+            });
+
+            if (index < 0) {
+                return 0;
+            }
+
+            CryptoZoo.state.expeditionStats.timeBoostCharges.splice(index, 1);
+            return appliedReduction;
+        }
+
+        return 0;
     },
 
     peekBestTimeBoostCharge(baseDuration) {
@@ -406,9 +557,6 @@ CryptoZoo.expeditions = {
     consumeBestTimeBoostCharge(baseDuration) {
         this.ensureExpeditionStats();
 
-        const charges = this.getTimeBoostCharges();
-        if (!charges.length) return 0;
-
         const safeBaseDuration = Math.max(60, Number(baseDuration) || 60);
         const maxAllowedReduction = Math.max(0, safeBaseDuration - 60);
 
@@ -416,25 +564,25 @@ CryptoZoo.expeditions = {
             return 0;
         }
 
-        let bestIndex = -1;
+        const options = this.getAvailableTimeBoostOptions();
+        let bestOption = null;
         let bestApplied = 0;
 
-        charges.forEach((charge, index) => {
-            const safeCharge = Math.max(0, Number(charge) || 0);
+        options.forEach((option) => {
+            const safeCharge = Math.max(0, Number(option?.seconds) || 0);
             const applied = Math.min(safeCharge, maxAllowedReduction);
 
             if (applied > bestApplied) {
                 bestApplied = applied;
-                bestIndex = index;
+                bestOption = option;
             }
         });
 
-        if (bestIndex < 0 || bestApplied <= 0) {
+        if (!bestOption || bestApplied <= 0) {
             return 0;
         }
 
-        CryptoZoo.state.expeditionStats.timeBoostCharges.splice(bestIndex, 1);
-        return bestApplied;
+        return this.consumeSpecificTimeBoostCharge(bestOption.key, safeBaseDuration);
     },
 
     getUnlockRequirement(expedition) {
@@ -654,11 +802,10 @@ CryptoZoo.expeditions = {
         const normalizedSelectedAnimals = this.normalizeSelectedAnimals(selectedAnimals);
         const rewardRarity = this.rollRewardRarity(expeditionConfig);
         const baseDuration = this.getEffectiveDurationSeconds(expeditionConfig);
-        const bestChargeReduction = this.peekBestTimeBoostCharge(baseDuration);
         const legacyReduction = this.getLegacyTimeReductionSeconds();
         const totalReduction = Math.min(
             Math.max(0, baseDuration - 60),
-            Math.max(0, bestChargeReduction) + Math.max(0, legacyReduction)
+            Math.max(0, legacyReduction)
         );
 
         const duration = Math.max(60, baseDuration - totalReduction);
@@ -734,11 +881,6 @@ CryptoZoo.expeditions = {
             CryptoZoo.state.expeditionStats.timeReductionSeconds = 0;
         }
 
-        const bestChargeReduction = this.peekBestTimeBoostCharge(expedition.baseDuration || expedition.duration || 60);
-        if (bestChargeReduction > 0) {
-            this.consumeBestTimeBoostCharge(expedition.baseDuration || expedition.duration || 60);
-        }
-
         CryptoZoo.dailyMissions?.recordStartExpedition?.(1);
         CryptoZoo.audio?.play?.("click");
         CryptoZoo.gameplay?.recalculateProgress?.();
@@ -751,7 +893,7 @@ CryptoZoo.expeditions = {
         return true;
     },
 
-    async useTimeBoostOnActiveExpeditionLocalFallback() {
+    async useTimeBoostOnActiveExpeditionLocalFallback(optionKey = "") {
         CryptoZoo.state = CryptoZoo.state || {};
         this.ensureExpeditionStats();
 
@@ -776,7 +918,29 @@ CryptoZoo.expeditions = {
             return false;
         }
 
-        const reductionSeconds = this.consumeBestTimeBoostCharge(
+        const availableOptions = this.getAvailableTimeBoostOptions();
+        if (!availableOptions.length) {
+            CryptoZoo.ui?.showToast?.("Brak dostępnego boosta czasu");
+            return false;
+        }
+
+        let selectedOption = null;
+
+        if (String(optionKey || "").trim()) {
+            selectedOption = this.getTimeBoostOptionByKey(optionKey);
+        }
+
+        if (!selectedOption) {
+            if (availableOptions.length === 1) {
+                selectedOption = availableOptions[0];
+            } else {
+                CryptoZoo.ui?.showToast?.("Wybierz rodzaj skrócenia czasu");
+                return false;
+            }
+        }
+
+        const reductionSeconds = this.consumeSpecificTimeBoostCharge(
+            selectedOption.key,
             expedition.baseDuration || expedition.duration || 60
         );
 
@@ -883,7 +1047,7 @@ CryptoZoo.expeditions = {
         }
     },
 
-    async useTimeBoostOnActiveExpedition() {
+    async useTimeBoostOnActiveExpedition(optionKey = "") {
         CryptoZoo.state = CryptoZoo.state || {};
         this.ensureExpeditionStats();
 
@@ -908,21 +1072,54 @@ CryptoZoo.expeditions = {
             return false;
         }
 
-        const reductionSeconds = this.peekBestTimeBoostCharge(expedition.baseDuration || expedition.duration || 60);
+        const availableOptions = this.getAvailableTimeBoostOptions();
+        if (!availableOptions.length) {
+            CryptoZoo.ui?.showToast?.("Brak dostępnego boosta czasu");
+            return false;
+        }
 
-        if (reductionSeconds <= 0) {
+        let selectedOption = null;
+
+        if (String(optionKey || "").trim()) {
+            selectedOption = this.getTimeBoostOptionByKey(optionKey);
+        }
+
+        if (!selectedOption) {
+            if (availableOptions.length === 1) {
+                selectedOption = availableOptions[0];
+            } else {
+                CryptoZoo.ui?.showToast?.("Wybierz rodzaj skrócenia czasu");
+                return false;
+            }
+        }
+
+        const requestedReductionSeconds = Math.max(
+            0,
+            Math.min(
+                Number(selectedOption.seconds) || 0,
+                Math.max(0, (Number(expedition.baseDuration) || Number(expedition.duration) || 60) - 60)
+            )
+        );
+
+        if (requestedReductionSeconds <= 0) {
             CryptoZoo.ui?.showToast?.("Brak dostępnego boosta czasu");
             return false;
         }
 
         try {
-            const response = await CryptoZoo.api.expeditionUseTimeReduction(reductionSeconds);
+            const response = await CryptoZoo.api.expeditionUseTimeReduction(requestedReductionSeconds);
             const usedReductionSeconds = Math.max(
                 0,
-                Number(response?.reductionSeconds) || reductionSeconds
+                Number(response?.reductionSeconds) || requestedReductionSeconds
+            );
+
+            this.consumeSpecificTimeBoostCharge(
+                selectedOption.key,
+                expedition.baseDuration || expedition.duration || 60
             );
 
             CryptoZoo.audio?.play?.("click");
+            CryptoZoo.api?.savePlayer?.();
             CryptoZoo.ui?.render?.();
             CryptoZoo.ui?.showToast?.(
                 `⏩ Skrócono o ${CryptoZoo.ui?.formatDurationLabel?.(usedReductionSeconds) || `${usedReductionSeconds}s`}`
@@ -931,7 +1128,7 @@ CryptoZoo.expeditions = {
             return true;
         } catch (error) {
             if (this.isBackendOfflineError(error) && this.canUseLocalFallback()) {
-                return this.useTimeBoostOnActiveExpeditionLocalFallback();
+                return this.useTimeBoostOnActiveExpeditionLocalFallback(selectedOption.key);
             }
 
             this.showExpeditionError(error, "Błąd skrócenia ekspedycji");
