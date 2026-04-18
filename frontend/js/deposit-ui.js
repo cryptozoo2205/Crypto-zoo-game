@@ -386,7 +386,10 @@ CryptoZoo.depositUI = {
             copyAmountBtn.addEventListener("click", async (event) => {
                 this.stopEvent(event);
                 CryptoZoo.audio?.play?.("click");
-                const amount = this.formatTonAmount(this.currentDepositData?.amount || 0, 6);
+                const amount = this.formatTonAmount(
+                    this.currentDepositData?.expectedAmount ?? this.currentDepositData?.amount ?? 0,
+                    6
+                );
                 await this.copy(`${amount} TON`, "Skopiowano kwotę");
             });
         }
@@ -407,7 +410,10 @@ CryptoZoo.depositUI = {
                 CryptoZoo.audio?.play?.("click");
 
                 const address = this.currentDepositData?.address || "";
-                const amount = this.formatTonAmount(this.currentDepositData?.amount || 0, 6);
+                const amount = this.formatTonAmount(
+                    this.currentDepositData?.expectedAmount ?? this.currentDepositData?.amount ?? 0,
+                    6
+                );
                 const baseAmount = this.formatTonAmount(this.currentDepositData?.baseAmount || 0, 3);
                 const bonusText = String(this.currentDepositData?.bonusText || "").trim();
 
@@ -456,7 +462,7 @@ CryptoZoo.depositUI = {
         const bonusEl = document.getElementById("depositPaymentBonus");
         const addressEl = document.getElementById("depositPaymentAddress");
 
-        const amount = Number(this.currentDepositData?.amount || 0);
+        const amount = Number(this.currentDepositData?.expectedAmount ?? this.currentDepositData?.amount ?? 0);
         const baseAmount = Number(this.currentDepositData?.baseAmount || 0);
         const address = String(this.currentDepositData?.address || "");
         const bonusText = String(this.currentDepositData?.bonusText || "").trim();
@@ -576,7 +582,7 @@ CryptoZoo.depositUI = {
                 String(deposit?.status || "").toLowerCase() === "approved" ||
                 matched;
 
-            if (approved || alreadyProcessed || result?.player) {
+            if (approved || alreadyProcessed) {
                 this.stopVerifyWatcher();
                 await this.refreshPlayerAndUi("✅ Depozyt zatwierdzony, bonus dodany");
                 this.closeDepositModal();
@@ -634,7 +640,7 @@ CryptoZoo.depositUI = {
             }
 
             const address = String(this.currentDepositData?.address || "").trim();
-            const amount = Number(this.currentDepositData?.amount || 0);
+            const amount = Number(this.currentDepositData?.expectedAmount ?? this.currentDepositData?.amount ?? 0);
 
             if (!address || amount <= 0) {
                 throw new Error("Brak danych płatności");
@@ -691,11 +697,19 @@ CryptoZoo.depositUI = {
                 throw new Error("Deposit payment data missing");
             }
 
-            const receiverAddress = String(payment.receiverAddress || "").trim();
+            const receiverAddress = String(
+                payment.receiverAddress ||
+                payment.address ||
+                payment.walletAddress ||
+                deposit.receiverAddress ||
+                deposit.walletAddress ||
+                ""
+            ).trim();
+
             const paymentAmount = Number(
                 payment.expectedAmount ??
-                payment.amount ??
                 deposit.expectedAmount ??
+                payment.amount ??
                 deposit.amount ??
                 safeAmount
             ) || safeAmount;
@@ -706,6 +720,12 @@ CryptoZoo.depositUI = {
                 safeAmount
             ) || safeAmount;
 
+            const uniqueFraction = Number(
+                payment.uniqueFraction ??
+                deposit.uniqueFraction ??
+                0
+            ) || 0;
+
             if (!receiverAddress) {
                 throw new Error("Missing TON receiver address");
             }
@@ -714,16 +734,12 @@ CryptoZoo.depositUI = {
             const bonusText = this.formatBonusText(bonusMeta);
 
             this.currentDepositData = {
-                depositId: String(deposit.id || payment.depositId || ""),
+                depositId: String(deposit.depositId || deposit.id || payment.depositId || ""),
                 address: receiverAddress,
                 amount: paymentAmount,
                 baseAmount,
                 expectedAmount: paymentAmount,
-                uniqueFraction: Number(
-                    payment.uniqueFraction ??
-                    deposit.uniqueFraction ??
-                    0
-                ) || 0,
+                uniqueFraction,
                 bonusText
             };
 
