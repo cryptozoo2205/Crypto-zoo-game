@@ -124,7 +124,7 @@ CryptoZoo.minigames = {
                 animalHuntReadyIn: "Animal Hunt ready in",
                 animalHuntResultTitle: "Hunt Result",
                 animalHuntClaim: "Claim reward",
-                animalHuntRunning: "Catch as many animals as you can",
+                animalHuntRunning: "Catch animals as many as you can",
                 animalHuntGolden: "Golden animal",
                 animalHuntBomb: "Bomb",
                 animalHuntMissed: "Missed animal",
@@ -326,7 +326,7 @@ CryptoZoo.minigames = {
         this.cooldownTimerStarted = true;
 
         setInterval(() => {
-            this.renderCooldowns();
+            this.renderCooldowns?.();
 
             if (this.memorySessionActive) {
                 this.renderMemoryHud?.();
