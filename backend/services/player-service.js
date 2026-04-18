@@ -127,11 +127,11 @@ function getDefaultPlayer(telegramId = "local-player", username = "Gracz") {
             lastPurchaseAt: 0
         },
 
-        offlineBaseHours: 1,
+        offlineBaseHours: 0,
         offlineBoostHours: 0,
         offlineAdsHours: 0,
         offlineAdsResetAt: 0,
-        offlineMaxSeconds: 1 * 60 * 60,
+        offlineMaxSeconds: 0,
         offlineBoostMultiplier: 1,
         offlineBoostActiveUntil: 0,
         offlineBoost: 1,
@@ -181,6 +181,7 @@ function getDefaultPlayer(telegramId = "local-player", username = "Gracz") {
         },
 
         shopPurchases: {},
+        shopItemCharges: {},
 
         expeditionStats: {
             rareChanceBonus: 0,
@@ -258,7 +259,7 @@ function normalizePlayer(input) {
     const statsInput = normalizeObject(safeInput.stats);
 
     const offlineBaseHours = Math.max(
-        1,
+        0,
         Math.floor(normalizeNumber(safeInput.offlineBaseHours, base.offlineBaseHours))
     );
 
@@ -269,7 +270,7 @@ function normalizePlayer(input) {
 
     const offlineAdsHours = Math.max(
         0,
-        Math.floor(normalizeNumber(safeInput.offlineAdsHours, base.offlineAdsHours))
+        normalizeNumber(safeInput.offlineAdsHours, base.offlineAdsHours)
     );
 
     const offlineAdsResetAt = Math.max(
@@ -277,7 +278,10 @@ function normalizePlayer(input) {
         normalizeNumber(safeInput.offlineAdsResetAt, base.offlineAdsResetAt || 0)
     );
 
-    const computedOfflineMaxSeconds = (offlineBaseHours + offlineBoostHours + offlineAdsHours) * 60 * 60;
+    const computedOfflineMaxSeconds = Math.max(
+        0,
+        Math.round((offlineBaseHours + offlineBoostHours + offlineAdsHours) * 60 * 60)
+    );
 
     const dailyCoins = Math.max(
         0,
@@ -403,7 +407,7 @@ function normalizePlayer(input) {
         offlineAdsHours,
         offlineAdsResetAt,
         offlineMaxSeconds: Math.max(
-            computedOfflineMaxSeconds,
+            0,
             normalizeNumber(safeInput.offlineMaxSeconds, computedOfflineMaxSeconds)
         ),
         offlineBoostMultiplier: Math.max(
@@ -479,6 +483,7 @@ function normalizePlayer(input) {
         },
 
         shopPurchases: normalizeObject(safeInput.shopPurchases),
+        shopItemCharges: normalizeObject(safeInput.shopItemCharges),
 
         expeditionStats: {
             rareChanceBonus: Math.max(
