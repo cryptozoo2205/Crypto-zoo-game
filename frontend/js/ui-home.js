@@ -216,7 +216,10 @@ Object.assign(CryptoZoo.ui, {
             boostBtn.onclick = () => {
                 CryptoZoo.audio?.play?.("click");
 
-                const gems = Number(CryptoZoo.state?.gems) || 0;
+                const boostCostGems = Math.max(
+                    0,
+                    Number(CryptoZoo.boostSystem?.getBoostCostGems?.() || 3)
+                );
 
                 if (CryptoZoo.boostSystem?.isActive?.()) {
                     const left = CryptoZoo.boostSystem?.getTimeLeft?.() || 0;
@@ -224,17 +227,16 @@ Object.assign(CryptoZoo.ui, {
                     return;
                 }
 
-                if (gems >= 3) {
-                    CryptoZoo.state.gems = Math.max(0, gems - 3);
-
-                    CryptoZoo.boostSystem?.activate?.();
-                    CryptoZoo.ui?.render?.();
-                    CryptoZoo.api?.savePlayer?.();
+                if ((Number(CryptoZoo.state?.gems) || 0) < boostCostGems) {
+                    this.goToBoostShop();
+                    this.showToast(`Potrzebujesz ${CryptoZoo.formatNumber(boostCostGems)} gem`);
                     return;
                 }
 
-                this.goToBoostShop();
-                this.showToast(this.t("needGemBoost", "Potrzebujesz 3 gemy na X2 Boost"));
+                const activated = CryptoZoo.boostSystem?.activate?.();
+                if (activated) {
+                    CryptoZoo.ui?.render?.();
+                }
             };
         }
 
