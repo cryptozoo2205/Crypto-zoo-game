@@ -2,12 +2,29 @@ window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.boostSystem = {
     getBoostShopItem() {
-        const items = CryptoZoo.config?.shopItems || [];
+        const items = Array.isArray(CryptoZoo.config?.shopItems)
+            ? CryptoZoo.config.shopItems
+            : [];
+
         return items.find((item) => {
+            const itemId = String(item?.id || "").toLowerCase();
             const effect = String(item?.effect || "").toLowerCase();
             const type = String(item?.type || "").toLowerCase();
+            const name = String(item?.name || "").toLowerCase();
+            const namePl = String(item?.namePl || "").toLowerCase();
+            const nameEn = String(item?.nameEn || "").toLowerCase();
 
-            return effect === "boost2x" || effect === "boost" || type === "boost2x";
+            return (
+                effect === "boost2x" ||
+                effect === "boost" ||
+                type === "boost2x" ||
+                itemId === "boost2x" ||
+                itemId === "x2boost" ||
+                itemId === "boost" ||
+                name.includes("x2 boost") ||
+                namePl.includes("x2 boost") ||
+                nameEn.includes("x2 boost")
+            );
         }) || null;
     },
 
@@ -19,7 +36,7 @@ CryptoZoo.boostSystem = {
             return configCost;
         }
 
-        return 1;
+        return 3;
     },
 
     getBoostDurationMs() {
@@ -67,20 +84,20 @@ CryptoZoo.boostSystem = {
             return true;
         }
 
-        if ((Number(CryptoZoo.state.gems) || 0) < boostCostGems) {
+        if ((Number(CryptoZoo.state?.gems) || 0) < boostCostGems) {
             CryptoZoo.ui?.showToast?.(`Potrzebujesz ${CryptoZoo.formatNumber(boostCostGems)} gem`);
             return false;
         }
 
         CryptoZoo.state.gems = Math.max(
             0,
-            (Number(CryptoZoo.state.gems) || 0) - boostCostGems
+            (Number(CryptoZoo.state?.gems) || 0) - boostCostGems
         );
 
         CryptoZoo.state.boost2xActiveUntil = Date.now() + boostDurationMs;
 
         CryptoZoo.gameplay?.persistAndRender?.();
-        CryptoZoo.ui?.showToast?.("X2 Boost aktywowany");
+        CryptoZoo.ui?.showToast?.(`X2 Boost aktywowany • -${CryptoZoo.formatNumber(boostCostGems)} gem`);
 
         return true;
     },
@@ -90,6 +107,8 @@ CryptoZoo.boostSystem = {
         if (!btn) return false;
 
         btn.onclick = () => {
+            CryptoZoo.audio?.play?.("click");
+
             const activated = this.activate();
 
             if (activated) {
