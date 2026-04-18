@@ -1,17 +1,28 @@
 const { normalizeRewardNumber, safeString } = require("../utils/helpers");
 
 const TON_RECEIVER_WALLET = "";
-const MAX_EXPEDITION_BOOST = 1.0;
-const MAX_EXPEDITION_BOOST_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
-const MAX_DEPOSIT_AMOUNT = 100000;
-const MAX_GEMS_FROM_DEPOSIT = 150;
+const MAX_EXPEDITION_BOOST = 10.0;
+const MAX_EXPEDITION_BOOST_DURATION_MS = 365 * 24 * 60 * 60 * 1000;
+const MAX_DEPOSIT_AMOUNT_USD = 100000;
+const MAX_GEMS_FROM_DEPOSIT = 500000;
 
 const UNIQUE_AMOUNT_DECIMALS = 6;
 const UNIQUE_AMOUNT_MIN_FRACTION = 0.000001;
 const UNIQUE_AMOUNT_MAX_FRACTION = 0.009999;
 
-function clampDepositAmount(amount) {
-    return Math.max(0, Math.min(MAX_DEPOSIT_AMOUNT, normalizeRewardNumber(amount, 0)));
+const DEFAULT_USD_TO_TON_RATE = Number(process.env.DEPOSIT_USD_TO_TON_RATE || 1) || 1;
+
+function getUsdToTonRate() {
+    return DEFAULT_USD_TO_TON_RATE > 0 ? DEFAULT_USD_TO_TON_RATE : 1;
+}
+
+function clampDepositAmountUsd(amount) {
+    return Math.max(0, Math.min(MAX_DEPOSIT_AMOUNT_USD, Number((Number(amount) || 0).toFixed(2))));
+}
+
+function roundUsdAmount(amount) {
+    const safe = Number(amount) || 0;
+    return Number(safe.toFixed(2));
 }
 
 function roundTonAmount(amount) {
@@ -19,37 +30,24 @@ function roundTonAmount(amount) {
     return Number(safe.toFixed(UNIQUE_AMOUNT_DECIMALS));
 }
 
-function getDepositGemsAmount(amount) {
-    const safeAmount = clampDepositAmount(amount);
-
-    if (safeAmount >= 10) return 150;
-    if (safeAmount >= 5) return 70;
-    if (safeAmount >= 3) return 35;
-    if (safeAmount >= 1) return 10;
-
-    return 0;
+function convertUsdToTon(amountUsd) {
+    const safeAmountUsd = clampDepositAmountUsd(amountUsd);
+    return roundTonAmount(safeAmountUsd * getUsdToTonRate());
 }
 
-function getDepositExpeditionBoostAmount(amount) {
-    const safeAmount = clampDepositAmount(amount);
-
-    if (safeAmount >= 10) return 0.60;
-    if (safeAmount >= 5) return 0.30;
-    if (safeAmount >= 3) return 0.15;
-    if (safeAmount >= 1) return 0.05;
-
-    return 0;
+function getDepositGemsAmount(amountUsd) {
+    const safeAmountUsd = clampDepositAmountUsd(amountUsd);
+    return Math.max(0, Math.floor(safeAmountUsd * 5));
 }
 
-function getDepositExpeditionBoostDurationMs(amount) {
-    const safeAmount = clampDepositAmount(amount);
+function getDepositExpeditionBoostAmount(amountUsd) {
+    const safeAmountUsd = clampDepositAmountUsd(amountUsd);
+    return Number(Math.max(0, safeAmountUsd * 0.06).toFixed(6));
+}
 
-    if (safeAmount >= 10) return 7 * 24 * 60 * 60 * 1000;
-    if (safeAmount >= 5) return 5 * 24 * 60 * 60 * 1000;
-    if (safeAmount >= 3) return 3 * 24 * 60 * 60 * 1000;
-    if (safeAmount >= 1) return 1 * 24 * 60 * 60 * 1000;
-
-    return 0;
+function getDepositExpeditionBoostDurationMs(amountUsd) {
+    const safeAmountUsd = clampDepositAmountUsd(amountUsd);
+    return Math.max(0, Math.floor(safeAmountUsd * 7 * 60 * 60 * 1000));
 }
 
 function clampExpeditionBoost(value) {
@@ -57,10 +55,9 @@ function clampExpeditionBoost(value) {
     return Math.max(0, Math.min(MAX_EXPEDITION_BOOST, safeValue));
 }
 
-function applyDepositExpeditionBoost(currentBoost, depositAmount) {
-    const safeCurrentBoost = clampExpeditionBoost(currentBoost);
-    const addAmount = getDepositExpeditionBoostAmount(depositAmount);
-
+function applyDepositExpeditionBoost(currentBoost, depositAmountUsd) {
+    const safeCurrentBoost = Math.max(0, Number(currentBoost) || 0);
+    const addAmount = getDepositExpeditionBoostAmount(depositAmountUsd);
     return clampExpeditionBoost(safeCurrentBoost + addAmount);
 }
 
@@ -72,14 +69,16 @@ function getRemainingExpeditionBoostCapacity(currentBoost) {
     );
 }
 
-function getExpeditionBoostActiveUntil(depositAmount, now = Date.now()) {
+function getExpeditionBoostActiveUntil(depositAmountUsd, now = Date.now(), currentActiveUntil = 0) {
     const safeNow = Math.max(0, Number(now) || 0);
+    const safeCurrentActiveUntil = Math.max(0, Number(currentActiveUntil) || 0);
     const durationMs = Math.min(
         MAX_EXPEDITION_BOOST_DURATION_MS,
-        Math.max(0, Number(getDepositExpeditionBoostDurationMs(depositAmount)) || 0)
+        Math.max(0, Number(getDepositExpeditionBoostDurationMs(depositAmountUsd)) || 0)
     );
 
-    return safeNow + durationMs;
+    const durationBaseTime = safeCurrentActiveUntil > safeNow ? safeCurrentActiveUntil : safeNow;
+    return durationBaseTime + durationMs;
 }
 
 function generateUniqueFraction() {
@@ -90,17 +89,18 @@ function generateUniqueFraction() {
     return Number((randomInt / 1_000_000).toFixed(UNIQUE_AMOUNT_DECIMALS));
 }
 
-function buildExpectedAmount(baseAmount, uniqueFraction = 0) {
-    const safeBaseAmount = clampDepositAmount(baseAmount);
+function buildExpectedAmount(baseAmountTon, uniqueFraction = 0) {
+    const safeBaseAmountTon = roundTonAmount(Math.max(0, Number(baseAmountTon) || 0));
     const safeFraction = Math.max(0, Number(uniqueFraction) || 0);
 
-    return roundTonAmount(safeBaseAmount + safeFraction);
+    return roundTonAmount(safeBaseAmountTon + safeFraction);
 }
 
 function createDeposit({
     telegramId,
     username,
-    amount,
+    amountUsd,
+    baseAmountUsd,
     source = "ton",
     asset = "TON",
     walletAddress = ""
@@ -109,22 +109,24 @@ function createDeposit({
     const randomPart = Math.random().toString(36).slice(2, 8);
     const id = `dp_${now}_${randomPart}`;
 
-    const safeBaseAmount = clampDepositAmount(amount);
+    const safeBaseAmountUsd = clampDepositAmountUsd(baseAmountUsd ?? amountUsd);
+    const safeBaseAmountTon = convertUsdToTon(safeBaseAmountUsd);
+
     const uniqueFraction = generateUniqueFraction();
-    const expectedAmount = buildExpectedAmount(safeBaseAmount, uniqueFraction);
+    const expectedAmount = buildExpectedAmount(safeBaseAmountTon, uniqueFraction);
 
     const gemsAmount = Math.max(
         0,
-        Math.min(MAX_GEMS_FROM_DEPOSIT, Number(getDepositGemsAmount(safeBaseAmount)) || 0)
+        Math.min(MAX_GEMS_FROM_DEPOSIT, Number(getDepositGemsAmount(safeBaseAmountUsd)) || 0)
     );
 
     const expeditionBoostAmount = clampExpeditionBoost(
-        getDepositExpeditionBoostAmount(safeBaseAmount)
+        getDepositExpeditionBoostAmount(safeBaseAmountUsd)
     );
 
     const expeditionBoostDurationMs = Math.min(
         MAX_EXPEDITION_BOOST_DURATION_MS,
-        Math.max(0, Number(getDepositExpeditionBoostDurationMs(safeBaseAmount)) || 0)
+        Math.max(0, Number(getDepositExpeditionBoostDurationMs(safeBaseAmountUsd)) || 0)
     );
 
     return {
@@ -133,7 +135,11 @@ function createDeposit({
         username: String(username || "Gracz"),
 
         amount: expectedAmount,
-        baseAmount: safeBaseAmount,
+        tonAmount: expectedAmount,
+        amountUsd: safeBaseAmountUsd,
+        baseAmount: safeBaseAmountUsd,
+        baseAmountUsd: safeBaseAmountUsd,
+        baseAmountTon: safeBaseAmountTon,
         expectedAmount,
         uniqueFraction,
 
@@ -143,6 +149,8 @@ function createDeposit({
 
         source: safeString(source, "ton") || "ton",
         asset: safeString(asset, "TON") || "TON",
+        currency: safeString(asset, "TON") || "TON",
+        network: "TON",
         walletAddress: safeString(walletAddress, ""),
 
         status: "created",
@@ -166,7 +174,10 @@ function buildDepositPaymentData(deposit) {
     return {
         depositId: String(deposit?.id || ""),
         amount: roundTonAmount(deposit?.amount),
-        baseAmount: roundTonAmount(deposit?.baseAmount),
+        tonAmount: roundTonAmount(deposit?.tonAmount ?? deposit?.amount),
+        baseAmount: roundUsdAmount(deposit?.baseAmountUsd ?? deposit?.baseAmount),
+        baseAmountUsd: roundUsdAmount(deposit?.baseAmountUsd ?? deposit?.baseAmount),
+        baseAmountTon: roundTonAmount(deposit?.baseAmountTon),
         expectedAmount: roundTonAmount(deposit?.expectedAmount || deposit?.amount),
         uniqueFraction: roundTonAmount(deposit?.uniqueFraction || 0),
         gemsAmount: Math.max(
@@ -179,6 +190,8 @@ function buildDepositPaymentData(deposit) {
             Math.max(0, Number(deposit?.expeditionBoostDurationMs) || 0)
         ),
         asset: String(deposit?.asset || "TON"),
+        currency: String(deposit?.currency || deposit?.asset || "TON"),
+        network: String(deposit?.network || "TON"),
         source: String(deposit?.source || "ton"),
         receiverAddress: String(receiverAddress || ""),
         paymentComment: "",
@@ -199,6 +212,8 @@ module.exports = {
     UNIQUE_AMOUNT_DECIMALS,
     UNIQUE_AMOUNT_MIN_FRACTION,
     UNIQUE_AMOUNT_MAX_FRACTION,
+    getUsdToTonRate,
+    convertUsdToTon,
     getDepositGemsAmount,
     getDepositExpeditionBoostAmount,
     getDepositExpeditionBoostDurationMs,
