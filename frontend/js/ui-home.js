@@ -28,7 +28,11 @@ Object.assign(CryptoZoo.ui, {
 
         const canWatchAd = !!CryptoZoo.offlineAds?.canWatchAd?.();
 
-        const adRewardHours = Math.max(0.5, Number(this.getOfflineAdRewardHours()) || 0.5);
+        const adRewardHours = Math.max(
+            0.5,
+            Number(this.getOfflineAdRewardHours()) || 0.5
+        );
+
         const maxSlots = Math.max(1, Math.round(maxAds / adRewardHours));
         const activeSlots = adsHours > 0
             ? Math.max(1, Math.min(maxSlots, Math.ceil(adsHours / adRewardHours)))
@@ -68,6 +72,7 @@ Object.assign(CryptoZoo.ui, {
         const currentMinutes = adsHours > 0
             ? Math.max(1, Math.ceil(adsHours * 60))
             : 0;
+
         const maxMinutes = Math.max(0, Math.round(maxAds * 60));
 
         if (activeSlots <= 0) {
@@ -81,17 +86,22 @@ Object.assign(CryptoZoo.ui, {
         if (CryptoZoo.ads?.isLoading) {
             adBtn.disabled = true;
             adBtn.textContent = "⏳ Reklama...";
+            adBtn.onclick = null;
             return;
         }
 
         if (!canWatchAd) {
             adBtn.disabled = true;
             adBtn.textContent = "⏳ MAX";
+            adBtn.onclick = null;
             return;
         }
 
         adBtn.disabled = false;
         adBtn.textContent = "📺 +30m";
+        adBtn.onclick = () => {
+            CryptoZoo.ads?.showRewardedAd?.();
+        };
     },
 
     ensureOfflineInfoTimerRunning() {
