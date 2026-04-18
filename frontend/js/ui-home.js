@@ -30,7 +30,9 @@ Object.assign(CryptoZoo.ui, {
 
         const adRewardHours = Math.max(0.5, Number(this.getOfflineAdRewardHours()) || 0.5);
         const maxSlots = Math.max(1, Math.round(maxAds / adRewardHours));
-        const activeSlots = Math.max(0, Math.min(maxSlots, Math.round(adsHours / adRewardHours)));
+        const activeSlots = adsHours > 0
+            ? Math.max(1, Math.min(maxSlots, Math.ceil(adsHours / adRewardHours)))
+            : 0;
 
         let barsHtml = '<div class="home-offline-bars" style="display:flex;gap:6px;align-items:center;flex-wrap:nowrap;margin-top:2px;">';
 
@@ -63,8 +65,10 @@ Object.assign(CryptoZoo.ui, {
             </div>
         `;
 
-        const currentMinutes = Math.max(0, Math.floor(adsHours * 60));
-        const maxMinutes = Math.max(0, Math.floor(maxAds * 60));
+        const currentMinutes = adsHours > 0
+            ? Math.max(1, Math.ceil(adsHours * 60))
+            : 0;
+        const maxMinutes = Math.max(0, Math.round(maxAds * 60));
 
         if (activeSlots <= 0) {
             subText.textContent = `Pakiet offline: 0m / ${maxMinutes}m`;
