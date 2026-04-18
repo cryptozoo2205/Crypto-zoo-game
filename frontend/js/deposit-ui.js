@@ -12,6 +12,7 @@ CryptoZoo.depositUI = {
     tonConnectUI: null,
     tonWalletAddress: "",
     tonConnectInitialized: false,
+    tonConnectInitInProgress: false,
 
     getTelegramWebApp() {
         return window.Telegram?.WebApp || null;
@@ -149,6 +150,16 @@ CryptoZoo.depositUI = {
         return document.getElementById("settingsPayWithTonBtn");
     },
 
+    getTonConnectUiClass() {
+        return window.TON_CONNECT_UI?.TonConnectUI || window.TonConnectUI || null;
+    },
+
+    canInitTonConnect() {
+        const TonConnectUIClass = this.getTonConnectUiClass();
+        const buttonEl = this.getTonConnectButtonEl();
+        return !!TonConnectUIClass && !!buttonEl;
+    },
+
     shortenAddress(address) {
         const safe = String(address || "").trim();
         if (safe.length <= 14) return safe;
@@ -184,40 +195,61 @@ CryptoZoo.depositUI = {
     },
 
     async initTonConnect() {
-        if (this.tonConnectInitialized) {
+        if (this.tonConnectInitialized && this.tonConnectUI) {
             this.updateTonConnectUi();
-            return;
+            return true;
         }
 
-        this.tonConnectInitialized = true;
+        if (this.tonConnectInitInProgress) {
+            return !!this.tonConnectUI;
+        }
+
+        this.tonConnectInitInProgress = true;
 
         try {
-            if (typeof window.TON_CONNECT_UI === "undefined" && typeof window.TonConnectUI === "undefined") {
+            const TonConnectUIClass = this.getTonConnectUiClass();
+            const buttonEl = this.getTonConnectButtonEl();
+
+            if (!TonConnectUIClass) {
                 console.warn("TonConnect UI SDK not found");
+                this.tonConnectInitialized = false;
                 this.updateTonConnectUi();
-                return;
+                return false;
             }
 
-            const TonConnectUIClass = window.TON_CONNECT_UI?.TonConnectUI || window.TonConnectUI;
-            const buttonRootId = "tonConnectButton";
+            if (!buttonEl) {
+                console.warn("TonConnect button root not found");
+                this.tonConnectInitialized = false;
+                this.updateTonConnectUi();
+                return false;
+            }
 
-            this.tonConnectUI = new TonConnectUIClass({
-                manifestUrl: this.getManifestUrl(),
-                buttonRootId
-            });
-
-            if (typeof this.tonConnectUI.onStatusChange === "function") {
-                this.tonConnectUI.onStatusChange((wallet) => {
-                    this.tonWalletAddress = String(wallet?.account?.address || "").trim();
-                    this.updateTonConnectUi();
+            if (!this.tonConnectUI) {
+                this.tonConnectUI = new TonConnectUIClass({
+                    manifestUrl: this.getManifestUrl(),
+                    buttonRootId: "tonConnectButton"
                 });
+
+                if (typeof this.tonConnectUI.onStatusChange === "function") {
+                    this.tonConnectUI.onStatusChange((wallet) => {
+                        this.tonWalletAddress = String(wallet?.account?.address || "").trim();
+                        this.updateTonConnectUi();
+                    });
+                }
             }
 
             this.tonWalletAddress = String(this.tonConnectUI?.wallet?.account?.address || "").trim();
+            this.tonConnectInitialized = true;
             this.updateTonConnectUi();
+            return true;
         } catch (error) {
             console.error("TonConnect init error:", error);
+            this.tonConnectInitialized = false;
+            this.tonConnectUI = null;
             this.updateTonConnectUi();
+            return false;
+        } finally {
+            this.tonConnectInitInProgress = false;
         }
     },
 
@@ -484,10 +516,11 @@ CryptoZoo.depositUI = {
         }
     },
 
-    showDepositModal() {
+    async showDepositModal() {
         const modal = this.ensureModal();
         this.fillModalData();
         modal.classList.remove("hidden");
+        await this.initTonConnect();
         this.updateTonConnectUi();
     },
 
@@ -626,6 +659,8 @@ CryptoZoo.depositUI = {
         this.updateTonConnectUi();
 
         try {
+            await this.initTonConnect();
+
             if (!this.tonConnectUI) {
                 throw new Error("TonConnect not initialized");
             }
@@ -744,7 +779,7 @@ CryptoZoo.depositUI = {
             };
 
             this.bindResumeEvents();
-            this.showDepositModal();
+            await this.showDepositModal();
             this.updateTonConnectUi();
 
             const toastMessage = bonusText
