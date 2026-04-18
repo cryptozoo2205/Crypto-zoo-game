@@ -16,7 +16,7 @@ CryptoZoo.expeditionRegionsUi = {
             {
                 id: "desert",
                 name: "Pustynia",
-                minLevel: 49,
+                minLevel: 50,
                 maxLevel: null,
                 locked: true,
                 bgClass: "exp-region-bg-desert"
@@ -246,6 +246,27 @@ CryptoZoo.expeditionRegionsUi = {
                     0 2px 8px rgba(0,0,0,0.66);
             }
 
+            .exp-region-soon {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: fit-content;
+                margin-top: 4px;
+                padding: 6px 12px;
+                border-radius: 999px;
+                font-size: 11px;
+                font-weight: 900;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                color: #ffe6a3;
+                background: linear-gradient(180deg, rgba(255,210,90,0.22) 0%, rgba(255,170,40,0.12) 100%);
+                border: 1px solid rgba(255,214,110,0.28);
+                box-shadow:
+                    0 6px 18px rgba(0,0,0,0.20),
+                    inset 0 1px 0 rgba(255,255,255,0.10);
+                text-shadow: 0 1px 6px rgba(0,0,0,0.55);
+            }
+
             .exp-region-lock {
                 position: absolute;
                 inset: 0;
@@ -352,6 +373,7 @@ CryptoZoo.expeditionRegionsUi = {
                             <div class="exp-region-content">
                                 <div class="exp-region-title">${region.name}</div>
                                 <div class="exp-region-subtitle">${subtitle}</div>
+                                ${isLocked ? `<div class="exp-region-soon">Wkrótce</div>` : ``}
                             </div>
                             ${isLocked ? `
                                 <div class="exp-region-lock">
