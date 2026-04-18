@@ -522,5 +522,143 @@ Object.assign(CryptoZoo.minigames, {
                 this.setMemoryStatus("");
             }, 780);
         }
+    },
+
+    renderCooldowns() {
+        const memoryBtn = document.getElementById("startMemoryBtn");
+        const memoryStatus = document.getElementById("memoryStatus");
+
+        const memoryLeft = this.getMemoryCooldownLeft?.() || 0;
+        const memoryUnlocked = this.isUnlocked("memory");
+
+        if (memoryBtn) {
+            if (!memoryUnlocked) {
+                memoryBtn.disabled = true;
+                memoryBtn.textContent = `${this.lt("unlockAtLevel", "Odblokowanie na poziomie")} ${this.getUnlockLevel("memory")}`;
+                memoryBtn.style.opacity = "0.72";
+                memoryBtn.style.cursor = "not-allowed";
+            } else if (this.memorySessionActive) {
+                memoryBtn.disabled = false;
+                memoryBtn.textContent = this.lt("restartMemory", "Play Again");
+                memoryBtn.style.opacity = "1";
+                memoryBtn.style.cursor = "pointer";
+            } else if (memoryLeft > 0) {
+                memoryBtn.disabled = true;
+                memoryBtn.textContent = `${this.lt("memoryCooldown", "Memory CD")} ${this.formatCooldown(memoryLeft)}`;
+                memoryBtn.style.opacity = "0.72";
+                memoryBtn.style.cursor = "not-allowed";
+            } else {
+                memoryBtn.disabled = false;
+                memoryBtn.textContent = this.lt("startMemory", "Start Memory");
+                memoryBtn.style.opacity = "1";
+                memoryBtn.style.cursor = "pointer";
+            }
+        }
+
+        if (memoryStatus && this.memoryCards.length === 0) {
+            if (!memoryUnlocked) {
+                memoryStatus.textContent = "";
+                memoryStatus.style.display = "none";
+            } else if (memoryLeft > 0) {
+                memoryStatus.textContent = `${this.lt("memoryReadyIn", "Memory ready in")} ${this.formatCooldown(memoryLeft)}`;
+                memoryStatus.style.display = "block";
+            } else {
+                memoryStatus.textContent = this.lt("findAllPairs", "Find all pairs");
+                memoryStatus.style.display = "block";
+            }
+        }
+
+        this.renderTapChallenge?.();
+        this.renderAnimalHunt?.();
+    },
+
+    bindButtons() {
+        const memoryBtn = document.getElementById("startMemoryBtn");
+
+        if (memoryBtn && !memoryBtn.dataset.bound) {
+            memoryBtn.dataset.bound = "1";
+            memoryBtn.onclick = () => {
+                CryptoZoo.audio?.play?.("click");
+
+                if (!this.isUnlocked("memory")) {
+                    this.showLockedToast("memory");
+                    return;
+                }
+
+                if (this.memorySessionActive || this.memoryCards.length > 0) {
+                    this.resetMemoryBoard?.(true);
+                }
+
+                this.startMemory?.();
+            };
+        }
+
+        const tapBtn = document.getElementById("tapChallengeTapBtn");
+        if (tapBtn && !tapBtn.dataset.bound) {
+            tapBtn.dataset.bound = "1";
+
+            tapBtn.onclick = (e) => {
+                e.preventDefault();
+
+                if (!this.isUnlocked("tapChallenge")) {
+                    this.showLockedToast("tapChallenge");
+                    return;
+                }
+
+                this.registerTapChallengePress?.(1);
+            };
+
+            tapBtn.addEventListener("touchstart", (e) => {
+                const amount = Math.max(
+                    1,
+                    Math.min(
+                        this.getTapChallengeMaxBurst?.() || 3,
+                        Array.from(e.changedTouches || []).length || 1
+                    )
+                );
+
+                e.preventDefault();
+
+                if (!this.isUnlocked("tapChallenge")) {
+                    this.showLockedToast("tapChallenge");
+                    return;
+                }
+
+                this.registerTapChallengePress?.(amount);
+            }, { passive: false });
+        }
+
+        const claimBtn = document.getElementById("tapChallengeClaimBtn");
+        if (claimBtn && !claimBtn.dataset.bound) {
+            claimBtn.dataset.bound = "1";
+            claimBtn.onclick = () => {
+                CryptoZoo.audio?.play?.("click");
+                this.claimTapChallengeReward?.();
+            };
+        }
+
+        const animalHuntStartBtn = document.getElementById("animalHuntStartBtn");
+        if (animalHuntStartBtn && !animalHuntStartBtn.dataset.bound) {
+            animalHuntStartBtn.dataset.bound = "1";
+            animalHuntStartBtn.onclick = () => {
+                CryptoZoo.audio?.play?.("click");
+
+                if (!this.isUnlocked("animalHunt")) {
+                    this.showLockedToast("animalHunt");
+                    return;
+                }
+
+                this.startAnimalHunt?.();
+            };
+        }
+
+        const animalHuntClaimBtn = document.getElementById("animalHuntClaimBtn");
+        if (animalHuntClaimBtn && !animalHuntClaimBtn.dataset.bound) {
+            animalHuntClaimBtn.dataset.bound = "1";
+            animalHuntClaimBtn.onclick = () => {
+                CryptoZoo.audio?.play?.("click");
+                this.claimAnimalHuntReward?.();
+            };
+        }
     }
 });
