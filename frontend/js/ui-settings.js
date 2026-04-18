@@ -275,76 +275,94 @@ CryptoZoo.uiSettings = {
         const currentValue = this.getDepositInputValue();
         const bonus = this.getDepositBonusMeta(currentValue);
 
-        wrap.innerHTML = `
-            <div
-                style="
-                    width:100%;
-                    padding:14px 16px;
-                    border-radius:16px;
-                    border:1px solid rgba(255,255,255,0.14);
-                    background:rgba(255,255,255,0.04);
-                    color:#ffffff;
-                    box-sizing:border-box;
-                "
-            >
-                <div style="font-size:13px;font-weight:800;color:rgba(255,255,255,0.72);">
-                    Minimalna wpłata
-                </div>
-                <div style="margin-top:4px;font-size:15px;font-weight:900;">
-                    ${this.minDepositUsd}$
-                </div>
+        const existingInput = document.getElementById("settingsDepositUsdInput");
+        const existingGems = document.getElementById("settingsDepositPreviewGems");
+        const existingBoost = document.getElementById("settingsDepositPreviewBoost");
+        const existingDuration = document.getElementById("settingsDepositPreviewDuration");
 
-                <div style="margin-top:14px;font-size:13px;font-weight:800;color:rgba(255,255,255,0.72);">
-                    Wpisz kwotę $
-                </div>
-
-                <input
-                    id="settingsDepositUsdInput"
-                    type="number"
-                    inputmode="decimal"
-                    min="${this.minDepositUsd}"
-                    step="0.01"
-                    value="${currentValue}"
-                    placeholder="${this.defaultDepositUsd}"
+        if (!existingInput || !existingGems || !existingBoost || !existingDuration) {
+            wrap.innerHTML = `
+                <div
                     style="
                         width:100%;
-                        margin-top:10px;
                         padding:14px 16px;
-                        border-radius:14px;
+                        border-radius:16px;
                         border:1px solid rgba(255,255,255,0.14);
-                        background:rgba(0,0,0,0.20);
-                        color:#fff;
-                        font-size:16px;
-                        font-weight:900;
-                        outline:none;
+                        background:rgba(255,255,255,0.04);
+                        color:#ffffff;
                         box-sizing:border-box;
                     "
-                />
+                >
+                    <div style="font-size:13px;font-weight:800;color:rgba(255,255,255,0.72);">
+                        Minimalna wpłata
+                    </div>
+                    <div style="margin-top:4px;font-size:15px;font-weight:900;">
+                        ${this.minDepositUsd}$
+                    </div>
 
-                <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.10);">
-                    <div
-                        id="settingsDepositPreviewGems"
-                        style="font-size:13px;font-weight:800;line-height:1.35;color:rgba(255,255,255,0.92);"
-                    >
-                        +${CryptoZoo.formatNumber(bonus.gems)} gem
+                    <div style="margin-top:14px;font-size:13px;font-weight:800;color:rgba(255,255,255,0.72);">
+                        Wpisz kwotę $
                     </div>
-                    <div
-                        id="settingsDepositPreviewBoost"
-                        style="margin-top:6px;font-size:13px;font-weight:800;line-height:1.35;color:rgba(255,255,255,0.82);"
-                    >
-                        +${CryptoZoo.formatNumber(bonus.boostPercent)}% boost ekspedycji
-                    </div>
-                    <div
-                        id="settingsDepositPreviewDuration"
-                        style="margin-top:6px;font-size:13px;font-weight:800;line-height:1.35;color:rgba(255,255,255,0.72);"
-                    >
-                        ${this.formatHoursLabel(bonus.durationHours)}
+
+                    <input
+                        id="settingsDepositUsdInput"
+                        type="number"
+                        inputmode="decimal"
+                        min="${this.minDepositUsd}"
+                        step="0.01"
+                        value="${currentValue}"
+                        placeholder="${this.defaultDepositUsd}"
+                        style="
+                            width:100%;
+                            margin-top:10px;
+                            padding:14px 16px;
+                            border-radius:14px;
+                            border:1px solid rgba(255,255,255,0.14);
+                            background:rgba(0,0,0,0.20);
+                            color:#fff;
+                            font-size:16px;
+                            font-weight:900;
+                            outline:none;
+                            box-sizing:border-box;
+                        "
+                    />
+
+                    <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.10);">
+                        <div
+                            id="settingsDepositPreviewGems"
+                            style="font-size:13px;font-weight:800;line-height:1.35;color:rgba(255,255,255,0.92);"
+                        >
+                            +${CryptoZoo.formatNumber(bonus.gems)} gem
+                        </div>
+                        <div
+                            id="settingsDepositPreviewBoost"
+                            style="margin-top:6px;font-size:13px;font-weight:800;line-height:1.35;color:rgba(255,255,255,0.82);"
+                        >
+                            +${CryptoZoo.formatNumber(bonus.boostPercent)}% boost ekspedycji
+                        </div>
+                        <div
+                            id="settingsDepositPreviewDuration"
+                            style="margin-top:6px;font-size:13px;font-weight:800;line-height:1.35;color:rgba(255,255,255,0.72);"
+                        >
+                            ${this.formatHoursLabel(bonus.durationHours)}
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
+            `;
 
-        this.bindDepositInput();
+            this.bindDepositInput();
+            return;
+        }
+
+        const isFocused = document.activeElement === existingInput;
+
+        if (!isFocused) {
+            existingInput.value = String(currentValue);
+        }
+
+        existingGems.textContent = `+${CryptoZoo.formatNumber(bonus.gems)} gem`;
+        existingBoost.textContent = `+${CryptoZoo.formatNumber(bonus.boostPercent)}% boost ekspedycji`;
+        existingDuration.textContent = this.formatHoursLabel(bonus.durationHours);
     },
 
     refreshSettingsModalData() {
