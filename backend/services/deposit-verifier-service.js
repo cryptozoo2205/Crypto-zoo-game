@@ -1,16 +1,18 @@
-const { readDb, writeDb } = require("../db/db");
+lconst { readDb, writeDb } = require("../db/db");
 const { normalizeRewardNumber, safeString, clamp } = require("../utils/helpers");
 const { getPlayerOrCreate, normalizePlayer } = require("./player-service");
 const {
     TON_RECEIVER_WALLET,
     applyDepositExpeditionBoost,
-    getExpeditionBoostActiveUntil
+    getExpeditionBoostActiveUntil,
+    UNIQUE_AMOUNT_DECIMALS
 } = require("./deposit-service");
 const { LIMITS } = require("../config/game-config");
 
 const TONCENTER_BASE_URL = "https://toncenter.com/api/v2";
 const MAX_DEPOSIT_GEMS = 150;
 const MAX_DEPOSIT_AMOUNT = 100000;
+const AMOUNT_MATCH_TOLERANCE = Number((1 / Math.pow(10, UNIQUE_AMOUNT_DECIMALS)).toFixed(UNIQUE_AMOUNT_DECIMALS));
 
 function getReceiverWalletAddress() {
     return safeString(
@@ -102,23 +104,6 @@ async function fetchTonTransactions(address, limit = 30) {
     return Array.isArray(json?.result) ? json.result : [];
 }
 
-function extractTransactionComment(tx) {
-    const sources = [
-        tx?.in_msg?.message,
-        tx?.in_msg?.msg_data?.text,
-        tx?.in_msg?.comment
-    ];
-
-    for (const value of sources) {
-        const safe = safeString(value, "");
-        if (safe) {
-            return safe;
-        }
-    }
-
-    return "";
-}
-
 function extractTransactionHash(tx) {
     return safeString(tx?.transaction_id?.hash || tx?.hash || "", "");
 }
@@ -136,8 +121,15 @@ function isTransactionSuccessful(tx) {
     return true;
 }
 
-function normalizeComment(value) {
-    return safeString(value, "");
+function roundAmount(amount) {
+    const safe = Number(amount) || 0;
+    return Number(safe.toFixed(UNIQUE_AMOUNT_DECIMALS));
+}
+
+function amountsMatch(expectedAmount, txAmount) {
+    const safeExpected = roundAmount(expectedAmount);
+    const safeTx = roundAmount(txAmount);
+    return Math.abs(safeExpected - safeTx) <= AMOUNT_MATCH_TOLERANCE;
 }
 
 function isTxHashAlreadyUsed(db, txHash, currentDepositId = "") {
@@ -157,10 +149,8 @@ function isTxHashAlreadyUsed(db, txHash, currentDepositId = "") {
     });
 }
 
-function findApprovedDepositByComment(db, paymentComment, currentDepositId = "") {
-    const safeComment = normalizeComment(paymentComment);
-    if (!safeComment) return null;
-
+function findApprovedDepositByExactAmount(db, expectedAmount, currentDepositId = "") {
+    const safeExpected = roundAmount(expectedAmount);
     const deposits = Array.isArray(db?.deposits) ? db.deposits : [];
 
     return (
@@ -170,7 +160,10 @@ function findApprovedDepositByComment(db, paymentComment, currentDepositId = "")
 
             return (
                 normalizeDepositStatus(deposit?.status) === "approved" &&
-                normalizeComment(deposit?.paymentComment) === safeComment
+                amountsMatch(
+                    Number(deposit?.expectedAmount ?? deposit?.amount ?? 0),
+                    safeExpected
+                )
             );
         }) || null
     );
@@ -179,22 +172,15 @@ function findApprovedDepositByComment(db, paymentComment, currentDepositId = "")
 function matchDepositToTransaction(db, deposit, tx) {
     if (!deposit || !tx) return false;
 
-    const depositComment = normalizeComment(deposit.paymentComment);
-    const txComment = normalizeComment(extractTransactionComment(tx));
     const txHash = extractTransactionHash(tx);
-
-    if (!depositComment || !txComment) {
-        return false;
-    }
-
-    if (txComment !== depositComment) {
-        return false;
-    }
-
-    const depositAmount = normalizeRewardNumber(deposit.amount, 0);
     const txAmount = extractTransactionAmountTon(tx);
+    const expectedAmount = Number(deposit?.expectedAmount ?? deposit?.amount ?? 0);
 
-    if (txAmount < depositAmount) {
+    if (expectedAmount <= 0 || txAmount <= 0) {
+        return false;
+    }
+
+    if (!amountsMatch(expectedAmount, txAmount)) {
         return false;
     }
 
@@ -206,12 +192,13 @@ function matchDepositToTransaction(db, deposit, tx) {
         return false;
     }
 
-    const approvedWithSameComment = findApprovedDepositByComment(
+    const approvedWithSameAmount = findApprovedDepositByExactAmount(
         db,
-        depositComment,
+        expectedAmount,
         deposit.id
     );
-    if (approvedWithSameComment) {
+
+    if (approvedWithSameAmount) {
         return false;
     }
 
@@ -253,13 +240,20 @@ function buildPlayerDepositHistoryEntry(deposit, txHash) {
         depositId: safeString(deposit?.id, ""),
         txHash: safeString(txHash, ""),
         amount: normalizeRewardNumber(deposit?.amount, 0),
+        baseAmount: normalizeRewardNumber(deposit?.baseAmount, 0),
+        expectedAmount: normalizeRewardNumber(deposit?.expectedAmount ?? deposit?.amount, 0),
+        uniqueFraction: normalizeRewardNumber(deposit?.uniqueFraction, 0),
         currency: safeString(deposit?.currency, "TON") || "TON",
         gemsAmount: Math.max(0, Number(deposit?.gemsAmount) || 0),
         expeditionBoostAmount: Math.max(
             0,
             Number(deposit?.expeditionBoostAmount) || 0
         ),
-        paymentComment: safeString(deposit?.paymentComment, ""),
+        expeditionBoostDurationMs: Math.max(
+            0,
+            Number(deposit?.expeditionBoostDurationMs) || 0
+        ),
+        paymentComment: "",
         status: "approved",
         walletAddress: safeString(deposit?.walletAddress, ""),
         network: safeString(deposit?.network, "TON") || "TON",
@@ -277,14 +271,21 @@ function buildPlayerTransactionEntry(deposit, txHash) {
         type: "deposit",
         status: "approved",
         amount: normalizeRewardNumber(deposit?.amount, 0),
+        baseAmount: normalizeRewardNumber(deposit?.baseAmount, 0),
+        expectedAmount: normalizeRewardNumber(deposit?.expectedAmount ?? deposit?.amount, 0),
+        uniqueFraction: normalizeRewardNumber(deposit?.uniqueFraction, 0),
         currency: safeString(deposit?.currency, "TON") || "TON",
         gemsAmount: Math.max(0, Number(deposit?.gemsAmount) || 0),
         expeditionBoostAmount: Math.max(
             0,
             Number(deposit?.expeditionBoostAmount) || 0
         ),
+        expeditionBoostDurationMs: Math.max(
+            0,
+            Number(deposit?.expeditionBoostDurationMs) || 0
+        ),
         depositId: safeString(deposit?.id, ""),
-        paymentComment: safeString(deposit?.paymentComment, ""),
+        paymentComment: "",
         createdAt: Date.now(),
         updatedAt: Date.now()
     };
@@ -319,6 +320,16 @@ function sanitizeApprovedDeposit(deposit) {
     return {
         amount: clamp(
             normalizeRewardNumber(deposit?.amount, 0),
+            0,
+            MAX_DEPOSIT_AMOUNT
+        ),
+        baseAmount: clamp(
+            normalizeRewardNumber(deposit?.baseAmount, deposit?.amount || 0),
+            0,
+            MAX_DEPOSIT_AMOUNT
+        ),
+        expectedAmount: clamp(
+            normalizeRewardNumber(deposit?.expectedAmount ?? deposit?.amount, 0),
             0,
             MAX_DEPOSIT_AMOUNT
         ),
@@ -377,6 +388,10 @@ function approveDepositInDb(db, deposit, tx) {
     safeDeposit.status = "approved";
     safeDeposit.txHash = txHash;
     safeDeposit.note = safeString(safeDeposit.note, "") || "TON verified";
+    safeDeposit.paymentComment = "";
+    safeDeposit.amount = approvedDeposit.amount;
+    safeDeposit.baseAmount = approvedDeposit.baseAmount;
+    safeDeposit.expectedAmount = approvedDeposit.expectedAmount;
     safeDeposit.updatedAt = Date.now();
     safeDeposit.approvedAt = Date.now();
 
@@ -390,11 +405,11 @@ function approveDepositInDb(db, deposit, tx) {
 
     player.expeditionBoost = applyDepositExpeditionBoost(
         Number(player.expeditionBoost) || 0,
-        approvedDeposit.amount
+        approvedDeposit.baseAmount
     );
 
     player.expeditionBoostActiveUntil = getExpeditionBoostActiveUntil(
-        approvedDeposit.amount,
+        approvedDeposit.baseAmount,
         Date.now()
     );
     player.updatedAt = Date.now();
