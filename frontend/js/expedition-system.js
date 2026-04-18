@@ -498,7 +498,7 @@ CryptoZoo.expeditions = {
         }
 
         const boostLevel = Math.max(0, Number(CryptoZoo.state?.expeditionBoost) || 0);
-        return 1 + Math.min(0.15, boostLevel * 0.15);
+        return 1 + boostLevel;
     },
 
     getTotalExpeditionRewardMultiplier() {
