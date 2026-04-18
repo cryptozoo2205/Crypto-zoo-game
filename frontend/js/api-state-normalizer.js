@@ -206,8 +206,14 @@ Object.assign(window.CryptoZoo.api, {
             this.normalizeNumber(data.offlineAdsHours, base.offlineAdsHours, 0)
         );
 
+        const offlineAdsResetAt = this.normalizeNumber(
+            data.offlineAdsResetAt,
+            base.offlineAdsResetAt,
+            0
+        );
+
         const offlineAdsEnabled =
-            Boolean(data.offlineAdsEnabled) && offlineAdsHours > 0;
+            offlineAdsHours > 0 && offlineAdsResetAt > Date.now();
 
         const offlineMaxSeconds = Math.max(
             0,
@@ -315,11 +321,7 @@ Object.assign(window.CryptoZoo.api, {
             offlineBoostHours,
             offlineAdsHours,
             offlineAdsEnabled,
-            offlineAdsResetAt: this.normalizeNumber(
-                data.offlineAdsResetAt,
-                base.offlineAdsResetAt,
-                0
-            ),
+            offlineAdsResetAt,
             offlineMaxSeconds,
             offlineBoostMultiplier: this.normalizeNumber(
                 data.offlineBoostMultiplier,
