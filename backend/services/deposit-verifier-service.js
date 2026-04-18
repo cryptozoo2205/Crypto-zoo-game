@@ -1,23 +1,27 @@
-lconst { readDb, writeDb } = require("../db/db");
+const { readDb, writeDb } = require("../db/db");
 const { normalizeRewardNumber, safeString, clamp } = require("../utils/helpers");
 const { getPlayerOrCreate, normalizePlayer } = require("./player-service");
 const {
     TON_RECEIVER_WALLET,
-    applyDepositExpeditionBoost,
-    getExpeditionBoostActiveUntil,
-    UNIQUE_AMOUNT_DECIMALS
+    UNIQUE_AMOUNT_DECIMALS,
+    getDepositGemsAmount,
+    getDepositExpeditionBoostAmount,
+    getDepositExpeditionBoostDurationMs
 } = require("./deposit-service");
 const { LIMITS } = require("../config/game-config");
 
 const TONCENTER_BASE_URL = "https://toncenter.com/api/v2";
-const MAX_DEPOSIT_GEMS = 150;
-const MAX_DEPOSIT_AMOUNT = 100000;
-const AMOUNT_MATCH_TOLERANCE = Number((1 / Math.pow(10, UNIQUE_AMOUNT_DECIMALS)).toFixed(UNIQUE_AMOUNT_DECIMALS));
+const MAX_DEPOSIT_GEMS = 500000;
+const MAX_DEPOSIT_AMOUNT_USD = 100000;
+const AMOUNT_MATCH_TOLERANCE = Number(
+    (1 / Math.pow(10, UNIQUE_AMOUNT_DECIMALS)).toFixed(UNIQUE_AMOUNT_DECIMALS)
+);
 
 function getReceiverWalletAddress() {
     return safeString(
         process.env.TON_DEPOSIT_WALLET ||
             process.env.TON_RECEIVER_WALLET ||
+            process.env.TON_WALLET_ADDRESS ||
             TON_RECEIVER_WALLET,
         TON_RECEIVER_WALLET
     );
@@ -240,7 +244,10 @@ function buildPlayerDepositHistoryEntry(deposit, txHash) {
         depositId: safeString(deposit?.id, ""),
         txHash: safeString(txHash, ""),
         amount: normalizeRewardNumber(deposit?.amount, 0),
-        baseAmount: normalizeRewardNumber(deposit?.baseAmount, 0),
+        tonAmount: normalizeRewardNumber(deposit?.tonAmount ?? deposit?.amount, 0),
+        baseAmount: normalizeRewardNumber(deposit?.baseAmountUsd ?? deposit?.baseAmount, 0),
+        baseAmountUsd: normalizeRewardNumber(deposit?.baseAmountUsd ?? deposit?.baseAmount, 0),
+        baseAmountTon: normalizeRewardNumber(deposit?.baseAmountTon, 0),
         expectedAmount: normalizeRewardNumber(deposit?.expectedAmount ?? deposit?.amount, 0),
         uniqueFraction: normalizeRewardNumber(deposit?.uniqueFraction, 0),
         currency: safeString(deposit?.currency, "TON") || "TON",
@@ -259,7 +266,7 @@ function buildPlayerDepositHistoryEntry(deposit, txHash) {
         network: safeString(deposit?.network, "TON") || "TON",
         source: "deposit-verifier",
         createdAt: Math.max(0, Number(deposit?.createdAt) || Date.now()),
-        approvedAt: Date.now(),
+        approvedAt: Math.max(0, Number(deposit?.approvedAt) || Date.now()),
         updatedAt: Date.now()
     };
 }
@@ -271,7 +278,10 @@ function buildPlayerTransactionEntry(deposit, txHash) {
         type: "deposit",
         status: "approved",
         amount: normalizeRewardNumber(deposit?.amount, 0),
-        baseAmount: normalizeRewardNumber(deposit?.baseAmount, 0),
+        tonAmount: normalizeRewardNumber(deposit?.tonAmount ?? deposit?.amount, 0),
+        baseAmount: normalizeRewardNumber(deposit?.baseAmountUsd ?? deposit?.baseAmount, 0),
+        baseAmountUsd: normalizeRewardNumber(deposit?.baseAmountUsd ?? deposit?.baseAmount, 0),
+        baseAmountTon: normalizeRewardNumber(deposit?.baseAmountTon, 0),
         expectedAmount: normalizeRewardNumber(deposit?.expectedAmount ?? deposit?.amount, 0),
         uniqueFraction: normalizeRewardNumber(deposit?.uniqueFraction, 0),
         currency: safeString(deposit?.currency, "TON") || "TON",
@@ -317,27 +327,61 @@ function attachApprovedDepositToPlayer(player, deposit, txHash) {
 }
 
 function sanitizeApprovedDeposit(deposit) {
+    const baseAmountUsd = clamp(
+        normalizeRewardNumber(deposit?.baseAmountUsd ?? deposit?.baseAmount, 0),
+        0,
+        MAX_DEPOSIT_AMOUNT_USD
+    );
+
+    const amountTon = clamp(
+        normalizeRewardNumber(deposit?.amount ?? deposit?.tonAmount, 0),
+        0,
+        MAX_DEPOSIT_AMOUNT_USD * 100000
+    );
+
+    const expectedAmount = clamp(
+        normalizeRewardNumber(deposit?.expectedAmount ?? deposit?.amount ?? deposit?.tonAmount, 0),
+        0,
+        MAX_DEPOSIT_AMOUNT_USD * 100000
+    );
+
+    const gemsAmount = clamp(
+        Math.floor(
+            Number(
+                deposit?.gemsAmount ??
+                getDepositGemsAmount(baseAmountUsd)
+            ) || 0
+        ),
+        0,
+        MAX_DEPOSIT_GEMS
+    );
+
+    const expeditionBoostAmount = Math.max(
+        0,
+        Number(
+            deposit?.expeditionBoostAmount ??
+            getDepositExpeditionBoostAmount(baseAmountUsd)
+        ) || 0
+    );
+
+    const expeditionBoostDurationMs = Math.max(
+        0,
+        Number(
+            deposit?.expeditionBoostDurationMs ??
+            getDepositExpeditionBoostDurationMs(baseAmountUsd)
+        ) || 0
+    );
+
     return {
-        amount: clamp(
-            normalizeRewardNumber(deposit?.amount, 0),
-            0,
-            MAX_DEPOSIT_AMOUNT
-        ),
-        baseAmount: clamp(
-            normalizeRewardNumber(deposit?.baseAmount, deposit?.amount || 0),
-            0,
-            MAX_DEPOSIT_AMOUNT
-        ),
-        expectedAmount: clamp(
-            normalizeRewardNumber(deposit?.expectedAmount ?? deposit?.amount, 0),
-            0,
-            MAX_DEPOSIT_AMOUNT
-        ),
-        gemsAmount: clamp(
-            Math.floor(Number(deposit?.gemsAmount) || 0),
-            0,
-            MAX_DEPOSIT_GEMS
-        )
+        amount: amountTon,
+        tonAmount: amountTon,
+        baseAmount: baseAmountUsd,
+        baseAmountUsd,
+        baseAmountTon: normalizeRewardNumber(deposit?.baseAmountTon, 0),
+        expectedAmount,
+        gemsAmount,
+        expeditionBoostAmount,
+        expeditionBoostDurationMs
     };
 }
 
@@ -364,7 +408,7 @@ function approveDepositInDb(db, deposit, tx) {
     ensurePlayerCollections(player);
 
     if (normalizeDepositStatus(safeDeposit.status) === "approved") {
-        attachApprovedDepositToPlayer(player, safeDeposit, txHash);
+        attachApprovedDepositToPlayer(player, safeDeposit, txHash || safeDeposit.txHash || "");
         db.players[player.telegramId] = normalizePlayer(player);
 
         return {
@@ -390,28 +434,37 @@ function approveDepositInDb(db, deposit, tx) {
     safeDeposit.note = safeString(safeDeposit.note, "") || "TON verified";
     safeDeposit.paymentComment = "";
     safeDeposit.amount = approvedDeposit.amount;
+    safeDeposit.tonAmount = approvedDeposit.tonAmount;
     safeDeposit.baseAmount = approvedDeposit.baseAmount;
+    safeDeposit.baseAmountUsd = approvedDeposit.baseAmountUsd;
+    safeDeposit.baseAmountTon = approvedDeposit.baseAmountTon;
     safeDeposit.expectedAmount = approvedDeposit.expectedAmount;
+    safeDeposit.gemsAmount = approvedDeposit.gemsAmount;
+    safeDeposit.expeditionBoostAmount = approvedDeposit.expeditionBoostAmount;
+    safeDeposit.expeditionBoostDurationMs = approvedDeposit.expeditionBoostDurationMs;
     safeDeposit.updatedAt = Date.now();
     safeDeposit.approvedAt = Date.now();
 
-    const gemsToAdd = approvedDeposit.gemsAmount;
-
     player.gems = clamp(
-        Math.max(0, Number(player.gems || 0) + gemsToAdd),
+        Math.max(0, Number(player.gems || 0) + approvedDeposit.gemsAmount),
         0,
         Number(LIMITS?.MAX_GEMS) || 1e6
     );
 
-    player.expeditionBoost = applyDepositExpeditionBoost(
-        Number(player.expeditionBoost) || 0,
-        approvedDeposit.baseAmount
+    player.expeditionBoost = Number(
+        (
+            Math.max(0, Number(player.expeditionBoost || 0)) +
+            approvedDeposit.expeditionBoostAmount
+        ).toFixed(6)
     );
 
-    player.expeditionBoostActiveUntil = getExpeditionBoostActiveUntil(
-        approvedDeposit.baseAmount,
-        Date.now()
-    );
+    const now = Date.now();
+    const currentActiveUntil = Math.max(0, Number(player.expeditionBoostActiveUntil || 0));
+    const durationBaseTime = currentActiveUntil > now ? currentActiveUntil : now;
+
+    player.expeditionBoostActiveUntil =
+        durationBaseTime + approvedDeposit.expeditionBoostDurationMs;
+
     player.updatedAt = Date.now();
 
     attachApprovedDepositToPlayer(player, safeDeposit, txHash);
@@ -428,6 +481,7 @@ function approveDepositInDb(db, deposit, tx) {
 async function verifySingleDepositById(depositId) {
     const db = readDb();
     db.deposits = Array.isArray(db.deposits) ? db.deposits : [];
+    db.players = db.players && typeof db.players === "object" ? db.players : {};
 
     markExpiredDeposits(db);
 
@@ -501,6 +555,7 @@ async function verifySingleDepositById(depositId) {
 async function verifyPendingDepositsForPlayer(telegramId) {
     const db = readDb();
     db.deposits = Array.isArray(db.deposits) ? db.deposits : [];
+    db.players = db.players && typeof db.players === "object" ? db.players : {};
 
     markExpiredDeposits(db);
 
