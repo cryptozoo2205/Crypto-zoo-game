@@ -100,7 +100,7 @@ CryptoZoo.ads = {
             offlineAdsHours: Number(CryptoZoo.state.offlineAdsHours || 0),
             offlineAdsResetAt: Number(CryptoZoo.state.offlineAdsResetAt || 0),
             offlineMaxSeconds: Math.max(
-                3600,
+                0,
                 Math.round((Number(CryptoZoo.state.offlineAdsHours || 0) * 3600))
             ),
             offlineBoostHours: Number(CryptoZoo.state.offlineBoostHours || 0),
