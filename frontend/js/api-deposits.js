@@ -361,12 +361,74 @@ Object.assign(window.CryptoZoo.api, {
         const status = String(target.status || "").toLowerCase();
 
         if (status === "approved") {
+            const approvedDeposit = this.normalizeDepositItem(target);
+
+            const approvedGemsAmount = Math.max(
+                0,
+                Number(
+                    approvedDeposit.gemsAmount ??
+                    approvedDeposit.payment?.gemsAmount ??
+                    approvedDeposit.deposit?.gemsAmount ??
+                    0
+                ) || 0
+            );
+
+            const approvedExpeditionBoostAmount = Math.max(
+                0,
+                Number(
+                    approvedDeposit.expeditionBoostAmount ??
+                    approvedDeposit.payment?.expeditionBoostAmount ??
+                    approvedDeposit.deposit?.expeditionBoostAmount ??
+                    0
+                ) || 0
+            );
+
+            const approvedExpeditionBoostDurationMs = Math.max(
+                0,
+                Number(
+                    approvedDeposit.expeditionBoostDurationMs ??
+                    approvedDeposit.payment?.expeditionBoostDurationMs ??
+                    approvedDeposit.deposit?.expeditionBoostDurationMs ??
+                    0
+                ) || 0
+            );
+
+            const approvedAtBase = Math.max(
+                0,
+                Number(approvedDeposit.approvedAt || approvedDeposit.updatedAt || approvedDeposit.createdAt || 0)
+            );
+
+            const currentState = this.normalizeState(CryptoZoo.state || {});
+            currentState.gems = Math.max(
+                Number(currentState.gems || 0),
+                approvedGemsAmount
+            );
+            currentState.expeditionBoost = Math.max(
+                Number(currentState.expeditionBoost || 0),
+                approvedExpeditionBoostAmount
+            );
+
+            if (approvedExpeditionBoostAmount > 0 && approvedExpeditionBoostDurationMs > 0) {
+                currentState.expeditionBoostActiveUntil = Math.max(
+                    Number(currentState.expeditionBoostActiveUntil || 0),
+                    approvedAtBase + approvedExpeditionBoostDurationMs
+                );
+            }
+
+            currentState.deposits = this.mergeDeposits([approvedDeposit], currentState.deposits);
+            currentState.depositHistory = this.mergeDeposits([approvedDeposit], currentState.depositHistory);
+            currentState.updatedAt = Date.now();
+
+            CryptoZoo.state = this.normalizeState(currentState);
+            CryptoZoo.state.telegramUser = telegramUser;
+            this.writeLocalState(CryptoZoo.state, telegramId);
+
             return {
                 ok: true,
                 alreadyProcessed: true,
                 matched: true,
-                deposit: this.normalizeDepositItem(target),
-                player: CryptoZoo.state || {}
+                deposit: approvedDeposit,
+                player: CryptoZoo.state
             };
         }
 
@@ -452,6 +514,11 @@ Object.assign(window.CryptoZoo.api, {
             ) || 0
         );
 
+        const approvedAtBase = Math.max(
+            0,
+            Number(approvedDeposit.approvedAt || approvedDeposit.updatedAt || approvedDeposit.createdAt || now)
+        );
+
         const currentState = this.normalizeState(CryptoZoo.state || {});
         currentState.gems = Math.max(0, Number(currentState.gems || 0)) + approvedGemsAmount;
         currentState.expeditionBoost = Math.max(
@@ -465,7 +532,7 @@ Object.assign(window.CryptoZoo.api, {
         if (approvedExpeditionBoostAmount > 0 && approvedExpeditionBoostDurationMs > 0) {
             currentState.expeditionBoostActiveUntil = Math.max(
                 Number(currentState.expeditionBoostActiveUntil || 0),
-                now + approvedExpeditionBoostDurationMs
+                approvedAtBase + approvedExpeditionBoostDurationMs
             );
         }
 
