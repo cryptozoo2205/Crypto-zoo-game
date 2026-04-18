@@ -51,19 +51,6 @@ CryptoZoo.config = {
             type: "click",
             clickValueBonus: 2
         },
-        {
-            id: "click3",
-            name: "Turbo Tap",
-            namePl: "Turbo Tap",
-            nameEn: "Turbo Tap",
-            desc: "+4 coins do każdego kliknięcia",
-            descPl: "+4 coins do każdego kliknięcia",
-            descEn: "+4 coins to every click",
-            price: 48000,
-            priceScale: 1.35,
-            type: "click",
-            clickValueBonus: 4
-        },
 
         {
             id: "income1",
@@ -75,19 +62,6 @@ CryptoZoo.config = {
             descEn: "+1 level to all owned animals",
             price: 95000,
             priceScale: 1.40,
-            type: "income",
-            incomeBonus: 1
-        },
-        {
-            id: "income2",
-            name: "Automation Crew",
-            namePl: "Ekipa Automatyzacji",
-            nameEn: "Automation Crew",
-            desc: "+1 level do wszystkich posiadanych zwierząt",
-            descPl: "+1 level do wszystkich posiadanych zwierząt",
-            descEn: "+1 level to all owned animals",
-            price: 420000,
-            priceScale: 1.42,
             type: "income",
             incomeBonus: 1
         },
@@ -113,7 +87,7 @@ CryptoZoo.config = {
             desc: "+20% reward z ekspedycji przez 24h",
             descPl: "+20% reward z ekspedycji przez 24h",
             descEn: "+20% expedition reward for 24h",
-            gemPrice: 3,
+            gemPrice: 5,
             priceScale: 1,
             type: "expedition",
             expeditionBonus: 0.20
@@ -126,7 +100,7 @@ CryptoZoo.config = {
             desc: "Skraca czas jednej aktywnej ekspedycji o 10 minut",
             descPl: "Skraca czas jednej aktywnej ekspedycji o 10 minut",
             descEn: "Reduces one active expedition by 10 minutes",
-            gemPrice: 4,
+            gemPrice: 3,
             effect: "expeditionTime",
             timeReductionSeconds: 600
         },
@@ -138,7 +112,7 @@ CryptoZoo.config = {
             desc: "Skraca czas jednej aktywnej ekspedycji o 30 minut",
             descPl: "Skraca czas jednej aktywnej ekspedycji o 30 minut",
             descEn: "Reduces one active expedition by 30 minutes",
-            gemPrice: 8,
+            gemPrice: 6,
             effect: "expeditionTime",
             timeReductionSeconds: 1800
         },
@@ -150,7 +124,7 @@ CryptoZoo.config = {
             desc: "Skraca czas jednej aktywnej ekspedycji o 1 godzinę",
             descPl: "Skraca czas jednej aktywnej ekspedycji o 1 godzinę",
             descEn: "Reduces one active expedition by 1 hour",
-            gemPrice: 14,
+            gemPrice: 10,
             effect: "expeditionTime",
             timeReductionSeconds: 3600
         },
@@ -162,7 +136,7 @@ CryptoZoo.config = {
             desc: "Skraca czas jednej aktywnej ekspedycji o 4 godziny",
             descPl: "Skraca czas jednej aktywnej ekspedycji o 4 godziny",
             descEn: "Reduces one active expedition by 4 hours",
-            gemPrice: 48,
+            gemPrice: 28,
             effect: "expeditionTime",
             timeReductionSeconds: 14400
         }
