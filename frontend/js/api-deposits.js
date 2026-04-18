@@ -11,6 +11,17 @@ Object.assign(window.CryptoZoo.api, {
         );
     },
 
+    getDepositUsdToTonRate() {
+        const possibleRate =
+            CryptoZoo.config?.depositUsdToTonRate ??
+            CryptoZoo.config?.usdToTonRate ??
+            CryptoZoo.state?.depositUsdToTonRate ??
+            CryptoZoo.state?.usdToTonRate;
+
+        const safeRate = Number(possibleRate);
+        return safeRate > 0 ? safeRate : 1;
+    },
+
     getTestDepositStorageKey(playerId = "") {
         const safePlayerId = String(playerId || "local-player").trim() || "local-player";
         return `cryptozoo_test_deposits_${safePlayerId}`;
@@ -44,75 +55,81 @@ Object.assign(window.CryptoZoo.api, {
         return `testdep_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     },
 
-    buildTestDepositBonusMeta(amount) {
-        const safeAmount = Math.max(0, Number(amount) || 0);
-
-        if (safeAmount >= 10) {
-            return {
-                gemsAmount: 120,
-                expeditionBoostAmount: 0.30,
-                expeditionBoostDurationMs: 7 * 24 * 60 * 60 * 1000
-            };
-        }
-
-        if (safeAmount >= 5) {
-            return {
-                gemsAmount: 60,
-                expeditionBoostAmount: 0.20,
-                expeditionBoostDurationMs: 5 * 24 * 60 * 60 * 1000
-            };
-        }
-
-        if (safeAmount >= 3) {
-            return {
-                gemsAmount: 30,
-                expeditionBoostAmount: 0.10,
-                expeditionBoostDurationMs: 3 * 24 * 60 * 60 * 1000
-            };
-        }
+    buildTestDepositBonusMeta(amountUsd) {
+        const safeAmountUsd = Math.max(0, Number(amountUsd) || 0);
 
         return {
-            gemsAmount: 10,
-            expeditionBoostAmount: 0.05,
-            expeditionBoostDurationMs: 1 * 24 * 60 * 60 * 1000
+            gemsAmount: Math.floor(safeAmountUsd * 5),
+            expeditionBoostAmount: Number(Math.min(1, safeAmountUsd * 0.06).toFixed(6)),
+            expeditionBoostDurationMs: Math.max(0, Math.floor(safeAmountUsd * 7 * 60 * 60 * 1000))
         };
     },
 
-    roundDepositTon(value, digits = 3) {
+    roundDepositUsd(value, digits = 2) {
+        return Number((Number(value) || 0).toFixed(digits));
+    },
+
+    roundDepositTon(value, digits = 6) {
         return Number((Number(value) || 0).toFixed(digits));
     },
 
     randomUniqueFraction() {
-        const value = Math.floor(Math.random() * 899) + 101;
-        return this.roundDepositTon(value / 1000, 3);
+        const value = Math.floor(Math.random() * 900) + 100;
+        return Number((value / 1000000).toFixed(6));
     },
 
-    buildExpectedDepositAmount(baseAmount, uniqueFraction) {
+    buildExpectedDepositAmount(baseAmountTon, uniqueFraction) {
         return this.roundDepositTon(
-            this.roundDepositTon(baseAmount, 3) + this.roundDepositTon(uniqueFraction, 3),
-            3
+            this.roundDepositTon(baseAmountTon, 6) + this.roundDepositTon(uniqueFraction, 6),
+            6
         );
+    },
+
+    convertUsdToTon(amountUsd) {
+        const safeAmountUsd = Math.max(0, Number(amountUsd) || 0);
+        const rate = this.getDepositUsdToTonRate();
+        return this.roundDepositTon(safeAmountUsd * rate, 6);
     },
 
     normalizeDepositAmounts(raw = {}) {
         const payment = raw && typeof raw.payment === "object" ? raw.payment : {};
         const deposit = raw && typeof raw.deposit === "object" ? raw.deposit : {};
 
-        const baseAmount = this.roundDepositTon(
+        const baseAmountUsd = this.roundDepositUsd(
+            raw.baseAmountUsd ??
+            deposit.baseAmountUsd ??
+            payment.baseAmountUsd ??
+            raw.requestedAmountUsd ??
+            deposit.requestedAmountUsd ??
+            payment.requestedAmountUsd ??
+            raw.usdAmount ??
+            deposit.usdAmount ??
+            payment.usdAmount ??
             raw.baseAmount ??
             deposit.baseAmount ??
             payment.baseAmount ??
-            raw.requestedAmount ??
-            deposit.requestedAmount ??
-            payment.requestedAmount ??
-            raw.amount ??
-            deposit.amount ??
-            payment.amount ??
-            raw.tonAmount ??
-            deposit.tonAmount ??
-            payment.tonAmount ??
             0,
-            3
+            2
+        );
+
+        const baseAmountTon = this.roundDepositTon(
+            raw.baseAmountTon ??
+            deposit.baseAmountTon ??
+            payment.baseAmountTon ??
+            raw.baseAmount ??
+            deposit.baseAmount ??
+            payment.baseAmount ??
+            raw.tonBaseAmount ??
+            deposit.tonBaseAmount ??
+            payment.tonBaseAmount ??
+            raw.tonAmountBase ??
+            deposit.tonAmountBase ??
+            payment.tonAmountBase ??
+            raw.amountTon ??
+            deposit.amountTon ??
+            payment.amountTon ??
+            this.convertUsdToTon(baseAmountUsd),
+            6
         );
 
         let uniqueFraction = raw.uniqueFraction ??
@@ -130,26 +147,27 @@ Object.assign(window.CryptoZoo.api, {
                 raw.tonAmount ??
                 deposit.tonAmount ??
                 payment.tonAmount ??
-                baseAmount,
-                3
+                baseAmountTon,
+                6
             );
 
-            uniqueFraction = this.roundDepositTon(maybeExpectedAmount - baseAmount, 3);
+            uniqueFraction = this.roundDepositTon(maybeExpectedAmount - baseAmountTon, 6);
         }
 
-        uniqueFraction = this.roundDepositTon(uniqueFraction, 3);
+        uniqueFraction = this.roundDepositTon(uniqueFraction, 6);
         if (uniqueFraction < 0) uniqueFraction = 0;
 
         const expectedAmount = this.roundDepositTon(
             raw.expectedAmount ??
             deposit.expectedAmount ??
             payment.expectedAmount ??
-            this.buildExpectedDepositAmount(baseAmount, uniqueFraction),
-            3
+            this.buildExpectedDepositAmount(baseAmountTon, uniqueFraction),
+            6
         );
 
         return {
-            baseAmount,
+            baseAmountUsd,
+            baseAmountTon,
             expectedAmount,
             uniqueFraction
         };
@@ -173,7 +191,9 @@ Object.assign(window.CryptoZoo.api, {
             ...raw,
             amount: amounts.expectedAmount,
             tonAmount: amounts.expectedAmount,
-            baseAmount: amounts.baseAmount,
+            baseAmount: amounts.baseAmountUsd,
+            baseAmountUsd: amounts.baseAmountUsd,
+            baseAmountTon: amounts.baseAmountTon,
             expectedAmount: amounts.expectedAmount,
             uniqueFraction: amounts.uniqueFraction,
             paymentComment: "",
@@ -183,7 +203,9 @@ Object.assign(window.CryptoZoo.api, {
                 ...payment,
                 amount: amounts.expectedAmount,
                 tonAmount: amounts.expectedAmount,
-                baseAmount: amounts.baseAmount,
+                baseAmount: amounts.baseAmountUsd,
+                baseAmountUsd: amounts.baseAmountUsd,
+                baseAmountTon: amounts.baseAmountTon,
                 expectedAmount: amounts.expectedAmount,
                 uniqueFraction: amounts.uniqueFraction,
                 comment: "",
@@ -198,7 +220,9 @@ Object.assign(window.CryptoZoo.api, {
                 depositId: deposit.depositId || raw.depositId || raw.id || "",
                 amount: amounts.expectedAmount,
                 tonAmount: amounts.expectedAmount,
-                baseAmount: amounts.baseAmount,
+                baseAmount: amounts.baseAmountUsd,
+                baseAmountUsd: amounts.baseAmountUsd,
+                baseAmountTon: amounts.baseAmountTon,
                 expectedAmount: amounts.expectedAmount,
                 uniqueFraction: amounts.uniqueFraction,
                 walletAddress: deposit.walletAddress || raw.walletAddress || "",
@@ -275,7 +299,9 @@ Object.assign(window.CryptoZoo.api, {
                 walletAddress: normalized.walletAddress || normalized.receiverAddress || "",
                 amount: normalized.expectedAmount,
                 tonAmount: normalized.expectedAmount,
-                baseAmount: normalized.baseAmount,
+                baseAmount: normalized.baseAmountUsd,
+                baseAmountUsd: normalized.baseAmountUsd,
+                baseAmountTon: normalized.baseAmountTon,
                 expectedAmount: normalized.expectedAmount,
                 uniqueFraction: normalized.uniqueFraction,
                 gemsAmount: Math.max(0, Number(normalized.gemsAmount || 0)),
@@ -341,14 +367,13 @@ Object.assign(window.CryptoZoo.api, {
         if (!skipBoost && approvedExpeditionBoostAmount > 0 && approvedExpeditionBoostDurationMs > 0) {
             const currentActiveUntil = Math.max(0, Number(safeState.expeditionBoostActiveUntil || 0));
             const durationBaseTime = currentActiveUntil > now ? currentActiveUntil : now;
-
             safeState.expeditionBoostActiveUntil = durationBaseTime + approvedExpeditionBoostDurationMs;
         }
 
         return this.normalizeState(safeState);
     },
 
-    async createTestDepositWithPayment(amount) {
+    async createTestDepositWithPayment(amountUsd) {
         const telegramUser = await this.getTelegramUser();
         const telegramId = String(telegramUser?.id || "local-player").trim() || "local-player";
         const username = String(
@@ -359,16 +384,17 @@ Object.assign(window.CryptoZoo.api, {
             "Gracz"
         );
 
-        const safeBaseAmount = this.roundDepositTon(Math.max(0, Number(amount) || 0), 3);
-        if (safeBaseAmount <= 0) {
-            throw new Error("Invalid deposit amount");
+        const safeBaseAmountUsd = this.roundDepositUsd(Math.max(0, Number(amountUsd) || 0), 2);
+        if (safeBaseAmountUsd < 1) {
+            throw new Error("Minimalna wpłata to 1$");
         }
 
         const now = Date.now();
         const depositId = this.buildTestDepositId();
-        const bonusMeta = this.buildTestDepositBonusMeta(safeBaseAmount);
+        const bonusMeta = this.buildTestDepositBonusMeta(safeBaseAmountUsd);
+        const baseAmountTon = this.convertUsdToTon(safeBaseAmountUsd);
         const uniqueFraction = this.randomUniqueFraction();
-        const expectedAmount = this.buildExpectedDepositAmount(safeBaseAmount, uniqueFraction);
+        const expectedAmount = this.buildExpectedDepositAmount(baseAmountTon, uniqueFraction);
 
         const deposit = this.normalizeDepositItem({
             id: depositId,
@@ -377,7 +403,9 @@ Object.assign(window.CryptoZoo.api, {
             username,
             amount: expectedAmount,
             tonAmount: expectedAmount,
-            baseAmount: safeBaseAmount,
+            baseAmount: safeBaseAmountUsd,
+            baseAmountUsd: safeBaseAmountUsd,
+            baseAmountTon,
             expectedAmount,
             uniqueFraction,
             gemsAmount: bonusMeta.gemsAmount,
@@ -571,11 +599,11 @@ Object.assign(window.CryptoZoo.api, {
         };
     },
 
-    async createDepositWithPayment(amount) {
-        const safeBaseAmount = this.roundDepositTon(Math.max(0, Number(amount) || 0), 3);
+    async createDepositWithPayment(amountUsd) {
+        const safeBaseAmountUsd = this.roundDepositUsd(Math.max(0, Number(amountUsd) || 0), 2);
 
-        if (safeBaseAmount <= 0) {
-            throw new Error("Invalid deposit amount");
+        if (safeBaseAmountUsd < 1) {
+            throw new Error("Minimalna wpłata to 1$");
         }
 
         try {
@@ -586,8 +614,8 @@ Object.assign(window.CryptoZoo.api, {
                 body: JSON.stringify({
                     telegramId: await this.getPlayerId(),
                     username: await this.getUsername(),
-                    amount: safeBaseAmount,
-                    baseAmount: safeBaseAmount,
+                    amountUsd: safeBaseAmountUsd,
+                    baseAmountUsd: safeBaseAmountUsd,
                     source: "ton"
                 }),
                 timeoutMs: 5000,
@@ -631,7 +659,7 @@ Object.assign(window.CryptoZoo.api, {
             }
 
             console.warn("createDepositWithPayment backend failed on GitHub/local, using test fallback:", error);
-            return this.createTestDepositWithPayment(safeBaseAmount);
+            return this.createTestDepositWithPayment(safeBaseAmountUsd);
         }
     },
 
