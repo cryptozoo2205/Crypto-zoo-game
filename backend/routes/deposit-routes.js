@@ -6,9 +6,7 @@ const { getPlayerOrCreate, normalizePlayer } = require("../services/player-servi
 const {
     createDeposit,
     getPlayerDeposits,
-    buildDepositPaymentData,
-    applyDepositExpeditionBoost,
-    getExpeditionBoostActiveUntil
+    buildDepositPaymentData
 } = require("../services/deposit-service");
 const {
     verifySingleDepositById,
@@ -20,7 +18,35 @@ const router = express.Router();
 
 const MAX_ACTIVE_PENDING_DEPOSITS_PER_PLAYER = 1;
 const DEPOSIT_CREATE_COOLDOWN_MS = 2 * 60 * 1000;
-const MAX_DEPOSIT_AMOUNT = 100000;
+const MAX_DEPOSIT_AMOUNT_USD = 100000;
+const MIN_DEPOSIT_AMOUNT_USD = 1;
+const DEFAULT_USD_TO_TON_RATE = Number(process.env.DEPOSIT_USD_TO_TON_RATE || 1) || 1;
+
+function getUsdToTonRate() {
+    return DEFAULT_USD_TO_TON_RATE > 0 ? DEFAULT_USD_TO_TON_RATE : 1;
+}
+
+function roundUsd(value) {
+    return Number((Number(value) || 0).toFixed(2));
+}
+
+function roundTon(value) {
+    return Number((Number(value) || 0).toFixed(6));
+}
+
+function convertUsdToTon(amountUsd) {
+    return roundTon((Number(amountUsd) || 0) * getUsdToTonRate());
+}
+
+function buildUsdDepositBonusMeta(amountUsd) {
+    const safeAmountUsd = Math.max(0, Number(amountUsd) || 0);
+
+    return {
+        gemsAmount: Math.floor(safeAmountUsd * 5),
+        expeditionBoostAmount: Number(Math.min(1, safeAmountUsd * 0.06).toFixed(6)),
+        expeditionBoostDurationMs: Math.max(0, Math.floor(safeAmountUsd * 7 * 60 * 60 * 1000))
+    };
+}
 
 function ensurePlayerCollections(player) {
     player.depositHistory = Array.isArray(player.depositHistory)
@@ -125,10 +151,13 @@ function buildPlayerDepositHistoryEntry(deposit, txHash = "") {
         id: safeString(deposit?.id, ""),
         depositId: safeString(deposit?.id, ""),
         txHash: safeString(txHash || deposit?.txHash, ""),
-        amount: normalizeRewardNumber(deposit?.amount, 0),
-        baseAmount: normalizeRewardNumber(deposit?.baseAmount, 0),
-        expectedAmount: normalizeRewardNumber(deposit?.expectedAmount ?? deposit?.amount, 0),
-        uniqueFraction: normalizeRewardNumber(deposit?.uniqueFraction, 0),
+        amount: roundTon(deposit?.amount),
+        tonAmount: roundTon(deposit?.tonAmount ?? deposit?.amount),
+        baseAmount: roundUsd(deposit?.baseAmountUsd ?? deposit?.baseAmount),
+        baseAmountUsd: roundUsd(deposit?.baseAmountUsd ?? deposit?.baseAmount),
+        baseAmountTon: roundTon(deposit?.baseAmountTon),
+        expectedAmount: roundTon(deposit?.expectedAmount ?? deposit?.amount),
+        uniqueFraction: roundTon(deposit?.uniqueFraction),
         currency: safeString(deposit?.currency, "TON") || "TON",
         gemsAmount: Math.max(0, Number(deposit?.gemsAmount) || 0),
         expeditionBoostAmount: Math.max(
@@ -157,10 +186,13 @@ function buildPlayerTransactionEntry(deposit, txHash = "") {
         txHash: safeString(txHash || deposit?.txHash, ""),
         type: "deposit",
         status: safeString(deposit?.status, "approved") || "approved",
-        amount: normalizeRewardNumber(deposit?.amount, 0),
-        baseAmount: normalizeRewardNumber(deposit?.baseAmount, 0),
-        expectedAmount: normalizeRewardNumber(deposit?.expectedAmount ?? deposit?.amount, 0),
-        uniqueFraction: normalizeRewardNumber(deposit?.uniqueFraction, 0),
+        amount: roundTon(deposit?.amount),
+        tonAmount: roundTon(deposit?.tonAmount ?? deposit?.amount),
+        baseAmount: roundUsd(deposit?.baseAmountUsd ?? deposit?.baseAmount),
+        baseAmountUsd: roundUsd(deposit?.baseAmountUsd ?? deposit?.baseAmount),
+        baseAmountTon: roundTon(deposit?.baseAmountTon),
+        expectedAmount: roundTon(deposit?.expectedAmount ?? deposit?.amount),
+        uniqueFraction: roundTon(deposit?.uniqueFraction),
         currency: safeString(deposit?.currency, "TON") || "TON",
         gemsAmount: Math.max(0, Number(deposit?.gemsAmount) || 0),
         expeditionBoostAmount: Math.max(
@@ -205,61 +237,108 @@ function attachDepositToPlayer(player, deposit) {
 }
 
 function sanitizeDepositForCreate(deposit) {
+    const baseAmountUsd = clamp(
+        roundUsd(
+            deposit?.baseAmountUsd ??
+            deposit?.amountUsd ??
+            deposit?.baseAmount ??
+            deposit?.amount
+        ),
+        0,
+        MAX_DEPOSIT_AMOUNT_USD
+    );
+
+    const baseAmountTon = roundTon(
+        deposit?.baseAmountTon ??
+        convertUsdToTon(baseAmountUsd)
+    );
+
+    const expectedAmount = roundTon(
+        deposit?.expectedAmount ??
+        deposit?.tonAmount ??
+        deposit?.amount ??
+        baseAmountTon
+    );
+
+    const bonusMeta = buildUsdDepositBonusMeta(baseAmountUsd);
+
     return {
         ...deposit,
         telegramId: safeString(deposit?.telegramId, ""),
         username: safeString(deposit?.username, "Gracz"),
-        amount: clamp(normalizeRewardNumber(deposit?.amount, 0), 0, MAX_DEPOSIT_AMOUNT),
-        baseAmount: clamp(
-            normalizeRewardNumber(deposit?.baseAmount, deposit?.amount || 0),
+        amount: expectedAmount,
+        tonAmount: expectedAmount,
+        amountUsd: baseAmountUsd,
+        baseAmount: baseAmountUsd,
+        baseAmountUsd,
+        baseAmountTon,
+        expectedAmount,
+        uniqueFraction: Math.max(0, roundTon(deposit?.uniqueFraction, 6)),
+        gemsAmount: Math.max(0, Math.floor(Number(deposit?.gemsAmount ?? bonusMeta.gemsAmount) || 0)),
+        expeditionBoostAmount: Math.max(
             0,
-            MAX_DEPOSIT_AMOUNT
+            Number(deposit?.expeditionBoostAmount ?? bonusMeta.expeditionBoostAmount) || 0
         ),
-        expectedAmount: clamp(
-            normalizeRewardNumber(deposit?.expectedAmount ?? deposit?.amount, 0),
+        expeditionBoostDurationMs: Math.max(
             0,
-            MAX_DEPOSIT_AMOUNT
+            Number(deposit?.expeditionBoostDurationMs ?? bonusMeta.expeditionBoostDurationMs) || 0
         ),
-        uniqueFraction: Math.max(0, normalizeRewardNumber(deposit?.uniqueFraction, 0)),
         paymentComment: "",
         status: normalizeDepositStatus(deposit?.status),
         createdAt: Math.max(0, Number(deposit?.createdAt) || Date.now()),
         updatedAt: Math.max(0, Number(deposit?.updatedAt) || Date.now()),
         expiresAt: Math.max(
             Date.now(),
-            Number(deposit?.expiresAt) || (Date.now() + 5 * 60 * 1000)
+            Number(deposit?.expiresAt) || (Date.now() + 30 * 60 * 1000)
         )
     };
 }
 
 function sanitizeApprovedDepositRewards(deposit) {
+    const baseAmountUsd = clamp(
+        roundUsd(deposit?.baseAmountUsd ?? deposit?.baseAmount),
+        0,
+        MAX_DEPOSIT_AMOUNT_USD
+    );
+
+    const bonusMeta = buildUsdDepositBonusMeta(baseAmountUsd);
+
     return {
-        gemsAmount: Math.max(0, Math.floor(Number(deposit?.gemsAmount) || 0)),
-        baseAmount: clamp(
-            normalizeRewardNumber(deposit?.baseAmount, deposit?.amount || 0),
+        gemsAmount: Math.max(
             0,
-            MAX_DEPOSIT_AMOUNT
+            Math.floor(Number(deposit?.gemsAmount ?? bonusMeta.gemsAmount) || 0)
+        ),
+        expeditionBoostAmount: Math.max(
+            0,
+            Number(deposit?.expeditionBoostAmount ?? bonusMeta.expeditionBoostAmount) || 0
+        ),
+        expeditionBoostDurationMs: Math.max(
+            0,
+            Number(deposit?.expeditionBoostDurationMs ?? bonusMeta.expeditionBoostDurationMs) || 0
         )
     };
 }
 
 function applyApprovedDepositToPlayer(player, deposit) {
     const sanitized = sanitizeApprovedDepositRewards(deposit);
+    const now = Date.now();
 
-    const gemsToAdd = sanitized.gemsAmount;
     player.gems = Math.max(
         0,
-        Number(player.gems || 0) + gemsToAdd
+        Number(player.gems || 0) + sanitized.gemsAmount
     );
 
-    player.expeditionBoost = applyDepositExpeditionBoost(
-        player.expeditionBoost,
-        sanitized.baseAmount
+    player.expeditionBoost = Number(
+        (
+            Math.max(0, Number(player.expeditionBoost || 0)) +
+            sanitized.expeditionBoostAmount
+        ).toFixed(6)
     );
 
-    player.expeditionBoostActiveUntil = getExpeditionBoostActiveUntil(
-        sanitized.baseAmount
-    );
+    const currentActiveUntil = Math.max(0, Number(player.expeditionBoostActiveUntil || 0));
+    const durationBaseTime = currentActiveUntil > now ? currentActiveUntil : now;
+
+    player.expeditionBoostActiveUntil = durationBaseTime + sanitized.expeditionBoostDurationMs;
 
     return player;
 }
@@ -278,18 +357,23 @@ router.post("/create", (req, res) => {
     const username = safeString(req.body?.username, "Gracz");
     const source = safeString(req.body?.source, "ton") || "ton";
 
-    const amount = clamp(
-        normalizeRewardNumber(req.body?.amount, 0),
+    const amountUsd = clamp(
+        roundUsd(
+            req.body?.amountUsd ??
+            req.body?.baseAmountUsd ??
+            req.body?.amount ??
+            req.body?.baseAmount
+        ),
         0,
-        MAX_DEPOSIT_AMOUNT
+        MAX_DEPOSIT_AMOUNT_USD
     );
 
     if (!telegramId) {
         return res.status(400).json({ error: "Missing telegramId" });
     }
 
-    if (amount <= 0) {
-        return res.status(400).json({ error: "Invalid deposit amount" });
+    if (amountUsd < MIN_DEPOSIT_AMOUNT_USD) {
+        return res.status(400).json({ error: "Minimal deposit is 1$" });
     }
 
     const activePendingDeposits = getActivePendingDepositsForPlayer(db, telegramId);
@@ -320,7 +404,8 @@ router.post("/create", (req, res) => {
         createDeposit({
             telegramId,
             username,
-            amount,
+            amountUsd,
+            baseAmountUsd: amountUsd,
             source
         })
     );
