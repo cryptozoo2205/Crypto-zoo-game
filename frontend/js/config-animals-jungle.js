@@ -17,7 +17,7 @@ CryptoZoo.regionAnimals.jungle = {
         nameEn: "Panda",
         asset: "panda",
         buyCost: 850,
-        baseIncome: 4,
+        baseIncome: 3,
         unlockLevel: 4
     },
     lion: {
@@ -25,8 +25,8 @@ CryptoZoo.regionAnimals.jungle = {
         namePl: "Lew",
         nameEn: "Lion",
         asset: "lion",
-        buyCost: 4500,
-        baseIncome: 11,
+        buyCost: 4200,
+        baseIncome: 7,
         unlockLevel: 8
     },
     tiger: {
@@ -34,8 +34,8 @@ CryptoZoo.regionAnimals.jungle = {
         namePl: "Tygrys",
         nameEn: "Tiger",
         asset: "tiger",
-        buyCost: 18000,
-        baseIncome: 26,
+        buyCost: 17500,
+        baseIncome: 15,
         unlockLevel: 12
     },
     elephant: {
@@ -43,8 +43,8 @@ CryptoZoo.regionAnimals.jungle = {
         namePl: "Słoń",
         nameEn: "Elephant",
         asset: "elephant",
-        buyCost: 78000,
-        baseIncome: 58,
+        buyCost: 72000,
+        baseIncome: 30,
         unlockLevel: 16
     },
     giraffe: {
@@ -52,8 +52,8 @@ CryptoZoo.regionAnimals.jungle = {
         namePl: "Żyrafa",
         nameEn: "Giraffe",
         asset: "giraffe",
-        buyCost: 340000,
-        baseIncome: 125,
+        buyCost: 300000,
+        baseIncome: 60,
         unlockLevel: 20
     },
     zebra: {
@@ -61,8 +61,8 @@ CryptoZoo.regionAnimals.jungle = {
         namePl: "Zebra",
         nameEn: "Zebra",
         asset: "zebra",
-        buyCost: 1450000,
-        baseIncome: 265,
+        buyCost: 1250000,
+        baseIncome: 115,
         unlockLevel: 24
     },
     hippo: {
@@ -70,8 +70,8 @@ CryptoZoo.regionAnimals.jungle = {
         namePl: "Hipopotam",
         nameEn: "Hippo",
         asset: "hippo",
-        buyCost: 6200000,
-        baseIncome: 560,
+        buyCost: 5200000,
+        baseIncome: 220,
         unlockLevel: 28
     },
     penguin: {
@@ -79,8 +79,8 @@ CryptoZoo.regionAnimals.jungle = {
         namePl: "Pingwin",
         nameEn: "Penguin",
         asset: "penguin",
-        buyCost: 27000000,
-        baseIncome: 1180,
+        buyCost: 22000000,
+        baseIncome: 420,
         unlockLevel: 32
     },
     bear: {
@@ -88,8 +88,8 @@ CryptoZoo.regionAnimals.jungle = {
         namePl: "Niedźwiedź",
         nameEn: "Bear",
         asset: "bear",
-        buyCost: 120000000,
-        baseIncome: 2450,
+        buyCost: 95000000,
+        baseIncome: 780,
         unlockLevel: 36
     },
     crocodile: {
@@ -97,8 +97,8 @@ CryptoZoo.regionAnimals.jungle = {
         namePl: "Krokodyl",
         nameEn: "Crocodile",
         asset: "crocodile",
-        buyCost: 540000000,
-        baseIncome: 5100,
+        buyCost: 410000000,
+        baseIncome: 1450,
         unlockLevel: 40
     },
     kangaroo: {
@@ -106,8 +106,8 @@ CryptoZoo.regionAnimals.jungle = {
         namePl: "Kangur",
         nameEn: "Kangaroo",
         asset: "kangaroo",
-        buyCost: 2400000000,
-        baseIncome: 10400,
+        buyCost: 1750000000,
+        baseIncome: 2650,
         unlockLevel: 44
     },
     wolf: {
@@ -115,8 +115,8 @@ CryptoZoo.regionAnimals.jungle = {
         namePl: "Wilk",
         nameEn: "Wolf",
         asset: "wolf",
-        buyCost: 10500000000,
-        baseIncome: 21000,
+        buyCost: 7500000000,
+        baseIncome: 4800,
         unlockLevel: 48
     }
 };
