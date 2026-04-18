@@ -205,7 +205,10 @@ CryptoZoo.shopSystem = {
             if ((Number(animal?.count) || 0) <= 0) return;
 
             const currentLevel = Math.max(1, Number(animal?.level) || 1);
-            const nextLevel = Math.min(maxLevel, currentLevel + Math.max(1, Number(item?.incomeBonus) || 1));
+            const nextLevel = Math.min(
+                maxLevel,
+                currentLevel + Math.max(1, Number(item?.incomeBonus) || 1)
+            );
 
             if (nextLevel > currentLevel) {
                 animal.level = nextLevel;
@@ -215,7 +218,9 @@ CryptoZoo.shopSystem = {
 
         CryptoZoo.gameplay?.recalculateProgress?.();
 
-        return affected > 0 ? "+1 lvl (soft boost)" : "Brak zwierząt";
+        return affected > 0
+            ? `+${CryptoZoo.formatNumber(Math.max(1, Number(item?.incomeBonus) || 1))} lvl`
+            : "Brak zwierząt";
     },
 
     applyClickUpgrade(item) {
@@ -229,6 +234,11 @@ CryptoZoo.shopSystem = {
 
     applyExpeditionRewardUpgrade() {
         this.ensurePurchaseState();
+
+        if (this.isDailyBoostActive()) {
+            CryptoZoo.ui?.showToast?.("Boost ekspedycji już aktywny");
+            return "Cooldown";
+        }
 
         if (!this.canBuyDailyBoost()) {
             CryptoZoo.ui?.showToast?.("Boost raz na 24h");
