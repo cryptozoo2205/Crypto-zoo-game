@@ -562,7 +562,7 @@ CryptoZoo.uiProfile = {
         }
 
         listEl.innerHTML = referrals
-            .slice(0, 10)
+            .slice(0, 3)
             .map((entry) => {
                 const firstName = String(entry?.firstName || "").trim();
                 const username = String(entry?.username || "Gracz").trim();
