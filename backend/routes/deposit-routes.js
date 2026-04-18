@@ -77,12 +77,6 @@ function isDepositExpired(deposit) {
 }
 
 function markExpiredDeposits(db) {
-    db.deposits = db.deposits.map(d => {
-        if (d.status === "created" && d.expiresAt && Date.now() > d.expiresAt) {
-            d.status = "expired";
-        }
-        return d;
-    });
     db.deposits = Array.isArray(db?.deposits) ? db.deposits : [];
 
     let changed = false;
@@ -96,6 +90,13 @@ function markExpiredDeposits(db) {
     });
 
     return changed;
+}
+
+function ensureFreshDeposits(db) {
+    const changed = markExpiredDeposits(db);
+    if (changed) {
+        writeDb(db);
+    }
 }
 
 function getActivePendingDepositsForPlayer(db, telegramId) {
@@ -125,6 +126,9 @@ function buildPlayerDepositHistoryEntry(deposit, txHash = "") {
         depositId: safeString(deposit?.id, ""),
         txHash: safeString(txHash || deposit?.txHash, ""),
         amount: normalizeRewardNumber(deposit?.amount, 0),
+        baseAmount: normalizeRewardNumber(deposit?.baseAmount, 0),
+        expectedAmount: normalizeRewardNumber(deposit?.expectedAmount ?? deposit?.amount, 0),
+        uniqueFraction: normalizeRewardNumber(deposit?.uniqueFraction, 0),
         currency: safeString(deposit?.currency, "TON") || "TON",
         gemsAmount: Math.max(0, Number(deposit?.gemsAmount) || 0),
         expeditionBoostAmount: Math.max(
@@ -135,7 +139,7 @@ function buildPlayerDepositHistoryEntry(deposit, txHash = "") {
             0,
             Number(deposit?.expeditionBoostDurationMs) || 0
         ),
-        paymentComment: safeString(deposit?.paymentComment, ""),
+        paymentComment: "",
         status: safeString(deposit?.status, "approved") || "approved",
         walletAddress: safeString(deposit?.walletAddress, ""),
         network: safeString(deposit?.network, "TON") || "TON",
@@ -154,6 +158,9 @@ function buildPlayerTransactionEntry(deposit, txHash = "") {
         type: "deposit",
         status: safeString(deposit?.status, "approved") || "approved",
         amount: normalizeRewardNumber(deposit?.amount, 0),
+        baseAmount: normalizeRewardNumber(deposit?.baseAmount, 0),
+        expectedAmount: normalizeRewardNumber(deposit?.expectedAmount ?? deposit?.amount, 0),
+        uniqueFraction: normalizeRewardNumber(deposit?.uniqueFraction, 0),
         currency: safeString(deposit?.currency, "TON") || "TON",
         gemsAmount: Math.max(0, Number(deposit?.gemsAmount) || 0),
         expeditionBoostAmount: Math.max(
@@ -165,7 +172,7 @@ function buildPlayerTransactionEntry(deposit, txHash = "") {
             Number(deposit?.expeditionBoostDurationMs) || 0
         ),
         depositId: safeString(deposit?.id, ""),
-        paymentComment: safeString(deposit?.paymentComment, ""),
+        paymentComment: "",
         note: safeString(deposit?.note, ""),
         createdAt: Math.max(0, Number(deposit?.updatedAt) || Date.now()),
         updatedAt: Math.max(0, Number(deposit?.updatedAt) || Date.now())
@@ -203,17 +210,36 @@ function sanitizeDepositForCreate(deposit) {
         telegramId: safeString(deposit?.telegramId, ""),
         username: safeString(deposit?.username, "Gracz"),
         amount: clamp(normalizeRewardNumber(deposit?.amount, 0), 0, MAX_DEPOSIT_AMOUNT),
+        baseAmount: clamp(
+            normalizeRewardNumber(deposit?.baseAmount, deposit?.amount || 0),
+            0,
+            MAX_DEPOSIT_AMOUNT
+        ),
+        expectedAmount: clamp(
+            normalizeRewardNumber(deposit?.expectedAmount ?? deposit?.amount, 0),
+            0,
+            MAX_DEPOSIT_AMOUNT
+        ),
+        uniqueFraction: Math.max(0, normalizeRewardNumber(deposit?.uniqueFraction, 0)),
+        paymentComment: "",
         status: normalizeDepositStatus(deposit?.status),
         createdAt: Math.max(0, Number(deposit?.createdAt) || Date.now()),
         updatedAt: Math.max(0, Number(deposit?.updatedAt) || Date.now()),
-        expiresAt: Date.now() + (5 * 60 * 1000),
+        expiresAt: Math.max(
+            Date.now(),
+            Number(deposit?.expiresAt) || (Date.now() + 5 * 60 * 1000)
+        )
     };
 }
 
 function sanitizeApprovedDepositRewards(deposit) {
     return {
         gemsAmount: Math.max(0, Math.floor(Number(deposit?.gemsAmount) || 0)),
-        amount: clamp(normalizeRewardNumber(deposit?.amount, 0), 0, MAX_DEPOSIT_AMOUNT)
+        baseAmount: clamp(
+            normalizeRewardNumber(deposit?.baseAmount, deposit?.amount || 0),
+            0,
+            MAX_DEPOSIT_AMOUNT
+        )
     };
 }
 
@@ -228,11 +254,11 @@ function applyApprovedDepositToPlayer(player, deposit) {
 
     player.expeditionBoost = applyDepositExpeditionBoost(
         player.expeditionBoost,
-        sanitized.amount
+        sanitized.baseAmount
     );
 
     player.expeditionBoostActiveUntil = getExpeditionBoostActiveUntil(
-        sanitized.amount
+        sanitized.baseAmount
     );
 
     return player;
@@ -244,19 +270,9 @@ function applyApprovedDepositToPlayer(player, deposit) {
 
 router.post("/create", (req, res) => {
     const db = readDb();
-
     db.deposits = Array.isArray(db.deposits) ? db.deposits : [];
 
-    const expiredChanged = markExpiredDeposits(db);
-    db.deposits = db.deposits.map(d => {
-        if (d.status === "created" && d.expiresAt && Date.now() > d.expiresAt) {
-            d.status = "expired";
-        }
-        return d;
-    });
-    if (expiredChanged) {
-        writeDb(db);
-    }
+    ensureFreshDeposits(db);
 
     const telegramId = safeString(req.body?.telegramId, "");
     const username = safeString(req.body?.username, "Gracz");
@@ -325,19 +341,9 @@ router.post("/create", (req, res) => {
 
 router.post("/payment-data", (req, res) => {
     const db = readDb();
-
     db.deposits = Array.isArray(db.deposits) ? db.deposits : [];
 
-    const expiredChanged = markExpiredDeposits(db);
-    db.deposits = db.deposits.map(d => {
-        if (d.status === "created" && d.expiresAt && Date.now() > d.expiresAt) {
-            d.status = "expired";
-        }
-        return d;
-    });
-    if (expiredChanged) {
-        writeDb(db);
-    }
+    ensureFreshDeposits(db);
 
     const depositId = safeString(req.body?.depositId, "");
 
@@ -351,11 +357,9 @@ router.post("/payment-data", (req, res) => {
         return res.status(404).json({ error: "Deposit not found" });
     }
 
-    const paymentData = buildDepositPaymentData(deposit);
-
     return res.json({
         ok: true,
-        payment: paymentData
+        payment: buildDepositPaymentData(deposit)
     });
 });
 
@@ -433,13 +437,7 @@ router.post("/confirm", (req, res) => {
     db.deposits = Array.isArray(db.deposits) ? db.deposits : [];
     db.players = db.players && typeof db.players === "object" ? db.players : {};
 
-    const expiredChanged = markExpiredDeposits(db);
-    db.deposits = db.deposits.map(d => {
-        if (d.status === "created" && d.expiresAt && Date.now() > d.expiresAt) {
-            d.status = "expired";
-        }
-        return d;
-    });
+    ensureFreshDeposits(db);
 
     const depositId = safeString(req.body?.depositId, "");
     const status = safeString(req.body?.status, "").toLowerCase();
@@ -456,18 +454,12 @@ router.post("/confirm", (req, res) => {
     const deposit = db.deposits.find((d) => String(d.id) === String(depositId));
 
     if (!deposit) {
-        if (expiredChanged) {
-            writeDb(db);
-        }
         return res.status(404).json({ error: "Deposit not found" });
     }
 
     deposit.status = normalizeDepositStatus(deposit.status);
 
     if (deposit.status !== "pending" && deposit.status !== "created") {
-        if (expiredChanged) {
-            writeDb(db);
-        }
         return res.status(400).json({ error: "Already processed" });
     }
 
@@ -476,6 +468,7 @@ router.post("/confirm", (req, res) => {
 
     deposit.status = status;
     deposit.note = note;
+    deposit.paymentComment = "";
     deposit.updatedAt = Date.now();
 
     if (status === "approved") {
@@ -501,19 +494,9 @@ router.post("/confirm", (req, res) => {
 
 router.get("/:telegramId", (req, res) => {
     const db = readDb();
-
     db.deposits = Array.isArray(db.deposits) ? db.deposits : [];
 
-    const expiredChanged = markExpiredDeposits(db);
-    db.deposits = db.deposits.map(d => {
-        if (d.status === "created" && d.expiresAt && Date.now() > d.expiresAt) {
-            d.status = "expired";
-        }
-        return d;
-    });
-    if (expiredChanged) {
-        writeDb(db);
-    }
+    ensureFreshDeposits(db);
 
     const telegramId = safeString(req.params.telegramId, "");
 
