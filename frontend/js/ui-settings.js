@@ -1,3 +1,4 @@
+window.CryptoZoo = window.CytoZoo || window.CryptoZoo || {};
 window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.uiSettings = {
@@ -8,6 +9,7 @@ CryptoZoo.uiSettings = {
     depositsHistoryLoading: false,
     financeSectionOpen: false,
     depositAmounts: [1, 3, 5, 10],
+    maxHistoryItems: 3,
 
     getDefaultSettings() {
         return {
@@ -181,6 +183,11 @@ CryptoZoo.uiSettings = {
     getSelectedDepositAmount() {
         const amount = Number(CryptoZoo.depositBind?.selectedAmount || this.depositAmounts[1] || 3);
         return amount > 0 ? amount : 3;
+    },
+
+    getLimitedHistory(list) {
+        if (!Array.isArray(list)) return [];
+        return list.slice(0, this.maxHistoryItems);
     },
 
     renderDepositAmountOptions() {
@@ -470,12 +477,14 @@ CryptoZoo.uiSettings = {
             return;
         }
 
-        if (!this.withdrawHistory.length) {
+        const history = this.getLimitedHistory(this.withdrawHistory);
+
+        if (!history.length) {
             el.innerHTML = `<div>Brak withdraw requestów</div>`;
             return;
         }
 
-        el.innerHTML = this.withdrawHistory
+        el.innerHTML = history
             .map((w) => {
                 const grossReward = this.format(
                     w.grossRewardAmount ??
@@ -521,12 +530,14 @@ CryptoZoo.uiSettings = {
             return;
         }
 
-        if (!this.depositsHistory.length) {
+        const history = this.getLimitedHistory(this.depositsHistory);
+
+        if (!history.length) {
             el.innerHTML = `<div>Brak historii wpłat</div>`;
             return;
         }
 
-        el.innerHTML = this.depositsHistory
+        el.innerHTML = history
             .map((d) => {
                 const gemsAmount = Math.max(0, Number(d.gemsAmount) || 0);
                 const expeditionBoostAmount = Math.max(0, Number(d.expeditionBoostAmount) || 0);
