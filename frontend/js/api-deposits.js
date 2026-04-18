@@ -422,12 +422,53 @@ Object.assign(window.CryptoZoo.api, {
 
         this.writeTestDeposits(telegramId, updatedDeposits);
 
-        const currentState = this.normalizeState(CryptoZoo.state || {});
-        currentState.gems = Math.max(0, Number(currentState.gems || 0)) + Math.max(0, Number(approvedDeposit.gemsAmount || 0));
-        currentState.expeditionBoost = Math.max(
-            Number(currentState.expeditionBoost || 0),
-            Number(approvedDeposit.expeditionBoostAmount || 0)
+        const approvedGemsAmount = Math.max(
+            0,
+            Number(
+                approvedDeposit.gemsAmount ??
+                approvedDeposit.payment?.gemsAmount ??
+                approvedDeposit.deposit?.gemsAmount ??
+                0
+            ) || 0
         );
+
+        const approvedExpeditionBoostAmount = Math.max(
+            0,
+            Number(
+                approvedDeposit.expeditionBoostAmount ??
+                approvedDeposit.payment?.expeditionBoostAmount ??
+                approvedDeposit.deposit?.expeditionBoostAmount ??
+                0
+            ) || 0
+        );
+
+        const approvedExpeditionBoostDurationMs = Math.max(
+            0,
+            Number(
+                approvedDeposit.expeditionBoostDurationMs ??
+                approvedDeposit.payment?.expeditionBoostDurationMs ??
+                approvedDeposit.deposit?.expeditionBoostDurationMs ??
+                0
+            ) || 0
+        );
+
+        const currentState = this.normalizeState(CryptoZoo.state || {});
+        currentState.gems = Math.max(0, Number(currentState.gems || 0)) + approvedGemsAmount;
+        currentState.expeditionBoost = Math.max(
+            0,
+            Math.max(
+                Number(currentState.expeditionBoost || 0),
+                approvedExpeditionBoostAmount
+            )
+        );
+
+        if (approvedExpeditionBoostAmount > 0 && approvedExpeditionBoostDurationMs > 0) {
+            currentState.expeditionBoostActiveUntil = Math.max(
+                Number(currentState.expeditionBoostActiveUntil || 0),
+                now + approvedExpeditionBoostDurationMs
+            );
+        }
+
         currentState.deposits = this.mergeDeposits(updatedDeposits, currentState.deposits);
         currentState.depositHistory = this.mergeDeposits(updatedDeposits, currentState.depositHistory);
         currentState.updatedAt = now;
