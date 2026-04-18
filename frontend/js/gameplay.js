@@ -1,4 +1,4 @@
-window.CryptoZoo = window.CryptoZoo || {};
+ window.CryptoZoo = window.CryptoZoo || {};
 
 CryptoZoo.gameplay = {
     activeScreen: "game",
@@ -521,7 +521,7 @@ CryptoZoo.gameplay = {
 
     getLevelRequirement(level) {
         const safeLevel = Math.max(1, Math.floor(Number(level) || 1));
-        return Math.floor(115 * Math.pow(safeLevel, 1.38));
+        return Math.floor(260 * Math.pow(safeLevel, 1.58));
     },
 
     getTotalXpRequiredForLevel(level) {
