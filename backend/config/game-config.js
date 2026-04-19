@@ -1,5 +1,5 @@
+const ANIMALS_DESERT_CONFIG = require('./animals-desert-config');
 const { ANIMALS_JUNGLE_CONFIG } = require("./animals-jungle-config");
-const { ANIMALS_DESERT_CONFIG } = require("./animals-desert-config");
 const { EXPEDITIONS_JUNGLE_CONFIG } = require("./expeditions-jungle-config");
 const { EXPEDITIONS_DESERT_CONFIG } = require("./expeditions-desert-config");
 
@@ -57,7 +57,6 @@ const REFERRAL_REWARDS = {
 
 const ANIMALS_CONFIG = {
     ...ANIMALS_JUNGLE_CONFIG,
-    ...ANIMALS_DESERT_CONFIG
 };
 
 const EXPEDITIONS_CONFIG = {
