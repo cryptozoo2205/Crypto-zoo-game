@@ -83,6 +83,11 @@ Object.assign(CryptoZoo.ui, {
             subText.textContent = `Pakiet offline: ${currentMinutes}m / ${maxMinutes}m`;
         }
 
+        const isFullOfflinePack =
+            activeSlots >= maxSlots ||
+            currentMinutes >= maxMinutes ||
+            adsHours >= (maxAds - 0.0001);
+
         if (CryptoZoo.ads?.isLoading) {
             adBtn.disabled = true;
             adBtn.textContent = "⏳ Reklama...";
@@ -90,7 +95,7 @@ Object.assign(CryptoZoo.ui, {
             return;
         }
 
-        if (!canWatchAd) {
+        if (!canWatchAd || isFullOfflinePack) {
             adBtn.disabled = true;
             adBtn.textContent = "⏳ MAX";
             adBtn.onclick = null;
