@@ -416,11 +416,11 @@ router.post("/start", (req, res) => {
             return res.status(400).json({ error: "Active expedition already exists" });
         }
 
-        const requiredLevel = Math.max(1, Number(expedition.unlockLevel) || 1);
+        const unlockLevel = Math.max(1, Number(expedition.unlockLevel) || 1);
         const playerLevel = Math.max(1, Number(player.level) || 1);
 
-        if (playerLevel < requiredLevel) {
-            return res.status(400).json({ error: `Required level: ${requiredLevel}` });
+        if (playerLevel < unlockLevel) {
+            return res.status(400).json({ error: `Required level: ${unlockLevel}` });
         }
 
         const startCostCoins = Math.max(0, Math.floor(Number(expedition.startCostCoins) || 0));

@@ -51,6 +51,7 @@ Object.assign(window.CryptoZoo.api, {
             expeditionStats: state.expeditionStats,
 
             shopPurchases: state.shopPurchases,
+            shopItemCharges: state.shopItemCharges,
             animals: state.animals,
             boxes: state.boxes,
             expedition: state.expedition,
@@ -113,6 +114,7 @@ Object.assign(window.CryptoZoo.api, {
             dailyExpeditionBoost: payload.dailyExpeditionBoost,
             expeditionStats: payload.expeditionStats,
             shopPurchases: payload.shopPurchases,
+            shopItemCharges: payload.shopItemCharges,
             animals: payload.animals,
             boxes: payload.boxes,
             expedition: payload.expedition,

@@ -48,6 +48,7 @@ Object.assign(window.CryptoZoo.api, {
             },
 
             shopPurchases: {},
+            shopItemCharges: {},
             animals: {},
             boxes: {},
             expedition: null,

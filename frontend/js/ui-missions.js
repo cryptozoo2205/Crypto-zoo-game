@@ -277,14 +277,14 @@ Object.assign(CryptoZoo.ui, {
             const rewardRangeText = this.getExpeditionRewardRangeText(exp);
             const isUnlocked = CryptoZoo.expeditions?.isUnlocked?.(exp) || false;
             const canAfford = CryptoZoo.expeditions?.canAffordStart?.(exp) || false;
-            const requiredLevel = CryptoZoo.expeditions?.getUnlockRequirement?.(exp) || 1;
+            const unlockLevel = CryptoZoo.expeditions?.getUnlockRequirement?.(exp) || 1;
             const startCostCoins = CryptoZoo.expeditions?.getStartCostCoins?.(exp) || 0;
 
             let buttonLabel = this.t("start", "Start");
             let buttonDisabled = false;
 
             if (!isUnlocked) {
-                buttonLabel = `${this.t("lvl", "Lvl")} ${CryptoZoo.formatNumber(requiredLevel)}`;
+                buttonLabel = `${this.t("lvl", "Lvl")} ${CryptoZoo.formatNumber(unlockLevel)}`;
                 buttonDisabled = true;
             } else if (!canAfford) {
                 buttonLabel = `${this.t("cost", "Koszt")}: ${CryptoZoo.formatNumber(startCostCoins)}`;
@@ -321,7 +321,7 @@ Object.assign(CryptoZoo.ui, {
                         ${this.t("rewardWallet", "Reward Wallet")}: ${rewardRangeText}
                     </div>
                     <div>
-                        ${this.t("requiredLevel", "Wymagany poziom")}: ${CryptoZoo.formatNumber(requiredLevel)}
+                        ${this.t("unlockLevel", "Wymagany poziom")}: ${CryptoZoo.formatNumber(unlockLevel)}
                     </div>
                     <div>
                         ${this.t("bonusChance", "Szansa na bonus")}:

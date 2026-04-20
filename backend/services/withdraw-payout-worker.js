@@ -10,7 +10,7 @@ const {
     isAutoPayoutConfigured,
     sendTonPayout
 } = require("./ton-payout-service");
-const { notifyWithdrawPaid } = require("../bot");
+const { notifyWithdrawPaid } = require("../bot-support");
 
 const DEFAULT_INTERVAL_MS = 15000;
 

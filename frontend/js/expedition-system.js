@@ -620,9 +620,9 @@ CryptoZoo.expeditions = {
     },
 
     isUnlocked(expedition) {
-        const requiredLevel = this.getUnlockRequirement(expedition);
+        const unlockLevel = this.getUnlockRequirement(expedition);
         const playerLevel = Math.max(1, Number(CryptoZoo.state?.level) || 1);
-        return playerLevel >= requiredLevel;
+        return playerLevel >= unlockLevel;
     },
 
     hasActiveExpedition() {
@@ -802,10 +802,8 @@ CryptoZoo.expeditions = {
         const normalizedSelectedAnimals = this.normalizeSelectedAnimals(selectedAnimals);
         const rewardRarity = this.rollRewardRarity(expeditionConfig);
         const baseDuration = this.getEffectiveDurationSeconds(expeditionConfig);
-        const legacyReduction = this.getLegacyTimeReductionSeconds();
         const totalReduction = Math.min(
             Math.max(0, baseDuration - 60),
-            Math.max(0, legacyReduction)
         );
 
         const duration = Math.max(60, baseDuration - totalReduction);
@@ -854,8 +852,8 @@ CryptoZoo.expeditions = {
         }
 
         if (!this.isUnlocked(expeditionConfig)) {
-            const requiredLevel = this.getUnlockRequirement(expeditionConfig);
-            CryptoZoo.ui?.showToast?.(`Wymagany poziom: ${CryptoZoo.formatNumber(requiredLevel)}`);
+            const unlockLevel = this.getUnlockRequirement(expeditionConfig);
+            CryptoZoo.ui?.showToast?.(`Wymagany poziom: ${CryptoZoo.formatNumber(unlockLevel)}`);
             return false;
         }
 
@@ -876,9 +874,6 @@ CryptoZoo.expeditions = {
         const expedition = this.buildLocalExpedition(expeditionConfig, selectedAnimals);
         CryptoZoo.state.expedition = expedition;
 
-        const legacyReduction = this.getLegacyTimeReductionSeconds();
-        if (legacyReduction > 0) {
-            CryptoZoo.state.expeditionStats.timeReductionSeconds = 0;
         }
 
         CryptoZoo.dailyMissions?.recordStartExpedition?.(1);
@@ -1005,8 +1000,8 @@ CryptoZoo.expeditions = {
         }
 
         if (!this.isUnlocked(expeditionConfig)) {
-            const requiredLevel = this.getUnlockRequirement(expeditionConfig);
-            CryptoZoo.ui?.showToast?.(`Wymagany poziom: ${CryptoZoo.formatNumber(requiredLevel)}`);
+            const unlockLevel = this.getUnlockRequirement(expeditionConfig);
+            CryptoZoo.ui?.showToast?.(`Wymagany poziom: ${CryptoZoo.formatNumber(unlockLevel)}`);
             return false;
         }
 

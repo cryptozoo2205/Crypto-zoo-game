@@ -25,7 +25,7 @@ const {
     notifyNewWithdraw,
     notifyWithdrawPaid,
     notifyWithdrawRejected
-} = require("../bot");
+} = require("../bot-support");
 
 const router = express.Router();
 

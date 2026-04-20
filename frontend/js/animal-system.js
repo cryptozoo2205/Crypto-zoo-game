@@ -155,10 +155,10 @@ CryptoZoo.animalsSystem = {
         const animal = this.ensureAnimalState(type);
         const maxOwned = this.getMaxOwned();
         const playerLevel = Math.max(1, Math.floor(Number(CryptoZoo.state?.level) || 1));
-        const requiredLevel = this.getRequiredPlayerLevel(type);
+        const unlockLevel = this.getRequiredPlayerLevel(type);
 
-        if (playerLevel < requiredLevel) {
-            CryptoZoo.ui?.showToast?.(`Wymagany lvl ${requiredLevel}`);
+        if (playerLevel < unlockLevel) {
+            CryptoZoo.ui?.showToast?.(`Wymagany lvl ${unlockLevel}`);
             return false;
         }
 

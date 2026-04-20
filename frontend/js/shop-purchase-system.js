@@ -53,6 +53,8 @@ CryptoZoo.shopSystem = {
         const safeAmount = Math.max(1, Number(amount) || 1);
         CryptoZoo.state.shopItemCharges[itemId] =
             this.getItemChargeCount(itemId) + safeAmount;
+
+        this.saveNow();
     },
 
     consumeItemCharge(itemId, amount = 1) {
@@ -66,6 +68,7 @@ CryptoZoo.shopSystem = {
         }
 
         CryptoZoo.state.shopItemCharges[itemId] = Math.max(0, current - safeAmount);
+        this.saveNow();
         return true;
     },
 

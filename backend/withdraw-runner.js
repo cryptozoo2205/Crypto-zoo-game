@@ -20,7 +20,7 @@ const {
 } = require("./services/ton-payout-service");
 const {
     notifyWithdrawPaid
-} = require("./bot");
+} = require("./bot-support");
 
 const LOOP_INTERVAL_MS = Math.max(
     5000,
