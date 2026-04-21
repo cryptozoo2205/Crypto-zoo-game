@@ -135,6 +135,21 @@ function applyExpeditionBoostServerGuard(oldPlayer, safePlayer) {
 
     safePlayer.expeditionBoost = trustedServerBoost;
 
+    const oldCharges =
+        oldPlayer && typeof oldPlayer.shopItemCharges === "object" && !Array.isArray(oldPlayer.shopItemCharges)
+            ? oldPlayer.shopItemCharges
+            : {};
+
+    const nextCharges =
+        safePlayer && typeof safePlayer.shopItemCharges === "object" && !Array.isArray(safePlayer.shopItemCharges)
+            ? safePlayer.shopItemCharges
+            : {};
+
+    safePlayer.shopItemCharges = {
+        ...oldCharges,
+        ...nextCharges
+    };
+
     return safePlayer;
 }
 

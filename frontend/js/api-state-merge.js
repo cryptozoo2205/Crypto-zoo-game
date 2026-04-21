@@ -191,6 +191,11 @@ Object.assign(window.CryptoZoo.api, {
                 ...local.shopPurchases
             },
 
+            shopItemCharges: {
+                ...server.shopItemCharges,
+                ...local.shopItemCharges
+            },
+
             animals: {
                 ...server.animals,
                 ...local.animals

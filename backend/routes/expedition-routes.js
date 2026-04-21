@@ -151,16 +151,27 @@ function consumeSpecificTimeBoostCharge(player, requestedSeconds, remainingSecon
     }
 
     const options = getAvailableTimeBoostOptions(player);
-    const selectedOption = options.find((option) => {
+    let selectedOption = options.find((option) => {
         return Math.max(0, Number(option?.seconds) || 0) == safeRequestedSeconds
             && Math.max(0, Number(option?.count) || 0) > 0;
     });
 
     if (!selectedOption) {
+        const fallbackOptions = options
+            .filter((option) => Math.max(0, Number(option?.count) || 0) > 0)
+            .sort((a, b) => Number(a.seconds || 0) - Number(b.seconds || 0));
+
+        selectedOption = fallbackOptions.find((option) => {
+            return Math.max(0, Number(option?.seconds) || 0) >= safeRequestedSeconds;
+        }) || null;
+    }
+
+    if (!selectedOption) {
         return 0;
     }
 
-    const appliedReduction = Math.min(safeRequestedSeconds, maxAllowedReduction);
+    const selectedSeconds = Math.max(0, Number(selectedOption?.seconds) || 0);
+    const appliedReduction = Math.min(selectedSeconds, maxAllowedReduction);
     if (appliedReduction <= 0) {
         return 0;
     }
@@ -448,40 +459,6 @@ function canCollect(player) {
     return Date.now() >= Math.max(0, Number(expedition.endTime) || 0);
 }
 
-function consumeBestTimeBoostCharge(player, remainingSeconds) {
-    const charges = getTimeBoostCharges(player);
-    if (!charges.length) return 0;
-
-    const safeRemaining = Math.max(0, Number(remainingSeconds) || 0);
-    const maxAllowedReduction = Math.max(0, safeRemaining - 60);
-
-    if (maxAllowedReduction <= 0) {
-        return 0;
-    }
-
-    let bestApplied = 0;
-    let bestIndex = -1;
-
-    charges.forEach((charge, index) => {
-        const safeCharge = Math.max(0, Number(charge) || 0);
-        const applied = Math.min(safeCharge, maxAllowedReduction);
-
-        if (applied > bestApplied) {
-            bestApplied = applied;
-            bestIndex = index;
-        }
-    });
-
-    if (bestIndex === -1 || bestApplied <= 0) {
-        return 0;
-    }
-
-    charges.splice(bestIndex, 1);
-    setTimeBoostCharges(player, charges);
-
-    return bestApplied;
-}
-
 function sanitizeStoredCoinsReward(expeditionConfig, expeditionState) {
     const maxAllowed = getMaxCoinsRewardForExpedition(
         expeditionConfig,
@@ -626,6 +603,14 @@ router.post("/time-boost", (req, res) => {
             0,
             Math.floor(Number(req.body?.seconds) || 0)
         );
+
+        console.log("[TIMEBOOST_DEBUG]", JSON.stringify({
+            telegramId,
+            requestedSeconds,
+            shopItemCharges: player?.shopItemCharges || {},
+            legacyCharges: player?.expeditionStats?.timeBoostCharges || [],
+            remainingSeconds
+        }));
 
         const reductionSeconds = requestedSeconds > 0
             ? consumeSpecificTimeBoostCharge(player, requestedSeconds, remainingSeconds)

@@ -286,6 +286,7 @@ Object.assign(window.CryptoZoo.api, {
             },
 
             shopPurchases: this.normalizeObject(data.shopPurchases),
+            shopItemCharges: this.normalizeObject(data.shopItemCharges),
             animals: this.normalizeObject(data.animals),
             boxes: this.normalizeObject(data.boxes),
             expedition: data.expedition || null,
