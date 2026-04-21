@@ -802,8 +802,10 @@ CryptoZoo.expeditions = {
         const normalizedSelectedAnimals = this.normalizeSelectedAnimals(selectedAnimals);
         const rewardRarity = this.rollRewardRarity(expeditionConfig);
         const baseDuration = this.getEffectiveDurationSeconds(expeditionConfig);
+        const legacyReduction = this.getLegacyTimeReductionSeconds();
         const totalReduction = Math.min(
             Math.max(0, baseDuration - 60),
+            Math.max(0, legacyReduction)
         );
 
         const duration = Math.max(60, baseDuration - totalReduction);
@@ -874,6 +876,9 @@ CryptoZoo.expeditions = {
         const expedition = this.buildLocalExpedition(expeditionConfig, selectedAnimals);
         CryptoZoo.state.expedition = expedition;
 
+        const legacyReduction = this.getLegacyTimeReductionSeconds();
+        if (legacyReduction > 0) {
+            CryptoZoo.state.expeditionStats.timeReductionSeconds = 0;
         }
 
         CryptoZoo.dailyMissions?.recordStartExpedition?.(1);
