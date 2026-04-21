@@ -91,13 +91,9 @@ CryptoZoo.boxes = {
         CryptoZoo.state.boxes.legendary = Number(CryptoZoo.state.boxes.legendary) || 0;
     },
 
-    async saveLocalState() {
+    saveLocalState() {
         try {
-            const telegramUser = await CryptoZoo.api?.getTelegramUser?.();
-            const telegramId = String(telegramUser?.id || "");
-            if (CryptoZoo.api?.writeLocalState) {
-                CryptoZoo.api.writeLocalState(CryptoZoo.state, telegramId);
-            }
+            localStorage.setItem("cryptozoo_save_v2", JSON.stringify(CryptoZoo.state));
         } catch (error) {
             console.warn("Local box save error:", error);
         }

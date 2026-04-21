@@ -106,9 +106,7 @@ Object.assign(CryptoZoo.ui, {
             [];
 
         if (Array.isArray(rawOptions) && rawOptions.length) {
-            return rawOptions
-                .map((option) => ({
-                    seconds: Math.max(0, Number(option?.seconds) || 0),
+            return rawOptions.map((option) => ({ key: String(option?.key || option?.seconds || ""), seconds: Math.max(0, Number(option?.seconds) || 0),
                     count: Math.max(0, Number(option?.count) || 0)
                 }))
                 .filter((option) => option.seconds > 0 && option.count > 0)
@@ -190,12 +188,12 @@ Object.assign(CryptoZoo.ui, {
 
             this.bindClick(buttonId, () => {
                 if (typeof CryptoZoo.expeditions?.useSpecificTimeBoostOnActiveExpedition === "function") {
-                    CryptoZoo.expeditions.useSpecificTimeBoostOnActiveExpedition(option.seconds);
+                    CryptoZoo.expeditions.useSpecificTimeBoostOnActiveExpedition(option.key);
                     return;
                 }
 
                 if (typeof CryptoZoo.expeditions?.useTimeBoostOnActiveExpedition === "function") {
-                    CryptoZoo.expeditions.useTimeBoostOnActiveExpedition(option.seconds);
+                    CryptoZoo.expeditions.useTimeBoostOnActiveExpedition(option.key);
                 }
             });
         });

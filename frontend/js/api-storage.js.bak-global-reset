@@ -37,7 +37,8 @@ Object.assign(window.CryptoZoo.api, {
     },
 
     readLocalState(telegramId = "") {
-        return null;
+        const key = this.getLocalSaveKeyById(telegramId);
+        return this.readLocalStateByKey(key);
     },
 
     writeLocalState(state, telegramId = "") {
@@ -57,14 +58,8 @@ Object.assign(window.CryptoZoo.api, {
 
     async clearCurrentModeLocalState() {
         try {
-            const telegramUser = await this.getTelegramUser();
-            const safeId = String(telegramUser?.id || "").trim();
-            const key = this.getLocalSaveKeyById(safeId);
-            const legacyPerPlayerKey = safeId ? `${this.legacyLocalSaveKey}_${safeId}` : "";
-
+            const key = await this.getStorageKey();
             localStorage.removeItem(key);
-            if (legacyPerPlayerKey) localStorage.removeItem(legacyPerPlayerKey);
-            localStorage.removeItem(this.legacyLocalSaveKey);
         } catch (error) {
             console.warn("Local save remove failed:", error);
         }

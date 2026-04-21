@@ -96,7 +96,7 @@ Object.assign(window.CryptoZoo.api, {
         this.ensurePlayerPromise = (async () => {
             const telegramUser = await this.getTelegramUser();
             const telegramId = String(telegramUser.id);
-            let localRaw = this.readLocalState(telegramId);
+            const localRaw = this.readLocalState(telegramId);
 
             CryptoZoo.state = this.normalizeState(
                 CryptoZoo.state ||
@@ -157,7 +157,7 @@ Object.assign(window.CryptoZoo.api, {
     async loadPlayer() {
         const telegramUser = await this.getTelegramUser();
         const telegramId = String(telegramUser.id);
-        let localRaw = this.readLocalState(telegramId);
+        const localRaw = this.readLocalState(telegramId);
 
         if (this.testResetMode) {
             if (localRaw) {
@@ -201,11 +201,6 @@ Object.assign(window.CryptoZoo.api, {
             serverRaw = this.unwrapPlayerResponse(serverRaw);
         } catch (error) {
             console.warn("LOAD FAIL → local fallback", error);
-            const message = String(error?.message || "").toLowerCase();
-            if (message.includes("http 404")) {
-                localRaw = null;
-                await this.clearCurrentModeLocalState();
-            }
         }
 
         if (serverRaw) {
@@ -222,9 +217,9 @@ Object.assign(window.CryptoZoo.api, {
                 3600,
                 Number(serverRaw.offlineMaxSeconds) || 3600
             );
+        } else if (localRaw) {
+            CryptoZoo.state = this.normalizeState(localRaw);
         } else {
-            localRaw = null;
-            await this.clearCurrentModeLocalState();
             CryptoZoo.state = this.getDefaultState(telegramUser);
         }
 

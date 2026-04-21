@@ -3,9 +3,9 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.expeditions = {
     collectInProgress: false,
 
-    DAILY_REWARD_FREE_CAP: 0.08,
-    DAILY_REWARD_PREMIUM_CAP: 0.25,
-    BASE_REWARD_PER_HOUR: 0.008,
+    DAILY_REWARD_FREE_CAP: 1.3,
+    DAILY_REWARD_PREMIUM_CAP: 1.8,
+    BASE_REWARD_PER_HOUR: 0.075,
     MIN_REWARD_PREVIEW: 0.001,
     MAX_REWARD_PER_EXPEDITION: 0.12,
 

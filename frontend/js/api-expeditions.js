@@ -32,7 +32,7 @@ Object.assign(window.CryptoZoo.api, {
     },
 
     async expeditionUseTimeReduction(seconds = 0) {
-        const response = await this.request("/expedition/use-time-reduction", {
+        const response = await this.request("/expedition/time-boost", {
             method: "POST",
             body: JSON.stringify({
                 telegramId: await this.getPlayerId(),

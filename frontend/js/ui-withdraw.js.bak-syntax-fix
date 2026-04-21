@@ -533,8 +533,6 @@ CryptoZoo.uiWithdraw = {
             setTimeout(() => amountInput.focus(), 50);
         }
     }
-};
-
 
 document.addEventListener("DOMContentLoaded", () => {
 });

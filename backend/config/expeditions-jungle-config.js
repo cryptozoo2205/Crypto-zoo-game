@@ -13,7 +13,7 @@ const EXPEDITIONS_JUNGLE_CONFIG = {
         gemChance: 0.01,
         rareChance: 0.12,
         epicChance: 0.01,
-        unlockLevel: 3
+        unlockLevel: 1
     },
     jungle_river: {
         id: "jungle_river",

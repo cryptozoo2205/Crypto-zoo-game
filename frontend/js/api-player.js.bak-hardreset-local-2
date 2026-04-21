@@ -222,9 +222,9 @@ Object.assign(window.CryptoZoo.api, {
                 3600,
                 Number(serverRaw.offlineMaxSeconds) || 3600
             );
+        } else if (localRaw) {
+            CryptoZoo.state = this.normalizeState(localRaw);
         } else {
-            localRaw = null;
-            await this.clearCurrentModeLocalState();
             CryptoZoo.state = this.getDefaultState(telegramUser);
         }
 

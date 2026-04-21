@@ -438,7 +438,7 @@ Object.assign(CryptoZoo.ui, {
 
         this.updateText("homeCoins", CryptoZoo.formatNumber(state.coins || 0));
         this.updateText("homeGems", CryptoZoo.formatNumber(state.gems || 0));
-        this.updateText("homeRewardBalance", CryptoZoo.formatNumber(state.rewardBalance || 0));
+        this.updateText("homeRewardBalance", Number((Number(state.rewardBalance) || 0).toFixed(3)));
         this.updateText("homeLevel", CryptoZoo.formatNumber(state.level || 1));
         this.updateText("homeCoinsPerClick", CryptoZoo.formatNumber(effectiveCoinsPerClick));
         this.updateText("homeZooIncomeStat", CryptoZoo.formatNumber(effectiveZooIncome));
@@ -480,7 +480,7 @@ Object.assign(CryptoZoo.ui, {
 
         this.updateText("coins", CryptoZoo.formatNumber(state.coins || 0));
         this.updateText("gems", CryptoZoo.formatNumber(state.gems || 0));
-        this.updateText("rewardBalance", CryptoZoo.formatNumber(state.rewardBalance || 0));
+        this.updateText("rewardBalance", Number((Number(state.rewardBalance) || 0).toFixed(3)));
         this.updateText("level", CryptoZoo.formatNumber(state.level || 1));
         this.updateText("coinsPerClick", CryptoZoo.formatNumber(effectiveCoinsPerClick));
         this.updateText("zooIncome", CryptoZoo.formatNumber(effectiveZooIncome));

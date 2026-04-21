@@ -25,10 +25,11 @@ Object.assign(window.CryptoZoo.api, {
                 console.error("API init load failed:", error);
 
                 const telegramUser = await this.getTelegramUser();
-
-                await this.clearCurrentModeLocalState();
+                const localState = this.readLocalState(telegramUser.id);
 
                 CryptoZoo.state = this.normalizeState(
+                    localState ||
+                    CryptoZoo.state ||
                     this.getDefaultState(telegramUser)
                 );
 

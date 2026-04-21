@@ -29,43 +29,48 @@ Object.assign(CryptoZoo.ui, {
     },
 
     getExpeditionRewardRangeText(expeditionConfig) {
-        if (!expeditionConfig) return `0 ${this.t("rewardWord", "reward")}`;
+        if (!expeditionConfig) {
+            return `0 ${this.t("rewardWord", "reward")}`;
+        }
 
         const durationSeconds =
             CryptoZoo.expeditions?.getEffectiveDurationSeconds?.(expeditionConfig) ||
             Number(expeditionConfig.duration || 0);
 
         const baseExpedition = {
+            ...expeditionConfig,
             startTime: 0,
             endTime: Number(durationSeconds) * 1000,
             duration: durationSeconds,
-            baseDuration: durationSeconds,
-            rewardRarity: "common"
+            baseDuration: durationSeconds
         };
 
         const commonReward = Number(
-            CryptoZoo.expeditions?.getRewardBalanceAmount?.(baseExpedition) || 0
+            CryptoZoo.expeditions?.calculateRewardBalancePreview?.({
+                ...baseExpedition,
+                rewardRarity: "common"
+            }) || 0
         );
 
         const rareReward = Number(
-            CryptoZoo.expeditions?.getRewardBalanceAmount?.({
+            CryptoZoo.expeditions?.calculateRewardBalancePreview?.({
                 ...baseExpedition,
                 rewardRarity: "rare"
             }) || 0
         );
 
         const epicReward = Number(
-            CryptoZoo.expeditions?.getRewardBalanceAmount?.({
+            CryptoZoo.expeditions?.calculateRewardBalancePreview?.({
                 ...baseExpedition,
                 rewardRarity: "epic"
             }) || 0
         );
 
-        const minReward = commonReward;
-        const maxReward = Math.max(rareReward, epicReward);
+        const minReward = Math.min(commonReward, rareReward, epicReward);
+        const maxReward = Math.max(commonReward, rareReward, epicReward);
 
-        if (minReward === maxReward) {
-            return `${minReward.toFixed(3)} ${this.t("rewardWord", "reward")}`;
+        if (Math.abs(maxReward - minReward) < 0.001) {
+            return `${maxReward.toFixed(3)} ${this.t("rewardWord", "reward")}`;
         }
 
         return `${minReward.toFixed(3)} - ${maxReward.toFixed(3)} ${this.t("rewardWord", "reward")}`;

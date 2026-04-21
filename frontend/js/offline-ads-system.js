@@ -52,6 +52,7 @@ CryptoZoo.offlineAds = {
         if (resetAt <= 0) {
             this.setZeroState();
             this.persistState();
+            CryptoZoo.api?.savePlayer?.();
             return;
         }
 
@@ -60,6 +61,9 @@ CryptoZoo.offlineAds = {
         if (msLeft <= 0) {
             this.setZeroState();
             this.persistState();
+            CryptoZoo.state.offlineAdsHours = 0;
+            CryptoZoo.state.offlineAdsResetAt = 0;
+            CryptoZoo.state.offlineAdsEnabled = false;
             return;
         }
 
@@ -112,6 +116,7 @@ CryptoZoo.offlineAds = {
         if (seconds <= 0) {
             this.setZeroState();
             this.persistState();
+            CryptoZoo.api?.savePlayer?.();
             return 0;
         }
 

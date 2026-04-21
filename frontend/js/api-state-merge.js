@@ -89,19 +89,29 @@ Object.assign(window.CryptoZoo.api, {
         const server = this.normalizeState(serverRaw);
         const local = this.normalizeState(localRaw);
 
-        const mergedOfflineAdsHours = Math.max(
-            Number(server.offlineAdsHours || 0),
-            Number(local.offlineAdsHours || 0)
+        const serverOfflineAdsResetAt = Math.max(
+            0,
+            Number(server.offlineAdsResetAt || 0)
         );
 
-        const mergedOfflineAdsResetAt = Math.max(
-            Number(server.offlineAdsResetAt || 0),
+        const localOfflineAdsResetAt = Math.max(
+            0,
             Number(local.offlineAdsResetAt || 0)
         );
 
+        const useServerOfflineAds =
+            serverOfflineAdsResetAt >= localOfflineAdsResetAt;
+
+        const mergedOfflineAdsHours = useServerOfflineAds
+            ? Math.max(0, Number(server.offlineAdsHours || 0))
+            : Math.max(0, Number(local.offlineAdsHours || 0));
+
+        const mergedOfflineAdsResetAt = useServerOfflineAds
+            ? serverOfflineAdsResetAt
+            : localOfflineAdsResetAt;
+
         const mergedOfflineAdsEnabled =
-            (Boolean(server.offlineAdsEnabled) || Boolean(local.offlineAdsEnabled)) &&
-            mergedOfflineAdsHours > 0;
+            mergedOfflineAdsResetAt > Date.now() && mergedOfflineAdsHours > 0;
 
         const mergedOfflineBaseHours = Math.max(
             Number(server.offlineBaseHours || 0),

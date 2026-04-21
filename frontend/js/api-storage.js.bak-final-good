@@ -37,6 +37,7 @@ Object.assign(window.CryptoZoo.api, {
     },
 
     readLocalState(telegramId = "") {
+        const key = this.getLocalSaveKeyById(telegramId);
         return null;
     },
 
@@ -46,10 +47,7 @@ Object.assign(window.CryptoZoo.api, {
                 telegramId || state?.telegramUser?.id || ""
             );
 
-            localStorage.setItem(
-                key,
-                JSON.stringify(this.normalizeState(state))
-            );
+            return;
         } catch (error) {
             console.warn("Local save write failed:", error);
         }
@@ -61,8 +59,7 @@ Object.assign(window.CryptoZoo.api, {
             const safeId = String(telegramUser?.id || "").trim();
             const key = this.getLocalSaveKeyById(safeId);
             const legacyPerPlayerKey = safeId ? `${this.legacyLocalSaveKey}_${safeId}` : "";
-
-            localStorage.removeItem(key);
+            ;
             if (legacyPerPlayerKey) localStorage.removeItem(legacyPerPlayerKey);
             localStorage.removeItem(this.legacyLocalSaveKey);
         } catch (error) {

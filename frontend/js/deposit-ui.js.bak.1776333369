@@ -1,72 +1,25 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
-async function __czParseApiError(res) {
-    try {
-        const data = await res.clone().json();
-        if (data && typeof data.error === "string" && data.error.trim()) {
-            return data.error.trim();
-        }
-        if (data && typeof data.message === "string" && data.message.trim()) {
-            return data.message.trim();
-        }
-    } catch (e) {}
-
-    try {
-        const text = await res.clone().text();
-        if (text && text.trim()) {
-            return text.trim();
-        }
-    } catch (e) {}
-
-    return `HTTP ${res.status}`;
-}
-
 CryptoZoo.depositUI = {
     currentDepositData: null,
     isCreatingDeposit: false,
+    isOpeningWallet: false,
     isVerifyingDeposit: false,
     verifyIntervalId: null,
     verifyTimeoutId: null,
     resumeEventsBound: false,
 
+    tonConnectUI: null,
+    tonWalletAddress: "",
+    tonConnectInitialized: false,
+
     getTelegramWebApp() {
         return window.Telegram?.WebApp || null;
     },
 
-    formatTonAmount(amount, decimals = 6) {
+    toNanoString(amount) {
         const safeAmount = Math.max(0, Number(amount) || 0);
-        return safeAmount.toFixed(decimals).replace(/\.?0+$/, (match) => {
-            return match.startsWith(".") ? "" : match;
-        });
-    },
-
-    formatUsdAmount(amount, decimals = 2) {
-        const safeAmount = Math.max(0, Number(amount) || 0);
-        return safeAmount.toFixed(decimals).replace(/\.?0+$/, (match) => {
-            return match.startsWith(".") ? "" : match;
-        });
-    },
-
-    formatDurationFromMs(durationMs) {
-        const safeMs = Math.max(0, Number(durationMs) || 0);
-        const totalHours = Math.max(0, Math.floor(safeMs / (60 * 60 * 1000)));
-
-        if (totalHours <= 0) {
-            return "0h";
-        }
-
-        const days = Math.floor(totalHours / 24);
-        const hours = totalHours % 24;
-
-        if (days <= 0) {
-            return `${totalHours}h`;
-        }
-
-        if (hours <= 0) {
-            return days === 1 ? "1 dzień" : `${days} dni`;
-        }
-
-        return `${days === 1 ? "1 dzień" : `${days} dni`} ${hours}h`;
+        return String(Math.round(safeAmount * 1000000000));
     },
 
     stopEvent(event) {
@@ -75,17 +28,8 @@ CryptoZoo.depositUI = {
         event.stopPropagation?.();
     },
 
-    getDepositBonusMeta(amountUsd, payment = {}, deposit = {}) {
-        const safeAmountUsd = Math.max(
-            0,
-            Number(
-                payment?.baseAmountUsd ??
-                deposit?.baseAmountUsd ??
-                payment?.baseAmount ??
-                deposit?.baseAmount ??
-                amountUsd
-            ) || 0
-        );
+    getDepositBonusMeta(amount, payment = {}, deposit = {}) {
+        const safeAmount = Math.max(0, Number(amount) || 0);
 
         const gemsAmount = Math.max(
             0,
@@ -99,23 +43,33 @@ CryptoZoo.depositUI = {
 
         const boostPercent = Math.round(expeditionBoostAmount * 100);
 
-        const durationMs = Math.max(
+        const durationMsRaw = Math.max(
             0,
             Number(payment?.expeditionBoostDurationMs ?? deposit?.expeditionBoostDurationMs) || 0
         );
 
+        let durationDays = 0;
+
+        if (durationMsRaw > 0) {
+            durationDays = Math.max(1, Math.round(durationMsRaw / (24 * 60 * 60 * 1000)));
+        } else {
+            if (safeAmount >= 10) durationDays = 7;
+            else if (safeAmount >= 5) durationDays = 5;
+            else if (safeAmount >= 3) durationDays = 3;
+            else if (safeAmount >= 1) durationDays = 1;
+        }
+
         return {
-            amountUsd: safeAmountUsd,
             gemsAmount,
             boostPercent,
-            durationMs
+            durationDays
         };
     },
 
     formatBonusText(meta) {
         const gems = Math.max(0, Number(meta?.gemsAmount) || 0);
         const boostPercent = Math.max(0, Number(meta?.boostPercent) || 0);
-        const durationMs = Math.max(0, Number(meta?.durationMs) || 0);
+        const durationDays = Math.max(0, Number(meta?.durationDays) || 0);
 
         const parts = [];
 
@@ -127,8 +81,8 @@ CryptoZoo.depositUI = {
             parts.push(`+${CryptoZoo.formatNumber(boostPercent)}% boost ekspedycji`);
         }
 
-        if (durationMs > 0) {
-            parts.push(this.formatDurationFromMs(durationMs));
+        if (durationDays > 0) {
+            parts.push(durationDays === 1 ? "1 dzień" : `${durationDays} dni`);
         }
 
         return parts.join(" • ");
@@ -168,6 +122,100 @@ CryptoZoo.depositUI = {
         }
     },
 
+    getManifestUrl() {
+        const origin = String(window.location?.origin || "").replace(/\/+$/, "");
+        return `${origin}/tonconnect-manifest.json`;
+    },
+
+    getTonConnectButtonEl() {
+        return document.getElementById("tonConnectButton");
+    },
+
+    getTonConnectStatusEl() {
+        return document.getElementById("tonConnectStatus");
+    },
+
+    getPayWithTonBtn() {
+        return document.getElementById("settingsPayWithTonBtn");
+    },
+
+    shortenAddress(address) {
+        const safe = String(address || "").trim();
+        if (safe.length <= 14) return safe;
+        return `${safe.slice(0, 6)}...${safe.slice(-6)}`;
+    },
+
+    isWalletConnected() {
+        return !!(this.tonConnectUI?.wallet?.account?.address || this.tonWalletAddress);
+    },
+
+    updateTonConnectUi() {
+        const statusEl = this.getTonConnectStatusEl();
+        const payBtn = this.getPayWithTonBtn();
+
+        const connectedAddress =
+            String(this.tonConnectUI?.wallet?.account?.address || this.tonWalletAddress || "").trim();
+
+        if (connectedAddress) {
+            this.tonWalletAddress = connectedAddress;
+        }
+
+        if (statusEl) {
+            statusEl.textContent = connectedAddress
+                ? `Connected: ${this.shortenAddress(connectedAddress)}`
+                : "Wallet not connected";
+        }
+
+        if (payBtn) {
+            const canPay = this.isWalletConnected() && !!this.currentDepositData && !this.isOpeningWallet;
+            payBtn.disabled = !canPay;
+            payBtn.textContent = this.isOpeningWallet ? "Processing..." : "Pay with TON";
+        }
+    },
+
+    async initTonConnect() {
+        if (this.tonConnectInitialized) {
+            this.initTonConnect();
+    this.updateTonConnectUi();
+            return;
+        }
+
+        this.tonConnectInitialized = true;
+
+        try {
+            if (typeof window.TON_CONNECT_UI === "undefined" && typeof window.TonConnectUI === "undefined") {
+                console.warn("TonConnect UI SDK not found");
+                this.initTonConnect();
+    this.updateTonConnectUi();
+                return;
+            }
+
+            const TonConnectUIClass = window.TON_CONNECT_UI?.TonConnectUI || window.TonConnectUI;
+            const buttonRootId = "tonConnectButton";
+
+            this.tonConnectUI = new TonConnectUIClass({
+                manifestUrl: this.getManifestUrl(),
+                buttonRootId
+            });
+
+            if (typeof this.tonConnectUI.onStatusChange === "function") {
+                this.tonConnectUI.onStatusChange((wallet) => {
+                    this.tonWalletAddress = String(wallet?.account?.address || "").trim();
+                    this.initTonConnect();
+    this.updateTonConnectUi();
+                });
+            }
+
+            this.tonWalletAddress = String(this.tonConnectUI?.wallet?.account?.address || "").trim();
+            this.initTonConnect();
+    this.updateTonConnectUi();
+        } catch (error) {
+            console.error("TonConnect init error:", error);
+            this.initTonConnect();
+    this.updateTonConnectUi();
+        }
+    },
+
     ensureModal() {
         let modal = document.getElementById("depositPaymentModal");
 
@@ -188,13 +236,13 @@ CryptoZoo.depositUI = {
 
                     <div class="profile-user-meta">
                         <div class="profile-name">Deposit TON</div>
-                        <div class="profile-subtitle">Wyślij dokładną kwotę na podany adres</div>
+                        <div class="profile-subtitle">Podłącz wallet i potwierdź płatność</div>
                     </div>
                 </div>
 
                 <div class="profile-boost-row">
                     <div class="profile-boost-left" style="width:100%;">
-                        <div class="profile-boost-label">Kwota do wysłania</div>
+                        <div class="profile-boost-label">Kwota</div>
                         <div
                             id="depositPaymentAmount"
                             class="profile-boost-value"
@@ -203,17 +251,6 @@ CryptoZoo.depositUI = {
                         <button id="depositCopyAmountBtn" class="profile-close-btn" type="button" style="margin-top:10px;">
                             Kopiuj kwotę
                         </button>
-                    </div>
-                </div>
-
-                <div class="profile-boost-row" style="margin-top:12px;">
-                    <div class="profile-boost-left" style="width:100%;">
-                        <div class="profile-boost-label">Kwota wpłaty</div>
-                        <div
-                            id="depositPaymentBaseAmount"
-                            class="profile-boost-value"
-                            style="margin-top:6px; word-break:break-word; font-size:13px; line-height:1.5;"
-                        >-</div>
                     </div>
                 </div>
 
@@ -242,17 +279,35 @@ CryptoZoo.depositUI = {
                     </div>
                 </div>
 
+                <div id="depositPaymentCommentWrap" class="profile-boost-row hidden" style="margin-top:12px; display:none;">
+                    <div class="profile-boost-left" style="width:100%;">
+                        <div class="profile-boost-label">Komentarz transakcji</div>
+                        <div
+                            id="depositPaymentComment"
+                            class="profile-boost-value"
+                            style="margin-top:6px; word-break:break-all; font-size:13px; line-height:1.5;"
+                        >-</div>
+                        <button id="depositCopyCommentBtn" class="profile-close-btn" type="button" style="margin-top:10px;">
+                            Kopiuj komentarz
+                        </button>
+                    </div>
+                </div>
+
                 <div class="profile-boost-row" style="margin-top:12px;">
                     <div class="profile-boost-left" style="width:100%;">
                         <div class="profile-boost-label">Płatność</div>
                         <div class="profile-boost-value" style="margin-top:6px; font-size:13px; line-height:1.5;">
-                            Wyślij dokładnie podaną kwotę ze swojego portfela. Wpłata zostanie wykryta automatycznie po potwierdzeniu sieci TON.
+                            Kliknij „Zapłać TON”, potwierdź transakcję w wallet i wróć do gry. System sam sprawdzi wpłatę.
                         </div>
                     </div>
                 </div>
 
                 <button id="depositCopyAllBtn" class="profile-close-btn" type="button" style="margin-top:12px;">
                     Kopiuj dane płatności
+                </button>
+
+                <button id="depositOpenWalletBtn" class="profile-close-btn" type="button">
+                    Zapłać TON
                 </button>
 
                 <button id="depositVerifyBtn" class="profile-close-btn" type="button">
@@ -278,8 +333,11 @@ CryptoZoo.depositUI = {
         const closeBtn = document.getElementById("depositCloseBtn");
         const copyAmountBtn = document.getElementById("depositCopyAmountBtn");
         const copyAddressBtn = document.getElementById("depositCopyAddressBtn");
+        const copyCommentBtn = document.getElementById("depositCopyCommentBtn");
         const copyAllBtn = document.getElementById("depositCopyAllBtn");
+        const openWalletBtn = document.getElementById("depositOpenWalletBtn");
         const verifyBtn = document.getElementById("depositVerifyBtn");
+        const payBtn = this.getPayWithTonBtn();
 
         if (modal && !modal.dataset.boundModal) {
             modal.dataset.boundModal = "1";
@@ -327,10 +385,7 @@ CryptoZoo.depositUI = {
             copyAmountBtn.addEventListener("click", async (event) => {
                 this.stopEvent(event);
                 CryptoZoo.audio?.play?.("click");
-                const amount = this.formatTonAmount(
-                    this.currentDepositData?.expectedAmount ?? this.currentDepositData?.amount ?? 0,
-                    6
-                );
+                const amount = Number(this.currentDepositData?.amount || 0).toFixed(3);
                 await this.copy(`${amount} TON`, "Skopiowano kwotę");
             });
         }
@@ -344,6 +399,15 @@ CryptoZoo.depositUI = {
             });
         }
 
+        if (copyCommentBtn && !copyCommentBtn.dataset.bound) {
+            copyCommentBtn.dataset.bound = "1";
+            copyCommentBtn.addEventListener("click", async (event) => {
+                this.stopEvent(event);
+                CryptoZoo.audio?.play?.("click");
+                await this.copy(this.currentDepositData?.comment || "", "Skopiowano komentarz");
+            });
+        }
+
         if (copyAllBtn && !copyAllBtn.dataset.bound) {
             copyAllBtn.dataset.bound = "1";
             copyAllBtn.addEventListener("click", async (event) => {
@@ -351,26 +415,25 @@ CryptoZoo.depositUI = {
                 CryptoZoo.audio?.play?.("click");
 
                 const address = this.currentDepositData?.address || "";
-                const tonAmount = this.formatTonAmount(
-                    this.currentDepositData?.expectedAmount ?? this.currentDepositData?.amount ?? 0,
-                    6
-                );
-                const usdAmount = this.formatUsdAmount(
-                    this.currentDepositData?.baseAmountUsd ??
-                    this.currentDepositData?.baseAmount ??
-                    0,
-                    2
-                );
+                const amount = Number(this.currentDepositData?.amount || 0).toFixed(3);
                 const bonusText = String(this.currentDepositData?.bonusText || "").trim();
 
                 const fullText = [
-                    `AMOUNT: ${tonAmount} TON`,
-                    `DEPOSIT: ${usdAmount}$`,
+                    `AMOUNT: ${amount} TON`,
                     `ADDRESS: ${address}`,
                     bonusText ? `BONUS: ${bonusText}` : ""
                 ].filter(Boolean).join("\n");
 
                 await this.copy(fullText, "Skopiowano dane płatności");
+            });
+        }
+
+        if (openWalletBtn && !openWalletBtn.dataset.bound) {
+            openWalletBtn.dataset.bound = "1";
+            openWalletBtn.addEventListener("click", async (event) => {
+                this.stopEvent(event);
+                CryptoZoo.audio?.play?.("click");
+                await this.openWallet();
             });
         }
 
@@ -382,29 +445,31 @@ CryptoZoo.depositUI = {
                 await this.verifyCurrentDeposit(false);
             });
         }
+
+        if (payBtn && !payBtn.dataset.bound) {
+            payBtn.dataset.bound = "1";
+            payBtn.addEventListener("click", async (event) => {
+                this.stopEvent(event);
+                CryptoZoo.audio?.play?.("click");
+                await this.openWallet();
+            });
+        }
     },
 
     fillModalData() {
         const amountEl = document.getElementById("depositPaymentAmount");
-        const baseAmountEl = document.getElementById("depositPaymentBaseAmount");
         const bonusEl = document.getElementById("depositPaymentBonus");
         const addressEl = document.getElementById("depositPaymentAddress");
+        const commentEl = document.getElementById("depositPaymentComment");
+        const commentWrap = document.getElementById("depositPaymentCommentWrap");
 
-        const tonAmount = Number(this.currentDepositData?.expectedAmount ?? this.currentDepositData?.amount ?? 0);
-        const baseAmountUsd = Number(
-            this.currentDepositData?.baseAmountUsd ??
-            this.currentDepositData?.baseAmount ??
-            0
-        );
+        const amount = Number(this.currentDepositData?.amount || 0);
         const address = String(this.currentDepositData?.address || "");
+        const comment = String(this.currentDepositData?.comment || "");
         const bonusText = String(this.currentDepositData?.bonusText || "").trim();
 
         if (amountEl) {
-            amountEl.textContent = `${this.formatTonAmount(tonAmount, 6)} TON`;
-        }
-
-        if (baseAmountEl) {
-            baseAmountEl.textContent = `${this.formatUsdAmount(baseAmountUsd, 2)}$`;
+            amountEl.textContent = `${amount.toFixed(3)} TON`;
         }
 
         if (bonusEl) {
@@ -414,12 +479,23 @@ CryptoZoo.depositUI = {
         if (addressEl) {
             addressEl.textContent = address || "-";
         }
+
+        if (commentEl) {
+            commentEl.textContent = comment || "-";
+        }
+
+        if (commentWrap) {
+            const shouldShowComment = !!comment;
+            commentWrap.style.display = shouldShowComment ? "" : "none";
+        }
     },
 
     showDepositModal() {
         const modal = this.ensureModal();
         this.fillModalData();
         modal.classList.remove("hidden");
+        this.initTonConnect();
+    this.updateTonConnectUi();
     },
 
     closeDepositModal() {
@@ -513,11 +589,13 @@ CryptoZoo.depositUI = {
                 String(deposit?.status || "").toLowerCase() === "approved" ||
                 matched;
 
-            if (approved || alreadyProcessed) {
+            if (approved || alreadyProcessed || result?.player) {
                 this.stopVerifyWatcher();
                 await this.refreshPlayerAndUi("✅ Depozyt zatwierdzony, bonus dodany");
                 this.closeDepositModal();
                 this.currentDepositData = null;
+                this.initTonConnect();
+    this.updateTonConnectUi();
                 return true;
             }
 
@@ -547,7 +625,64 @@ CryptoZoo.depositUI = {
         }
     },
 
-    async createDeposit(amountUsd) {
+    async openWallet() {
+        if (this.isOpeningWallet) {
+            return false;
+        }
+
+        this.isOpeningWallet = true;
+        this.initTonConnect();
+    this.updateTonConnectUi();
+
+        try {
+            if (!this.tonConnectUI) {
+                throw new Error("TonConnect not initialized");
+            }
+
+            if (!this.isWalletConnected()) {
+                await this.tonConnectUI.openModal();
+                this.initTonConnect();
+    this.updateTonConnectUi();
+
+                if (!this.isWalletConnected()) {
+                    throw new Error("Najpierw podłącz wallet");
+                }
+            }
+
+            const address = String(this.currentDepositData?.address || "").trim();
+            const amount = Number(this.currentDepositData?.amount || 0);
+
+            if (!address || amount <= 0) {
+                throw new Error("Brak danych płatności");
+            }
+
+            const tx = {
+                validUntil: Math.floor(Date.now() / 1000) + 600,
+                messages: [
+                    {
+                        address,
+                        amount: this.toNanoString(amount)
+                    }
+                ]
+            };
+
+            this.startVerifyWatcher();
+            await this.tonConnectUI.sendTransaction(tx);
+
+            CryptoZoo.ui?.showToast?.("Transakcja wysłana. System sprawdza wpłatę...");
+            return true;
+        } catch (error) {
+            console.error("TON payment error:", error);
+            CryptoZoo.ui?.showToast?.(error?.message || "Nie udało się otworzyć płatności");
+            return false;
+        } finally {
+            this.isOpeningWallet = false;
+            this.initTonConnect();
+    this.updateTonConnectUi();
+        }
+    },
+
+    async createDeposit(amount) {
         if (this.isCreatingDeposit) {
             return false;
         }
@@ -555,17 +690,17 @@ CryptoZoo.depositUI = {
         this.isCreatingDeposit = true;
 
         try {
-            const safeAmountUsd = Number((Math.max(0, Number(amountUsd) || 0)).toFixed(2));
+            const safeAmount = Number((Math.max(0, Number(amount) || 0)).toFixed(3));
 
-            if (safeAmountUsd < 1) {
-                throw new Error("Minimalna wpłata to 1$");
+            if (safeAmount <= 0) {
+                throw new Error("Invalid deposit amount");
             }
 
             if (!CryptoZoo.api?.createDepositWithPayment) {
                 throw new Error("createDepositWithPayment not available");
             }
 
-            const result = await CryptoZoo.api.createDepositWithPayment(safeAmountUsd);
+            const result = await CryptoZoo.api.createDepositWithPayment(safeAmount);
             const deposit = result?.deposit || null;
             const payment = result?.payment || null;
 
@@ -573,66 +708,32 @@ CryptoZoo.depositUI = {
                 throw new Error("Deposit payment data missing");
             }
 
-            let receiverAddress = String(
-                payment.receiverAddress ||
-                payment.address ||
-                payment.walletAddress ||
-                deposit.receiverAddress ||
-                deposit.walletAddress ||
-                ""
-            ).trim();
-
-            const paymentAmountTon = Number(
-                payment.expectedAmount ??
-                deposit.expectedAmount ??
-                payment.amount ??
-                deposit.amount ??
-                0
-            ) || 0;
-
-            const baseAmountUsd = Number(
-                payment.baseAmountUsd ??
-                deposit.baseAmountUsd ??
-                payment.baseAmount ??
-                deposit.baseAmount ??
-                safeAmountUsd
-            ) || safeAmountUsd;
-
-            const uniqueFraction = Number(
-                payment.uniqueFraction ??
-                deposit.uniqueFraction ??
-                0
-            ) || 0;
+            const receiverAddress = String(payment.receiverAddress || "").trim();
+            const paymentAmount = Number(payment.amount || safeAmount) || safeAmount;
 
             if (!receiverAddress) {
-                receiverAddress = "UQBkMGcFpt0QK8huriOMEYC8T2hfhPGHJXDxnKT8Shguc0jY";
+                throw new Error("Missing TON receiver address");
             }
 
-            if (paymentAmountTon <= 0) {
-                throw new Error("Missing TON payment amount");
-            }
-
-            const bonusMeta = this.getDepositBonusMeta(baseAmountUsd, payment, deposit);
+            const bonusMeta = this.getDepositBonusMeta(paymentAmount, payment, deposit);
             const bonusText = this.formatBonusText(bonusMeta);
 
             this.currentDepositData = {
-                depositId: String(deposit.depositId || deposit.id || payment.depositId || ""),
+                depositId: String(deposit.id || payment.depositId || ""),
                 address: receiverAddress,
-                amount: paymentAmountTon,
-                expectedAmount: paymentAmountTon,
-                baseAmount: baseAmountUsd,
-                baseAmountUsd,
-                uniqueFraction,
+                amount: paymentAmount,
+                comment: "",
                 bonusText
             };
 
             this.bindResumeEvents();
             this.showDepositModal();
-            this.startVerifyWatcher();
+            this.initTonConnect();
+    this.updateTonConnectUi();
 
             const toastMessage = bonusText
-                ? `Depozyt ${this.formatUsdAmount(baseAmountUsd, 2)}$ utworzony • ${bonusText}`
-                : `Depozyt ${this.formatUsdAmount(baseAmountUsd, 2)}$ utworzony`;
+                ? `Deposit ${paymentAmount.toFixed(3)} TON utworzony • ${bonusText}`
+                : `Deposit ${paymentAmount.toFixed(3)} TON utworzony`;
 
             CryptoZoo.ui?.showToast?.(toastMessage);
 
@@ -652,15 +753,24 @@ CryptoZoo.depositUI = {
 
     async createAndPaySelectedDeposit() {
         const selectedAmount =
-            Number(CryptoZoo.depositBind?.customUsdAmount) ||
-            Number(CryptoZoo.depositBind?.selectedAmount) ||
+            Number(CryptoZoo.uiDeposit?.selectedAmount) ||
+            Number(CryptoZoo.uiSettings?.selectedDepositAmount) ||
             1;
 
-        return this.createDeposit(selectedAmount);
+        const created = await this.createDeposit(selectedAmount);
+
+        if (!created) {
+            return false;
+        }
+
+        return this.openWallet();
     },
 
-    init() {
+    async init() {
         this.bindResumeEvents();
         this.ensureModal();
+        await this.initTonConnect();
+        this.initTonConnect();
+    this.updateTonConnectUi();
     }
 };

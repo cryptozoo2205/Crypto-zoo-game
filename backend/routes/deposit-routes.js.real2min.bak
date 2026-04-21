@@ -93,14 +93,18 @@ function isDepositPendingLike(deposit) {
 }
 
 function isDepositExpired(deposit) {
-    const createdAt = Math.max(0, Number(deposit?.createdAt) || 0);
-    if (createdAt > 0) {
-        return Date.now() > (createdAt + 2 * 60 * 1000);
+    const explicitExpiresAt = Math.max(0, Number(deposit?.expiresAt) || 0);
+
+    if (explicitExpiresAt > 0) {
+        return Date.now() > explicitExpiresAt;
     }
 
-    const expiresAt = Math.max(0, Number(deposit?.expiresAt) || 0);
-    if (expiresAt > 0) {
-        return Date.now() > expiresAt;
+    if (isDepositPendingLike(deposit)) {
+        const createdAt = Math.max(0, Number(deposit?.createdAt) || 0);
+
+        if (createdAt > 0) {
+            return Date.now() > (createdAt + DEPOSIT_CREATE_COOLDOWN_MS);
+        }
     }
 
     return false;
@@ -293,7 +297,7 @@ function sanitizeDepositForCreate(deposit) {
         updatedAt: Math.max(0, Number(deposit?.updatedAt) || Date.now()),
         expiresAt: Math.max(
             Date.now(),
-            Number(deposit?.expiresAt) || (Date.now() + 2 * 60 * 1000)
+            Number(deposit?.expiresAt) || (Date.now() + 30 * 60 * 1000)
         )
     };
 }

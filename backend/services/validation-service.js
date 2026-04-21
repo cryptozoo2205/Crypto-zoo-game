@@ -454,16 +454,11 @@ function buildSafePlayerState(oldPlayer, incomingRaw) {
             Number(incomingObj.offlineBoostHours || 0),
             Number(incoming.offlineBoostHours || 0)
         ),
-        offlineAdsHours: Math.max(
-            Number(oldSafe?.offlineAdsHours || 0),
-            Number(incomingObj.offlineAdsHours || 0),
-            Number(incoming.offlineAdsHours || 0)
-        ),
-        offlineAdsResetAt: Math.max(
-            Number(oldSafe?.offlineAdsResetAt || 0),
-            Number(incomingObj.offlineAdsResetAt || 0),
-            Number(incoming.offlineAdsResetAt || 0)
-        ),
+        offlineAdsHours:
+            Number(incomingObj.offlineAdsHours ?? incoming.offlineAdsHours ?? oldSafe?.offlineAdsHours ?? 0),
+
+        offlineAdsResetAt:
+            Number(incomingObj.offlineAdsResetAt ?? incoming.offlineAdsResetAt ?? oldSafe?.offlineAdsResetAt ?? 0),
         offlineMaxSeconds: Math.max(
             Number(oldSafe?.offlineMaxSeconds || 3600),
             Number(incomingObj.offlineMaxSeconds || 3600),

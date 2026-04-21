@@ -70,7 +70,7 @@ function getEpicChanceBonus(player) {
     return Math.max(0, Number(player?.expeditionStats?.epicChanceBonus) || 0);
 }
 
-function getLegacyTimeBoostCharges(player) {
+function getTimeBoostCharges(player) {
     ensureExpeditionStats(player);
 
     return Array.isArray(player?.expeditionStats?.timeBoostCharges)
@@ -78,149 +78,9 @@ function getLegacyTimeBoostCharges(player) {
         : [];
 }
 
-function setLegacyTimeBoostCharges(player, charges) {
+function setTimeBoostCharges(player, charges) {
     ensureExpeditionStats(player);
     player.expeditionStats.timeBoostCharges = Array.isArray(charges) ? charges : [];
-}
-
-function getTimeBoostCharges(player) {
-    return getLegacyTimeBoostCharges(player);
-}
-
-function setTimeBoostCharges(player, charges) {
-    setLegacyTimeBoostCharges(player, charges);
-}
-
-function getShopTimeBoostChargeCount(player, itemId) {
-    if (!player || typeof player !== "object") return 0;
-    player.shopItemCharges = player.shopItemCharges && typeof player.shopItemCharges === "object"
-        ? player.shopItemCharges
-        : {};
-    return Math.max(0, Number(player.shopItemCharges[itemId]) || 0);
-}
-
-function getAvailableTimeBoostOptions(player) {
-    const options = [];
-    const shopMappings = [
-        { itemId: "expeditionTime1", seconds: 600 },
-        { itemId: "expeditionTime2", seconds: 1800 },
-        { itemId: "expeditionTime3", seconds: 3600 },
-        { itemId: "expeditionTime4", seconds: 14400 }
-    ];
-
-    shopMappings.forEach(({ itemId, seconds }) => {
-        const count = getShopTimeBoostChargeCount(player, itemId);
-        if (count > 0) {
-            options.push({
-                source: "shop",
-                itemId,
-                seconds,
-                count
-            });
-        }
-    });
-
-    const legacyCounts = new Map();
-    getLegacyTimeBoostCharges(player).forEach((value) => {
-        const seconds = Math.max(0, Number(value) || 0);
-        if (seconds <= 0) return;
-        legacyCounts.set(seconds, (legacyCounts.get(seconds) || 0) + 1);
-    });
-
-    Array.from(legacyCounts.entries())
-        .sort((a, b) => Number(a[0]) - Number(b[0]))
-        .forEach(([seconds, count]) => {
-            options.push({
-                source: "legacy",
-                itemId: "",
-                seconds: Math.max(0, Number(seconds) || 0),
-                count: Math.max(0, Number(count) || 0)
-            });
-        });
-
-    return options.sort((a, b) => Number(a.seconds || 0) - Number(b.seconds || 0));
-}
-
-function consumeSpecificTimeBoostCharge(player, requestedSeconds, remainingSeconds) {
-    const safeRequestedSeconds = Math.max(0, Math.floor(Number(requestedSeconds) || 0));
-    const safeRemaining = Math.max(0, Number(remainingSeconds) || 0);
-    const maxAllowedReduction = Math.max(0, safeRemaining - 60);
-
-    if (safeRequestedSeconds <= 0 || maxAllowedReduction <= 0) {
-        return 0;
-    }
-
-    const options = getAvailableTimeBoostOptions(player);
-    const selectedOption = options.find((option) => {
-        return Math.max(0, Number(option?.seconds) || 0) == safeRequestedSeconds
-            && Math.max(0, Number(option?.count) || 0) > 0;
-    });
-
-    if (!selectedOption) {
-        return 0;
-    }
-
-    const appliedReduction = Math.min(safeRequestedSeconds, maxAllowedReduction);
-    if (appliedReduction <= 0) {
-        return 0;
-    }
-
-    if (selectedOption.source === "shop" && selectedOption.itemId) {
-        player.shopItemCharges = player.shopItemCharges && typeof player.shopItemCharges === "object"
-            ? player.shopItemCharges
-            : {};
-
-        const currentCount = getShopTimeBoostChargeCount(player, selectedOption.itemId);
-        if (currentCount <= 0) {
-            return 0;
-        }
-
-        player.shopItemCharges[selectedOption.itemId] = currentCount - 1;
-        return appliedReduction;
-    }
-
-    const legacyCharges = getLegacyTimeBoostCharges(player);
-    const index = legacyCharges.findIndex((value) => {
-        return Math.max(0, Number(value) || 0) == safeRequestedSeconds;
-    });
-
-    if (index < 0) {
-        return 0;
-    }
-
-    legacyCharges.splice(index, 1);
-    setLegacyTimeBoostCharges(player, legacyCharges);
-
-    return appliedReduction;
-}
-
-function consumeBestTimeBoostCharge(player, remainingSeconds) {
-    const safeRemaining = Math.max(0, Number(remainingSeconds) || 0);
-    const maxAllowedReduction = Math.max(0, safeRemaining - 60);
-
-    if (maxAllowedReduction <= 0) {
-        return 0;
-    }
-
-    const options = getAvailableTimeBoostOptions(player);
-    let bestSeconds = 0;
-    let bestApplied = 0;
-
-    options.forEach((option) => {
-        const safeSeconds = Math.max(0, Number(option?.seconds) || 0);
-        const applied = Math.min(safeSeconds, maxAllowedReduction);
-
-        if (applied > bestApplied) {
-            bestApplied = applied;
-            bestSeconds = safeSeconds;
-        }
-    });
-
-    if (bestSeconds <= 0 || bestApplied <= 0) {
-        return 0;
-    }
-
-    return consumeSpecificTimeBoostCharge(player, bestSeconds, safeRemaining);
 }
 
 function getEffectiveRareChance(player, expedition) {
@@ -622,14 +482,7 @@ router.post("/time-boost", (req, res) => {
             return res.status(400).json({ error: "Expedition already ready" });
         }
 
-        const requestedSeconds = Math.max(
-            0,
-            Math.floor(Number(req.body?.seconds) || 0)
-        );
-
-        const reductionSeconds = requestedSeconds > 0
-            ? consumeSpecificTimeBoostCharge(player, requestedSeconds, remainingSeconds)
-            : consumeBestTimeBoostCharge(player, remainingSeconds);
+        const reductionSeconds = consumeBestTimeBoostCharge(player, remainingSeconds);
 
         if (reductionSeconds <= 0) {
             return res.status(400).json({ error: "No valid time boost available" });

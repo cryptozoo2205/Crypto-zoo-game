@@ -206,15 +206,16 @@ function buildWebAppUrlFromStartMessage(msg) {
 bot.onText(/\/start(?:\s+(.+))?/, async (msg) => {
     const url = buildWebAppUrlFromStartMessage(msg);
 
-    const caption = `🦁 *Crypto Zoo*
+    const caption = `🦁 *Welcome to Crypto Zoo*
 
-Build your own zoo, go on expeditions and earn rewards directly in Telegram.
+Create your own zoo, discover new expeditions, and earn rewards directly in Telegram.
 
-🎯 Tap & upgrade animals
+🎯 Upgrade your animals
 🌍 Send expeditions
 💎 Collect rewards
+🏆 Progress, unlock, and grow
 
-👇 Start your adventure`;
+👇 Tap below and begin your journey`;
 
     await bot.sendPhoto(
         msg.chat.id,

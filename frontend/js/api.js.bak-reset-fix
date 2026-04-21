@@ -4,7 +4,7 @@ window.CryptoZoo.api = window.CryptoZoo.api || {
     testResetMode: false,
 
     localSaveKeyPrefix: "cryptozoo_save_v2_",
-    legacyLocalSaveKey: "cryptozoo_save",
+    legacyLocalSaveKey: "cryptozoo_save_v2",
 
     testLocalSaveKeyPrefix: "cryptozoo_test_save_",
     legacyTestLocalSaveKey: "cryptozoo_test_save",
