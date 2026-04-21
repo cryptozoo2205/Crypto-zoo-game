@@ -7,13 +7,22 @@ CryptoZoo.offlineAdsUI = {
         return Math.max(0.01, Number(CryptoZoo.offlineAds?.HOURS_PER_AD) || 0.5);
     },
 
-    getSlotsUsed() {
-        const currentHours = Math.max(
+    getCurrentHours() {
+        return Math.max(
             0,
             Number(CryptoZoo.offlineAds?.getCurrentHours?.() || 0)
         );
+    },
 
-        const slots = Math.floor(currentHours / this.getHoursPerSlot());
+    getSlotsUsed() {
+        const currentHours = this.getCurrentHours();
+        const hoursPerSlot = this.getHoursPerSlot();
+
+        if (currentHours <= 0 || hoursPerSlot <= 0) {
+            return 0;
+        }
+
+        const slots = Math.ceil(currentHours / hoursPerSlot);
         return Math.max(0, Math.min(this.maxSlots, slots));
     },
 
