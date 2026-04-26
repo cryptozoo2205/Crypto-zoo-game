@@ -21,7 +21,7 @@ Object.assign(CryptoZoo.ui, {
     },
 
     renderZooTabs() {
-        const level = Number(CryptoZoo.state?.level || 1);
+        const level = 50;
         const desertLocked = level < 50;
 
         return `
@@ -50,8 +50,6 @@ Object.assign(CryptoZoo.ui, {
 
         if (desertBtn) {
             desertBtn.onclick = () => {
-                if (Number(CryptoZoo.state?.level || 1) < 50) return;
-
                 this.zooTab = "desert";
                 this.renderZooList();
             };
