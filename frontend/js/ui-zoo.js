@@ -2,6 +2,55 @@ window.CryptoZoo = window.CryptoZoo || {};
 CryptoZoo.ui = CryptoZoo.ui || {};
 
 Object.assign(CryptoZoo.ui, {
+    zooTab: "jungle",
+
+    getZooRegion(type) {
+        const desertAnimals = [
+            "camel",
+            "fennec",
+            "scorpion",
+            "cobra",
+            "meerkat",
+            "vulture",
+            "hyena",
+            "anubis"
+        ];
+
+        if (desertAnimals.includes(type)) return "desert";
+        return "jungle";
+    },
+
+    renderZooTabs() {
+        return `
+            <div class="zoo-tabs" style="display:flex;gap:8px;margin-bottom:14px;overflow:auto;">
+                <button type="button" id="zoo-tab-jungle" class="zoo-tab-btn ${this.zooTab === "jungle" ? "active" : ""}">Jungle</button>
+                <button type="button" id="zoo-tab-desert" class="zoo-tab-btn ${this.zooTab === "desert" ? "active" : ""}">
+                    Desert ${Number(CryptoZoo.state?.level || 1) < 50 ? "🔒" : ""}
+                </button>
+            </div>
+        `;
+    },
+
+    bindZooTabs() {
+        const jungleBtn = document.getElementById("zoo-tab-jungle");
+        const desertBtn = document.getElementById("zoo-tab-desert");
+
+        if (jungleBtn) {
+            jungleBtn.onclick = () => {
+                this.zooTab = "jungle";
+                this.renderZooList();
+            };
+        }
+
+        if (desertBtn) {
+            desertBtn.onclick = () => {
+                if (Number(CryptoZoo.state?.level || 1) < 50) return;
+                this.zooTab = "desert";
+                this.renderZooList();
+            };
+        }
+    },
+
     renderZooList() {
         const zooList = document.getElementById("zooList");
         if (!zooList) return;
@@ -9,41 +58,67 @@ Object.assign(CryptoZoo.ui, {
         const animalsConfig = CryptoZoo.config?.animals || {};
         const animalsState = CryptoZoo.state?.animals || {};
 
-        zooList.innerHTML = Object.keys(animalsConfig).map((type) => {
-            const config = animalsConfig[type];
-            const state = animalsState[type] || { count: 0, level: 1 };
-            const count = Math.max(0, Number(state.count) || 0);
-            const displayLevel = count > 0 ? Math.max(1, Number(state.level) || 1) : 0;
-            const upgradeCost = CryptoZoo.animalsSystem?.getUpgradeCost?.(type) || 0;
-            const buyCost = CryptoZoo.animalsSystem?.getBuyCost?.(type) || Number(config.buyCost) || 0;
-            const localizedName = this.getLocalizedAnimalName(type, config);
+        const filteredAnimals = Object.keys(animalsConfig).filter((type) => {
+            return this.getZooRegion(type) === this.zooTab;
+        });
 
-            return `
-                <div class="animal-row">
-                    <div class="animal-left">
-                        <div class="animal-icon">
-                            <img src="assets/animals/${config.asset}.png" alt="${localizedName}">
+        zooList.innerHTML =
+            this.renderZooTabs() +
+            filteredAnimals.map((type) => {
+                const config = animalsConfig[type];
+                const state = animalsState[type] || { count: 0, level: 1 };
+
+                const count = Math.max(0, Number(state.count) || 0);
+                const displayLevel = count > 0 ? Math.max(1, Number(state.level) || 1) : 0;
+
+                const upgradeCost =
+                    CryptoZoo.animalsSystem?.getUpgradeCost?.(type) || 0;
+
+                const buyCost =
+                    CryptoZoo.animalsSystem?.getBuyCost?.(type) ||
+                    Number(config.buyCost) ||
+                    0;
+
+                const localizedName = this.getLocalizedAnimalName(type, config);
+
+                return `
+                    <div class="animal-row">
+                        <div class="animal-left">
+                            <div class="animal-icon">
+                                <img src="assets/animals/${config.asset}.png" alt="${localizedName}">
+                            </div>
+
+                            <div class="animal-text">
+                                <div class="animal-name">${localizedName}</div>
+
+                                <div class="animal-desc">
+                                    ${this.t("incomePerSec", "Dochód")}
+                                    ${CryptoZoo.formatNumber(config.baseIncome)}/${this.t("secShort", "sek")}
+                                    • ${this.t("cost", "Koszt")}
+                                    ${CryptoZoo.formatNumber(buyCost)}
+                                </div>
+
+                                <div class="animal-owned">
+                                    ${this.t("owned", "Posiadane")}: ${CryptoZoo.formatNumber(count)}
+                                    • ${this.t("level", "Poziom")}: ${CryptoZoo.formatNumber(displayLevel)}
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="animal-text">
-                            <div class="animal-name">${localizedName}</div>
-                            <div class="animal-desc">
-                                ${this.t("incomePerSec", "Dochód")} ${CryptoZoo.formatNumber(config.baseIncome)}/${this.t("secShort", "sek")} • ${this.t("cost", "Koszt")} ${CryptoZoo.formatNumber(buyCost)}
-                            </div>
-                            <div class="animal-owned">
-                                ${this.t("owned", "Posiadane")}: ${CryptoZoo.formatNumber(count)} • ${this.t("level", "Poziom")}: ${CryptoZoo.formatNumber(displayLevel)}
-                            </div>
+                        <div class="animal-actions">
+                            <button id="buy-${type}-btn" type="button">
+                                ${this.t("buy", "Kup")} (${CryptoZoo.formatNumber(buyCost)})
+                            </button>
+
+                            <button id="upgrade-${type}-btn" type="button">
+                                ${this.t("lvlUp", "Lvl Up")} (${CryptoZoo.formatNumber(upgradeCost)})
+                            </button>
                         </div>
                     </div>
+                `;
+            }).join("");
 
-                    <div class="animal-actions">
-                        <button id="buy-${type}-btn" type="button">${this.t("buy", "Kup")} (${CryptoZoo.formatNumber(buyCost)})</button>
-                        <button id="upgrade-${type}-btn" type="button">${this.t("lvlUp", "Lvl Up")} (${CryptoZoo.formatNumber(upgradeCost)})</button>
-                    </div>
-                </div>
-            `;
-        }).join("");
-
+        this.bindZooTabs();
         CryptoZoo.animalsSystem?.bindButtons?.();
     }
 });
