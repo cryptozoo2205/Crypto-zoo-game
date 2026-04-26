@@ -219,7 +219,7 @@ Create your own zoo, discover new expeditions, and earn rewards directly in Tele
 
     await bot.sendPhoto(
         msg.chat.id,
-        "https://i.imgur.com/5QZ7qQy.png",
+        "./frontend/assets/start.png",
         {
             caption,
             parse_mode: "Markdown",

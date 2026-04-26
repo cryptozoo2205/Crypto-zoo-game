@@ -131,6 +131,7 @@ function getDefaultPlayer(telegramId = "local-player", username = "Gracz") {
         offlineBoostHours: 0,
         offlineAdsHours: 0,
         offlineAdsResetAt: 0,
+        offlineAdsEnabled: false,
         offlineMaxSeconds: 0,
         offlineBoostMultiplier: 1,
         offlineBoostActiveUntil: 0,
@@ -273,14 +274,25 @@ function normalizePlayer(input) {
         normalizeNumber(safeInput.offlineAdsHours, base.offlineAdsHours)
     );
 
-    const offlineAdsResetAt = Math.max(
+    let offlineAdsResetAt = Math.max(
         0,
         normalizeNumber(safeInput.offlineAdsResetAt, base.offlineAdsResetAt || 0)
     );
 
+    let normalizedOfflineAdsHours = offlineAdsHours;
+    let normalizedOfflineAdsEnabled = Boolean(safeInput.offlineAdsEnabled);
+
+    if (offlineAdsResetAt <= now || normalizedOfflineAdsHours <= 0) {
+        offlineAdsResetAt = 0;
+        normalizedOfflineAdsHours = 0;
+        normalizedOfflineAdsEnabled = false;
+    } else {
+        normalizedOfflineAdsEnabled = true;
+    }
+
     const computedOfflineMaxSeconds = Math.max(
         0,
-        Math.round((offlineBaseHours + offlineBoostHours + offlineAdsHours) * 60 * 60)
+        Math.round((offlineBaseHours + offlineBoostHours + normalizedOfflineAdsHours) * 60 * 60)
     );
 
     const dailyCoins = Math.max(
@@ -404,8 +416,9 @@ function normalizePlayer(input) {
 
         offlineBaseHours,
         offlineBoostHours,
-        offlineAdsHours,
+        offlineAdsHours: normalizedOfflineAdsHours,
         offlineAdsResetAt,
+        offlineAdsEnabled: normalizedOfflineAdsEnabled,
         offlineMaxSeconds: Math.max(
             0,
             normalizeNumber(safeInput.offlineMaxSeconds, computedOfflineMaxSeconds)
@@ -542,17 +555,24 @@ function normalizePlayer(input) {
 }
 
 function getPlayerOrCreate(db, telegramId, username = "Gracz", telegramUser = null) {
-    const id = String(telegramId || "local-player");
+    const id = safeString(telegramId, "").trim();
+
+    if (!id || id === "local-player" || id === "undefined" || id === "null") {
+        throw new Error("Missing or invalid telegramId");
+    }
 
     if (!db.players[id]) {
         db.players[id] = getDefaultPlayer(id, username);
     }
 
+    const existingCreatedAt = Math.max(0, Number(db.players[id]?.createdAt) || 0);
+
     db.players[id] = normalizePlayer({
         ...db.players[id],
         telegramId: id,
         username: safeString(username, db.players[id].username || "Gracz"),
-        telegramUser: telegramUser || db.players[id].telegramUser
+        telegramUser: telegramUser || db.players[id].telegramUser,
+        createdAt: existingCreatedAt || db.players[id].createdAt
     });
 
     return db.players[id];

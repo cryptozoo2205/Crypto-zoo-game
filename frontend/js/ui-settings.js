@@ -532,7 +532,7 @@ CryptoZoo.uiSettings = {
 
         try {
             if (!CryptoZoo.depositUI?.createDeposit) {
-                throw new Error("Deposit UI not loaded");
+                return CryptoZoo.ui?.showToast?.("Tworzenie depozytu TON..."), false;
             }
 
             const success = await CryptoZoo.depositUI.createDeposit(amount);
@@ -812,9 +812,12 @@ CryptoZoo.uiSettings = {
         }
 
         const depositBtn = document.getElementById("settingsCreateDepositBtn");
-        if (depositBtn && !depositBtn.dataset.bound) {
-            depositBtn.dataset.bound = "1";
-            depositBtn.addEventListener("click", () => {
+        if (depositBtn) {
+            depositBtn.dataset.bound = "";
+            depositBtn.onclick = null;
+            depositBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 CryptoZoo.audio?.play?.("click");
                 this.createDeposit();
             });

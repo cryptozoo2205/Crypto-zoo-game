@@ -64,6 +64,9 @@ CryptoZoo.offlineAds = {
             CryptoZoo.state.offlineAdsHours = 0;
             CryptoZoo.state.offlineAdsResetAt = 0;
             CryptoZoo.state.offlineAdsEnabled = false;
+            CryptoZoo.api?.savePlayer?.();
+            CryptoZoo.ui?.renderOfflineInfo?.();
+            CryptoZoo.offlineAdsUI?.renderCard?.();
             return;
         }
 

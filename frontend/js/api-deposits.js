@@ -97,37 +97,37 @@ Object.assign(window.CryptoZoo.api, {
 
         const baseAmountUsd = this.roundDepositUsd(
             raw.baseAmountUsd ??
-            deposit.baseAmountUsd ??
-            payment.baseAmountUsd ??
-            raw.requestedAmountUsd ??
-            deposit.requestedAmountUsd ??
-            payment.requestedAmountUsd ??
+            deposit?.baseAmountUsd ??
+            payment?.baseAmountUsd ??
+            raw.usdAmount ??
+            deposit.usdAmount ??
+            payment.usdAmount ??
             raw.usdAmount ??
             deposit.usdAmount ??
             payment.usdAmount ??
             raw.baseAmount ??
-            deposit.baseAmount ??
-            payment.baseAmount ??
+            deposit?.baseAmount ??
+            payment?.baseAmount ??
             0,
             2
         );
 
         const baseAmountTon = this.roundDepositTon(
             raw.baseAmountTon ??
-            deposit.baseAmountTon ??
-            payment.baseAmountTon ??
+            deposit?.baseAmountTon ??
+            payment?.baseAmountTon ??
             raw.baseAmount ??
-            deposit.baseAmount ??
-            payment.baseAmount ??
+            deposit?.baseAmount ??
+            payment?.baseAmount ??
             raw.tonBaseAmount ??
             deposit.tonBaseAmount ??
             payment.tonBaseAmount ??
             raw.tonAmountBase ??
-            deposit.tonAmountBase ??
-            payment.tonAmountBase ??
+            deposit?.tonAmountBase ??
+            payment?.tonAmountBase ??
             raw.amountTon ??
-            deposit.amountTon ??
-            payment.amountTon ??
+            deposit?.amountTon ??
+            payment?.amountTon ??
             this.convertUsdToTon(baseAmountUsd),
             6
         );
@@ -139,14 +139,14 @@ Object.assign(window.CryptoZoo.api, {
         if (uniqueFraction === undefined || uniqueFraction === null || uniqueFraction === "") {
             const maybeExpectedAmount = this.roundDepositTon(
                 raw.expectedAmount ??
-                deposit.expectedAmount ??
-                payment.expectedAmount ??
+                deposit?.expectedAmount ??
+                payment?.expectedAmount ??
                 raw.amount ??
-                deposit.amount ??
-                payment.amount ??
+                deposit?.amount ??
+                payment?.amount ??
                 raw.tonAmount ??
-                deposit.tonAmount ??
-                payment.tonAmount ??
+                deposit?.tonAmount ??
+                payment?.tonAmount ??
                 baseAmountTon,
                 6
             );
@@ -159,8 +159,8 @@ Object.assign(window.CryptoZoo.api, {
 
         const expectedAmount = this.roundDepositTon(
             raw.expectedAmount ??
-            deposit.expectedAmount ??
-            payment.expectedAmount ??
+            deposit?.expectedAmount ??
+            payment?.expectedAmount ??
             this.buildExpectedDepositAmount(baseAmountTon, uniqueFraction),
             6
         );

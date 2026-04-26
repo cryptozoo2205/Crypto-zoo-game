@@ -1,666 +1,243 @@
 window.CryptoZoo = window.CryptoZoo || {};
 
-async function __czParseApiError(res) {
-    try {
-        const data = await res.clone().json();
-        if (data && typeof data.error === "string" && data.error.trim()) {
-            return data.error.trim();
-        }
-        if (data && typeof data.message === "string" && data.message.trim()) {
-            return data.message.trim();
-        }
-    } catch (e) {}
-
-    try {
-        const text = await res.clone().text();
-        if (text && text.trim()) {
-            return text.trim();
-        }
-    } catch (e) {}
-
-    return `HTTP ${res.status}`;
-}
-
 CryptoZoo.depositUI = {
-    currentDepositData: null,
-    isCreatingDeposit: false,
-    isVerifyingDeposit: false,
-    verifyIntervalId: null,
-    verifyTimeoutId: null,
-    resumeEventsBound: false,
+    loading: false,
 
-    getTelegramWebApp() {
-        return window.Telegram?.WebApp || null;
+    init() {
+        this.bindButtons();
     },
 
-    formatTonAmount(amount, decimals = 6) {
-        const safeAmount = Math.max(0, Number(amount) || 0);
-        return safeAmount.toFixed(decimals).replace(/\.?0+$/, (match) => {
-            return match.startsWith(".") ? "" : match;
+    bindButtons() {
+        const createBtn = document.getElementById("settingsCreateDepositBtn");
+        if (!createBtn || createBtn.dataset.depositUiBound === "1") return;
+
+        createBtn.dataset.depositUiBound = "1";
+        createBtn.addEventListener("click", async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            const amount = this.getSelectedAmountUsd();
+            await this.createDeposit(amount);
         });
     },
 
-    formatUsdAmount(amount, decimals = 2) {
-        const safeAmount = Math.max(0, Number(amount) || 0);
-        return safeAmount.toFixed(decimals).replace(/\.?0+$/, (match) => {
-            return match.startsWith(".") ? "" : match;
-        });
+    getSelectedAmountUsd() {
+        const input =
+            document.getElementById("settingsDepositAmountInput") ||
+            document.getElementById("depositAmountInput");
+
+        const raw =
+            input?.value ||
+            document.querySelector(".settings-deposit-amount-option.active")?.dataset?.amount ||
+            "1";
+
+        const amount = Number(String(raw).replace(",", "."));
+        if (!Number.isFinite(amount) || amount <= 0) return 1;
+        return Number(amount.toFixed(2));
     },
 
-    formatDurationFromMs(durationMs) {
-        const safeMs = Math.max(0, Number(durationMs) || 0);
-        const totalHours = Math.max(0, Math.floor(safeMs / (60 * 60 * 1000)));
+    setLoading(isLoading) {
+        this.loading = Boolean(isLoading);
 
-        if (totalHours <= 0) {
-            return "0h";
+        const createBtn = document.getElementById("settingsCreateDepositBtn");
+        if (createBtn) {
+            createBtn.disabled = this.loading;
+            createBtn.style.opacity = this.loading ? "0.7" : "1";
+            createBtn.style.pointerEvents = this.loading ? "none" : "";
         }
 
-        const days = Math.floor(totalHours / 24);
-        const hours = totalHours % 24;
-
-        if (days <= 0) {
-            return `${totalHours}h`;
-        }
-
-        if (hours <= 0) {
-            return days === 1 ? "1 dzień" : `${days} dni`;
-        }
-
-        return `${days === 1 ? "1 dzień" : `${days} dni`} ${hours}h`;
-    },
-
-    stopEvent(event) {
-        if (!event) return;
-        event.preventDefault?.();
-        event.stopPropagation?.();
-    },
-
-    getDepositBonusMeta(amountUsd, payment = {}, deposit = {}) {
-        const safeAmountUsd = Math.max(
-            0,
-            Number(
-                payment?.baseAmountUsd ??
-                deposit?.baseAmountUsd ??
-                payment?.baseAmount ??
-                deposit?.baseAmount ??
-                amountUsd
-            ) || 0
-        );
-
-        const gemsAmount = Math.max(
-            0,
-            Number(payment?.gemsAmount ?? deposit?.gemsAmount) || 0
-        );
-
-        const expeditionBoostAmount = Math.max(
-            0,
-            Number(payment?.expeditionBoostAmount ?? deposit?.expeditionBoostAmount) || 0
-        );
-
-        const boostPercent = Math.round(expeditionBoostAmount * 100);
-
-        const durationMs = Math.max(
-            0,
-            Number(payment?.expeditionBoostDurationMs ?? deposit?.expeditionBoostDurationMs) || 0
-        );
-
-        return {
-            amountUsd: safeAmountUsd,
-            gemsAmount,
-            boostPercent,
-            durationMs
-        };
-    },
-
-    formatBonusText(meta) {
-        const gems = Math.max(0, Number(meta?.gemsAmount) || 0);
-        const boostPercent = Math.max(0, Number(meta?.boostPercent) || 0);
-        const durationMs = Math.max(0, Number(meta?.durationMs) || 0);
-
-        const parts = [];
-
-        if (gems > 0) {
-            parts.push(`+${CryptoZoo.formatNumber(gems)} gem`);
-        }
-
-        if (boostPercent > 0) {
-            parts.push(`+${CryptoZoo.formatNumber(boostPercent)}% boost ekspedycji`);
-        }
-
-        if (durationMs > 0) {
-            parts.push(this.formatDurationFromMs(durationMs));
-        }
-
-        return parts.join(" • ");
-    },
-
-    async copy(text, label = "Skopiowano") {
-        const safeText = String(text || "").trim();
-
-        if (!safeText) {
-            CryptoZoo.ui?.showToast?.("Brak danych do skopiowania");
-            return false;
-        }
-
-        try {
-            if (navigator.clipboard?.writeText) {
-                await navigator.clipboard.writeText(safeText);
-            } else {
-                const textarea = document.createElement("textarea");
-                textarea.value = safeText;
-                textarea.setAttribute("readonly", "");
-                textarea.style.position = "fixed";
-                textarea.style.left = "-9999px";
-                textarea.style.opacity = "0";
-                document.body.appendChild(textarea);
-                textarea.focus();
-                textarea.select();
-                document.execCommand("copy");
-                textarea.remove();
-            }
-
-            CryptoZoo.ui?.showToast?.(label);
-            return true;
-        } catch (error) {
-            console.error("Copy failed:", error);
-            CryptoZoo.ui?.showToast?.("Nie udało się skopiować");
-            return false;
-        }
-    },
-
-    ensureModal() {
-        let modal = document.getElementById("depositPaymentModal");
-
-        if (modal) {
-            return modal;
-        }
-
-        modal = document.createElement("div");
-        modal.id = "depositPaymentModal";
-        modal.className = "profile-modal hidden";
-        modal.style.zIndex = "10020";
-        modal.innerHTML = `
-            <div class="profile-backdrop" id="depositPaymentBackdrop"></div>
-
-            <div id="depositPaymentCard" class="profile-card" style="max-width:520px;">
-                <div class="profile-header">
-                    <div class="profile-avatar">💰</div>
-
-                    <div class="profile-user-meta">
-                        <div class="profile-name">Deposit TON</div>
-                        <div class="profile-subtitle">Wyślij dokładną kwotę na podany adres</div>
-                    </div>
-                </div>
-
-                <div class="profile-boost-row">
-                    <div class="profile-boost-left" style="width:100%;">
-                        <div class="profile-boost-label">Kwota do wysłania</div>
-                        <div
-                            id="depositPaymentAmount"
-                            class="profile-boost-value"
-                            style="margin-top:6px; word-break:break-word;"
-                        >-</div>
-                        <button id="depositCopyAmountBtn" class="profile-close-btn" type="button" style="margin-top:10px;">
-                            Kopiuj kwotę
-                        </button>
-                    </div>
-                </div>
-
-                <div class="profile-boost-row" style="margin-top:12px;">
-                    <div class="profile-boost-left" style="width:100%;">
-                        <div class="profile-boost-label">Kwota wpłaty</div>
-                        <div
-                            id="depositPaymentBaseAmount"
-                            class="profile-boost-value"
-                            style="margin-top:6px; word-break:break-word; font-size:13px; line-height:1.5;"
-                        >-</div>
-                    </div>
-                </div>
-
-                <div class="profile-boost-row" style="margin-top:12px;">
-                    <div class="profile-boost-left" style="width:100%;">
-                        <div class="profile-boost-label">Bonus depozytu</div>
-                        <div
-                            id="depositPaymentBonus"
-                            class="profile-boost-value"
-                            style="margin-top:6px; word-break:break-word; font-size:13px; line-height:1.5;"
-                        >-</div>
-                    </div>
-                </div>
-
-                <div class="profile-boost-row" style="margin-top:12px;">
-                    <div class="profile-boost-left" style="width:100%;">
-                        <div class="profile-boost-label">Adres odbiorcy</div>
-                        <div
-                            id="depositPaymentAddress"
-                            class="profile-boost-value"
-                            style="margin-top:6px; word-break:break-all; font-size:13px; line-height:1.5;"
-                        >-</div>
-                        <button id="depositCopyAddressBtn" class="profile-close-btn" type="button" style="margin-top:10px;">
-                            Kopiuj adres
-                        </button>
-                    </div>
-                </div>
-
-                <div class="profile-boost-row" style="margin-top:12px;">
-                    <div class="profile-boost-left" style="width:100%;">
-                        <div class="profile-boost-label">Płatność</div>
-                        <div class="profile-boost-value" style="margin-top:6px; font-size:13px; line-height:1.5;">
-                            Wyślij dokładnie podaną kwotę ze swojego portfela. Wpłata zostanie wykryta automatycznie po potwierdzeniu sieci TON.
-                        </div>
-                    </div>
-                </div>
-
-                <button id="depositCopyAllBtn" class="profile-close-btn" type="button" style="margin-top:12px;">
-                    Kopiuj dane płatności
-                </button>
-
-                <button id="depositVerifyBtn" class="profile-close-btn" type="button">
-                    Sprawdź wpłatę
-                </button>
-
-                <button id="depositCloseBtn" class="profile-close-btn" type="button">
-                    Zamknij
-                </button>
-            </div>
-        `;
-
-        document.body.appendChild(modal);
-        this.bindModalEvents();
-
-        return modal;
-    },
-
-    bindModalEvents() {
-        const modal = document.getElementById("depositPaymentModal");
-        const backdrop = document.getElementById("depositPaymentBackdrop");
-        const card = document.getElementById("depositPaymentCard");
-        const closeBtn = document.getElementById("depositCloseBtn");
-        const copyAmountBtn = document.getElementById("depositCopyAmountBtn");
-        const copyAddressBtn = document.getElementById("depositCopyAddressBtn");
-        const copyAllBtn = document.getElementById("depositCopyAllBtn");
-        const verifyBtn = document.getElementById("depositVerifyBtn");
-
-        if (modal && !modal.dataset.boundModal) {
-            modal.dataset.boundModal = "1";
-
-            ["click", "touchstart", "touchend", "pointerdown", "pointerup"].forEach((eventName) => {
-                modal.addEventListener(eventName, (event) => {
-                    event.stopPropagation?.();
-                });
-            });
-        }
-
-        if (card && !card.dataset.boundCard) {
-            card.dataset.boundCard = "1";
-
-            ["click", "touchstart", "touchend", "pointerdown", "pointerup"].forEach((eventName) => {
-                card.addEventListener(eventName, (event) => {
-                    event.stopPropagation?.();
-                });
-            });
-        }
-
-        if (backdrop && !backdrop.dataset.bound) {
-            backdrop.dataset.bound = "1";
-
-            const closeFromBackdrop = (event) => {
-                this.stopEvent(event);
-                this.closeDepositModal();
-            };
-
-            backdrop.addEventListener("click", closeFromBackdrop);
-            backdrop.addEventListener("touchstart", closeFromBackdrop, { passive: false });
-        }
-
-        if (closeBtn && !closeBtn.dataset.bound) {
-            closeBtn.dataset.bound = "1";
-            closeBtn.addEventListener("click", (event) => {
-                this.stopEvent(event);
-                CryptoZoo.audio?.play?.("click");
-                this.closeDepositModal();
-            });
-        }
-
-        if (copyAmountBtn && !copyAmountBtn.dataset.bound) {
-            copyAmountBtn.dataset.bound = "1";
-            copyAmountBtn.addEventListener("click", async (event) => {
-                this.stopEvent(event);
-                CryptoZoo.audio?.play?.("click");
-                const amount = this.formatTonAmount(
-                    this.currentDepositData?.expectedAmount ?? this.currentDepositData?.amount ?? 0,
-                    6
-                );
-                await this.copy(`${amount} TON`, "Skopiowano kwotę");
-            });
-        }
-
-        if (copyAddressBtn && !copyAddressBtn.dataset.bound) {
-            copyAddressBtn.dataset.bound = "1";
-            copyAddressBtn.addEventListener("click", async (event) => {
-                this.stopEvent(event);
-                CryptoZoo.audio?.play?.("click");
-                await this.copy(this.currentDepositData?.address || "", "Skopiowano adres");
-            });
-        }
-
-        if (copyAllBtn && !copyAllBtn.dataset.bound) {
-            copyAllBtn.dataset.bound = "1";
-            copyAllBtn.addEventListener("click", async (event) => {
-                this.stopEvent(event);
-                CryptoZoo.audio?.play?.("click");
-
-                const address = this.currentDepositData?.address || "";
-                const tonAmount = this.formatTonAmount(
-                    this.currentDepositData?.expectedAmount ?? this.currentDepositData?.amount ?? 0,
-                    6
-                );
-                const usdAmount = this.formatUsdAmount(
-                    this.currentDepositData?.baseAmountUsd ??
-                    this.currentDepositData?.baseAmount ??
-                    0,
-                    2
-                );
-                const bonusText = String(this.currentDepositData?.bonusText || "").trim();
-
-                const fullText = [
-                    `AMOUNT: ${tonAmount} TON`,
-                    `DEPOSIT: ${usdAmount}$`,
-                    `ADDRESS: ${address}`,
-                    bonusText ? `BONUS: ${bonusText}` : ""
-                ].filter(Boolean).join("\n");
-
-                await this.copy(fullText, "Skopiowano dane płatności");
-            });
-        }
-
-        if (verifyBtn && !verifyBtn.dataset.bound) {
-            verifyBtn.dataset.bound = "1";
-            verifyBtn.addEventListener("click", async (event) => {
-                this.stopEvent(event);
-                CryptoZoo.audio?.play?.("click");
-                await this.verifyCurrentDeposit(false);
-            });
-        }
-    },
-
-    fillModalData() {
-        const amountEl = document.getElementById("depositPaymentAmount");
-        const baseAmountEl = document.getElementById("depositPaymentBaseAmount");
-        const bonusEl = document.getElementById("depositPaymentBonus");
-        const addressEl = document.getElementById("depositPaymentAddress");
-
-        const tonAmount = Number(this.currentDepositData?.expectedAmount ?? this.currentDepositData?.amount ?? 0);
-        const baseAmountUsd = Number(
-            this.currentDepositData?.baseAmountUsd ??
-            this.currentDepositData?.baseAmount ??
-            0
-        );
-        const address = String(this.currentDepositData?.address || "");
-        const bonusText = String(this.currentDepositData?.bonusText || "").trim();
-
-        if (amountEl) {
-            amountEl.textContent = `${this.formatTonAmount(tonAmount, 6)} TON`;
-        }
-
-        if (baseAmountEl) {
-            baseAmountEl.textContent = `${this.formatUsdAmount(baseAmountUsd, 2)}$`;
-        }
-
-        if (bonusEl) {
-            bonusEl.textContent = bonusText || "-";
-        }
-
-        if (addressEl) {
-            addressEl.textContent = address || "-";
-        }
-    },
-
-    showDepositModal() {
-        const modal = this.ensureModal();
-        this.fillModalData();
-        modal.classList.remove("hidden");
-    },
-
-    closeDepositModal() {
-        document.getElementById("depositPaymentModal")?.classList.add("hidden");
-    },
-
-    bindResumeEvents() {
-        if (this.resumeEventsBound) {
-            return;
-        }
-
-        this.resumeEventsBound = true;
-
-        window.addEventListener("focus", () => {
-            this.verifyCurrentDeposit(true);
-        });
-
-        document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === "visible") {
-                this.verifyCurrentDeposit(true);
-            }
-        });
-    },
-
-    stopVerifyWatcher() {
-        if (this.verifyIntervalId) {
-            clearInterval(this.verifyIntervalId);
-            this.verifyIntervalId = null;
-        }
-
-        if (this.verifyTimeoutId) {
-            clearTimeout(this.verifyTimeoutId);
-            this.verifyTimeoutId = null;
-        }
-    },
-
-    startVerifyWatcher() {
-        this.stopVerifyWatcher();
-        this.bindResumeEvents();
-
-        this.verifyIntervalId = setInterval(() => {
-            this.verifyCurrentDeposit(true);
-        }, 5000);
-
-        this.verifyTimeoutId = setTimeout(() => {
-            this.stopVerifyWatcher();
-        }, 120000);
-    },
-
-    async refreshPlayerAndUi(successMessage = "") {
-        try {
-            await CryptoZoo.api?.loadPlayer?.();
-        } catch (error) {
-            console.warn("Player reload after deposit failed:", error);
-        }
-
-        CryptoZoo.ui?.render?.();
-        CryptoZoo.uiSettings?.refreshSettingsModalData?.();
-
-        if (successMessage) {
-            CryptoZoo.ui?.showToast?.(successMessage);
-        }
-    },
-
-    async verifyCurrentDeposit(silent = true) {
-        if (this.isVerifyingDeposit) {
-            return false;
-        }
-
-        if (!CryptoZoo.api?.verifyDepositById && !CryptoZoo.api?.verifyPendingDepositsForPlayer) {
-            return false;
-        }
-
-        this.isVerifyingDeposit = true;
-
-        try {
-            let result = null;
-            const depositId = String(this.currentDepositData?.depositId || "").trim();
-
-            if (depositId && CryptoZoo.api?.verifyDepositById) {
-                result = await CryptoZoo.api.verifyDepositById(depositId);
-            } else if (CryptoZoo.api?.verifyPendingDepositsForPlayer) {
-                result = await CryptoZoo.api.verifyPendingDepositsForPlayer();
-            }
-
-            const deposit = result?.deposit || null;
-            const matched = !!result?.matched;
-            const expired = !!result?.expired;
-            const alreadyProcessed = !!result?.alreadyProcessed;
-            const approved =
-                String(deposit?.status || "").toLowerCase() === "approved" ||
-                matched;
-
-            if (approved || alreadyProcessed) {
-                this.stopVerifyWatcher();
-                await this.refreshPlayerAndUi("✅ Depozyt zatwierdzony, bonus dodany");
-                this.closeDepositModal();
-                this.currentDepositData = null;
-                return true;
-            }
-
-            if (expired) {
-                this.stopVerifyWatcher();
-                if (!silent) {
-                    CryptoZoo.ui?.showToast?.("Ten depozyt wygasł");
-                }
-                return false;
-            }
-
-            if (!silent) {
-                CryptoZoo.ui?.showToast?.("Wpłata jeszcze niepotwierdzona");
-            }
-
-            return false;
-        } catch (error) {
-            console.error("Verify deposit error:", error);
-
-            if (!silent) {
-                CryptoZoo.ui?.showToast?.(error.message || "Nie udało się sprawdzić wpłaty");
-            }
-
-            return false;
-        } finally {
-            this.isVerifyingDeposit = false;
+        if (this.loading) {
+            CryptoZoo.ui?.showToast?.("Tworzenie depozytu TON...");
         }
     },
 
     async createDeposit(amountUsd) {
-        if (this.isCreatingDeposit) {
-            return false;
-        }
-
-        this.isCreatingDeposit = true;
+        if (this.loading) return false;
 
         try {
-            const safeAmountUsd = Number((Math.max(0, Number(amountUsd) || 0)).toFixed(2));
+            const safeAmountUsd = Number(amountUsd || 0);
 
-            if (safeAmountUsd < 1) {
+            if (!Number.isFinite(safeAmountUsd) || safeAmountUsd < 1) {
                 throw new Error("Minimalna wpłata to 1$");
             }
 
-            if (!CryptoZoo.api?.createDepositWithPayment) {
-                throw new Error("createDepositWithPayment not available");
+            this.setLoading(true);
+
+            const telegramId =
+                CryptoZoo.telegramUser?.id ||
+                window.Telegram?.WebApp?.initDataUnsafe?.user?.id ||
+                String(window.Telegram?.WebApp?.initDataUnsafe?.user?.username || "").trim() ||
+                "guest";
+
+            const username =
+                CryptoZoo.telegramUser?.username ||
+                window.Telegram?.WebApp?.initDataUnsafe?.user?.username ||
+                "";
+
+            const response = await fetch("/api/deposit/create", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({
+                    telegramId,
+                    username,
+                    amountUsd: safeAmountUsd,
+                    source: "ton"
+                })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result?.ok) {
+                throw new Error(result?.error || "payment_create_failed");
             }
 
-            const result = await CryptoZoo.api.createDepositWithPayment(safeAmountUsd);
-            const deposit = result?.deposit || null;
-            const payment = result?.payment || null;
+            const paymentUrl =
+                result?.payment?.paymentUrl ||
+                result?.paymentUrl ||
+                result?.deposit?.paymentUrl ||
+                "";
 
-            if (!deposit || !payment) {
-                throw new Error("Deposit payment data missing");
-            }
+            const payAddress =
+                result?.payment?.payAddress ||
+                result?.payment?.receiverAddress ||
+                result?.deposit?.walletAddress ||
+                result?.deposit?.receiverAddress ||
+                "";
 
-            let receiverAddress = String(
-                payment.receiverAddress ||
-                payment.address ||
-                payment.walletAddress ||
-                deposit.receiverAddress ||
-                deposit.walletAddress ||
-                ""
-            ).trim();
-
-            const paymentAmountTon = Number(
-                payment.expectedAmount ??
-                deposit.expectedAmount ??
-                payment.amount ??
-                deposit.amount ??
+            const payAmountTon = Number(
+                result?.payment?.payAmount ||
+                result?.payment?.amount ||
+                result?.deposit?.amount ||
                 0
-            ) || 0;
+            );
 
-            const baseAmountUsd = Number(
-                payment.baseAmountUsd ??
-                deposit.baseAmountUsd ??
-                payment.baseAmount ??
-                deposit.baseAmount ??
-                safeAmountUsd
-            ) || safeAmountUsd;
+            const nanoAmount =
+                Number.isFinite(payAmountTon) && payAmountTon > 0
+                    ? Math.floor(payAmountTon * 1000000000)
+                    : 0;
 
-            const uniqueFraction = Number(
-                payment.uniqueFraction ??
-                deposit.uniqueFraction ??
-                0
-            ) || 0;
+            const tonDeepLink =
+                payAddress && nanoAmount > 0
+                    ? `https://app.tonkeeper.com/transfer/${payAddress}?amount=${nanoAmount}`
+                    : (payAddress ? `https://app.tonkeeper.com/transfer/${payAddress}` : "");
 
-            if (!receiverAddress) {
-                receiverAddress = "UQBkMGcFpt0QK8huriOMEYC8T2hfhPGHJXDxnKT8Shguc0jY";
+            const finalUrl = tonDeepLink;
+
+            if (!finalUrl) {
+                throw new Error("Brak linku płatności");
             }
 
-            if (paymentAmountTon <= 0) {
-                throw new Error("Missing TON payment amount");
+            this.lastDepositId = result?.deposit?.id || result?.payment?.depositId || "";
+
+            const paymentId = String(result?.payment?.paymentId || result?.deposit?.paymentId || "");
+            const depositId = String(result?.deposit?.id || result?.payment?.depositId || "");
+            this.lastDepositId = depositId;
+
+            let mount = document.getElementById("settingsDepositPaymentMount");
+            if (!mount) {
+                mount = document.createElement("div");
+                mount.id = "settingsDepositPaymentMount";
+                const btn = document.getElementById("settingsCreateDepositBtn");
+                btn?.insertAdjacentElement("afterend", mount);
             }
 
-            const bonusMeta = this.getDepositBonusMeta(baseAmountUsd, payment, deposit);
-            const bonusText = this.formatBonusText(bonusMeta);
+            mount.innerHTML = `
+<div style="margin-top:14px;padding:14px;border-radius:18px;background:linear-gradient(145deg,rgba(25,34,62,.96),rgba(11,18,38,.96));border:1px solid rgba(255,255,255,.14);box-shadow:0 12px 34px rgba(0,0,0,.35);color:#fff;">
+<div style="font-size:22px;font-weight:900;text-align:center;margin-bottom:12px;">Doładuj za pomocą TON</div>
 
-            this.currentDepositData = {
-                depositId: String(deposit.depositId || deposit.id || payment.depositId || ""),
-                address: receiverAddress,
-                amount: paymentAmountTon,
-                expectedAmount: paymentAmountTon,
-                baseAmount: baseAmountUsd,
-                baseAmountUsd,
-                uniqueFraction,
-                bonusText
+<div style="padding:12px;border-radius:14px;background:rgba(255,255,255,.06);margin-bottom:10px;">
+<div style="font-size:13px;opacity:.75;">Prześlij dokładnie:</div>
+<div style="font-size:25px;font-weight:900;color:#ffd76a;">${payAmountTon} TON</div>
+<button id="copyDepositAmountBtn" class="profile-close-btn" type="button" style="margin-top:10px;">Skopiuj Kwotę</button>
+</div>
+
+<div style="padding:12px;border-radius:14px;background:rgba(255,255,255,.06);margin-bottom:10px;">
+<div style="font-size:13px;opacity:.75;">Portfel:</div>
+<div style="font-size:14px;font-weight:800;word-break:break-all;">${payAddress}</div>
+<button id="copyDepositWalletBtn" class="profile-close-btn" type="button" style="margin-top:10px;">Skopiuj Portfel</button>
+</div>
+
+<div style="padding:12px;border-radius:14px;background:rgba(42,194,255,.10);font-size:13px;color:#bfefff;">
+Nagrody zostaną dodane automatycznie po zaksięgowaniu płatności.
+</div>
+
+<button id="checkDepositStatusBtn" class="profile-close-btn" type="button" style="margin-top:12px;">Sprawdź status</button>
+</div>`;
+
+            const copyText = async (text, msg) => {
+                try {
+                    await navigator.clipboard.writeText(String(text || ""));
+                    CryptoZoo.ui?.showToast?.(msg);
+                } catch (_) {}
             };
 
-            this.bindResumeEvents();
-            this.showDepositModal();
-            this.startVerifyWatcher();
+            document.getElementById("copyDepositAmountBtn")?.addEventListener("click", () => copyText(payAmountTon, "Kwota skopiowana"));
+            document.getElementById("copyDepositWalletBtn")?.addEventListener("click", () => copyText(payAddress, "Portfel skopiowany"));
+            document.getElementById("checkDepositStatusBtn")?.addEventListener("click", () => this.verifyLastDeposit?.());
 
-            const toastMessage = bonusText
-                ? `Depozyt ${this.formatUsdAmount(baseAmountUsd, 2)}$ utworzony • ${bonusText}`
-                : `Depozyt ${this.formatUsdAmount(baseAmountUsd, 2)}$ utworzony`;
+            setTimeout(() => {
+                this.verifyLastDeposit?.();
+            }, 15000);
 
-            CryptoZoo.ui?.showToast?.(toastMessage);
-
-            return {
-                ok: true,
-                deposit,
-                payment
-            };
+            return true;
         } catch (error) {
-            console.error("Create deposit error:", error);
-            CryptoZoo.ui?.showToast?.(error.message || "Deposit error");
+            console.error("CREATE DEPOSIT ERROR:", error);
+            CryptoZoo.ui?.showToast?.(
+                error?.message || "Nie udało się utworzyć płatności"
+            );
             return false;
         } finally {
-            this.isCreatingDeposit = false;
+            this.setLoading(false);
         }
     },
 
-    async createAndPaySelectedDeposit() {
-        const selectedAmount =
-            Number(CryptoZoo.depositBind?.customUsdAmount) ||
-            Number(CryptoZoo.depositBind?.selectedAmount) ||
-            1;
+    async verifyLastDeposit() {
+        const depositId = String(this.lastDepositId || "").trim();
 
-        return this.createDeposit(selectedAmount);
-    },
+        if (!depositId) {
+            return false;
+        }
 
-    init() {
-        this.bindResumeEvents();
-        this.ensureModal();
+        try {
+            const response = await fetch("/api/deposit/verify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({ depositId })
+            });
+
+            const result = await response.json();
+
+            if (result?.matched) {
+                if (CryptoZoo.api?.loadPlayer) {
+                    await CryptoZoo.api.loadPlayer();
+                }
+                if (CryptoZoo.ui?.render) {
+                    CryptoZoo.ui.render();
+                }
+                if (CryptoZoo.uiSettings?.loadDepositsHistory) {
+                    await CryptoZoo.uiSettings.loadDepositsHistory();
+                }
+                if (CryptoZoo.uiSettings?.refreshSettingsModalData) {
+                    CryptoZoo.uiSettings.refreshSettingsModalData();
+                }
+
+                if (result?.alreadyProcessed) {
+                    CryptoZoo.ui?.showToast?.("Depozyt już wcześniej rozliczony.");
+                } else {
+                    CryptoZoo.ui?.showToast?.("Depozyt potwierdzony. Nagrody dodane.");
+                }
+
+                return true;
+            }
+
+            CryptoZoo.ui?.showToast?.("Depozyt jeszcze niepotwierdzony.");
+            return false;
+        } catch (error) {
+            console.error("VERIFY DEPOSIT ERROR:", error);
+            CryptoZoo.ui?.showToast?.("Błąd sprawdzania depozytu");
+            return false;
+        }
     }
 };

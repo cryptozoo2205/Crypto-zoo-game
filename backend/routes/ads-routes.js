@@ -56,6 +56,8 @@ function ensureOfflineAdsState(player) {
         normalizeNumber(player.offlineAdsResetAt, 0)
     );
 
+    player.offlineAdsEnabled = Boolean(player.offlineAdsEnabled);
+
     player.lastOfflineAdRewardAt = Math.max(
         0,
         normalizeNumber(player.lastOfflineAdRewardAt, 0)
@@ -64,6 +66,7 @@ function ensureOfflineAdsState(player) {
     if (player.offlineAdsResetAt > 0 && player.offlineAdsResetAt <= now) {
         player.offlineAdsHours = 0;
         player.offlineAdsResetAt = 0;
+        player.offlineAdsEnabled = false;
     }
 
     if (player.offlineAdsResetAt > now) {
@@ -77,12 +80,15 @@ function ensureOfflineAdsState(player) {
             0,
             OFFLINE_ADS_MAX_HOURS
         );
+        player.offlineAdsEnabled = player.offlineAdsHours > 0;
     } else if (player.offlineAdsHours > 0) {
         player.offlineAdsResetAt =
             now + (player.offlineAdsHours * 60 * 60 * 1000);
+        player.offlineAdsEnabled = true;
     } else {
         player.offlineAdsResetAt = 0;
         player.offlineAdsHours = 0;
+        player.offlineAdsEnabled = false;
     }
 
     player.offlineMaxSeconds =
@@ -250,6 +256,7 @@ router.post("/reward-offline", async (req, res) => {
 
         player.lastOfflineAdRewardAt = now;
         player.updatedAt = now;
+        player.offlineAdsEnabled = player.offlineAdsHours > 0;
 
         player.offlineMaxSeconds =
             (player.offlineBaseHours +

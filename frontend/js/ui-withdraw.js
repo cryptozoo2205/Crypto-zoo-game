@@ -378,9 +378,11 @@ CryptoZoo.uiWithdraw = {
     async confirmWithdraw() {
         if (this.isRequestingWithdraw) return false;
 
+        CryptoZoo.ui?.showToast?.("DEBUG withdraw: klik działa");
+
         const availability = this.getAvailability();
         if (!availability.ok) {
-            CryptoZoo.ui?.showToast?.(availability.reason);
+            CryptoZoo.ui?.showToast?.("DEBUG blokada: " + availability.reason);
             return false;
         }
 
@@ -398,13 +400,9 @@ CryptoZoo.uiWithdraw = {
             return false;
         }
 
-        const currentWallet = this.getCurrentWalletAddress();
-        if (tonAddress !== currentWallet) {
-            const saved = await this.saveWallet();
-            if (!saved) {
-                return false;
-            }
-        }
+        this.walletAddress = tonAddress;
+        CryptoZoo.state = CryptoZoo.state || {};
+        CryptoZoo.state.tonAddress = tonAddress;
 
         this.isRequestingWithdraw = true;
         this.render();
@@ -526,11 +524,26 @@ CryptoZoo.uiWithdraw = {
         modal.style.pointerEvents = "";
         modal.style.zIndex = "";
 
+        this.ensureAmountUi?.();
+        this.bindAmountUi?.();
         this.render?.();
 
         const amountInput = document.getElementById("withdrawAmountInput");
-        if (amountInput) {
-            setTimeout(() => amountInput.focus(), 50);
+        if (amountInput && !Number(amountInput.value || 0)) {
+            amountInput.value = this.formatRewardAmount(this.getRewardWallet());
+            this.render?.();
+        }
+
+        const saveBtn = document.getElementById("saveWithdrawWalletBtn");
+        if (saveBtn && !saveBtn.dataset.withdrawBound) {
+            saveBtn.dataset.withdrawBound = "1";
+            saveBtn.addEventListener("click", () => this.saveWallet());
+        }
+
+        const confirmBtn = document.getElementById("confirmWithdrawBtn");
+        if (confirmBtn && !confirmBtn.dataset.withdrawBound) {
+            confirmBtn.dataset.withdrawBound = "1";
+            confirmBtn.addEventListener("click", () => this.confirmWithdraw());
         }
     }
 };

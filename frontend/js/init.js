@@ -208,7 +208,6 @@ CryptoZoo.init = {
 
         await this.runSafe(async () => {
             await CryptoZoo.api?.init?.();
-            this.refreshLoadedUi();
         });
 
         this.setLoadingProgress(68);

@@ -273,7 +273,7 @@ function validateWithdrawRequest(db, player, amount) {
     if (accountAgeMs < MIN_ACCOUNT_AGE_MS) {
         return {
             ok: false,
-            error: ""
+            error: `Account too new: ${accountAgeMs}/${MIN_ACCOUNT_AGE_MS}`
         };
     }
 

@@ -159,7 +159,7 @@ function createDeposit({
 
         createdAt: now,
         updatedAt: now,
-        expiresAt: now + 30 * 60 * 1000,
+        expiresAt: now + 5 * 60 * 1000,
 
         note: ""
     };

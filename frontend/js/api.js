@@ -26,3 +26,27 @@ window.CryptoZoo.api = window.CryptoZoo.api || {
     saveDebounceMs: 4000,
     saveFailCooldownMs: 15000
 };
+CryptoZoo.api.createDepositWithTonPay = async function(amount){
+    const r = await fetch(this.apiBase + '/tonpay/create', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+            telegramId: CryptoZoo.telegramUser?.id || null,
+            usdAmount: amount
+        })
+    });
+
+    const data = await r.json();
+
+    if (!data.ok) {
+        throw new Error(data.error || 'tonpay_failed');
+    }
+
+    if (data.paymentUrl) {
+        window.open(data.paymentUrl, '_blank');
+    }
+
+    return data;
+};
+

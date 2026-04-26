@@ -11,3 +11,14 @@ logs/
 npm-debug.log*
 yarn-error.log
 .DS_Store
+.env
+backend/.env
+node_modules/
+backend/node_modules/
+.env
+backend/.env
+*.bak
+*.bak-*
+*.BROKEN.*
+backup-*/
+backend/data/

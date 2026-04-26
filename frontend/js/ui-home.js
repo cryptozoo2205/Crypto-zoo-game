@@ -416,6 +416,7 @@ Object.assign(CryptoZoo.ui, {
     },
 
     renderHome() {
+        if (!CryptoZoo.stateReadyForHomeRender) return;
         const state = CryptoZoo.state || {};
         const animals = state.animals || {};
         const animalsConfig = CryptoZoo.config?.animals || {};
@@ -468,6 +469,7 @@ Object.assign(CryptoZoo.ui, {
     },
 
     renderTopHiddenStats() {
+        if (!CryptoZoo.stateReadyForHomeRender) return;
         const state = CryptoZoo.state || {};
         const boostMultiplier = CryptoZoo.boostSystem?.getMultiplier?.() || 1;
 

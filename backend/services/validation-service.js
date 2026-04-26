@@ -224,7 +224,15 @@ function validateProgress(oldPlayer, newPlayer) {
     }
 
     newPlayer.coins = clamp(Number(newPlayer.coins || 0), 0, LIMITS.MAX_COINS);
-    newPlayer.gems = clamp(Number(newPlayer.gems || 0), 0, LIMITS.MAX_GEMS);
+
+    const oldGems = Number(oldPlayer.gems || 0);
+    const incomingGems = Number(newPlayer.gems || 0);
+    if (oldGems > 0 && incomingGems === 0) {
+        newPlayer.gems = oldGems;
+    } else {
+        newPlayer.gems = clamp(incomingGems, 0, LIMITS.MAX_GEMS);
+    }
+
     newPlayer.level = clamp(Number(newPlayer.level || 1), 1, LIMITS.MAX_LEVEL);
     newPlayer.xp = clamp(Number(newPlayer.xp || 0), 0, LIMITS.MAX_XP);
 
@@ -310,7 +318,10 @@ function buildSafePlayerState(oldPlayer, incomingRaw) {
             ...normalizeObject(incoming.telegramUser)
         },
 
-        coins: Number(incoming.coins || 0),
+        coins: Math.max(
+            Number(oldSafe?.coins || 0),
+            Number(incoming.coins || 0)
+        ),
         gems: Number(incoming.gems || 0),
         rewardBalance: Math.max(
             normalizeRewardNumber(oldSafe?.rewardBalance, 0),
@@ -459,6 +470,9 @@ function buildSafePlayerState(oldPlayer, incomingRaw) {
 
         offlineAdsResetAt:
             Number(incomingObj.offlineAdsResetAt ?? incoming.offlineAdsResetAt ?? oldSafe?.offlineAdsResetAt ?? 0),
+
+        offlineAdsEnabled: Number(incomingObj.offlineAdsResetAt ?? incoming.offlineAdsResetAt ?? oldSafe?.offlineAdsResetAt ?? 0) > Date.now() && Number(incomingObj.offlineAdsHours ?? incoming.offlineAdsHours ?? oldSafe?.offlineAdsHours ?? 0) > 0,
+
         offlineMaxSeconds: Math.max(
             Number(oldSafe?.offlineMaxSeconds || 3600),
             Number(incomingObj.offlineMaxSeconds || 3600),

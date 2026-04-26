@@ -41,6 +41,7 @@ Object.assign(window.CryptoZoo.api, {
 
             level: state.level,
             xp: state.xp,
+            boost2xActiveUntil: state.boost2xActiveUntil,
 
             coinsPerClick: state.coinsPerClick,
             zooIncome: state.zooIncome,

@@ -1,4 +1,5 @@
 const express = require("express");
+const nowPayments = require("../services/nowpayments-service");
 
 const { readDb, writeDb } = require("../db/db");
 const { safeString, clamp, normalizeRewardNumber } = require("../utils/helpers");
@@ -8,11 +9,9 @@ const {
     getPlayerDeposits,
     buildDepositPaymentData
 } = require("../services/deposit-service");
-const {
-    verifySingleDepositById,
-    verifyPendingDepositsForPlayer
-} = require("../services/deposit-verifier-service");
+const depositVerifier = require("../services/deposit-verifier-service");
 const { requireAdmin } = require("../services/withdraw-service");
+
 
 const router = express.Router();
 
@@ -351,7 +350,7 @@ function applyApprovedDepositToPlayer(player, deposit) {
    CREATE DEPOSIT
 ========================= */
 
-router.post("/create", (req, res) => {
+router.post("/create", async (req, res) => {
     const db = readDb();
     db.deposits = Array.isArray(db.deposits) ? db.deposits : [];
 
@@ -417,10 +416,49 @@ router.post("/create", (req, res) => {
     db.deposits.push(deposit);
     writeDb(db);
 
+    let payment = buildDepositPaymentData(deposit);
+
+    if (String(process.env.NOWPAYMENTS_ENABLED || "").toLowerCase() === "true") {
+        try {
+            const nowPayment = await nowPayments.createPayment({
+                amountUsd: amountUsd,
+                orderId: String(deposit.id),
+                orderDescription: `CryptoZoo deposit ${amountUsd} USD`
+            });
+
+            payment = {
+                ...payment,
+                provider: "NOWPAYMENTS",
+                paymentId: nowPayment.payment_id || nowPayment.id || null,
+                paymentUrl: nowPayment.invoice_url || ("https://nowpayments.io/payment/?iid=" + (nowPayment.id || nowPayment.payment_id || "")),
+                payAddress: nowPayment.pay_address || "",
+                payAmount: Number(nowPayment.pay_amount || 0),
+                payCurrency: String(nowPayment.pay_currency || "ton").toUpperCase(),
+                network: String(nowPayment.network || "TON").toUpperCase(),
+                expiresAt: nowPayment.expiration_estimate_date
+                    ? new Date(nowPayment.expiration_estimate_date).getTime()
+                    : payment.expiresAt
+            };
+
+            deposit.provider = "NOWPAYMENTS";
+            deposit.paymentId = nowPayment.payment_id || nowPayment.id || null;
+            deposit.paymentUrl = nowPayment.invoice_url || "";
+            deposit.walletAddress = nowPayment.pay_address || "";
+            deposit.amount = Number(nowPayment.pay_amount || deposit.amount || 0);
+            deposit.currency = String(nowPayment.pay_currency || "TON").toUpperCase();
+            deposit.network = String(nowPayment.network || "TON").toUpperCase();
+            deposit.updatedAt = Date.now();
+
+            writeDb(db);
+        } catch (error) {
+            console.error("NOWPayments create error:", error);
+        }
+    }
+
     return res.json({
         ok: true,
         deposit,
-        payment: buildDepositPaymentData(deposit)
+        payment
     });
 });
 
@@ -458,26 +496,125 @@ router.post("/payment-data", (req, res) => {
 
 router.post("/verify", async (req, res) => {
     try {
+        const db = readDb();
+        db.deposits = Array.isArray(db.deposits) ? db.deposits : [];
+
         const depositId = safeString(req.body?.depositId, "");
 
         if (!depositId) {
             return res.status(400).json({ error: "Missing depositId" });
         }
 
-        const result = await verifySingleDepositById(depositId);
+        const deposit = db.deposits.find((d) => String(d.id) === String(depositId));
 
-        if (!result.ok) {
+        if (!deposit) {
+            return res.status(404).json({ error: "Deposit not found" });
+        }
+
+        if (
+            String(deposit.status || "").toLowerCase() === "paid" ||
+            deposit.rewardAppliedAt
+        ) {
+            deposit.rewardConfirmed = true;
+            writeDb(db);
             return res.json({
                 ok: true,
-                matched: false,
-                message: result.error || "Deposit not matched yet",
-                duplicateTxHash: !!result.duplicateTxHash,
-                deposit: result.deposit || null,
-                player: result.player || null
+                matched: true,
+                alreadyProcessed: true,
+                deposit
             });
         }
 
-        return res.json(result);
+        if (!deposit.paymentId) {
+            return res.json({
+                ok: true,
+                matched: false,
+                message: "Missing NOWPayments paymentId",
+                deposit
+            });
+        }
+
+        const remote = await nowPayments.getPaymentStatus(deposit.paymentId);
+        const remoteStatus = safeString(remote?.payment_status || remote?.paymentStatus, "").toLowerCase();
+
+        deposit.remoteStatus = remoteStatus || deposit.remoteStatus || "";
+        deposit.updatedAt = Date.now();
+
+        const paidStatuses = ["finished", "confirmed", "sending", "partially_paid"];
+
+        if (!paidStatuses.includes(remoteStatus)) {
+            writeDb(db);
+            return res.json({
+                ok: true,
+                matched: false,
+                message: `Payment status: ${remoteStatus || "unknown"}`,
+                remote,
+                deposit
+            });
+        }
+
+        const telegramId = safeString(deposit.telegramId, "");
+        const players = db.players && typeof db.players === "object" ? db.players : {};
+        const player = players[telegramId];
+
+        if (!player) {
+            writeDb(db);
+            return res.status(404).json({
+                error: "Player not found",
+                deposit
+            });
+        }
+
+        const gemsAmount = Math.max(0, Number(deposit.gemsAmount || 0));
+        const boostAmount = Math.max(0, Number(deposit.expeditionBoostAmount || 0));
+        const boostDurationMs = Math.max(0, Number(deposit.expeditionBoostDurationMs || 0));
+
+        player.gems = Math.max(0, Number(player.gems || 0)) + gemsAmount;
+
+        if (boostAmount > 0 && boostDurationMs > 0) {
+            player.expeditionBoostAmount = Math.max(
+                Number(player.expeditionBoostAmount || 0),
+                boostAmount
+            );
+            const nowMs = Date.now();
+            const currentBoostUntil = Math.max(0, Number(player.expeditionBoostActiveUntil || 0));
+            const boostBaseTime = currentBoostUntil > nowMs ? currentBoostUntil : nowMs;
+
+            player.expeditionBoostActiveUntil = boostBaseTime + boostDurationMs;
+        }
+
+        deposit.status = "paid";
+        deposit.rewardAppliedAt = Date.now();
+        deposit.rewardConfirmed = true;
+        deposit.txHash = safeString(remote?.payin_hash || remote?.payout_hash || deposit.txHash || "");
+        deposit.actualPaid = Number(remote?.actually_paid || remote?.pay_amount || deposit.amount || 0);
+
+        player.depositHistory = Array.isArray(player.depositHistory) ? player.depositHistory : [];
+        player.depositHistory.unshift({
+            id: deposit.id,
+            paymentId: deposit.paymentId,
+            provider: "NOWPAYMENTS",
+            status: "paid",
+            amountUsd: deposit.amountUsd,
+            amount: deposit.amount,
+            tonAmount: deposit.tonAmount,
+            gemsAmount,
+            expeditionBoostAmount: boostAmount,
+            expeditionBoostDurationMs: boostDurationMs,
+            createdAt: deposit.createdAt,
+            paidAt: deposit.rewardAppliedAt
+        });
+
+        db.players = players;
+        writeDb(db);
+
+        return res.json({
+            ok: true,
+            matched: true,
+            remoteStatus,
+            deposit,
+            player
+        });
     } catch (error) {
         console.error("Deposit verify error:", error);
         return res.status(500).json({
@@ -498,7 +635,7 @@ router.post("/verify-player", async (req, res) => {
             return res.status(400).json({ error: "Missing telegramId" });
         }
 
-        const result = await verifyPendingDepositsForPlayer(telegramId);
+        const result = await depositVerifier.verifyPendingDepositsForPlayer(telegramId);
 
         return res.json({
             ok: true,

@@ -214,7 +214,9 @@ Object.assign(window.CryptoZoo.api, {
         );
 
         const offlineAdsEnabled =
-            offlineAdsHours > 0 && offlineAdsResetAt > Date.now();
+            Boolean(data.offlineAdsEnabled) &&
+            offlineAdsHours > 0 &&
+            offlineAdsResetAt > Date.now();
 
         const offlineMaxSeconds = Math.max(
             0,

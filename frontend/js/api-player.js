@@ -210,6 +210,7 @@ Object.assign(window.CryptoZoo.api, {
 
         if (serverRaw) {
             CryptoZoo.state = this.mergeStates(serverRaw, localRaw || {});
+            CryptoZoo.state.gems = Math.max(0, Number(serverRaw.gems) || 0);
             CryptoZoo.state.offlineAdsHours = Math.max(
                 0,
                 Number(serverRaw.offlineAdsHours) || 0
@@ -218,6 +219,7 @@ Object.assign(window.CryptoZoo.api, {
                 0,
                 Number(serverRaw.offlineAdsResetAt) || 0
             );
+            CryptoZoo.state.offlineAdsEnabled = Boolean(serverRaw.offlineAdsEnabled);
             CryptoZoo.state.offlineMaxSeconds = Math.max(
                 3600,
                 Number(serverRaw.offlineMaxSeconds) || 3600

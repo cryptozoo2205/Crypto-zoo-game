@@ -139,7 +139,7 @@ Object.assign(window.CryptoZoo.api, {
             },
 
             coins: Math.max(server.coins, local.coins),
-            gems: Math.max(server.gems, local.gems),
+            gems: Number(local.gems ?? server.gems ?? 0),
 
             rewardBalance: server.rewardBalance,
             rewardWallet: server.rewardWallet,

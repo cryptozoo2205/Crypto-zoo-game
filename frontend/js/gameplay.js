@@ -50,7 +50,7 @@ CryptoZoo.gameplay = {
         this.ensureState();
         this.resetTapAntiCheat();
         this.recalculateProgress();
-        this.applyOfflineEarnings();
+        CryptoZoo.stateReadyForHomeRender = true;
 
         this.bindNavigation();
         this.bindTap();
@@ -62,6 +62,10 @@ CryptoZoo.gameplay = {
         const lastScreen = sessionStorage.getItem("cryptozoo_last_screen") || "game";
         this.showScreen(lastScreen, true);
         this.requestRender(true);
+
+        setTimeout(() => {
+            this.applyOfflineEarnings();
+        }, 1200);
 
         this.startIncomeTimer();
         this.startExpeditionTimer();
@@ -825,7 +829,9 @@ CryptoZoo.gameplay = {
             CryptoZoo.ui?.animateCoin?.(safeAmount);
         }
 
+        CryptoZoo.api?.savePlayer?.();
         this.requestRender();
+        return;
         this.scheduleTapSave();
     },
 
@@ -1001,6 +1007,7 @@ CryptoZoo.gameplay = {
         );
 
         if (lastAwardedLevel >= currentLevel) {
+            CryptoZoo.state.lastAwardedLevel = currentLevel;
             return false;
         }
 
@@ -1060,9 +1067,11 @@ CryptoZoo.gameplay = {
 
     persistAndRender() {
         this.recalculateProgress();
+        CryptoZoo.stateReadyForHomeRender = true;
         
-        this.requestRender();
         CryptoZoo.api?.savePlayer?.();
+        this.requestRender();
+        return;
     },
 
     startBoostTimer() {
