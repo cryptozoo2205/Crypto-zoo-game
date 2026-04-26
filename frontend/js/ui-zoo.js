@@ -21,11 +21,17 @@ Object.assign(CryptoZoo.ui, {
     },
 
     renderZooTabs() {
+        const level = Number(CryptoZoo.state?.level || 1);
+        const desertLocked = level < 50;
+
         return `
-            <div class="zoo-tabs" style="display:flex;gap:8px;margin-bottom:14px;overflow:auto;">
-                <button type="button" id="zoo-tab-jungle" class="zoo-tab-btn ${this.zooTab === "jungle" ? "active" : ""}">Jungle</button>
-                <button type="button" id="zoo-tab-desert" class="zoo-tab-btn ${this.zooTab === "desert" ? "active" : ""}">
-                    Desert ${Number(CryptoZoo.state?.level || 1) < 50 ? "🔒" : ""}
+            <div class="zoo-tabs">
+                <button type="button" id="zoo-tab-jungle" class="zoo-tab-btn jungle ${this.zooTab === "jungle" ? "active" : ""}">
+                    🌴 Jungle
+                </button>
+
+                <button type="button" id="zoo-tab-desert" class="zoo-tab-btn desert ${this.zooTab === "desert" ? "active" : ""} ${desertLocked ? "locked" : ""}">
+                    🏜 Desert ${desertLocked ? "🔒 Lv 50" : ""}
                 </button>
             </div>
         `;
@@ -45,6 +51,7 @@ Object.assign(CryptoZoo.ui, {
         if (desertBtn) {
             desertBtn.onclick = () => {
                 if (Number(CryptoZoo.state?.level || 1) < 50) return;
+
                 this.zooTab = "desert";
                 this.renderZooList();
             };
@@ -57,6 +64,9 @@ Object.assign(CryptoZoo.ui, {
 
         const animalsConfig = CryptoZoo.config?.animals || {};
         const animalsState = CryptoZoo.state?.animals || {};
+
+        zooList.classList.remove("zoo-region-jungle", "zoo-region-desert");
+        zooList.classList.add(`zoo-region-${this.zooTab}`);
 
         const filteredAnimals = Object.keys(animalsConfig).filter((type) => {
             return this.getZooRegion(type) === this.zooTab;
